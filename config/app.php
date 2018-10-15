@@ -109,6 +109,18 @@ return [
     'cipher' => 'AES-256-CBC',
 
     /*
+   |--------------------------------------------------------------------------
+   | Custom Config
+   |--------------------------------------------------------------------------
+   |
+   |
+   |
+   |
+   */
+
+    'api_debug' => env('API_DEBUG', false),
+
+    /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
     |--------------------------------------------------------------------------
@@ -159,6 +171,11 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+
+        /*
+         * dingo
+         */
+        Dingo\Api\Provider\LaravelServiceProvider::class,
 
     ],
 

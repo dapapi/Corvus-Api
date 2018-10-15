@@ -32,8 +32,7 @@ class User extends Authenticatable
 
     public function findForPassport($name)
     {
-        $user = User::normal()
-            ->where('name', $name)
+        $user = User::where('name', $name)
             ->first();
         return $user;
     }

@@ -10,6 +10,8 @@ class Affix extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'affixes';
+
     protected $fillable = [
         'user_id',
         'affixable_id',

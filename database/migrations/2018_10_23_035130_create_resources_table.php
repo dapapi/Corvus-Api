@@ -18,7 +18,7 @@ class CreateResourcesTable extends Migration
             $table->string('title');
             $table->tinyInteger('type')->default(1);
             $table->tinyInteger('status')->default(1);
-            $table->string('desc');
+            $table->string('desc')->nullable();
             $table->timestamps();
         });
     }

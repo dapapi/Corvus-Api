@@ -17,21 +17,17 @@ class CreateTasksTable extends Migration
             $table->increments('id');
             $table->string('title');
             $table->tinyInteger('type')->default(1);
-            $table->unsignedInteger('task_pid');
+            $table->unsignedInteger('task_pid')->nullable();
             $table->unsignedInteger('creator_id');
             $table->unsignedInteger('principal_id');
             $table->tinyInteger('status')->default(1);
-            $table->tinyInteger('priority');
-            $table->text('desc');
-            $table->dateTime('start_at');
-            $table->dateTime('end_at');
-            $table->dateTime('complete_at');
-            $table->dateTime('stop_at');
+            $table->tinyInteger('priority')->nullable();
+            $table->text('desc')->nullable();
+            $table->dateTime('start_at')->nullable();
+            $table->dateTime('end_at')->nullable();
+            $table->dateTime('complete_at')->nullable();
+            $table->dateTime('stop_at')->nullable();
             $table->timestamps();
-
-            $table->foreign('task_pid')
-                ->references('id')
-                ->on('tasks');
 
             $table->foreign('creator_id')
                 ->references('id')

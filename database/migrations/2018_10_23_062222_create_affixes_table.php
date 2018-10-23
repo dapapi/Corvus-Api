@@ -21,8 +21,8 @@ class CreateAffixesTable extends Migration
             $table->string('title');
             $table->string('url');
             $table->tinyInteger('type');
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

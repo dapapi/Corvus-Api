@@ -47,4 +47,9 @@ class Task extends Model
     {
         return $this->hasOne(TaskResource::class);
     }
+
+    public function affixes()
+    {
+        return $this->morphMany(Affix::class, 'affixable');
+    }
 }

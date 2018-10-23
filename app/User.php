@@ -4,6 +4,7 @@ namespace App;
 
 use App\Models\Affix;
 use App\Models\Task;
+use App\Models\DepartmentUser;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
@@ -53,4 +54,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Affix::class);
     }
+
+    public function department()
+    {
+        $this->belongsTo(DepartmentUser::class);
+    }
+
 }

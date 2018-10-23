@@ -43,6 +43,5 @@ class TaskTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
-1
-
+    1
 }

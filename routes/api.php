@@ -9,5 +9,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post('/test/login', 'App\Http\Controllers\TestController@signin');
     }
-    $api->get('/test/index', 'App\Http\Controllers\TaskController@index');
+
+    // task
+    $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
+
+
 });

@@ -22,4 +22,9 @@ class Department extends Model
     {
         return $this->hasMany(Department::class, 'department_pid', 'id');
     }
+
+    public function users()
+    {
+        return $this->hasManyThrough(User::class, DepartmentUser::class, 'department_id', 'id', 'id', 'user_id');
+    }
 }

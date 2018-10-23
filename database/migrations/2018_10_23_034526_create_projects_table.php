@@ -19,7 +19,7 @@ class CreateProjectsTable extends Migration
             $table->unsignedInteger('principal_id');
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('type')->default(1);
-            $table->text('desc');
+            $table->text('desc')->nullable();
             $table->timestamps();
 
             $table->foreign('principal_id')->references('id')->on('users');

@@ -17,7 +17,7 @@ class CreateProjectTemplateFieldsTable extends Migration
             $table->increments('id');
             $table->string('key');
             $table->tinyInteger('field_type');
-            $table->string('content');
+            $table->string('content')->nullable();
             $table->tinyInteger('module_type');
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('is_secret')->default(1);

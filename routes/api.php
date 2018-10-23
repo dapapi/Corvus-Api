@@ -14,4 +14,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
 
 
+    // department
+    $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+
+
 });

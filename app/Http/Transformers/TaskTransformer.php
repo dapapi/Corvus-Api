@@ -45,5 +45,6 @@ class TaskTransformer extends TransformerAbstract
     }
 1
 2
+3
 
 }

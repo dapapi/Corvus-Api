@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Models\DepartmentUser;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
@@ -40,6 +41,11 @@ class User extends Authenticatable
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);
+    }
+
+    public function department()
+    {
+        $this->belongsTo(DepartmentUser::class, 'user_id', 'id');
     }
 
 }

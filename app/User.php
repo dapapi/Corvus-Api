@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Models\Affix;
+use App\Models\Task;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
@@ -9,7 +11,7 @@ use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens,Notifiable;
+    use HasApiTokens, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -42,4 +44,13 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($value);
     }
 
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function Affixex()
+    {
+        return $this->hasMany(Affix::class);
+    }
 }

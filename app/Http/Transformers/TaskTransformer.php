@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class TaskTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'principal', 'pTask'];
+    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks'];
 
     public function transform(Task $task)
     {
@@ -42,6 +42,20 @@ class TaskTransformer extends TransformerAbstract
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
+    }
+
+    public function includePTask(Task $task)
+    {
+        $task = $task->pTask;
+        if (!$task)
+            return null;
+        return $this->item($task, new TaskTransformer());
+    }
+
+    public function includeTasks(Task $task)
+    {
+        $tasks = $task->tasks;
+        return $this->collection($tasks, new TaskTransformer());
     }
 
 }

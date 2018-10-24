@@ -11,6 +11,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     }
 
     // task
+    $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
+    $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
     $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
 
 

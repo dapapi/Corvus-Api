@@ -16,18 +16,20 @@ class CreateTasksTable extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->increments('id');
             $table->string('title');
-            $table->tinyInteger('type')->default(1);
+            $table->unsignedInteger('type_id');
             $table->unsignedInteger('task_pid')->nullable();
             $table->unsignedInteger('creator_id');
             $table->unsignedInteger('principal_id');
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('priority')->nullable();
             $table->text('desc')->nullable();
+            $table->boolean('privacy');
             $table->dateTime('start_at')->nullable();
             $table->dateTime('end_at')->nullable();
             $table->dateTime('complete_at')->nullable();
             $table->dateTime('stop_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('creator_id')
                 ->references('id')
@@ -36,6 +38,10 @@ class CreateTasksTable extends Migration
             $table->foreign('principal_id')
                 ->references('id')
                 ->on('users');
+
+            $table->foreign('type_id')
+                ->references('id')
+                ->on('task_types');
 
         });
     }

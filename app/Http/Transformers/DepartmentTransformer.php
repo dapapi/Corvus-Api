@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class DepartmentTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['departments', 'users'];
+    protected $defaultIncludes = ['departments', 'users'];
 
     public function transform(Department $department)
     {

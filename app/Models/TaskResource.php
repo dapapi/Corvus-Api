@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaskResource extends Model
 {
+
     protected $fillable = [
         'task_id',
         'resourceable_id',

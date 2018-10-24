@@ -27,7 +27,9 @@ class TestController extends Controller
 
     public function testArray()
     {
-        $ids = [1, 2, 3, 4];
+        $ids = [1, 2, 2, 3, 4];
+        $ids = array_unique($ids);//去重
+        dd($ids);
         foreach ($ids as $key => &$id) {
             if ($id == 2) {
                 array_splice($ids, $key, 1);

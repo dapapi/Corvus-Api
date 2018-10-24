@@ -77,8 +77,9 @@ class TaskController extends Controller
                         $participantId = hashid_decode($participantId);
                         $participantUser = User::findOrFail($participantId);
 
-                        Moduleuser::create([
-                            'moduleable_id' => $participantUser->id,
+                        ModuleUser::create([
+                            'user_id' => $participantUser->id,
+                            'moduleable_id' => $task->id,
                             'moduleable_type' => Task::class,
                             'type' => 1,
                         ]);

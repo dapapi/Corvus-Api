@@ -16,10 +16,10 @@ class CreateTasksTable extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->increments('id');
             $table->string('title');
-            $table->unsignedInteger('type_id');
+            $table->unsignedInteger('type_id')->nullable();
             $table->unsignedInteger('task_pid')->nullable();
             $table->unsignedInteger('creator_id');
-            $table->unsignedInteger('principal_id');
+            $table->unsignedInteger('principal_id')->nullable();
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('priority')->nullable();
             $table->text('desc')->nullable();

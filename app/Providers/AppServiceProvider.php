@@ -21,8 +21,8 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         Relation::morphMap([
-            'tasks' => Task::class,
-            'projects' => Project::class,
+            'task' => Task::class,
+            'project' => Project::class,
         ]);
     }
 

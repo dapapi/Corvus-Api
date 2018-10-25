@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Models\Affix;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\DepartmentUser;
 use Illuminate\Notifications\Notifiable;

@@ -2,9 +2,7 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
-
-class ModuleableType extends Model
+abstract class ModuleableType
 {
     const PROJECT = 'project';
     const TASK = 'task';

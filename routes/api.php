@@ -6,14 +6,20 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     # 测试模块
     if (config('app.api_debug')) {
         $api->get('/test/hello', 'App\Http\Controllers\TestController@hello');
-
         $api->post('/test/login', 'App\Http\Controllers\TestController@signin');
+        $api->get('/test/array', 'App\Http\Controllers\TestController@testArray');
     }
 
-    // task
-    $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
-    $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
-    $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
+
+    $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
+        // task
+        $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
+        $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
+        $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
+        $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
+        $api->post('/tasks/{task}/subtask', 'App\Http\Controllers\TaskController@store');
+
+    });
 
 
     // department

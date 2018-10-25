@@ -19,6 +19,7 @@ class TaskTransformer extends TransformerAbstract
             'status' => $task->status,
             'priority' => $task->priority,
             'desc' => $task->desc,
+            'privacy' => boolval($task->privacy),
             'start_at' => $task->start_at ? $task->start_at->toDatetimeString() : null,
             'end_at' => $task->end_at ? $task->end_at->toDatetimeString() : null,
             'complete_at' => $task->complete_at ? $task->complete_at->toDatetimeString() : null,

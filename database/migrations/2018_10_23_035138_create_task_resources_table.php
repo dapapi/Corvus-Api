@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateTasksResourcesTable extends Migration
+class CreateTaskResourcesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateTasksResourcesTable extends Migration
      */
     public function up()
     {
-        Schema::create('tasks_resources', function (Blueprint $table) {
+        Schema::create('task_resources', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('task_id');
             $table->unsignedInteger('resourceable_id');
@@ -38,6 +38,6 @@ class CreateTasksResourcesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tasks_resources');
+        Schema::dropIfExists('task_resources');
     }
 }

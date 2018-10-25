@@ -15,10 +15,15 @@ class CreateModuleUsersTable extends Migration
     {
         Schema::create('module_users', function (Blueprint $table) {
             $table->increments('id');
+            $table->unsignedInteger('user_id');
             $table->unsignedInteger('moduleable_id');
-            $table->unsignedInteger('moduleable_type');
+            $table->string('moduleable_type');
             $table->tinyInteger('type')->default(1);
             $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users');
         });
     }
 

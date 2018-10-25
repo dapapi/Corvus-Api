@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ModuleUser extends Model
 {
     protected $fillable = [
+        'user_id',
         'moduleable_id',
         'moduleable_type',
         'type'

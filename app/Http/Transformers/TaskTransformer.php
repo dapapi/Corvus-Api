@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class TaskTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks'];
+    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks', 'resource', 'affixes'];
 
     public function transform(Task $task)
     {
@@ -20,12 +20,13 @@ class TaskTransformer extends TransformerAbstract
             'priority' => $task->priority,
             'desc' => $task->desc,
             'privacy' => boolval($task->privacy),
-            'start_at' => $task->start_at ? $task->start_at->toDatetimeString() : null,
-            'end_at' => $task->end_at ? $task->end_at->toDatetimeString() : null,
-            'complete_at' => $task->complete_at ? $task->complete_at->toDatetimeString() : null,
-            'stop_at' => $task->stop_at ? $task->stop_at->toDatetimeString() : null,
+            'start_at' => $task->start_at,
+            'end_at' => $task->end_at,
+            'complete_at' => $task->complete_at,
+            'stop_at' => $task->stop_at,
             'created_at' => $task->created_at->toDatetimeString(),
             'updated_at' => $task->updated_at->toDatetimeString(),
+            'deleted_at' => $task->deleted_at,
         ];
     }
 
@@ -55,8 +56,22 @@ class TaskTransformer extends TransformerAbstract
 
     public function includeTasks(Task $task)
     {
-        $tasks = $task->tasks;
+        $tasks = $task->tasks()->createDesc()->get();
         return $this->collection($tasks, new TaskTransformer());
+    }
+
+    public function includeAffixes(Task $task)
+    {
+        $affixes = $task->affixes()->createDesc()->get();
+        return $this->collection($affixes, new AffixTransformer());
+    }
+
+    public function includeResource(Task $task)
+    {
+        $resource = $task->resource;
+        if (!$resource)
+            return null;
+        return $this->item($resource, new TaskResourceTransformer());
     }
 
 }

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -21,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         Relation::morphMap([
-            'tasks' => Task::class,
-            'projects' => Project::class,
+            ModuleableType::TASK => Task::class,
+            ModuleableType::PROJECT => Project::class,
         ]);
     }
 

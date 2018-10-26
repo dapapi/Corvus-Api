@@ -32,7 +32,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::bind('task', function ($value) {
             try {
                 $id = hashid_decode($value);
-                $entity = Task::findOrFail($id);
+                $entity = Task::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

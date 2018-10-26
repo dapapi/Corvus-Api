@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\TestController;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'title',
         'type',
@@ -21,8 +23,14 @@ class Task extends Model
         'start_at',
         'end_at',
         'complete_at',
-        'stop_at'
+        'stop_at',
+        'deleted_at',
     ];
+
+    public function scopeCreateDesc($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
 
     public function pTask()
     {
@@ -31,7 +39,7 @@ class Task extends Model
 
     public function tasks()
     {
-        return $this->hasMany(Task::class, 'id', 'task_pid');
+        return $this->hasMany(Task::class, 'task_pid', 'id');
     }
 
     public function creator()

@@ -23,4 +23,9 @@ class TaskResource extends Model
     {
         return $this->morphTo();
     }
+
+    public function resource()
+    {
+        return $this->belongsTo(Resource::class);
+    }
 }

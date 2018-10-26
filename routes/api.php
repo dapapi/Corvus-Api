@@ -17,7 +17,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
+        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@toggleStatus');
+        $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@destroy');
+        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@recoverDestroy');
         $api->post('/tasks/{task}/subtask', 'App\Http\Controllers\TaskController@store');
+        $api->put('/tasks/{task}/privacy', 'App\Http\Controllers\TaskController@togglePrivacy');
+
 
     });
 

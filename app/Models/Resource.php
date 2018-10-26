@@ -12,4 +12,9 @@ class Resource extends Model
         'status',
         'desc'
     ];
+
+    public function taskResource()
+    {
+        return $this->hasMany(TaskResource::class);
+    }
 }

@@ -2,15 +2,6 @@
 
 namespace App;
 
-use App\Models\Affix;
-use App\Models\Task;
-use App\Models\DepartmentUser;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Support\Facades\Hash;
-use Laravel\Passport\HasApiTokens;
-
 /**
  * Class TaskPriorityStatus
  * @package App
@@ -18,8 +9,8 @@ use Laravel\Passport\HasApiTokens;
  */
 abstract class TaskPriorityStatus
 {
-    const HIGH = 1;
-    const MIDDLE = 2;
-    const LOW = 3;
+    const HIGH = 1;//高
+    const MIDDLE = 2;//中
+    const LOW = 3;//低
 
 }

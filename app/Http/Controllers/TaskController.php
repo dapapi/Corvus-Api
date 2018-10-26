@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TaskParticipantRequest;
 use App\Http\Requests\TaskRequest;
+use App\Http\Requests\TaskResourceRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
@@ -22,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+
 class TaskController extends Controller
 {
     public function index(Request $request)
@@ -31,13 +34,95 @@ class TaskController extends Controller
             $pageSize = $request->get('page_size');
         }
 
+        //TODO
         dd(Task::where('id', 1)->first()->affixes);
+    }
+
+    public function show(Task $task)
+    {
+        return $this->response()->item($task, new TaskTransformer());
     }
 
     public function update(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
+        //TODO
+    }
 
+    /**
+     * 移除参与人
+     * @param TaskParticipantRequest $request
+     * @param Task $task
+     */
+    public function removeParticipant(TaskParticipantRequest $request, Task $task)
+    {
+        $payload = $request->all();
+        $participantIds = $payload['participant_ids'];
+        $participantIds = array_unique($participantIds);
+        DB::beginTransaction();
+        try {
+            foreach ($participantIds as $key => &$participantId) {
+                try {
+                    $participantId = hashid_decode($participantId);
+                    $participantUser = User::findOrFail($participantId);
+                    $moduleUser = ModuleUser::where('moduleable_type', ModuleableType::TASK)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
+                    if ($moduleUser) {
+                        $moduleUser->delete();
+                        //TODO 操作日志
+                    }
+                } catch (Exception $e) {
+                    array_splice($participantIds, $key, 1);
+                }
+            }
+            unset($participantId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
+        DB::commit();
+        return $this->response->accepted();
+    }
+
+    /**
+     * 添加参与人
+     * @param TaskParticipantRequest $request
+     * @param Task $task
+     */
+    public function addParticipant(TaskParticipantRequest $request, Task $task)
+    {
+        $payload = $request->all();
+        $participantIds = $payload['participant_ids'];
+        $participantIds = array_unique($participantIds);
+
+        DB::beginTransaction();
+        try {
+            foreach ($participantIds as $key => &$participantId) {
+                try {
+                    $participantId = hashid_decode($participantId);
+                    $participantUser = User::findOrFail($participantId);
+                    $moduleUser = ModuleUser::where('moduleable_type', ModuleableType::TASK)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
+                    if (!$moduleUser) {
+                        ModuleUser::create([
+                            'user_id' => $participantUser->id,
+                            'moduleable_id' => $task->id,
+                            'moduleable_type' => ModuleableType::TASK,
+                            //'type' => 1,
+                        ]);
+                        //TODO 操作日志
+                    }
+                } catch (Exception $e) {
+                    array_splice($participantIds, $key, 1);
+                }
+            }
+            unset($participantId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
+        DB::commit();
+        return $this->response->created();
     }
 
     public function toggleStatus(TaskStatusRequest $request, Task $task)
@@ -134,9 +219,89 @@ class TaskController extends Controller
         DB::commit();
     }
 
-    public function show(Task $task)
+    /**
+     * 解除关联资源
+     * @param Request $request
+     * @param Project $project
+     * @param Task $task
+     */
+    public function relieveResource(Request $request, Project $project, Task $task)
     {
-        return $this->response()->item($task, new TaskTransformer());
+        $payload = $request->all();
+        try {
+            $type = 0;
+            if ($project->id) {
+                $type = ResourceType::PROJECT;
+                $project = Project::findOrFail($project->id);
+                $resourceable_id = $project->id;
+                $resourceable_type = ModuleableType::PROJECT;
+            } else {
+                //TODO 处理其他资源
+            }
+            $resource = Resource::where('type', $type)->first();
+
+            $taskResource = TaskResource::where('task_id', $task->id)
+                ->where('resourceable_id', $resourceable_id)
+                ->where('resourceable_type', $resourceable_type)
+                ->where('resource_id', $resource->id)
+                ->first();
+            if ($taskResource) {
+                $taskResource->delete();
+                //TODO 操作日志
+            } else {
+                return $this->response->noContent();
+            }
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->response->errorInternal('解除关联任务失败');
+        }
+        return $this->response->accepted();
+    }
+
+    /**
+     * 关联资源
+     * @param Request $request
+     * @param Project $project
+     * @param Task $task
+     */
+    public function relevanceResource(Request $request, Project $project, Task $task)
+    {
+        $payload = $request->all();
+        if (!$task->task_pid) {//子任务不能关联资源
+            try {
+                $array = [
+                    'task_id' => $task->id,
+                ];
+
+                $type = 0;
+                if ($project->id) {
+                    $type = ResourceType::PROJECT;
+                    $project = Project::findOrFail($project->id);
+                    $array['resourceable_id'] = $project->id;
+                    $array['resourceable_type'] = ModuleableType::PROJECT;
+                } else {
+                    //TODO 处理其他资源
+                }
+                $resource = Resource::where('type', $type)->first();
+                $array['resource_id'] = $resource->id;
+
+                $taskResource = TaskResource::where('task_id', $task->id)
+                    ->where('resourceable_id', $array['resourceable_id'])
+                    ->where('resourceable_type', $array['resourceable_type'])
+                    ->where('resource_id', $resource->id)
+                    ->first();
+                if (!$taskResource) {
+                    TaskResource::create($array);
+                    //TODO 操作日志
+                } else {
+                    return $this->response->noContent();
+                }
+            } catch (Exception $e) {
+                Log::error($e);
+                return $this->response->errorInternal('关联任务失败');
+            }
+        }
+        return $this->response->created();
     }
 
     public function store(TaskRequest $request, Task $pTask)
@@ -178,32 +343,34 @@ class TaskController extends Controller
         try {
             $task = Task::create($payload);
             //TODO 操作日志
+            if (!$pTask->id) {//子任务不能关联资源
+                //关联资源
+                if ($request->has('resource_id') && $request->has('resourceable_id')) {
+                    $resourceId = hashid_decode($payload['resource_id']);
+                    $resourceableId = hashid_decode($payload['resourceable_id']);
+                    $resource = Resource::findOrFail($resourceId);
+                    $array = [
+                        'task_id' => $task->id,
+                        'resource_id' => $resourceId,
+                    ];
+                    switch ($resource->type) {
+                        case ResourceType::BLOGGER:
+                            //TODO
+                            break;
+                        case ResourceType::ARTIST:
+                            //TODO
+                            break;
+                        case ResourceType::PROJECT:
+                            $project = Project::findOrFail($resourceableId);
+                            $array['resourceable_id'] = $project->id;
+                            $array['resourceable_type'] = ModuleableType::PROJECT;
+                            break;
+                        default:
+                            throw new ModelNotFoundException();
+                    }
 
-            //关联资源
-            if ($request->has('resource_id') && $request->has('resourceable_id')) {
-                $resourceId = hashid_decode($payload['resource_id']);
-                $resourceableId = hashid_decode($payload['resourceable_id']);
-                $resource = Resource::findOrFail($resourceId);
-                switch ($resource->type) {
-                    case ResourceType::BLOGGER:
-                        //TODO
-                        break;
-                    case ResourceType::ARTIST:
-                        //TODO
-                        break;
-                    case ResourceType::PROJECT:
-                        $project = Project::findOrFail($resourceableId);
-                        TaskResource::create([
-                            'task_id' => $task->id,
-                            'resourceable_id' => $project->id,
-                            'resourceable_type' => ModuleableType::PROJECT,
-                            'resource_id' => $resourceId,
-                        ]);
-
-                        //TODO 操作日志
-                        break;
-                    default:
-                        throw new ModelNotFoundException();
+                    TaskResource::create($array);
+                    //TODO 操作日志
                 }
             }
 
@@ -212,22 +379,21 @@ class TaskController extends Controller
                 $participantIds = $payload['participant_ids'];
                 $participantIds = array_unique($participantIds);
                 foreach ($participantIds as $key => &$participantId) {
-                    $participantUser = null;
                     try {
                         $participantId = hashid_decode($participantId);
                         $participantUser = User::findOrFail($participantId);
+                        $moduleUser = ModuleUser::where('moduleable_type', ModuleableType::TASK)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
+                        if (!$moduleUser) {
+                            ModuleUser::create([
+                                'user_id' => $participantUser->id,
+                                'moduleable_id' => $task->id,
+                                'moduleable_type' => ModuleableType::TASK,
+//                            'type' => 1,
+                            ]);
+                        }
+                        //TODO 操作日志
                     } catch (Exception $e) {
                         array_splice($participantIds, $key, 1);
-                    }
-                    if ($participantUser) {
-                        ModuleUser::create([
-                            'user_id' => $participantUser->id,
-                            'moduleable_id' => $task->id,
-                            'moduleable_type' => ModuleableType::TASK,
-//                            'type' => 1,
-                        ]);
-
-                        //TODO 操作日志
                     }
                 }
                 unset($participantId);

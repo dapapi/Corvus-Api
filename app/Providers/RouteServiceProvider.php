@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Project;
 use App\Models\Task;
 use Exception;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Task::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('project', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Project::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

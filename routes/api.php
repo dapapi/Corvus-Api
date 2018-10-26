@@ -21,7 +21,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@destroy');
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@recoverDestroy');
         $api->post('/tasks/{task}/subtask', 'App\Http\Controllers\TaskController@store');
+        $api->post('/tasks/{task}/participant', 'App\Http\Controllers\TaskController@addParticipant');
+        $api->post('/tasks/{task}/participant_remove', 'App\Http\Controllers\TaskController@removeParticipant');
         $api->put('/tasks/{task}/privacy', 'App\Http\Controllers\TaskController@togglePrivacy');
+        //任务关联资源
+        $api->post('/projects/{project}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
+        $api->post('/projects/{project}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
 
 
     });

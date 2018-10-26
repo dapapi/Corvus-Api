@@ -11,7 +11,7 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $depatments = Department::all();
+        $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
 }

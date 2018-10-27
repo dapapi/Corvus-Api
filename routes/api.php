@@ -18,8 +18,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@toggleStatus');
+        $api->post('/tasks/{task}', 'App\Http\Controllers\TaskController@update');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@destroy');
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@recoverDestroy');
+        $api->delete('/tasks/{task}/principal', 'App\Http\Controllers\TaskController@deletePrincipal');
         $api->post('/tasks/{task}/subtask', 'App\Http\Controllers\TaskController@store');
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\TaskController@addParticipant');
         $api->post('/tasks/{task}/participant_remove', 'App\Http\Controllers\TaskController@removeParticipant');

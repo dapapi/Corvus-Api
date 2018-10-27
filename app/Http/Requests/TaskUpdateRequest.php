@@ -33,13 +33,9 @@ class TaskUpdateRequest extends FormRequest
     public function rules()
     {
 
-//        'title',
 //        'type',
 //        'task_pid',
-//        'creator_id',
-//        'principal_id',
-//        'status',
-//        'priority',
+
 //        'desc',
 //        'privacy',
 //        'start_at',
@@ -48,7 +44,8 @@ class TaskUpdateRequest extends FormRequest
 //        'stop_at'
 
         return [
-            'title' => 'max:50',
+            'title' => 'max:255',
+            'principal_id' => 'numeric',
             'privacy' => 'boolean',
             'priority' => Rule::in([TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
             'start_at' => 'date|after_or_equal:curr_date',

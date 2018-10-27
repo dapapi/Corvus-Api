@@ -43,12 +43,6 @@ class TaskController extends Controller
         return $this->response()->item($task, new TaskTransformer());
     }
 
-    public function update(TaskUpdateRequest $request, Task $task)
-    {
-        $payload = $request->all();
-        //TODO
-    }
-
     /**
      * 移除参与人
      * @param TaskParticipantRequest $request
@@ -302,6 +296,63 @@ class TaskController extends Controller
             }
         }
         return $this->response->created();
+    }
+
+    public function deletePrincipal(Request $request, Task $task)
+    {
+        $payload = $request->all();
+
+        try {
+            if ($task->principal_id) {
+                $task->principal_id = null;
+                $task->save();
+                //TODO 操作日志
+
+                return $this->response->accepted();
+            }
+        } catch (Exception $e) {
+            Log::error($e);
+        }
+
+        return $this->response->noContent();
+    }
+
+    public function update(TaskUpdateRequest $request, Task $task)
+    {
+        $payload = $request->all();
+
+        $array = [];
+
+        if ($request->has('title')) {
+            $array['title'] = $payload['title'];
+        }
+
+        if ($request->has('principal_id')) {
+            try {
+                $principalId = hashid_decode($payload['principal_id']);
+                User::findOrFail($principalId);
+                $array['principal_id'] = $principalId;
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest();
+            }
+        }
+
+        if ($request->has('priority')) {
+            $array['priority'] = payload['priority'];
+        }
+
+        try {
+            if (count($array) == 0)
+                return $this->response->noContent();
+
+            $task->update($array);
+            //TODO 操作日志
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+
+        return $this->response->accepted();
     }
 
     public function store(TaskRequest $request, Task $pTask)

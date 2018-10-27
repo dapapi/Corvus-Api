@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TestController extends Controller
@@ -39,6 +40,12 @@ class TestController extends Controller
         }
         unset($id);
         dd($ids);
+    }
+
+    public function date()
+    {
+        $now= Carbon::now();
+        dd($now->toDateTimeString());
     }
 
 }

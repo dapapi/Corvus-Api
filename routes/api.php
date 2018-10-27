@@ -8,6 +8,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/hello', 'App\Http\Controllers\TestController@hello');
         $api->post('/test/login', 'App\Http\Controllers\TestController@signin');
         $api->get('/test/array', 'App\Http\Controllers\TestController@testArray');
+        $api->get('/test/date', 'App\Http\Controllers\TestController@date');
     }
 
 
@@ -17,10 +18,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
-        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@toggleStatus');
-        $api->post('/tasks/{task}', 'App\Http\Controllers\TaskController@update');
+        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@update');
+        $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverDestroy');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@destroy');
-        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@recoverDestroy');
+        $api->put('/tasks/{task}/status', 'App\Http\Controllers\TaskController@toggleStatus');
+        $api->put('/tasks/{task}/time_cancel', 'App\Http\Controllers\TaskController@cancelTime');
         $api->delete('/tasks/{task}/principal', 'App\Http\Controllers\TaskController@deletePrincipal');
         $api->post('/tasks/{task}/subtask', 'App\Http\Controllers\TaskController@store');
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\TaskController@addParticipant');

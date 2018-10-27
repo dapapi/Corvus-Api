@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskParticipantRequest;
 use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskResourceRequest;
@@ -17,6 +18,7 @@ use App\ModuleableType;
 use App\ResourceType;
 use App\TaskStatus;
 use App\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -123,25 +125,31 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $status = $payload['status'];
-
         if ($task->status == $status)
             return $this->response->noContent();
-        switch ($task->status) {
+        $now = Carbon::now();
+        $array = [
+            'status' => $status,
+        ];
+        switch ($status) {
             case TaskStatus::NORMAL:
+                $array['complete_at'] = null;
+                $array['stop_at'] = null;
                 break;
             case TaskStatus::COMPLETE:
-                if ($status == TaskStatus::TERMINATION)
-                    return $this->response->errorBadRequest('完成不能转到终止');
+                if ($task->status == TaskStatus::TERMINATION)
+                    return $this->response->errorBadRequest('终止不能转到完成');
+                $array['complete_at'] = $now->toDateTimeString();
                 break;
             case TaskStatus::TERMINATION:
-                if ($status == TaskStatus::COMPLETE)
-                    return $this->response->errorBadRequest('终止不能转到完成');
+                if ($task->status == TaskStatus::COMPLETE)
+                    return $this->response->errorBadRequest('完成不能转到终止');
+                $array['stop_at'] = $now->toDateTimeString();
                 break;
         }
 
         try {
-            $task->status = $status;
-            $task->save();
+            $task->update($array);
             //TODO 操作日志
         } catch (Exception $e) {
             return $this->response->errorInternal('操作失败');
@@ -202,15 +210,15 @@ class TaskController extends Controller
             $task->privacy = !$task->privacy;
             $task->save();
             //TODO 操作日志
-            if ($task->privacy)
-                return $this->response->accepted();
-            return $this->response->noContent();
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('操作失败');
         }
         DB::commit();
+        if (!$task->privacy)
+            return $this->response->noContent();
+        return $this->response->accepted();
     }
 
     /**
@@ -317,6 +325,23 @@ class TaskController extends Controller
         return $this->response->noContent();
     }
 
+    public function cancelTime(TaskCancelTimeRequest $request, Task $task)
+    {
+        $payload = $request->all();
+        $type = $payload['type'];
+        DB::beginTransaction();
+        try {
+            $task->update([$type => null]);
+            //TODO 操作日志
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('取消失败');
+        }
+        DB::commit();
+        return $this->response->accepted();
+    }
+
     public function update(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
@@ -325,6 +350,10 @@ class TaskController extends Controller
 
         if ($request->has('title')) {
             $array['title'] = $payload['title'];
+        }
+
+        if ($request->has('desc')) {
+            $array['desc'] = $payload['desc'];
         }
 
         if ($request->has('principal_id')) {
@@ -338,7 +367,15 @@ class TaskController extends Controller
         }
 
         if ($request->has('priority')) {
-            $array['priority'] = payload['priority'];
+            $array['priority'] = $payload['priority'];
+        }
+
+        if ($request->has('start_at')) {
+            $array['start_at'] = $payload['start_at'];
+        }
+
+        if ($request->has('end_at')) {
+            $array['end_at'] = $payload['end_at'];
         }
 
         try {

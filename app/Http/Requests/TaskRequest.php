@@ -34,7 +34,7 @@ class TaskRequest extends FormRequest
         return [
             'title' => 'required|max:255',
             'privacy' => 'boolean',
-            'priority' => Rule::in([TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
+            'priority' => Rule::in([TaskPriorityStatus::NOTHING, TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
             'start_at' => 'date|after_or_equal:curr_date',
             'end_at' => 'date|after_or_equal:start_at',
             'participant_ids' => 'array'

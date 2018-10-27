@@ -21,7 +21,7 @@ class CreateTasksTable extends Migration
             $table->unsignedInteger('creator_id');
             $table->unsignedInteger('principal_id')->nullable();
             $table->tinyInteger('status')->default(1);
-            $table->tinyInteger('priority')->nullable();
+            $table->tinyInteger('priority')->default(0);
             $table->text('desc')->nullable();
             $table->boolean('privacy');
             $table->dateTime('start_at')->nullable();

@@ -32,25 +32,16 @@ class TaskUpdateRequest extends FormRequest
      */
     public function rules()
     {
-
 //        'type',
 //        'task_pid',
-
-//        'desc',
-//        'privacy',
-//        'start_at',
-//        'end_at',
-//        'complete_at',
-//        'stop_at'
 
         return [
             'title' => 'max:255',
             'principal_id' => 'numeric',
             'privacy' => 'boolean',
-            'priority' => Rule::in([TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
+            'priority' => Rule::in([TaskPriorityStatus::NOTHING, TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
             'start_at' => 'date|after_or_equal:curr_date',
             'end_at' => 'date|after_or_equal:start_at',
-            'participant_ids' => 'array'
         ];
     }
 }

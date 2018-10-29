@@ -61,4 +61,9 @@ class Task extends Model
     {
         return $this->morphMany(Affix::class, 'affixable');
     }
+
+    public function moduleUsers()
+    {
+        return $this->morphMany(ModuleUser::class, 'moduleable');
+    }
 }

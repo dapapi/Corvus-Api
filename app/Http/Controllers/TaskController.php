@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskParticipantRequest;
 use App\Http\Requests\TaskRequest;
-use App\Http\Requests\TaskResourceRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
@@ -22,22 +21,61 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
+use League\Fractal\Resource\Collection;
 
 
 class TaskController extends Controller
 {
     public function index(Request $request)
     {
+        $payload = $request->all();
         $pageSize = config('app.page_size');
         if ($request->has('page_size')) {
             $pageSize = $request->get('page_size');
         }
 
-        //TODO
-        dd(Task::where('id', 1)->first()->affixes);
+        $tasks = Task::createDesc()->paginate($pageSize);
+
+        return $this->response->paginator($tasks, new TaskTransformer());
+    }
+
+    public function my(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = config('app.page_size');
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        }
+
+        $tasks = DB::table('tasks')->select('tasks.*')->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
+        $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
+            $join->on('module_users.moduleable_id', '=', 'tasks.id')
+                ->where('module_users.moduleable_type', ModuleableType::TASK)
+                ->where('module_users.user_id', $user->id);
+        })
+            ->union($tasks);
+
+        $querySql = $query->toSql();
+        $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
+            $join->on('tasks.id', '=', 'a.id');
+        })
+            ->mergeBindings($query)
+            ->orderBy('a.created_at', 'desc')
+            ->paginate($pageSize);
+
+        return $this->response->paginator($result, new TaskTransformer());
+    }
+
+    public function recycleBin(Request $request)
+    {
+
     }
 
     public function show(Task $task)
@@ -148,12 +186,16 @@ class TaskController extends Controller
                 break;
         }
 
+        DB::beginTransaction();
         try {
             $task->update($array);
             //TODO 操作日志
         } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
             return $this->response->errorInternal('操作失败');
         }
+        DB::commit();
         return $this->response->accepted();
     }
 
@@ -230,6 +272,7 @@ class TaskController extends Controller
     public function relieveResource(Request $request, Project $project, Task $task)
     {
         $payload = $request->all();
+        DB::beginTransaction();
         try {
             $type = 0;
             if ($project->id) {
@@ -254,9 +297,11 @@ class TaskController extends Controller
                 return $this->response->noContent();
             }
         } catch (Exception $e) {
+            DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('解除关联任务失败');
         }
+        DB::commit();
         return $this->response->accepted();
     }
 
@@ -269,6 +314,7 @@ class TaskController extends Controller
     public function relevanceResource(Request $request, Project $project, Task $task)
     {
         $payload = $request->all();
+        DB::beginTransaction();
         if (!$task->task_pid) {//子任务不能关联资源
             try {
                 $array = [
@@ -299,17 +345,19 @@ class TaskController extends Controller
                     return $this->response->noContent();
                 }
             } catch (Exception $e) {
+                DB::rollBack();
                 Log::error($e);
                 return $this->response->errorInternal('关联任务失败');
             }
         }
+        DB::commit();
         return $this->response->created();
     }
 
     public function deletePrincipal(Request $request, Task $task)
     {
         $payload = $request->all();
-
+        DB::beginTransaction();
         try {
             if ($task->principal_id) {
                 $task->principal_id = null;
@@ -319,10 +367,12 @@ class TaskController extends Controller
                 return $this->response->accepted();
             }
         } catch (Exception $e) {
+            DB::rollBack();
             Log::error($e);
+            return $this->response->noContent();
         }
-
-        return $this->response->noContent();
+        DB::commit();
+        return $this->response->accepted();
     }
 
     public function cancelTime(TaskCancelTimeRequest $request, Task $task)

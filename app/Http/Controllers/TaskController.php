@@ -75,6 +75,32 @@ class TaskController extends Controller
 
     public function recycleBin(Request $request)
     {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = config('app.page_size');
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        }
+
+        $tasks = DB::table('tasks')->select('tasks.*')->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
+        $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
+            $join->on('module_users.moduleable_id', '=', 'tasks.id')
+                ->where('module_users.moduleable_type', ModuleableType::TASK)
+                ->where('module_users.user_id', $user->id);
+        })
+            ->union($tasks);
+
+        $querySql = $query->toSql();
+        dd($querySql);
+        $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
+            $join->on('tasks.id', '=', 'a.id');
+        })
+            ->mergeBindings($query)
+            ->onlyTrashed()
+            ->orderBy('a.created_at', 'desc')
+            ->paginate($pageSize);
+
+        return $this->response->paginator($result, new TaskTransformer());
 
     }
 

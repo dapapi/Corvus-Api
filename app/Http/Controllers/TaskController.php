@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TaskCancelTimeRequest;
-use App\Http\Requests\TaskParticipantRequest;
 use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
@@ -29,6 +28,7 @@ use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
+
     protected $moduleUserRepository;
 
     public function __construct(ModuleUserRepository $moduleUserRepository)
@@ -110,49 +110,6 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         return $this->response()->item($task, new TaskTransformer());
-    }
-
-    /**
-     * 移除参与人
-     * @param TaskParticipantRequest $request
-     * @param Task $task
-     */
-    public function removeParticipant(TaskParticipantRequest $request, Task $task)
-    {
-        $payload = $request->all();
-        $participantIds = $payload['participant_ids'];
-        DB::beginTransaction();
-        try {
-            $this->moduleUserRepository->delTaskModuleUser($participantIds, $task);
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error($e);
-            return $this->response->errorInternal();
-        }
-        DB::commit();
-        return $this->response->accepted();
-    }
-
-    /**
-     * 添加参与人
-     * @param TaskParticipantRequest $request
-     * @param Task $task
-     */
-    public function addParticipant(TaskParticipantRequest $request, Task $task)
-    {
-        $payload = $request->all();
-        $participantIds = $payload['participant_ids'];
-
-        DB::beginTransaction();
-        try {
-            $this->moduleUserRepository->addTaskModuleUser($participantIds, $task, ModuleUserType::PARTICIPANT);
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error($e);
-            return $this->response->errorInternal();
-        }
-        DB::commit();
-        return $this->response->created();
     }
 
     public function toggleStatus(TaskStatusRequest $request, Task $task)
@@ -510,7 +467,7 @@ class TaskController extends Controller
 
             //添加参与人
             if ($request->has('participant_ids')) {
-                $this->moduleUserRepository->addTaskModuleUser($payload['participant_ids'], $task, ModuleUserType::PARTICIPANT);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $task, null, ModuleUserType::PARTICIPANT);
             }
         } catch (ModelNotFoundException $e) {
             return $this->response->errorBadRequest();

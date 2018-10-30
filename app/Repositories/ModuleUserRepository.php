@@ -18,6 +18,8 @@ class ModuleUserRepository
      */
     public function addModuleUser($participantIds, $task, $project, $type)
     {
+        $moduleUser = null;
+
         $participantIds = array_unique($participantIds);
         foreach ($participantIds as $key => &$participantId) {
             try {
@@ -40,24 +42,14 @@ class ModuleUserRepository
                 }
                 //TODO 还有其他类型
 
-                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
+                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->where('type', $type)->first();
                 if (!$moduleUser) {
-                    ModuleUser::create($array);
-                    //TODO 操作日志
+                    $moduleUser = ModuleUser::create($array);
                 }
             }
         }
         unset($participantId);
-    }
-
-    public function addTaskModuleUser($participantIds, $task, $type)
-    {
-        return $this->addModuleUser($participantIds, $task, null, $type);
-    }
-
-    public function addProjectModuleUser($participantIds, $project, $type)
-    {
-        return $this->addModuleUser($participantIds, null, $project, $type);
+        return $moduleUser;
     }
 
     /**
@@ -87,20 +79,11 @@ class ModuleUserRepository
                 $moduleUser = ModuleUser::where('moduleable_type', $moduleableType)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
                 if ($moduleUser) {
                     $moduleUser->delete();
-                    //TODO 操作日志
+                    return true;
                 }
             }
         }
         unset($participantId);
-    }
-
-    public function delTaskModuleUser($participantIds, $task)
-    {
-        return $this->delModuleUser($participantIds, $task, null);
-    }
-
-    public function delProjectModuleUser($participantIds, $project)
-    {
-        return $this->delModuleUser($participantIds, null, $project);
+        return false;
     }
 }

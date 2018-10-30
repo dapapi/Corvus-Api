@@ -49,7 +49,7 @@ class TaskController extends Controller
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
-    public function my(Request $request)
+    public function myAll(Request $request)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -75,6 +75,35 @@ class TaskController extends Controller
             ->paginate($pageSize);
 
         return $this->response->paginator($result, new TaskTransformer());
+    }
+
+    public function my(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = config('app.page_size');
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        }
+        $status = $request->get('status', 1);
+
+        $query = Task::select('tasks.*');
+
+        switch ($status) {
+            case 2://我负责
+                $query->where('principal_id', $user->id);
+                break;
+            case 3://我参与
+                $query = $user->participantTasks();
+                break;
+            case 1://我创建
+            default:
+                $query->where('creator_id', $user->id);
+                break;
+        }
+        $tasks = $query->createDesc()->paginate($pageSize);
+
+        return $this->response->paginator($tasks, new TaskTransformer());
     }
 
     public function recycleBin(Request $request)

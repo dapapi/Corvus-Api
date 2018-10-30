@@ -32,8 +32,8 @@ class TaskTransformer extends TransformerAbstract
 
     public function includeParticipants(Task $task)
     {
-        $moduleUsers = $task->participants;
-        return $this->collection($moduleUsers, new ModuleUserTransformer());
+        $participants = $task->participants;
+        return $this->collection($participants, new UserTransformer());
     }
 
     public function includeCreator(Task $task)

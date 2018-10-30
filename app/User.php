@@ -61,4 +61,9 @@ class User extends Authenticatable
         $this->belongsTo(DepartmentUser::class);
     }
 
+    public function participateTasks()
+    {
+        return $this->morphedByMany(Task::class, 'moduleable', 'module_users')->where('module_users.type', ModuleUserType::PARTICIPANT);
+    }
+
 }

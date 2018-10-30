@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\ModuleUserType;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -65,5 +66,10 @@ class Task extends Model
     public function moduleUsers()
     {
         return $this->morphMany(ModuleUser::class, 'moduleable');
+    }
+
+    public function participants()
+    {
+        return $this->morphMany(ModuleUser::class, 'moduleable')->where('type', ModuleUserType::PARTICIPANT);
     }
 }

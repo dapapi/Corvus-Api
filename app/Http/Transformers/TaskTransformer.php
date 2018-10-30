@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class TaskTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks', 'resource', 'affixes'];
+    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks', 'resource', 'affixes', 'participants'];
 
     public function transform(Task $task)
     {
@@ -28,6 +28,12 @@ class TaskTransformer extends TransformerAbstract
             'updated_at' => $task->updated_at->toDatetimeString(),
             'deleted_at' => $task->deleted_at,
         ];
+    }
+
+    public function includeParticipants(Task $task)
+    {
+        $moduleUsers = $task->participants;
+        return $this->collection($moduleUsers, new ModuleUserTransformer());
     }
 
     public function includeCreator(Task $task)

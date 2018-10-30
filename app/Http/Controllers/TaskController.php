@@ -8,12 +8,13 @@ use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
-use App\Models\ModuleUser;
 use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Task;
 use App\Models\TaskResource;
 use App\ModuleableType;
+use App\ModuleUserType;
+use App\Repositories\ModuleUserRepository;
 use App\ResourceType;
 use App\TaskStatus;
 use App\User;
@@ -21,17 +22,20 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
-use League\Fractal\Pagination\IlluminatePaginatorAdapter;
-use League\Fractal\Resource\Collection;
 
 
 class TaskController extends Controller
 {
+    protected $moduleUserRepository;
+
+    public function __construct(ModuleUserRepository $moduleUserRepository)
+    {
+        $this->moduleUserRepository = $moduleUserRepository;
+    }
+
     public function index(Request $request)
     {
         $payload = $request->all();
@@ -117,23 +121,9 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $participantIds = $payload['participant_ids'];
-        $participantIds = array_unique($participantIds);
         DB::beginTransaction();
         try {
-            foreach ($participantIds as $key => &$participantId) {
-                try {
-                    $participantId = hashid_decode($participantId);
-                    $participantUser = User::findOrFail($participantId);
-                    $moduleUser = ModuleUser::where('moduleable_type', ModuleableType::TASK)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
-                    if ($moduleUser) {
-                        $moduleUser->delete();
-                        //TODO 操作日志
-                    }
-                } catch (Exception $e) {
-                    array_splice($participantIds, $key, 1);
-                }
-            }
-            unset($participantId);
+            $this->moduleUserRepository->delTaskModuleUser($participantIds, $task);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -152,29 +142,10 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $participantIds = $payload['participant_ids'];
-        $participantIds = array_unique($participantIds);
 
         DB::beginTransaction();
         try {
-            foreach ($participantIds as $key => &$participantId) {
-                try {
-                    $participantId = hashid_decode($participantId);
-                    $participantUser = User::findOrFail($participantId);
-                    $moduleUser = ModuleUser::where('moduleable_type', ModuleableType::TASK)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
-                    if (!$moduleUser) {
-                        ModuleUser::create([
-                            'user_id' => $participantUser->id,
-                            'moduleable_id' => $task->id,
-                            'moduleable_type' => ModuleableType::TASK,
-                            //'type' => 1,
-                        ]);
-                        //TODO 操作日志
-                    }
-                } catch (Exception $e) {
-                    array_splice($participantIds, $key, 1);
-                }
-            }
-            unset($participantId);
+            $this->moduleUserRepository->addTaskModuleUser($participantIds, $task, ModuleUserType::PARTICIPANT);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -539,27 +510,7 @@ class TaskController extends Controller
 
             //添加参与人
             if ($request->has('participant_ids')) {
-                $participantIds = $payload['participant_ids'];
-                $participantIds = array_unique($participantIds);
-                foreach ($participantIds as $key => &$participantId) {
-                    try {
-                        $participantId = hashid_decode($participantId);
-                        $participantUser = User::findOrFail($participantId);
-                        $moduleUser = ModuleUser::where('moduleable_type', ModuleableType::TASK)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
-                        if (!$moduleUser) {
-                            ModuleUser::create([
-                                'user_id' => $participantUser->id,
-                                'moduleable_id' => $task->id,
-                                'moduleable_type' => ModuleableType::TASK,
-//                            'type' => 1,
-                            ]);
-                        }
-                        //TODO 操作日志
-                    } catch (Exception $e) {
-                        array_splice($participantIds, $key, 1);
-                    }
-                }
-                unset($participantId);
+                $this->moduleUserRepository->addTaskModuleUser($payload['participant_ids'], $task, ModuleUserType::PARTICIPANT);
             }
         } catch (ModelNotFoundException $e) {
             return $this->response->errorBadRequest();
@@ -571,4 +522,6 @@ class TaskController extends Controller
         DB::commit();
         return $this->response->created();
     }
+
+
 }

@@ -91,7 +91,6 @@ class TaskController extends Controller
             ->union($tasks);
 
         $querySql = $query->toSql();
-        dd($querySql);
         $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
             $join->on('tasks.id', '=', 'a.id');
         })

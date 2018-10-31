@@ -21,7 +21,7 @@ class ModuleUserController extends Controller
         $this->moduleUserRepository = $moduleUserRepository;
     }
 
-    public function addModuleUser(TaskParticipantRequest $request, Task $task, Project $project, $type)
+    public function add(TaskParticipantRequest $request, Task $task, Project $project, $type)
     {
         $payload = $request->all();
         $participantIds = $payload['participant_ids'];
@@ -43,10 +43,10 @@ class ModuleUserController extends Controller
 
     public function addModuleUserParticipant(TaskParticipantRequest $request, Task $task, Project $project)
     {
-        return $this->addModuleUser($request, $task, $project, ModuleUserType::PARTICIPANT);
+        return $this->add($request, $task, $project, ModuleUserType::PARTICIPANT);
     }
 
-    public function removeModuleUser(TaskParticipantRequest $request, Task $task, Project $project)
+    public function remove(TaskParticipantRequest $request, Task $task, Project $project)
     {
         $payload = $request->all();
         $participantIds = $payload['participant_ids'];

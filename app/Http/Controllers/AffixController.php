@@ -2,8 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AffixRequest;
+use App\Models\Affix;
+use App\Models\Project;
+use App\Models\Task;
 use App\Repositories\AffixRepository;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AffixController extends Controller
 {
@@ -14,23 +22,64 @@ class AffixController extends Controller
         $this->affixRepository = $affixRepository;
     }
 
-    public function addTaskAffix(TaskParticipantRequest $request, Task $task)
+    public function index(Request $request, Task $task, Project $project)
     {
         $payload = $request->all();
-        $participantIds = $payload['participant_ids'];
+
+        return $this->response->paginator();
+
+    }
+
+    public function add(AffixRequest $request, Task $task, Project $project)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
 
         DB::beginTransaction();
         try {
-            $moduleUser = $this->affixRepository->addTaskAffix($participantIds, $task, ModuleUserType::PARTICIPANT);
-            if ($moduleUser) {
+            $affix = $this->affixRepository->addAffix($user, $task, $project, $payload['title'], $payload['url'], 1);
+            if ($affix) {
                 //TODO 操作日志
             }
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal();
         }
         DB::commit();
         return $this->response->created();
+    }
+
+    public function remove(Request $request, Task $task, Project $project, Affix $affix)
+    {
+        $payload = $request->all();
+        DB::beginTransaction();
+        try {
+            $affix->delete();
+            //TODO 操作日志
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
+        DB::commit();
+        return $this->response->accepted();
+    }
+
+    public function recoverRemove(Request $request, Task $task, Project $project, Affix $affix)
+    {
+        $payload = $request->all();
+        DB::beginTransaction();
+        try {
+            $affix->restore();
+            //TODO 操作日志
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('恢复附件失败');
+        }
+        DB::commit();
+        return $this->response->noContent();
     }
 }

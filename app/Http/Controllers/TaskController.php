@@ -181,7 +181,7 @@ class TaskController extends Controller
         return $this->response->accepted();
     }
 
-    public function recoverDestroy(Task $task)
+    public function recoverRemove(Task $task)
     {
         DB::beginTransaction();
         try {
@@ -198,13 +198,13 @@ class TaskController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
-            return $this->response->errorInternal('恢复删除失败');
+            return $this->response->errorInternal('恢复任务失败');
         }
         DB::commit();
         return $this->response->noContent();
     }
 
-    public function destroy(Task $task)
+    public function remove(Task $task)
     {
 
         DB::beginTransaction();

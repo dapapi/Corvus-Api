@@ -6,12 +6,14 @@ use App\Models\Affix;
 use App\Models\Project;
 use App\Models\Task;
 use App\ModuleableType;
+use App\User;
 
 class AffixRepository
 {
-    public function addAffix(Task $task, Project $project, $title, $url, $type)
+    public function addAffix(User $user, Task $task, Project $project, $title, $url, $type)
     {
         $array = [
+            'user_id' => $user->id,
             'title' => $title,
             'url' => $url,
             'type' => $type,

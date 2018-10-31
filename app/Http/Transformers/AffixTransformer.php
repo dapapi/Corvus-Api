@@ -16,6 +16,7 @@ class AffixTransformer extends TransformerAbstract
             'id' => hashid_encode($affix->id),
             'title' => $affix->title,
             'url' => $affix->url,
+            'size' => $affix->size,
             'type' => $affix->type,
             'created_at' => $affix->created_at->toDatetimeString(),
 //            'updated_at' => $affix->updated_at->toDatetimeString(),

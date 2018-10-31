@@ -63,12 +63,11 @@ class AffixController extends Controller
 
         DB::beginTransaction();
         try {
-            $affix = $this->affixRepository->addAffix($user, $task, $project, $payload['title'], $payload['url'], 1);
+            $affix = $this->affixRepository->addAffix($user, $task, $project, $payload['title'], $payload['url'],$payload['size'], 1);
             if ($affix) {
                 //TODO 操作日志
             }
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal();

@@ -10,11 +10,12 @@ use App\User;
 
 class AffixRepository
 {
-    public function addAffix(User $user, Task $task, Project $project, $title, $url, $type)
+    public function addAffix(User $user, Task $task, Project $project, $title, $url, $size, $type)
     {
         $array = [
             'user_id' => $user->id,
             'title' => $title,
+            'size' => $size,
             'url' => $url,
             'type' => $type,
         ];

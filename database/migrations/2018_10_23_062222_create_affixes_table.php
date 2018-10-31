@@ -20,6 +20,7 @@ class CreateAffixesTable extends Migration
             $table->string('affixable_type');
             $table->string('title');
             $table->string('url');
+            $table->integer('size');
             $table->tinyInteger('type');
             $table->timestamps();
             $table->softDeletes();

@@ -25,6 +25,7 @@ class AffixRequest extends FormRequest
     {
         return [
             'title' => 'required|max:255',
+            'size' => 'required|numeric|min:0',
             'url' => 'required|max:500',
         ];
     }

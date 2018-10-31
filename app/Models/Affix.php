@@ -18,6 +18,7 @@ class Affix extends Model
         'affixable_type',
         'title',
         'url',
+        'size',
         'type'
     ];
 

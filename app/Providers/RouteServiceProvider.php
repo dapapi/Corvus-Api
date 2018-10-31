@@ -4,7 +4,10 @@ namespace App\Providers;
 
 use App\Models\Affix;
 use App\Models\Project;
+use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Task;
+use App\Models\Trail;
 use Exception;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
@@ -45,6 +48,36 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Project::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('client', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Client::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('contact', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Contact::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('trail', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Trail::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

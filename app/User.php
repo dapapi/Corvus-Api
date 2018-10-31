@@ -4,6 +4,8 @@ namespace App;
 
 use App\Models\Affix;
 use App\Models\Project;
+use App\Models\Role;
+use App\Models\RoleUser;
 use App\Models\Task;
 use App\Models\DepartmentUser;
 use Illuminate\Notifications\Notifiable;
@@ -64,6 +66,11 @@ class User extends Authenticatable
     public function participantTasks()
     {
         return $this->morphedByMany(Task::class, 'moduleable', 'module_users')->where('module_users.type', ModuleUserType::PARTICIPANT);
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
     }
 
 }

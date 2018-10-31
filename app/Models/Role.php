@@ -9,16 +9,17 @@ class Role extends Model
 {
     protected $fillable = [
         'name',
-        'description'
+        'display_name',
+        'desc'
     ];
 
     public function users()
     {
-        return $this->hasManyThrough(User::class, RoleUser::class, 'role_id', 'id', 'user_id');
+        return $this->belongsToMany(User::class, 'role_user');
     }
 
     public function actions()
     {
-        return $this->hasManyThrough(Action::class, RoleUser::class, 'role_id', 'id', 'action_id');
+        return $this->belongsToMany(Action::class, 'role_action');
     }
 }

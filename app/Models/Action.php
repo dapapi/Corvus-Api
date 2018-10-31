@@ -15,8 +15,13 @@ class Action extends Model
         'desc'
     ];
 
-    public function Module()
+    public function module()
     {
         return $this->belongsTo(Module::class);
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_action');
     }
 }

@@ -39,10 +39,7 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $payload = $request->all();
-        $pageSize = config('app.page_size');
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $tasks = Task::createDesc()->paginate($pageSize);
 
@@ -53,10 +50,7 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-        $pageSize = config('app.page_size');
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $tasks = DB::table('tasks')->select('tasks.*')->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
         $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
@@ -81,10 +75,7 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-        $pageSize = config('app.page_size');
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 1);
 
         $query = Task::select('tasks.*');
@@ -110,10 +101,7 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-        $pageSize = config('app.page_size');
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $tasks = DB::table('tasks')->select('tasks.*')->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
         $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {

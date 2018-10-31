@@ -18,10 +18,10 @@ class AffixRepository
             'url' => $url,
             'type' => $type,
         ];
-        if ($task) {
+        if ($task->id) {
             $array['affixable_id'] = $task->id;
             $array['affixable_type'] = ModuleableType::TASK;
-        } else if ($project) {
+        } else if ($project->id) {
             $array['affixable_id'] = $project->id;
             $array['affixable_type'] = ModuleableType::PROJECT;
         }

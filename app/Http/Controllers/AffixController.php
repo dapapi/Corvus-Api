@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AffixRequest;
+use App\Http\Transformers\AffixTransformer;
 use App\Models\Affix;
 use App\Models\Project;
 use App\Models\Task;
@@ -25,8 +26,33 @@ class AffixController extends Controller
     public function index(Request $request, Task $task, Project $project)
     {
         $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
-        return $this->response->paginator();
+        if ($task->id) {
+            $affixes = $task->affixes()->createDesc()->paginate($pageSize);
+        } else if ($project->id) {
+            $affixes = $project->affixes()->createDesc()->paginate($pageSize);
+        }
+        //TODO 其他模块
+
+        return $this->response->paginator($affixes, new AffixTransformer());
+
+    }
+
+    public function recycleBin(Request $request, Task $task, Project $project)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        if ($task->id) {
+            $affixes = $task->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
+        } else if ($project->id) {
+            $affixes = $project->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
+        }
+        //TODO 其他模块
+
+        return $this->response->paginator($affixes, new AffixTransformer());
 
     }
 

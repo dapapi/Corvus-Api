@@ -33,10 +33,10 @@ class ModuleUserRepository
                     'user_id' => $participantUser->id,
                     'type' => $type,
                 ];
-                if ($task) {
+                if ($task->id) {
                     $array['moduleable_id'] = $task->id;
                     $array['moduleable_type'] = ModuleableType::TASK;
-                } else if ($project) {
+                } else if ($project->id) {
                     $array['moduleable_id'] = $project->id;
                     $array['moduleable_type'] = ModuleableType::PROJECT;
                 }
@@ -69,9 +69,9 @@ class ModuleUserRepository
             }
             if ($participantUser) {
                 $moduleableType = null;
-                if ($task) {
+                if ($task->id) {
                     $moduleableType = ModuleableType::TASK;
-                } else if ($project) {
+                } else if ($project->id) {
                     $moduleableType = ModuleableType::PROJECT;
                 }
                 //TODO 还有其他类型

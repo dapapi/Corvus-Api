@@ -38,7 +38,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // client
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
-        $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+        $api->post('/clients', 'App\Http\Controllers\ClientController@store')->middleware('can:create,App\Models\Client');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');

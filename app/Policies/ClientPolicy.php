@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Models\Action;
+use App\Models\Module;
 use App\User;
 use App\Models\Client;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -30,7 +32,17 @@ class ClientPolicy
      */
     public function create(User $user)
     {
-        $user->role();
+        $action = Module::where('code', 'clients')->first()->actions()->where('code', 'create')->first();
+        $actionId = $action->id;
+
+        $userRoles = $user->roles;
+
+        foreach ($userRoles as $userRole) {
+            $action = $userRole->actions()->find($actionId);
+            if ($action)
+                return true;
+        }
+        return abort(403, '没有权限操作');
     }
 
     /**

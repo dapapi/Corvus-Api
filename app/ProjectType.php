@@ -9,7 +9,7 @@
 namespace App;
 
 
-class ProjectType
+abstract class ProjectType
 {
     const STRING = 1;
     const FLOAT = 2;

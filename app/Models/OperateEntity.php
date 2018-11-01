@@ -13,7 +13,6 @@ class OperateEntity extends Model
         'start',
         'end',
         'method',
-        'level'
     ];
 
 }

@@ -15,7 +15,7 @@ abstract class OperateLogMethod
     const DELETE = 3;//删除
     const FOLLOW_UP = 4;//跟进
     const LOOK = 5;//查看
-    const PRIVACY_UPDATE = 6;//隐私修改
+    const UPDATE_PRIVACY = 6;//修改隐私
     const PUBLIC = 7;//公开
     const PRIVACY = 8;//私密
     const TERMINATION = 9;//终止
@@ -25,4 +25,9 @@ abstract class OperateLogMethod
     const RECOVER = 13;//恢复
     const UPLOAD_AFFIX = 14;//上传附件
     const DOWNLOAD_AFFIX = 15;//下载附件
+    const UPDATE_SIGNIFICANCE = 16;//修改重要
+    const DELETE_SUBCLASS = 17;//删除子类
+    const RECOVER_SUBCLASS = 18;//恢复子类
+    const ADD_PERSON = 19;//添加人
+    const DEL_PERSON = 20;//删除人
 }

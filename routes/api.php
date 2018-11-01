@@ -10,6 +10,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/test/login', 'App\Http\Controllers\TestController@signin');
         $api->get('/test/array', 'App\Http\Controllers\TestController@testArray');
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
+        $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
 
 

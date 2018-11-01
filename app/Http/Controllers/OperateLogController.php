@@ -8,7 +8,6 @@ use App\Http\Transformers\OperateLogTransformer;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Task;
-use App\OperateLogLevel;
 use App\OperateLogMethod;
 use Exception;
 use Illuminate\Http\Request;
@@ -58,7 +57,6 @@ class OperateLogController extends Controller
                 'start' => $content,
                 'end' => null,
                 'method' => OperateLogMethod::FOLLOW_UP,
-                'level' => OperateLogLevel::LOW
             ];
             if ($task->id) {
                 $array['obj'] = $task;

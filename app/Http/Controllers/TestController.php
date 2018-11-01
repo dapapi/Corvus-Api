@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Models\OperateEntity;
 use App\Models\Task;
-use App\OperateLogLevel;
 use App\OperateLogMethod;
 use App\User;
 use Carbon\Carbon;
@@ -62,7 +61,6 @@ class TestController extends Controller
             'start' => '这个项目大家都关注一下啊',
             'end' => '项目开始了',
             'method' => OperateLogMethod::UPDATE,
-            'level' => OperateLogLevel::MIDDLE
         ]);
         //创建任务
         $operate = new OperateEntity([
@@ -71,7 +69,6 @@ class TestController extends Controller
             'start' => null,
             'end' => null,
             'method' => OperateLogMethod::CREATE,
-            'level' => OperateLogLevel::LOW
         ]);
 
         event(new OperateLogEvent([
@@ -81,6 +78,15 @@ class TestController extends Controller
             'success' => true,
             'message' => 'hello operate log!'
         ]);
+    }
+
+    public function arrayIf()
+    {
+        $participantIds = ['1'];
+        if (count($participantIds)) {
+            dd('ok');
+        }
+        dd('no');
     }
 
 }

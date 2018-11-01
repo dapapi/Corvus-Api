@@ -9,9 +9,9 @@ use App\Models\Affix;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Task;
-use App\OperateLogLevel;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
+use App\Repositories\OperateLogRepository;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,10 +21,12 @@ use Illuminate\Support\Facades\Log;
 class AffixController extends Controller
 {
     protected $affixRepository;
+    protected $operateLogRepository;
 
-    public function __construct(AffixRepository $affixRepository)
+    public function __construct(AffixRepository $affixRepository, OperateLogRepository $operateLogRepository)
     {
         $this->affixRepository = $affixRepository;
+        $this->operateLogRepository = $operateLogRepository;
     }
 
     public function index(Request $request, Task $task, Project $project)
@@ -69,7 +71,18 @@ class AffixController extends Controller
         try {
             $affix = $this->affixRepository->addAffix($user, $task, $project, $payload['title'], $payload['url'], $payload['size'], 1);
             if ($affix) {
-                //TODO 操作日志
+                // 操作日志
+                $array = [
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::UPLOAD_AFFIX,
+                ];
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+                $operate = new OperateEntity($array);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
             }
         } catch (Exception $e) {
             DB::rollBack();
@@ -83,14 +96,15 @@ class AffixController extends Controller
     public function download(Request $request, Task $task, Project $project, Affix $affix)
     {
         try {
-            $operate = new OperateEntity([
-                'obj' => $task,
+            // 操作日志
+            $array = [
                 'title' => null,
                 'start' => null,
                 'end' => null,
                 'method' => OperateLogMethod::DOWNLOAD_AFFIX,
-                'level' => OperateLogLevel::LOW
-            ]);
+            ];
+            $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+            $operate = new OperateEntity($array);
             event(new OperateLogEvent([
                 $operate,
             ]));
@@ -107,7 +121,18 @@ class AffixController extends Controller
         DB::beginTransaction();
         try {
             $affix->delete();
-            //TODO 操作日志
+            // 操作日志
+            $array = [
+                'title' => '附件',
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DELETE_SUBCLASS,
+            ];
+            $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+            $operate = new OperateEntity($array);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -123,7 +148,18 @@ class AffixController extends Controller
         DB::beginTransaction();
         try {
             $affix->restore();
-            //TODO 操作日志
+            // 操作日志
+            $array = [
+                'title' => '附件',
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::RECOVER_SUBCLASS,
+            ];
+            $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+            $operate = new OperateEntity($array);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

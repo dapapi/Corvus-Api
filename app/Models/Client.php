@@ -12,13 +12,15 @@ class Client extends Model
         restore as private restoreSoftDeletes;
     }
 
-    const NORMAL = 1;
-    const LISTED = 2;
-    const TOP500 = 3;
+    const SIZE_NORMAL = 1;
+    const SIZE_LISTED = 2;
+    const SIZE_TOP500 = 3;
+
+    const STATUS_NORMAL = 1;
+    const STATUS_FROZEN = 2;
 
     protected $fillable = [
         'company',
-        'brand',
         'industry_id',      // 行业id
         'industry',         // 行业
         'grade',             // 级别

@@ -10,6 +10,7 @@ class ClientTransformer extends TransformerAbstract
     public function transform(Client $client)
     {
         $array = [
+            'id' => hashid_encode($client->id),
             'brand' => $client->brand,
             'company' => $client->company,
             'industry' => $client->industry,

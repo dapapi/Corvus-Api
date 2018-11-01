@@ -42,6 +42,13 @@ class OperateLogController extends Controller
         }
         $operateLogs = $query->createDesc()->paginate($pageSize);
 
+        foreach ($operateLogs as $operateLog) {
+            if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
+                $operateLog->content = '!!!!!!!';
+                //TODO
+            }
+        }
+
         return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
 

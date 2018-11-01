@@ -126,7 +126,7 @@ class AffixController extends Controller
                 'title' => '附件',
                 'start' => null,
                 'end' => null,
-                'method' => OperateLogMethod::DELETE_SUBCLASS,
+                'method' => OperateLogMethod::DELETE_OTHER,
             ];
             $array['obj'] = $this->operateLogRepository->getObject($task, $project);
             $operate = new OperateEntity($array);
@@ -153,7 +153,7 @@ class AffixController extends Controller
                 'title' => '附件',
                 'start' => null,
                 'end' => null,
-                'method' => OperateLogMethod::RECOVER_SUBCLASS,
+                'method' => OperateLogMethod::RECOVER_OTHER,
             ];
             $array['obj'] = $this->operateLogRepository->getObject($task, $project);
             $operate = new OperateEntity($array);

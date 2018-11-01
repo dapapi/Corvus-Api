@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
+use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Task;
 use App\Models\TaskResource;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
 use App\Repositories\ModuleUserRepository;
 use App\ResourceType;
 use App\TaskStatus;
@@ -126,6 +129,17 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $this->response()->item($task, new TaskTransformer());
     }
 
@@ -139,27 +153,43 @@ class TaskController extends Controller
         $array = [
             'status' => $status,
         ];
+        $method = OperateLogMethod::ACTIVATE;
         switch ($status) {
             case TaskStatus::NORMAL:
                 $array['complete_at'] = null;
                 $array['stop_at'] = null;
+                $method = OperateLogMethod::ACTIVATE;
                 break;
             case TaskStatus::COMPLETE:
                 if ($task->status == TaskStatus::TERMINATION)
                     return $this->response->errorBadRequest('终止不能转到完成');
                 $array['complete_at'] = $now->toDateTimeString();
+
+                $method = OperateLogMethod::COMPLETE;
                 break;
             case TaskStatus::TERMINATION:
                 if ($task->status == TaskStatus::COMPLETE)
                     return $this->response->errorBadRequest('完成不能转到终止');
                 $array['stop_at'] = $now->toDateTimeString();
+
+                $method = OperateLogMethod::TERMINATION;
                 break;
         }
 
         DB::beginTransaction();
         try {
             $task->update($array);
-            //TODO 操作日志
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $task,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => $method,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -179,10 +209,33 @@ class TaskController extends Controller
                 $subtasks = Task::where('task_pid', $task->id)->onlyTrashed()->where('deleted_at', $deletedAt)->get();
                 foreach ($subtasks as $subtask) {
                     $subtask->restore();
+                    // 操作日志
+                    $operate = new OperateEntity([
+                        'obj' => $subtask,
+                        'title' => null,
+                        'start' => null,
+                        'end' => null,
+                        'method' => OperateLogMethod::RECOVER,
+                    ]);
+                    event(new OperateLogEvent([
+                        $operate,
+                    ]));
                 }
             }
             $task->restore();
-            //TODO 操作日志
+            if ($deletedAt) {
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $task,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::RECOVER,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -194,18 +247,41 @@ class TaskController extends Controller
 
     public function remove(Task $task)
     {
-
         DB::beginTransaction();
         try {
-            if (!$task->task_pid) {
-                //删除所有子任务
-                $subtasks = Task::where('task_pid', $task->id)->get();
-                foreach ($subtasks as $subtask) {
-                    $subtask->delete();
+            $deletedAt = $task->deleted_at;
+            if (!$deletedAt) {
+                if (!$task->task_pid) {
+                    //删除所有子任务
+                    $subtasks = Task::where('task_pid', $task->id)->get();
+                    foreach ($subtasks as $subtask) {
+                        $subtask->delete();
+                        // 操作日志
+                        $operate = new OperateEntity([
+                            'obj' => $subtask,
+                            'title' => null,
+                            'start' => null,
+                            'end' => null,
+                            'method' => OperateLogMethod::DELETE,
+                        ]);
+                        event(new OperateLogEvent([
+                            $operate,
+                        ]));
+                    }
                 }
+                $task->delete();
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $task,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::DELETE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
             }
-            $task->delete();
-            //TODO 操作日志
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -215,13 +291,28 @@ class TaskController extends Controller
         return $this->response->noContent();
     }
 
+    /**
+     * 隐私切换
+     * @param Task $task
+     * @return \Dingo\Api\Http\Response|void
+     */
     public function togglePrivacy(Task $task)
     {
         DB::beginTransaction();
         try {
-            $task->privacy = !$task->privacy;
+            $method = $task->privacy = !$task->privacy;
             $task->save();
-            //TODO 操作日志
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $task,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => $method ? OperateLogMethod::PRIVACY : OperateLogMethod::PUBLIC,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

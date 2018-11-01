@@ -26,8 +26,8 @@ abstract class OperateLogMethod
     const UPLOAD_AFFIX = 14;//上传附件
     const DOWNLOAD_AFFIX = 15;//下载附件
     const UPDATE_SIGNIFICANCE = 16;//修改重要
-    const DELETE_SUBCLASS = 17;//删除子类
-    const RECOVER_SUBCLASS = 18;//恢复子类
+    const DELETE_OTHER = 17;//删除其他
+    const RECOVER_OTHER = 18;//恢复其他
     const ADD_PERSON = 19;//添加人
     const DEL_PERSON = 20;//删除人
 }

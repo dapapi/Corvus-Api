@@ -35,6 +35,11 @@ class OperateLogEventListener
     protected $recover = '恢复';
     protected $upload_affix = '上传附件';
     protected $download_affix = '下载附件';
+    protected $termination = '终止';
+    protected $complete = '完成';
+    protected $activate = '激活';
+    protected $public = '公开';
+    protected $privacy = '私密';
 
     /**
      * Handle the event.
@@ -91,7 +96,7 @@ class OperateLogEventListener
                     $level = OperateLogLevel::HIGH;
                     $content = $this->delete . '' . $typeName;
                     break;
-                case OperateLogMethod::DELETE_SUBCLASS://删除子类
+                case OperateLogMethod::DELETE_OTHER://删除其他
                     $level = OperateLogLevel::HIGH;
                     $content = $this->delete . '' . $title;
                     break;
@@ -105,23 +110,24 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::PUBLIC://公开
                     $level = OperateLogLevel::HIGH;
-                    //TODO
+                    $content = $typeName . '转为' . $this->public;
                     break;
                 case OperateLogMethod::PRIVACY://私密
                     $level = OperateLogLevel::HIGH;
+                    $content = $typeName . '转为' . $this->privacy;
                     //TODO
                     break;
                 case OperateLogMethod::TERMINATION://终止
                     $level = OperateLogLevel::MIDDLE;
-                    //TODO
+                    $content = $this->termination . $typeName;
                     break;
                 case OperateLogMethod::COMPLETE://完成
                     $level = OperateLogLevel::MIDDLE;
-                    //TODO
+                    $content = $this->complete . $typeName;
                     break;
                 case OperateLogMethod::ACTIVATE://激活
                     $level = OperateLogLevel::MIDDLE;
-                    //TODO
+                    $content = $this->activate . $typeName;
                     break;
                 case OperateLogMethod::ADD://添加
                     $level = OperateLogLevel::LOW;
@@ -131,7 +137,7 @@ class OperateLogEventListener
                     $level = OperateLogLevel::HIGH;
                     $content = $this->recover . '' . $typeName;
                     break;
-                case OperateLogMethod::RECOVER_SUBCLASS://恢复子类
+                case OperateLogMethod::RECOVER_OTHER://恢复其他
                     $level = OperateLogLevel::HIGH;
                     $content = $this->recover . '' . $title;
                     break;

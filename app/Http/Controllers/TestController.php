@@ -9,7 +9,6 @@ use App\OperateLogLevel;
 use App\OperateLogMethod;
 use App\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
@@ -56,12 +55,12 @@ class TestController extends Controller
     public function operateLog()
     {
         $task = Task::find(1);
-
+        //修改
         $operate = new OperateEntity([
             'obj' => $task,
             'title' => '描述',
-            'start' => 'hah',
-            'end' => '123',
+            'start' => '这个项目大家都关注一下啊',
+            'end' => '项目开始了',
             'method' => OperateLogMethod::UPDATE,
             'level' => OperateLogLevel::MIDDLE
         ]);

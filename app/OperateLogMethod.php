@@ -15,4 +15,6 @@ abstract class OperateLogMethod
     const DELETE = 3;//删除
     const FOLLOW_UP = 4;//跟进
     const LOOK = 5;//查看
+    const PRIVACY_UPDATE = 6;//隐私修改
+    const PRIVACY_CREATE = 7;//隐私创建
 }

@@ -41,7 +41,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/affix', 'App\Http\Controllers\AffixController@add');
         $api->delete('/tasks/{task}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/tasks/{task}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
-
+        //跟进
+        $api->post('/tasks/{task}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         // client
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
@@ -53,7 +55,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // contact
         $api->get('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@index');
 //        $api->group(['middleware' => ''], function ($api) {
-            $api->post('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@store');
+        $api->post('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@store');
 //        });
         $api->put('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@edit');
         $api->post('/clients/{client}/contacts/{contact}/recover', 'App\Http\Controllers\ContactController@recover');

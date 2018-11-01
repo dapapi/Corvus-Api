@@ -67,6 +67,7 @@ class OperateLogEventListener
                 case OperateLogMethod::DELETE://删除
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
+                    $content = sprintf($this->follow_up, $start);
                     break;
                 case OperateLogMethod::LOOK://查看
                     break;

@@ -16,6 +16,7 @@ class OperateLogTransformer extends TransformerAbstract
             'method' => $operateLog->method,
             'status' => $operateLog->status,
             'level' => $operateLog->level,
+            'created_at' => $operateLog->created_at->toDatetimeString(),
         ];
     }
 

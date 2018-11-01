@@ -64,6 +64,15 @@ class TestController extends Controller
             'method' => OperateLogMethod::UPDATE,
             'level' => OperateLogLevel::MIDDLE
         ]);
+        //创建任务
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::CREATE,
+            'level' => OperateLogLevel::LOW
+        ]);
 
         event(new OperateLogEvent([
             $operate,

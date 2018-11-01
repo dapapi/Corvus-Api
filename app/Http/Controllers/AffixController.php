@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\AffixRequest;
 use App\Http\Transformers\AffixTransformer;
 use App\Models\Affix;
+use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Task;
+use App\OperateLogLevel;
+use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use Exception;
 use Illuminate\Http\Request;
@@ -63,7 +67,7 @@ class AffixController extends Controller
 
         DB::beginTransaction();
         try {
-            $affix = $this->affixRepository->addAffix($user, $task, $project, $payload['title'], $payload['url'],$payload['size'], 1);
+            $affix = $this->affixRepository->addAffix($user, $task, $project, $payload['title'], $payload['url'], $payload['size'], 1);
             if ($affix) {
                 //TODO 操作日志
             }
@@ -73,6 +77,27 @@ class AffixController extends Controller
             return $this->response->errorInternal();
         }
         DB::commit();
+        return $this->response->created();
+    }
+
+    public function download(Request $request, Task $task, Project $project, Affix $affix)
+    {
+        try {
+            $operate = new OperateEntity([
+                'obj' => $task,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DOWNLOAD_AFFIX,
+                'level' => OperateLogLevel::LOW
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
         return $this->response->created();
     }
 

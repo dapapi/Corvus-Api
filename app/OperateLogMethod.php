@@ -16,5 +16,13 @@ abstract class OperateLogMethod
     const FOLLOW_UP = 4;//跟进
     const LOOK = 5;//查看
     const PRIVACY_UPDATE = 6;//隐私修改
-    const PRIVACY_CREATE = 7;//隐私创建
+    const PUBLIC = 7;//公开
+    const PRIVACY = 8;//私密
+    const TERMINATION = 9;//终止
+    const COMPLETE = 10;//完成
+    const ACTIVATE = 11;//激活
+    const ADD = 12;//添加
+    const RECOVER = 13;//恢复
+    const UPLOAD_AFFIX = 14;//上传附件
+    const DOWNLOAD_AFFIX = 15;//下载附件
 }

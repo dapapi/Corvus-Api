@@ -63,6 +63,11 @@ class Task extends Model
         return $this->morphMany(Affix::class, 'affixable');
     }
 
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable');
+    }
+
     public function participants()
     {
         return $this->morphToMany(User::class, 'moduleable', 'module_users')->where('module_users.type', ModuleUserType::PARTICIPANT);

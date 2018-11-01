@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class AffixTransformer extends TransformerAbstract
 {
 
-    protected $defaultIncludes = ['user'];
+    protected $availableIncludes = ['user'];
 
     public function transform(Affix $affix)
     {

@@ -1,4 +1,5 @@
 <?php
+
 $allowedOriginList = [
     'http://*.qq.com',
     'https://*.qq.com',
@@ -14,21 +15,25 @@ $allowedOriginList = [
 if (env('API_DEBUG')) {
     $allowedOriginList = ['*'];
 }
+
 return [
+
     /*
-     |--------------------------------------------------------------------------
-     | Laravel CORS
-     |--------------------------------------------------------------------------
-     |
-     | allowedOrigins, allowedHeaders and allowedMethods can be set to array('*')
-     | to accept any value.
-     |
-     */
+    |--------------------------------------------------------------------------
+    | Laravel CORS
+    |--------------------------------------------------------------------------
+    |
+    | allowedOrigins, allowedHeaders and allowedMethods can be set to array('*')
+    | to accept any value.
+    |
+    */
+   
     'supportsCredentials' => false,
-    'allowedOrigins' => $allowedOriginList,
+    'allowedOrigins' => ['*'],
+    'allowedOriginsPatterns' => [],
     'allowedHeaders' => ['*'],
     'allowedMethods' => ['*'],
-    'exposedHeaders' => ['Location'],
+    'exposedHeaders' => [],
     'maxAge' => 0,
-    'hosts' => [],
+
 ];

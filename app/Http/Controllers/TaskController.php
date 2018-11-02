@@ -571,7 +571,7 @@ class TaskController extends Controller
                             'method' => OperateLogMethod::UPDATE,
                         ]);
                         $arrayOperateLog[] = $operatePrincipal;
-                    }else{
+                    } else {
                         unset($arrayOperateLog['principal_id']);
                     }
                 }
@@ -708,7 +708,18 @@ class TaskController extends Controller
         DB::beginTransaction();
         try {
             $task = Task::create($payload);
-            //TODO 操作日志
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $task,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+
             if (!$pTask->id) {//子任务不能关联资源
                 //关联资源
                 if ($request->has('resource_id') && $request->has('resourceable_id')) {
@@ -736,7 +747,7 @@ class TaskController extends Controller
                     }
 
                     TaskResource::create($array);
-                    //TODO 操作日志
+                    // 操作日志 ...
                 }
             }
 

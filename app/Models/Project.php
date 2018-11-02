@@ -31,4 +31,15 @@ class Project extends Model
     {
         return $this->morphMany(ModuleUser::class, 'moduleable');
     }
+
+    public function affixes()
+    {
+        return $this->morphMany(Affix::class, 'affixable');
+    }
+
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable');
+    }
+
 }

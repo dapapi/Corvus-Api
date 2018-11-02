@@ -18,8 +18,6 @@ class ModuleUserRepository
      */
     public function addModuleUser($participantIds, $task, $project, $type)
     {
-        $moduleUser = null;
-
         $participantIds = array_unique($participantIds);
         foreach ($participantIds as $key => &$participantId) {
             try {
@@ -33,10 +31,10 @@ class ModuleUserRepository
                     'user_id' => $participantUser->id,
                     'type' => $type,
                 ];
-                if ($task) {
+                if ($task->id) {
                     $array['moduleable_id'] = $task->id;
                     $array['moduleable_type'] = ModuleableType::TASK;
-                } else if ($project) {
+                } else if ($project->id) {
                     $array['moduleable_id'] = $project->id;
                     $array['moduleable_type'] = ModuleableType::PROJECT;
                 }
@@ -44,46 +42,13 @@ class ModuleUserRepository
 
                 $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->where('type', $type)->first();
                 if (!$moduleUser) {
-                    $moduleUser = ModuleUser::create($array);
+                    ModuleUser::create($array);
+                } else {
+                    array_splice($participantIds, $key, 1);
                 }
             }
         }
-        unset($participantId);
-        return $moduleUser;
+        return $participantIds;
     }
 
-    /**
-     * @param $participantIds
-     * @param $task
-     * @param $project
-     */
-    public function delModuleUser($participantIds, $task, $project)
-    {
-        $participantIds = array_unique($participantIds);
-        foreach ($participantIds as $key => &$participantId) {
-            try {
-                $participantId = hashid_decode($participantId);
-                $participantUser = User::findOrFail($participantId);
-            } catch (Exception $e) {
-                array_splice($participantIds, $key, 1);
-            }
-            if ($participantUser) {
-                $moduleableType = null;
-                if ($task) {
-                    $moduleableType = ModuleableType::TASK;
-                } else if ($project) {
-                    $moduleableType = ModuleableType::PROJECT;
-                }
-                //TODO 还有其他类型
-
-                $moduleUser = ModuleUser::where('moduleable_type', $moduleableType)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
-                if ($moduleUser) {
-                    $moduleUser->delete();
-                    return true;
-                }
-            }
-        }
-        unset($participantId);
-        return false;
-    }
 }

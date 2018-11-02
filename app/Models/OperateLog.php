@@ -4,22 +4,17 @@ namespace App\Models;
 
 use App\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Affix extends Model
+class OperateLog extends Model
 {
-    use SoftDeletes;
-
-    protected $table = 'affixes';
-
     protected $fillable = [
         'user_id',
-        'affixable_id',
-        'affixable_type',
-        'title',
-        'url',
-        'size',
-        'type'
+        'logable_id',
+        'logable_type',
+        'content',
+        'method',
+        'status',
+        'level'
     ];
 
     public function scopeCreateDesc($query)
@@ -32,9 +27,8 @@ class Affix extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function affixable()
+    public function logable()
     {
         return $this->morphTo();
     }
-
 }

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
+use App\Models\OperateEntity;
+use App\Models\Task;
+use App\OperateLogMethod;
 use App\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
@@ -44,8 +47,46 @@ class TestController extends Controller
 
     public function date()
     {
-        $now= Carbon::now();
+        $now = Carbon::now();
         dd($now->toDateTimeString());
+    }
+
+    public function operateLog()
+    {
+        $task = Task::find(1);
+        //修改
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => '描述',
+            'start' => '这个项目大家都关注一下啊',
+            'end' => '项目开始了',
+            'method' => OperateLogMethod::UPDATE,
+        ]);
+        //创建任务
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::CREATE,
+        ]);
+
+        event(new OperateLogEvent([
+            $operate,
+        ]));
+        return $this->response->array([
+            'success' => true,
+            'message' => 'hello operate log!'
+        ]);
+    }
+
+    public function arrayIf()
+    {
+        $participantIds = ['1'];
+        if (count($participantIds)) {
+            dd('ok');
+        }
+        dd('no');
     }
 
 }

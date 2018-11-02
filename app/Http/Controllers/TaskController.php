@@ -630,29 +630,36 @@ class TaskController extends Controller
             $start = $task->start_at;
             $end = $array['start_at'];
 
-            $operateStartAt = new OperateEntity([
-                'obj' => $task,
-                'title' => '开始时间',
-                'start' => $start,
-                'end' => $end,
-                'method' => OperateLogMethod::UPDATE,
-            ]);
-            $arrayOperateLog[] = $operateStartAt;
+            if ($start != $end) {
+                $operateStartAt = new OperateEntity([
+                    'obj' => $task,
+                    'title' => '开始时间',
+                    'start' => $start,
+                    'end' => $end,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateStartAt;
+            } else {
+                unset($array['start_at']);
+            }
         }
 
         if ($request->has('end_at')) {
             $array['end_at'] = $payload['end_at'];
             $start = $task->end_at;
             $end = $array['end_at'];
-
-            $operateStartAt = new OperateEntity([
-                'obj' => $task,
-                'title' => '结束时间',
-                'start' => $start,
-                'end' => $end,
-                'method' => OperateLogMethod::UPDATE,
-            ]);
-            $arrayOperateLog[] = $operateStartAt;
+            if ($start != $end) {
+                $operateStartAt = new OperateEntity([
+                    'obj' => $task,
+                    'title' => '结束时间',
+                    'start' => $start,
+                    'end' => $end,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateStartAt;
+            } else {
+                unset($array['end_at']);
+            }
         }
 
         try {

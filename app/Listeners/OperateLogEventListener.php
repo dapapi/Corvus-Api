@@ -23,14 +23,15 @@ class OperateLogEventListener
         //
     }
 
-    protected $update_field = '修改【%s】从【%s】到【%s】';
-    protected $setting_field = '设置【%s】为【%s】';
+    protected $update_field = '修改 %s 从【%s】到【%s】';
+    protected $setting_field = '设置 %s 为【%s】';
+    protected $cancel_field = '取消 %s %s';
     protected $follow_up = '跟进：%s';
     protected $create = '创建';
     protected $look = '查看';
     protected $add = '添加';
-    protected $add_person = '添加【%s】%s';
-    protected $del_person = '删除【%s】%s';
+    protected $add_person = '添加 %s %s';
+    protected $del_person = '删除 %s %s';
     protected $delete = '删除';
     protected $recover = '恢复';
     protected $upload_affix = '上传附件';
@@ -40,6 +41,10 @@ class OperateLogEventListener
     protected $activate = '激活';
     protected $public = '公开';
     protected $privacy = '私密';
+    protected $relevance_resource = '关联';
+    protected $un_relevance_resource = '解除关联';
+    protected $principal = '负责人';
+    protected $cancel = '取消';
 
     /**
      * Handle the event.
@@ -155,6 +160,22 @@ class OperateLogEventListener
                 case OperateLogMethod::DEL_PERSON://删除人
                     $level = OperateLogLevel::MIDDLE;
                     $content = sprintf($this->del_person, $title, $start);
+                    break;
+                case OperateLogMethod::RELEVANCE_RESOURCE://关联资源
+                    $level = OperateLogLevel::LOW;
+                    $content = $this->relevance_resource . $title . ' ' . $start;
+                    break;
+                case OperateLogMethod::UN_RELEVANCE_RESOURCE://解除关联资源
+                    $level = OperateLogLevel::MIDDLE;
+                    $content = $this->un_relevance_resource . $title . ' ' . $start;
+                    break;
+                case OperateLogMethod::DEL_PRINCIPAL://删除负责人
+                    $level = OperateLogLevel::MIDDLE;
+                    $content = $this->delete . $typeName . $this->principal . $start;
+                    break;
+                case OperateLogMethod::CANCEL://取消
+                    $level = OperateLogLevel::MIDDLE;
+                    $content = sprintf($this->cancel_field, $title, $start);
                     break;
             }
 

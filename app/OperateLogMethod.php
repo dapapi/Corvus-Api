@@ -30,4 +30,8 @@ abstract class OperateLogMethod
     const RECOVER_OTHER = 18;//恢复其他
     const ADD_PERSON = 19;//添加人
     const DEL_PERSON = 20;//删除人
+    const RELEVANCE_RESOURCE = 21;//关联资源
+    const UN_RELEVANCE_RESOURCE = 22;//解除关联资源
+    const DEL_PRINCIPAL = 23;//删除负责人
+    const CANCEL = 24;//取消
 }

@@ -18,6 +18,7 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\ModuleUserRepository;
 use App\ResourceType;
+use App\TaskPriorityStatus;
 use App\TaskStatus;
 use App\User;
 use Carbon\Carbon;
@@ -336,13 +337,19 @@ class TaskController extends Controller
         DB::beginTransaction();
         try {
             $type = 0;
+            $title = '项目';
+            $start = '';
             if ($project->id) {
                 $type = ResourceType::PROJECT;
                 $project = Project::findOrFail($project->id);
                 $resourceable_id = $project->id;
                 $resourceable_type = ModuleableType::PROJECT;
+                $title = '项目';
+                $start = $project->title;
             } else {
                 //TODO 处理其他资源
+                $title = '其他';
+                $start = '其他模块';
             }
             $resource = Resource::where('type', $type)->first();
 
@@ -353,7 +360,17 @@ class TaskController extends Controller
                 ->first();
             if ($taskResource) {
                 $taskResource->delete();
-                //TODO 操作日志
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $task,
+                    'title' => $title,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::UN_RELEVANCE_RESOURCE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
             } else {
                 return $this->response->noContent();
             }
@@ -382,14 +399,20 @@ class TaskController extends Controller
                     'task_id' => $task->id,
                 ];
 
+                $title = '项目';
+                $start = '';
                 $type = 0;
                 if ($project->id) {
                     $type = ResourceType::PROJECT;
                     $project = Project::findOrFail($project->id);
                     $array['resourceable_id'] = $project->id;
                     $array['resourceable_type'] = ModuleableType::PROJECT;
+                    $title = '项目';
+                    $start = $project->title;
                 } else {
                     //TODO 处理其他资源
+                    $title = '其他';
+                    $start = '其他模块';
                 }
                 $resource = Resource::where('type', $type)->first();
                 $array['resource_id'] = $resource->id;
@@ -401,7 +424,17 @@ class TaskController extends Controller
                     ->first();
                 if (!$taskResource) {
                     TaskResource::create($array);
-                    //TODO 操作日志
+                    // 操作日志
+                    $operate = new OperateEntity([
+                        'obj' => $task,
+                        'title' => $title,
+                        'start' => $start,
+                        'end' => null,
+                        'method' => OperateLogMethod::RELEVANCE_RESOURCE,
+                    ]);
+                    event(new OperateLogEvent([
+                        $operate,
+                    ]));
                 } else {
                     return $this->response->noContent();
                 }
@@ -421,11 +454,21 @@ class TaskController extends Controller
         DB::beginTransaction();
         try {
             if ($task->principal_id) {
+                $user = User::where('id', $task->principal_id)->first();
+                $start = $user->name;
                 $task->principal_id = null;
                 $task->save();
-                //TODO 操作日志
-
-                return $this->response->accepted();
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $task,
+                    'title' => null,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::DEL_PRINCIPAL,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
             }
         } catch (Exception $e) {
             DB::rollBack();
@@ -442,8 +485,28 @@ class TaskController extends Controller
         $type = $payload['type'];
         DB::beginTransaction();
         try {
-            $task->update([$type => null]);
-            //TODO 操作日志
+            $title = '开始时间';
+            $start = $task->start_at;
+            if ($type == 'end_at') {
+                $title = '结束时间';
+                $start = $task->end_at;
+            }
+            if ($start) {
+                $task->update([$type => null]);
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $task,
+                    'title' => $title,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::CANCEL,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            } else {
+                return $this->response->noContent();
+            }
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -459,19 +522,59 @@ class TaskController extends Controller
 
         $array = [];
 
+        $arrayOperateLog = [];
+
         if ($request->has('title')) {
             $array['title'] = $payload['title'];
+
+            $operateTitle = new OperateEntity([
+                'obj' => $task,
+                'title' => '标题',
+                'start' => $task->title,
+                'end' => $array['title'],
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            $arrayOperateLog[] = $operateTitle;
         }
 
         if ($request->has('desc')) {
             $array['desc'] = $payload['desc'];
+
+            $operateDesc = new OperateEntity([
+                'obj' => $task,
+                'title' => '描述',
+                'start' => $task->desc,
+                'end' => $array['desc'],
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            $arrayOperateLog[] = $operateDesc;
         }
 
         if ($request->has('principal_id')) {
             try {
+                $currentPrincipalUser = User::find($task->principal_id);
+                $start = null;
+                if ($currentPrincipalUser)
+                    $start = $currentPrincipalUser->name;
+
                 $principalId = hashid_decode($payload['principal_id']);
-                User::findOrFail($principalId);
+                $principalUser = User::findOrFail($principalId);
                 $array['principal_id'] = $principalId;
+
+                if ($currentPrincipalUser) {
+                    if ($currentPrincipalUser->id != $array['principal_id']) {
+                        $operatePrincipal = new OperateEntity([
+                            'obj' => $task,
+                            'title' => '负责人',
+                            'start' => $start,
+                            'end' => $principalUser->name,
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operatePrincipal;
+                    }else{
+                        unset($arrayOperateLog['principal_id']);
+                    }
+                }
             } catch (Exception $e) {
                 return $this->response->errorBadRequest();
             }
@@ -479,14 +582,77 @@ class TaskController extends Controller
 
         if ($request->has('priority')) {
             $array['priority'] = $payload['priority'];
+            if ($array['priority'] != $task->priority) {
+                $start = '无';
+                switch ($task->priority) {
+                    case TaskPriorityStatus::NOTHING:
+                        $start = '无';
+                        break;
+                    case TaskPriorityStatus::HIGH:
+                        $start = '高';
+                        break;
+                    case TaskPriorityStatus::MIDDLE:
+                        $start = '中';
+                        break;
+                    case TaskPriorityStatus::LOW:
+                        $start = '低';
+                        break;
+                }
+                $end = '无';
+                switch ($array['priority']) {
+                    case TaskPriorityStatus::NOTHING:
+                        $end = '无';
+                        break;
+                    case TaskPriorityStatus::HIGH:
+                        $end = '高';
+                        break;
+                    case TaskPriorityStatus::MIDDLE:
+                        $end = '中';
+                        break;
+                    case TaskPriorityStatus::LOW:
+                        $end = '低';
+                        break;
+                }
+
+                $operatePriority = new OperateEntity([
+                    'obj' => $task,
+                    'title' => '优先级',
+                    'start' => $start,
+                    'end' => $end,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operatePriority;
+            }
         }
 
         if ($request->has('start_at')) {
             $array['start_at'] = $payload['start_at'];
+            $start = $task->start_at;
+            $end = $array['start_at'];
+
+            $operateStartAt = new OperateEntity([
+                'obj' => $task,
+                'title' => '开始时间',
+                'start' => $start,
+                'end' => $end,
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            $arrayOperateLog[] = $operateStartAt;
         }
 
         if ($request->has('end_at')) {
             $array['end_at'] = $payload['end_at'];
+            $start = $task->end_at;
+            $end = $array['end_at'];
+
+            $operateStartAt = new OperateEntity([
+                'obj' => $task,
+                'title' => '结束时间',
+                'start' => $start,
+                'end' => $end,
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            $arrayOperateLog[] = $operateStartAt;
         }
 
         try {
@@ -494,7 +660,8 @@ class TaskController extends Controller
                 return $this->response->noContent();
 
             $task->update($array);
-            //TODO 操作日志
+            // 操作日志
+            event(new OperateLogEvent($arrayOperateLog));
         } catch (Exception $e) {
             Log::error($e);
             return $this->response->errorInternal('修改失败');

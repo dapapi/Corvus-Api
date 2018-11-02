@@ -115,7 +115,6 @@ class OperateLogEventListener
                 case OperateLogMethod::PRIVACY://私密
                     $level = OperateLogLevel::HIGH;
                     $content = $typeName . '转为' . $this->privacy;
-                    //TODO
                     break;
                 case OperateLogMethod::TERMINATION://终止
                     $level = OperateLogLevel::MIDDLE;

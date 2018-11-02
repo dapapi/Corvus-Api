@@ -15,6 +15,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
     $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
+        // user
+        $api->get('/users/my', 'App\Http\Controllers\UserController@my');
+
         // task
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');

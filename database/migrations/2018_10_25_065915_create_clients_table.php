@@ -15,8 +15,7 @@ class CreateClientsTable extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('company');
-            $table->string('brand');
+            $table->string('company')->unique();
             $table->tinyInteger('type')->default(1);
             $table->tinyInteger('status')->default(1);
             $table->unsignedInteger('industry_id');
@@ -26,7 +25,7 @@ class CreateClientsTable extends Migration
             $table->string('address')->nullable();
             $table->unsignedInteger('principal_id');
             $table->unsignedInteger('creator_id');
-            $table->tinyInteger('size')->nullable();
+            $table->tinyInteger('size')->default(1);
             $table->string('keyman')->nullable();
             $table->text('desc')->nullable();
             $table->softDeletes();

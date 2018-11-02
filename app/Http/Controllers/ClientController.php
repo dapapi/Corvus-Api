@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ClientStoreRequest;
+use App\Http\Requests\Client\EditClientRequest;
+use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Transformers\ClientTransformer;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Industry;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,15 +16,19 @@ use Illuminate\Support\Facades\Log;
 
 class ClientController extends Controller
 {
-    // todo 列表显示可能涉及数据权限
     public function index(Request $request)
     {
-        $clients = Client::all();
-        return $this->response->collection($clients, new ClientTransformer());
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        } else {
+            $pageSize = config('page_size');
+        }
+
+        $clients = Client::orderBy('company', 'asc')->paginate($pageSize);
+        return $this->response->paginator($clients, new ClientTransformer());
     }
 
-    // todo 根据组织架构区分客户类型
-    public function store(ClientStoreRequest $request)
+    public function store(StoreClientRequest $request)
     {
         $payload = $request->all();
 
@@ -60,7 +66,7 @@ class ClientController extends Controller
         return $this->response->created();
     }
 
-    public function edit(Request $request, Client $client)
+    public function edit(EditClientRequest $request, Client $client)
     {
         $payload = $request->all();
 
@@ -72,24 +78,37 @@ class ClientController extends Controller
             $client->save();
         } catch (\Exception $exception) {
             Log::error($exception);
-            return $this->response->error();
+            return $this->response->error('修改失败', 500);
         }
 
         return $this->response->accepted();
     }
 
-    public function delete(Request $request)
+    public function delete(Request $request, Client $client)
     {
+        try {
+            $client->status = Client::STATUS_FROZEN;
+            $client->save();
+            $client->delete();
+        } catch (Exception $exception) {
+            Log::error($exception);
+            return $this->response->error('删除失败', 500);
+        }
 
+        return $this->response->noContent();
     }
 
-    public function recover(Request $request)
+    public function recover(Request $request, Client $client)
     {
+        $client->restore();
+        $client->status = Client::STATUS_NORMAL;
+        $client->save();
 
+        return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request)
+    public function detail(Request $request, Client $client)
     {
-
+        return $this->response->item($client, new ClientTransformer());
     }
 }

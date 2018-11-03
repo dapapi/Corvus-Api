@@ -17,6 +17,9 @@ class Trail extends Model
     const MAIL = 2;
     const SENIOR = 3;
 
+    const STATUS_NORMAL = 1;
+    const STATUS_FROZEN = 2;
+
     protected $fillable = [
         'title',
         'brand',
@@ -24,11 +27,15 @@ class Trail extends Model
         'client_id',
         'artist_id',
         'contact_id',
-        'progress_status',
-        'source_type',
-        'desc',
+        'creator_id',
         'type',
         'status',
+        'lock_status',
+        'progress_status',
+        'resource',
+        'resource_type',
+        'fee',
+        'desc',
     ];
 
     protected $dates = ['deleted_at'];
@@ -48,8 +55,13 @@ class Trail extends Model
         return $this->belongsTo(Client::class, 'contact_id', 'id');
     }
 
-//    public function artist()
-//    {
-//        return $this->belongsTo(Artist::class, 'principal_id', 'id');
-//    }
+    public function artist()
+    {
+        return $this->belongsTo(Artist::class, 'artist_id', 'id');
+    }
+
+    public function recommendations()
+    {
+        return $this->belongsToMany(Artist::class, 'trail_artist');
+    }
 }

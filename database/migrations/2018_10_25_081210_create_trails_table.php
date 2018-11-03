@@ -24,6 +24,11 @@ class CreateTrailsTable extends Migration
             $table->unsignedInteger('creator_id');
             $table->tinyInteger('type')->default(1);
             $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('lock_status')->default(1);
+            $table->tinyInteger('progress_status')->default(1);
+            $table->string('resource');
+            $table->unsignedInteger('resource_type');
+            $table->integer('fee')->nullable();
             $table->text('desc')->nullable();
             $table->softDeletes();
             $table->timestamps();

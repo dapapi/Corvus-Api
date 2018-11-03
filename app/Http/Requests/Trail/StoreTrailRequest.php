@@ -26,10 +26,18 @@ class StoreTrailRequest extends FormRequest
         return [
             'title' => 'required',
             'brand' => 'required',
-            'principal_id' => 'required',
-            'client_id' => 'required',
-            'contact_id' => 'required',
-            'artist_id' => 'required',
+            'principal_id' => 'required|numeric',
+            'client.id' => 'nullable|numeric',
+            'client.company' => 'required_without:client.id',
+            'client.grade' => 'required_without:client.id|numeric',
+            'contact.id' => 'nullable|numeric',
+            'contact.name' => 'required_without:contact.id',
+            'contact.phone' => 'required_without:contact.id',
+            'resource' => 'required',
+            'resource_type' => 'required|numeric',
+            'artist_id' => 'nullable|numeric',
+            'recommendations' => 'nullable|array',
+            'fee' => 'required|numeric',
             'desc' => 'nullable',
         ];
     }
@@ -44,6 +52,7 @@ class StoreTrailRequest extends FormRequest
             'client_id' => '关联客户',
             'contact_id' => '关联联系人',
             'artist_id' => '关联艺人',
+            'recommendations' => '推荐艺人',
             'desc' => '描述',
         ];
     }

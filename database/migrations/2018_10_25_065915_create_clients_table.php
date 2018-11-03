@@ -18,8 +18,8 @@ class CreateClientsTable extends Migration
             $table->string('company')->unique();
             $table->tinyInteger('type')->default(1);
             $table->tinyInteger('status')->default(1);
-            $table->unsignedInteger('industry_id');
-            $table->string('industry');
+            $table->unsignedInteger('industry_id')->nullable();
+            $table->string('industry')->nullable();
             $table->tinyInteger('grade')->default(1);
             $table->unsignedInteger('region_id')->nullable();
             $table->string('address')->nullable();

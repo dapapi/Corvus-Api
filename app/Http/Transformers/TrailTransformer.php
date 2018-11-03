@@ -7,6 +7,8 @@ use League\Fractal\TransformerAbstract;
 
 class TrailTransformer extends TransformerAbstract
 {
+    protected $availableIncludes = ['principal', 'client', 'artist', 'contact', 'recommendation'];
+
     public function transform(Trail $trail)
     {
         $array = [
@@ -23,5 +25,10 @@ class TrailTransformer extends TransformerAbstract
         ];
 
         return $array;
+    }
+
+    public function includePrincipal(Trail $trail)
+    {
+
     }
 }

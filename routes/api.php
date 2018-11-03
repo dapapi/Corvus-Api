@@ -74,6 +74,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
         $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
+        $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
 

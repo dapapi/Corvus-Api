@@ -78,6 +78,30 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
 
+        // client
+        $api->get('/clients', 'App\Http\Controllers\ClientController@index');
+        $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+        $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
+        $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
+        $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
+
+        // contact
+        $api->get('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@index');
+//        $api->group(['middleware' => ''], function ($api) {
+            $api->post('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@store');
+//        });
+        $api->put('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@edit');
+        $api->post('/clients/{client}/contacts/{contact}/recover', 'App\Http\Controllers\ContactController@recover');
+        $api->delete('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@delete');
+        $api->get('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@detail');
+
+        // trail
+        $api->get('/trails', 'App\Http\Controllers\TrailController@index');
+        $api->post('/trails', 'App\Http\Controllers\TrailController@store');
+        $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
+        $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
+        $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
+
     });
 
 

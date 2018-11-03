@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\Action;
 use App\Models\Module;
 use App\User;
 use App\Models\Client;

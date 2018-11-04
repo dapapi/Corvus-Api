@@ -3,13 +3,13 @@
 namespace App\Http\Transformers;
 
 use App\Models\Trail;
-use App\Models\TrailArtist;
+use App\Models\TrailStar;
 use App\User;
 use League\Fractal\TransformerAbstract;
 
 class TrailTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations'];
+    protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations', 'expectations'];
 
     public function transform(Trail $trail)
     {
@@ -72,14 +72,14 @@ class TrailTransformer extends TransformerAbstract
     {
         $recommendations = $trail->recommendations;
 
-        return $this->collection($recommendations, new ArtistTransformer());
+        return $this->collection($recommendations, new StarTransformer());
     }
 
-//
-//    public function includeStars(Trail $trail)
-//    {
-//        $stars = $trail->stars;
-//
-//        return $this->collection($stars, new UserTransformer());
-//    }
+
+    public function includeExpectations(Trail $trail)
+    {
+        $expectations = $trail->expectations;
+
+        return $this->collection($expectations, new StarTransformer());
+    }
 }

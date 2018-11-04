@@ -37,6 +37,7 @@ class StoreTrailRequest extends FormRequest
             'resource_type' => 'required|numeric',
             'artist_id' => 'nullable|numeric',
             'recommendations' => 'nullable|array',
+            'expectation' => 'nullable|array',
             'fee' => 'required|numeric',
             'desc' => 'nullable',
         ];

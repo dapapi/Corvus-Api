@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Trail\EditTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Transformers\TrailTransformer;
-use App\Models\Artist;
+use App\Models\Star;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Trail;
-use App\Models\TrailArtist;
+use App\Models\TrailStar;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -67,7 +67,7 @@ class TrailController extends Controller
         }
 
 
-        $artist = Artist::find($payload['artist_id']);
+        $artist = Star::find($payload['artist_id']);
         if (!$artist)
             return $this->response->errorBadRequest('艺人不存在');
 
@@ -100,14 +100,30 @@ class TrailController extends Controller
 
             $trail = Trail::create($payload);
 
+
+            if ($request->has('expectations')) {
+                TrailStar::where('trail_id', $trail->id)->delete();
+                foreach ($payload['expectations'] as $expectation) {
+                    $starId = hashid_decode($expectation);
+
+                    if (Star::find($starId))
+                        TrailStar::create([
+                            'trail_id' => $trail->id,
+                            'star_id' => $starId,
+                            'type' => TrailStar::EXPECTATION,
+                        ]);
+                }
+            }
+
             if ($request->has('recommendations')) {
                 foreach ($payload['recommendations'] as $recommendation) {
                     $artistId = hashid_decode($recommendation);
 
-                    if (Artist::find($artistId))
-                        TrailArtist::create([
+                    if (Star::find($artistId))
+                        TrailStar::create([
                             'trail_id' => $trail->id,
                             'artist_id' => $artistId,
+                            'type' => TrailStar::RECOMMENDATION,
                         ]);
                 }
             }
@@ -157,15 +173,30 @@ class TrailController extends Controller
 
             $trail->save();
 
+            if ($request->has('expectations')) {
+                TrailStar::where('trail_id', $trail->id)->delete();
+                foreach ($payload['expectations'] as $expectation) {
+                    $starId = hashid_decode($expectation);
+
+                    if (Star::find($starId))
+                        TrailStar::create([
+                            'trail_id' => $trail->id,
+                            'star_id' => $starId,
+                            'type' => TrailStar::EXPECTATION,
+                        ]);
+                }
+            }
+
             if ($request->has('recommendations')) {
-                TrailArtist::where('trail_id', $trail->id)->delete();
+                TrailStar::where('trail_id', $trail->id)->delete();
                 foreach ($payload['recommendations'] as $recommendation) {
                     $artistId = hashid_decode($recommendation);
 
-                    if (Artist::find($artistId))
-                        TrailArtist::create([
+                    if (Star::find($artistId))
+                        TrailStar::create([
                             'trail_id' => $trail->id,
-                            'artist_id' => $artistId,
+                            'star_id' => $artistId,
+                            'type' => TrailStar::RECOMMENDATION,
                         ]);
                 }
             }

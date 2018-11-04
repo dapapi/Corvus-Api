@@ -35,6 +35,7 @@ class EditTrailRequest extends FormRequest
             'contact.phone' => 'required_without:contact.id',
             'artist_id' => 'nullable|numeric',
             'recommendations' => 'nullable|array',
+            'expectation' => 'nullable|array',
             'fee' => 'nullable|numeric',
             'lock' => 'nullable|boolean',
             'desc' => 'nullable',

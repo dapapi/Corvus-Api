@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateTrailArtistTable extends Migration
+class CreateTrailStarTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,15 @@ class CreateTrailArtistTable extends Migration
      */
     public function up()
     {
-        Schema::create('trail_artist', function (Blueprint $table) {
+        Schema::create('trail_star', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('trail_id');
-            $table->unsignedInteger('artist_id');
+            $table->unsignedInteger('star_id');
+            $table->tinyInteger('type');
             $table->timestamps();
 
             $table->foreign('trail_id')->references('id')->on('trails');
-            $table->foreign('artist_id')->references('id')->on('artists');
+            $table->foreign('star_id')->references('id')->on('stars');
         });
     }
 
@@ -31,6 +32,6 @@ class CreateTrailArtistTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('trail_artist');
+        Schema::dropIfExists('trail_star');
     }
 }

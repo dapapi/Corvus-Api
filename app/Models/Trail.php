@@ -20,6 +20,8 @@ class Trail extends Model
     const STATUS_NORMAL = 1;
     const STATUS_FROZEN = 2;
 
+    const PROGRESS_FIRST = 1;
+
     protected $fillable = [
         'title',
         'brand',

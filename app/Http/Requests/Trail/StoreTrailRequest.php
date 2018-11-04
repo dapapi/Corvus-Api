@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\Trail;
 
-use Illuminate\Foundation\Http\FormRequest;
+
+use Dingo\Api\Http\FormRequest;
 
 class StoreTrailRequest extends FormRequest
 {

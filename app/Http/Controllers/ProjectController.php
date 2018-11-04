@@ -28,6 +28,11 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
+    public function detail(Request $request, Project $project)
+    {
+
+    }
+
     // todo 按个人角度筛选 待测试
     public function my(Request $request)
     {
@@ -73,7 +78,7 @@ class ProjectController extends Controller
 
     }
 
-    public function delete(Request $request)
+    public function delete(Request $request, Project $project)
     {
 
     }

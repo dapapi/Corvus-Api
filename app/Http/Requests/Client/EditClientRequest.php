@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\Client;
 
-use Illuminate\Foundation\Http\FormRequest;
+
+use Dingo\Api\Http\FormRequest;
 
 class EditClientRequest extends FormRequest
 {

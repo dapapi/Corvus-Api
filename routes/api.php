@@ -78,6 +78,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
 
+        // artist
+        $api->get('/stars', 'App\Http\Controllers\ArtistController@index');
+
     });
 
 

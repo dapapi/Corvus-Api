@@ -18,11 +18,14 @@ class TrailTransformer extends TransformerAbstract
             'title' => $trail->title,
             'brand' => $trail->brand,
             'resource_type' => $trail->resource_type,
-            'fee' => $trail->fee / 100,
             'type' => $trail->type,
             'status' => $trail->status,
+            'progress_status' => $trail->progress_status,
             'desc' => $trail->desc,
         ];
+
+        if (!$trail->lock_status)
+            $array['fee'] = $trail->fee;
 
         if ($trail->resource_type == Trail::PERSONAL) {
             $resource = User::where('id', $trail->resource)->first();

@@ -13,38 +13,23 @@ class UserTransformer extends TransformerAbstract
     ];
     public function transform(User $user)
     {
-        $department = $user->department()->first();
-        if (!$department)
-            return [
-                'id' => hashid_encode($user->id),
-                'name' => $user->name,
-            ];
-        
-        $company = $this->department($department);
-        return [
+        $array = [
             'id' => hashid_encode($user->id),
             'name' => $user->name,
-            'company' => $company->name,
-            'company_id' => hashid_encode($company->id),
         ];
+        if ($user->company) {
+            $array['company'] = $user->company->name;
+            $array['company_id'] = hashid_encode($user->company->id);
+        }
+        return $array;
     }
 
     public function includeDepartment(User $user)
     {
         $department = $user->department()->first();
-        if (!$department)
+        if (!$department) {
             return null;
-
-        return $this->item($department, new DepartmentTransformer());
-    }
-
-    private function department(Department $department)
-    {
-        $department = $department->pDepartment;
-        if ($department->department_pid == 0) {
-            return $department;
-        } else {
-            $this->department($department);
         }
+        return $this->item($department, new DepartmentTransformer());
     }
 }

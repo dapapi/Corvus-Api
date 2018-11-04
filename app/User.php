@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Models\Affix;
+use App\Models\Department;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\RoleUser;
@@ -60,7 +61,7 @@ class User extends Authenticatable
 
     public function department()
     {
-        $this->belongsTo(DepartmentUser::class);
+        return $this->belongsToMany(Department::class);
     }
 
     public function participantTasks()

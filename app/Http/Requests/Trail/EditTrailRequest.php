@@ -36,6 +36,7 @@ class EditTrailRequest extends FormRequest
             'artist_id' => 'nullable|numeric',
             'recommendations' => 'nullable|array',
             'fee' => 'nullable|numeric',
+            'lock' => 'nullable|boolean',
             'desc' => 'nullable',
         ];
     }

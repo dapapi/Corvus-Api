@@ -24,7 +24,7 @@ class TrailTransformer extends TransformerAbstract
             'desc' => $trail->desc,
         ];
 
-        if (!$trail->lock_status)
+        if ($trail->lock_status)
             $array['fee'] = $trail->fee;
 
         if ($trail->resource_type == Trail::PERSONAL) {

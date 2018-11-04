@@ -152,6 +152,9 @@ class TrailController extends Controller
             foreach ($payload as $key => $val) {
                 $trail[$key] = $val;
             }
+            if ($request->has('lock') && $payload['lock'])
+                $trail['lock_status'] = 1;
+
             $trail->save();
 
             if ($request->has('recommendations')) {

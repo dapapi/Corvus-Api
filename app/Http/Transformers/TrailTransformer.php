@@ -30,6 +30,8 @@ class TrailTransformer extends TransformerAbstract
                 'id' => hashid_encode($resource->id),
                 'name' => $resource->name,
             ];
+        } else {
+            $array['resource'] = $trail->resource;
         }
 
         return $array;

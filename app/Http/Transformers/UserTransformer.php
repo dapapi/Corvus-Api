@@ -14,6 +14,12 @@ class UserTransformer extends TransformerAbstract
     public function transform(User $user)
     {
         $department = $user->department()->first();
+        if (!$department)
+            return [
+                'id' => hashid_encode($user->id),
+                'name' => $user->name,
+            ];
+        
         $company = $this->department($department);
         return [
             'id' => hashid_encode($user->id),

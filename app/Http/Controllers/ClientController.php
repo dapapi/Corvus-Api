@@ -28,6 +28,12 @@ class ClientController extends Controller
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
+    public function all(Request $request)
+    {
+        $clients = Client::orderBy('company', 'asc')->get();
+        return $this->response->collection($clients, new ClientTransformer());
+    }
+
     public function store(StoreClientRequest $request)
     {
         $payload = $request->all();
@@ -63,7 +69,7 @@ class ClientController extends Controller
         }
         DB::commit();
 
-        return $this->response->created();
+        return $this->response->item($client, new ClientTransformer());
     }
 
     public function edit(EditClientRequest $request, Client $client)

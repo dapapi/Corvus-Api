@@ -59,7 +59,6 @@ class AffixController extends Controller
         //TODO 其他模块
 
         return $this->response->paginator($affixes, new AffixTransformer());
-
     }
 
     public function add(AffixRequest $request, Task $task, Project $project)

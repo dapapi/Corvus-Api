@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Transformers\ArtistTransformer;
-use App\Models\Artist;
+use App\Http\Transformers\StarTransformer;
+use App\Models\Star;
 use Illuminate\Http\Request;
 
-class ArtistController extends Controller
+class StarController extends Controller
 {
     public function index(Request $request)
     {
@@ -16,8 +16,8 @@ class ArtistController extends Controller
             $pageSize = config('page_size');
         }
 
-        $artists = Artist::orderBy('name')->paginate($pageSize);
+        $artists = Star::orderBy('name')->paginate($pageSize);
 
-        return $this->response->paginator($artists, new ArtistTransformer());
+        return $this->response->paginator($artists, new StarTransformer());
     }
 }

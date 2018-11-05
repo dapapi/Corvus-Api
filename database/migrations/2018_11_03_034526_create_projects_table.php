@@ -18,9 +18,7 @@ class CreateProjectsTable extends Migration
             $table->string('title');
             $table->unsignedInteger('principal_id');
             $table->unsignedInteger('creator_id');
-            $table->unsignedInteger('company_id')->nullable();
             $table->unsignedInteger('trail_id')->nullable();
-            $table->unsignedInteger('contact_id')->nullable();
             $table->boolean('privacy')->default(0);
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('type')->default(1);
@@ -29,6 +27,7 @@ class CreateProjectsTable extends Migration
 
             $table->foreign('principal_id')->references('id')->on('users');
             $table->foreign('creator_id')->references('id')->on('users');
+            $table->foreign('trail_id')->references('id')->on('trails');
         });
     }
 

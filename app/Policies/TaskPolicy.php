@@ -4,12 +4,20 @@ namespace App\Policies;
 
 use App\Models\Module;
 use App\Models\Task;
+use App\Repositories\ModuleActionRepository;
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TaskPolicy
 {
     use HandlesAuthorization;
+
+    protected $moduleActionRepository;
+
+    public function __construct(ModuleActionRepository $moduleActionRepository)
+    {
+        $this->moduleActionRepository = $moduleActionRepository;
+    }
 
 
     /**
@@ -32,7 +40,10 @@ class TaskPolicy
      */
     public function create(User $user)
     {
-        //
+        $result = $this->moduleActionRepository->findUserPermission($user, 'tasks', 'create');
+        if ($result)
+            return $result;
+        return abort(403, '没有操作权限');
     }
 
     /**
@@ -56,25 +67,18 @@ class TaskPolicy
      */
     public function delete(User $user, Task $task)
     {
-        $action = Module::where('code', 'tasks')->first()->actions()->where('code', 'delete')->first();
-        $actionId = $action->id;
-
-        $userRoles = $user->roles;
-
-        foreach ($userRoles as $userRole) {
-            $action = $userRole->actions()->find($actionId);
-            if ($action) {
-                //创建人,负责人
-                $userId = $user->id;
-                if ($userId == $task->creator_id || $userId == $task->principal_id) {
+        $result = $this->moduleActionRepository->findUserPermission($user, 'tasks', 'delete');
+        if ($result) {
+            //创建人,负责人
+            $userId = $user->id;
+            if ($userId == $task->creator_id || $userId == $task->principal_id) {
+                return true;
+            }
+            //参与人
+            $participantUsers = $task->participants()->get();
+            foreach ($participantUsers as $participantUser) {
+                if ($userId == $participantUser->id) {
                     return true;
-                }
-                //参与人
-                $participantUsers = $task->participants()->get();
-                foreach ($participantUsers as $participantUser) {
-                    if ($userId == $participantUser->id) {
-                        return true;
-                    }
                 }
             }
         }

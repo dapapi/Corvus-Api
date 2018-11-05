@@ -19,6 +19,11 @@ class Trail extends Model
 
     const STATUS_NORMAL = 1;
     const STATUS_FROZEN = 2;
+    const STATUS_DELETE = 3;
+
+    const PROGRESS_FIRST = 1;
+
+    const PROGRESS_FIRST = 1;
 
     protected $fillable = [
         'title',
@@ -55,13 +60,13 @@ class Trail extends Model
         return $this->belongsTo(Client::class, 'contact_id', 'id');
     }
 
-    public function artist()
+    public function expectations()
     {
-        return $this->belongsTo(Artist::class, 'artist_id', 'id');
+        return $this->belongsToMany(Star::class, 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
 
     public function recommendations()
     {
-        return $this->belongsToMany(Artist::class, 'trail_artist');
+        return $this->belongsToMany(Star::class, 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
     }
 }

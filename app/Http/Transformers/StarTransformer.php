@@ -2,12 +2,12 @@
 
 namespace App\Http\Transformers;
 
-use App\Models\Artist;
+use App\Models\Star;
 use League\Fractal\TransformerAbstract;
 
-class ArtistTransformer extends TransformerAbstract
+class StarTransformer extends TransformerAbstract
 {
-    public function transform(Artist $artist)
+    public function transform(Star $artist)
     {
         $array = [
             'id' => hashid_encode($artist->id),

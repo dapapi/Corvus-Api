@@ -18,10 +18,10 @@ class TaskRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation()
-    {
-        $this->offsetSet('curr_date', date('Y-m-d H:i'));
-    }
+//    protected function prepareForValidation()
+//    {
+//        $this->offsetSet('curr_date', date('Y-m-d H:i'));
+//    }
 
     /**
      * Get the validation rules that apply to the request.
@@ -35,7 +35,7 @@ class TaskRequest extends FormRequest
             'title' => 'required|max:255',
             'privacy' => 'boolean',
             'priority' => Rule::in([TaskPriorityStatus::NOTHING, TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
-            'start_at' => 'date|after_or_equal:curr_date',
+            'start_at' => 'date',
             'end_at' => 'date|after_or_equal:start_at',
             'participant_ids' => 'array'
         ];

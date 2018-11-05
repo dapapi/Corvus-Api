@@ -28,6 +28,12 @@ class ClientController extends Controller
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
+    public function all(Request $request)
+    {
+        $clients = Client::orderBy('company', 'asc')->get();
+        return $this->response->collection($clients, new ClientTransformer());
+    }
+
     public function store(StoreClientRequest $request)
     {
         $payload = $request->all();

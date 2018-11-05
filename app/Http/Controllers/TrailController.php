@@ -30,6 +30,12 @@ class TrailController extends Controller
         return $this->response->paginator($clients, new TrailTransformer());
     }
 
+    public function all(Request $request)
+    {
+        $clients = Trail::orderBy('created_at', 'desc')->get();
+        return $this->response->collection($clients, new TrailTransformer());
+    }
+
     // todo 根据所属公司存不同类型 去完善 /users/my
     public function store(StoreTrailRequest $request)
     {

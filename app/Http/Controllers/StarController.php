@@ -20,4 +20,11 @@ class StarController extends Controller
 
         return $this->response->paginator($artists, new StarTransformer());
     }
+
+    public function all(Request $request)
+    {
+        $artists = Star::orderBy('name')->get();
+
+        return $this->response->collection($artists, new StarTransformer());
+    }
 }

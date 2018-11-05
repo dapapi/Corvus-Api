@@ -26,6 +26,13 @@ class ContactController extends Controller
         return $this->response->paginator($contacts, new ContactTransformer());
     }
 
+    public function all(Request $request, Client $client)
+    {
+        $contacts = $client->contacts()->get();
+
+        return $this->response->collection($contacts, new ContactTransformer());
+    }
+
     public function detail(Request $request, Client $client, Contact $contact)
     {
         try {
@@ -50,7 +57,7 @@ class ContactController extends Controller
             return $this->response->error('创建联系人失败', 500);
         }
 
-        return $this->response->item($contact, new ContactTransformer());
+        return $this->response->item($conta);
     }
 
     public function edit(EditContactRequest $request, Client $client, Contact $contact)

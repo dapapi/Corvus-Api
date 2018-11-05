@@ -18,6 +18,6 @@ class ModuleActionRepository
             if ($action)
                 return true;
         }
-        return
+        return false;
     }
 }

@@ -769,9 +769,8 @@ class TaskController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        return $this->response->item($task,new TaskTransformer());
+        return $this->response->item($task, new TaskTransformer());
 //        return $this->response->created();
     }
-
 
 }

@@ -47,6 +47,9 @@ class TrailController extends Controller
         //金额化整
         $payload['fee'] = 100 * $payload['fee'];
 
+        if ($request->has('lock') && $payload['lock'])
+            $payload['lock_status'] = 1;
+
         $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
         // 改为直接新建
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;

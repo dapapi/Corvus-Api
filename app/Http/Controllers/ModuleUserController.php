@@ -37,20 +37,22 @@ class ModuleUserController extends Controller
 
         DB::beginTransaction();
         try {
-            $participantIds = $this->moduleUserRepository->addModuleUser($participantIds, $task, $project, $type);
-            if (count($participantIds)) {
-                // 操作日志
-                $title = '参与人';
-                switch ($type) {
-                    case ModuleUserType::PARTICIPANT:
-                        $title = '参与人';
-                        break;
-                    case ModuleUserType::OTHER:
-                        $title = '其他人';
-                        break;
-                    //TODO
-                }
+            $result = $this->moduleUserRepository->addModuleUser($participantIds, $task, $project, $type);
+            $participantIds = $result[0];
+            $participantDeleteIds = $result[1];
 
+            // 操作日志
+            $title = '参与人';
+            switch ($type) {
+                case ModuleUserType::PARTICIPANT:
+                    $title = '参与人';
+                    break;
+                case ModuleUserType::OTHER:
+                    $title = '其他人';
+                    break;
+                //TODO
+            }
+            if (count($participantIds)) {
                 $start = '';
                 foreach ($participantIds as $key => $participantId) {
                     try {
@@ -59,7 +61,7 @@ class ModuleUserController extends Controller
                     } catch (Exception $e) {
                     }
                 }
-                $start = substr($start, 0,strlen($start)-1);
+                $start = substr($start, 0, strlen($start) - 1);
 
                 $array = [
                     'title' => $title,
@@ -73,14 +75,41 @@ class ModuleUserController extends Controller
                     $operate,
                 ]));
             }
+            //前端要求一个接口可以完成添加人和删除人,已经存在的删除
+            if (count($participantDeleteIds)) {
+                // 操作日志
+                $start = '';
+                foreach ($participantDeleteIds as $key => $participantId) {
+                    try {
+                        $participantUser = User::findOrFail($participantId);
+                        $start .= $participantUser->name . ' ';
+                    } catch (Exception $e) {
+                    }
+                }
+                $start = substr($start, 0, strlen($start) - 1);
+                $array = [
+                    'title' => $title,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::DEL_PERSON,
+                ];
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+                $operate = new OperateEntity($array);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal();
         }
         DB::commit();
-        return $this->response->created();
+        if (count($participantDeleteIds)) {
+            return $this->response->accepted();
+        } else {
+            return $this->response->created();
+        }
     }
 
     public function addModuleUserParticipant(TaskParticipantRequest $request, Task $task, Project $project)
@@ -120,7 +149,7 @@ class ModuleUserController extends Controller
                         if ($moduleUser) {
                             $type = $moduleUser->type;
                             $moduleUser->delete();
-                        }else{
+                        } else {
                             array_splice($participantIds, $key, 1);
                         }
                     }
@@ -140,7 +169,7 @@ class ModuleUserController extends Controller
                     //TODO
                 }
 
-                $start = substr($start, 0,strlen($start)-1);
+                $start = substr($start, 0, strlen($start) - 1);
 
                 $array = [
                     'title' => $title,

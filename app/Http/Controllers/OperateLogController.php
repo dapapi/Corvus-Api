@@ -45,7 +45,7 @@ class OperateLogController extends Controller
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
                 $operateLog->content = '!!!!!!!';
-                //TODO
+                //TODO 隐私字段裁切处理
             }
         }
 

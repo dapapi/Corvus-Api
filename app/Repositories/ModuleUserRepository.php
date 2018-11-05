@@ -18,6 +18,7 @@ class ModuleUserRepository
      */
     public function addModuleUser($participantIds, $task, $project, $type)
     {
+        $participantDeleteIds = [];
         $participantIds = array_unique($participantIds);
         foreach ($participantIds as $key => &$participantId) {
             try {
@@ -45,10 +46,13 @@ class ModuleUserRepository
                     ModuleUser::create($array);
                 } else {
                     array_splice($participantIds, $key, 1);
+                    $participantDeleteIds[] = $participantId;
+                    //前端要求一个接口可以完成添加人和删除人,已经存在的删除
+                    $moduleUser->delete();
                 }
             }
         }
-        return $participantIds;
+        return [$participantIds, $participantDeleteIds];
     }
 
 }

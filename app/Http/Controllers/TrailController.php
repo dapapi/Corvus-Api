@@ -177,6 +177,9 @@ class TrailController extends Controller
             if ($request->has('lock') && $payload['lock'])
                 $trail['lock_status'] = 1;
 
+            if ($request->has('refuse') && $payload['refuse'])
+                $trail['status'] = Trail::STATUS_FROZEN;
+
             $trail->save();
 
             if ($request->has('expectations')) {
@@ -220,7 +223,7 @@ class TrailController extends Controller
 
     public function delete(Request $request, Trail $trail)
     {
-        $trail->status = Trail::STATUS_FROZEN;
+        $trail->status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
 

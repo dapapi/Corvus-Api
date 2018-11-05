@@ -63,7 +63,7 @@ class ClientController extends Controller
         }
         DB::commit();
 
-        return $this->response->created();
+        return $this->response->item($client, new ClientTransformer());
     }
 
     public function edit(EditClientRequest $request, Client $client)

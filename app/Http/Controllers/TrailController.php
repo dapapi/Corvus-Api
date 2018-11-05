@@ -135,7 +135,7 @@ class TrailController extends Controller
 
         DB::commit();
 
-        return $this->response->created();
+        return $this->response->item($trail, new TrailTransformer());
     }
 
     public function edit(EditTrailRequest $request, Trail $trail)

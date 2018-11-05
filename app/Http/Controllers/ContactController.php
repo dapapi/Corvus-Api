@@ -44,13 +44,13 @@ class ContactController extends Controller
         $payload['client_id'] = $client->id;
 
         try {
-            Contact::create($payload);
+            $contact = Contact::create($payload);
         } catch (\Exception $exception) {
             Log::error($exception);
             return $this->response->error('创建联系人失败', 500);
         }
 
-        return $this->response->created();
+        return $this->response->item($contact, new ContactTransformer());
     }
 
     public function edit(EditContactRequest $request, Client $client, Contact $contact)

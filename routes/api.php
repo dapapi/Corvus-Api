@@ -86,7 +86,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
-        $api->get('/stars/all', 'App\Http\Controllers\StarController@star');
+        $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
 
     });
 

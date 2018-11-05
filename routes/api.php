@@ -52,6 +52,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
+        //service
+        $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
+
         // contact
         $api->get('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@index');
 //        $api->group(['middleware' => ''], function ($api) {

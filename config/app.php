@@ -120,6 +120,10 @@ return [
 
     'api_debug' => env('API_DEBUG', false),
     'page_size' => env('PAGE_SIZE', 20),
+    'QINIU_ACCESS_KEY' => env('QINIU_ACCESS_KEY'),
+    'QINIU_SECRET_KEY' => env('QINIU_SECRET_KEY'),
+    'QINIU_BUCKET' => env('QINIU_BUCKET'),
+    'QINIU_DOMAIN' => env('QINIU_DOMAIN'),
 
     /*
     |--------------------------------------------------------------------------

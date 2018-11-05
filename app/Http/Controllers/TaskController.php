@@ -692,8 +692,9 @@ class TaskController extends Controller
             try {
                 $principalId = hashid_decode($payload['principal_id']);
                 User::findOrFail($principalId);
+                $payload['principal_id'] = $principalId;
             } catch (Exception $e) {
-                return $this->response->errorBadRequest();
+                return $this->response->errorBadRequest('负责人错误');
             }
         }
 
@@ -750,7 +751,7 @@ class TaskController extends Controller
                             $array['resourceable_type'] = ModuleableType::PROJECT;
                             break;
                         default:
-                            throw new ModelNotFoundException();
+                            return $this->response->errorBadRequest('关联任务失败');
                     }
 
                     TaskResource::create($array);
@@ -762,9 +763,8 @@ class TaskController extends Controller
             if ($request->has('participant_ids')) {
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $task, null, ModuleUserType::PARTICIPANT);
             }
-        } catch (ModelNotFoundException $e) {
-            return $this->response->errorBadRequest();
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

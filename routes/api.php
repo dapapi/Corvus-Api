@@ -57,6 +57,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // contact
         $api->get('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@index');
+        $api->get('/clients/{client}/contacts/all', 'App\Http\Controllers\ContactController@all');
 //        $api->group(['middleware' => ''], function ($api) {
         $api->post('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@store');
 //        });
@@ -67,6 +68,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // client
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
+        $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store')->middleware('can:create,App\Models\Client');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
@@ -75,14 +77,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // trail
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
+        $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
         $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
 
-        // artist
-        $api->get('/stars', 'App\Http\Controllers\ArtistController@index');
+        // stars
+        $api->get('/stars', 'App\Http\Controllers\StarController@index');
+        $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
 
     });
 

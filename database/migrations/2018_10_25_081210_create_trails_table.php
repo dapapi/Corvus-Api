@@ -19,7 +19,6 @@ class CreateTrailsTable extends Migration
             $table->string('brand');
             $table->unsignedInteger('principal_id')->nullable();
             $table->unsignedInteger('client_id')->nullable();
-            $table->unsignedInteger('artist_id')->nullable();
             $table->unsignedInteger('contact_id')->nullable();
             $table->unsignedInteger('creator_id');
             $table->tinyInteger('lock_status')->default(1);
@@ -35,7 +34,6 @@ class CreateTrailsTable extends Migration
 
             $table->foreign('principal_id')->references('id')->on('users');
             $table->foreign('client_id')->references('id')->on('clients');
-            $table->foreign('artist_id')->references('id')->on('artists');
             $table->foreign('contact_id')->references('id')->on('contacts');
             $table->foreign('creator_id')->references('id')->on('users');
         });

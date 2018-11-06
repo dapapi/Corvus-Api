@@ -20,15 +20,15 @@ class CreateStarsTable extends Migration
             $table->unsignedInteger('broker_id')->nullable();
             $table->string('avatar')->nullable();
             $table->tinyInteger('gender')->default(1);
-            $table->dateTime('birthday')->nullable();
+            $table->date('birthday')->nullable();
             $table->string('phone')->nullable();
             $table->string('wechat')->nullable();
             $table->string('email')->nullable();
             $table->tinyInteger('source')->nullable();
             $table->tinyInteger('communication_status')->nullable();
-            $table->boolean('intention');
+            $table->boolean('intention')->default(false);
             $table->string('intention_desc')->nullable();
-            $table->boolean('sign_contract_other');
+            $table->boolean('sign_contract_other')->default(false);
             $table->string('sign_contract_other_name')->nullable();
             $table->dateTime('sign_contract_at')->nullable();
             $table->tinyInteger('sign_contract_status')->default(1);

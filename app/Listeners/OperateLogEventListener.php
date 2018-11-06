@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\OperateLogEvent;
 use App\Models\OperateLog;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Task;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -67,6 +68,9 @@ class OperateLogEventListener
             } else if ($operate->obj instanceof Project) {
                 $type = ModuleableType::PROJECT;
                 $typeName = '项目';
+            } else if ($operate->obj instanceof Star) {
+                $type = ModuleableType::STAR;
+                $typeName = '艺人';
             }
             //TODO
 

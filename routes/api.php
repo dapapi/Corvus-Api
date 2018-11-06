@@ -18,7 +18,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
 
-        // task
+        //task
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
@@ -52,6 +52,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
+        //stars
+        $api->post('/stars', 'App\Http\Controllers\StarController@store');
+        $api->get('/stars', 'App\Http\Controllers\StarController@index');
+        $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
 
@@ -83,10 +88,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
-
-        // stars
-        $api->get('/stars', 'App\Http\Controllers\StarController@index');
-        $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
 
     });
 

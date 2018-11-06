@@ -23,7 +23,6 @@ use App\TaskStatus;
 use App\User;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -769,7 +768,7 @@ class TaskController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        return $this->response->item($task, new TaskTransformer());
+        return $this->response->item(Task::find($task->id), new TaskTransformer());
 //        return $this->response->created();
     }
 

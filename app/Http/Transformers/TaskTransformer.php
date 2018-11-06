@@ -12,7 +12,7 @@ class TaskTransformer extends TransformerAbstract
 
     public function transform(Task $task)
     {
-        return [
+        $array = [
             'id' => hashid_encode($task->id),
             'title' => $task->title,
             'type' => $task->type,
@@ -28,6 +28,13 @@ class TaskTransformer extends TransformerAbstract
             'updated_at' => $task->updated_at->toDatetimeString(),
             'deleted_at' => $task->deleted_at,
         ];
+
+        $array['task_p'] = true;
+        if ($task->task_pid) {
+            $array['task_p'] = false;
+        }
+
+        return $array;
     }
 
     public function includeParticipants(Task $task)

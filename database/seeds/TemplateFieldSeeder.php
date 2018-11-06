@@ -15,6 +15,7 @@ class TemplateFieldSeeder extends Seeder
     {
         DB::beginTransaction();
         try {
+            // 影视项目
             TemplateField::create([
                 'key' => '艺人组别',
                 'field_type' => '6',
@@ -32,33 +33,8 @@ class TemplateFieldSeeder extends Seeder
                 'is_secret' => '0',
             ]);
             TemplateField::create([
-                'key' => '目标艺人',
-                'field_type' => '7',
-                'content' => '',
-                'module_type' => '1',
-                'status' => '1',
-                'is_secret' => '0',
-            ]);
-            TemplateField::create([
-                'key' => '推荐艺人',
-                'field_type' => '8',
-                'content' => '',
-                'module_type' => '1',
-                'status' => '1',
-                'is_secret' => '0',
-            ]);
-            TemplateField::create([
-                'key' => '项目来源',
-                // todo
-                'field_type' => '6',
-                'content' => '',
-                'module_type' => '1',
-                'status' => '1',
-                'is_secret' => '0',
-            ]);
-            TemplateField::create([
-                'key' => '剧本拼分',
-                'field_type' => '6',
+                'key' => '剧本评分',
+                'field_type' => '1',
                 'content' => '',
                 'module_type' => '1',
                 'status' => '1',
@@ -217,10 +193,147 @@ class TemplateFieldSeeder extends Seeder
                 'is_secret' => '0',
             ]);
             TemplateField::create([
-                'key' => '签单时间',
+                'key' => '选角团队',
                 'field_type' => '1',
                 'content' => '',
                 'module_type' => '1',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '跟进情况',
+                'field_type' => '1',
+                'content' => '',
+                'module_type' => '1',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '试戏时间',
+                'field_type' => '4',
+                'content' => '',
+                'module_type' => '1',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '试戏地点',
+                'field_type' => '1',
+                'content' => '',
+                'module_type' => '1',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '试戏反馈',
+                'field_type' => '1',
+                'content' => '',
+                'module_type' => '1',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '跟进结果',
+                'field_type' => '1',
+                'content' => '',
+                'module_type' => '1',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+
+            TemplateField::create([
+                'key' => '节目级别',
+                'field_type' => '2',
+                'content' => 'S|A|B|C',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '艺人组别',
+                'field_type' => '6',
+                'content' => '',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '播出平台',
+                'field_type' => '1',
+                'content' => '',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '综艺节目类型',
+                'field_type' => '2',
+                'content' => '真人秀|晚会',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '嘉宾类型',
+                'field_type' => '2',
+                'content' => '常驻嘉宾|飞行嘉宾|选手|固定嘉宾',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '其他参与嘉宾',
+                'field_type' => '1',
+                'content' => '',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '录制时间',
+                'field_type' => '8',
+                'content' => '',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '上线时间',
+                'field_type' => '8',
+                'content' => '',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '签单时间',
+                'field_type' => '4',
+                'content' => '',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '与M的讨论结果',
+                'field_type' => '2',
+                'content' => '',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '结果',
+                'field_type' => '2',
+                'content' => 'S|A|B|C',
+                'module_type' => '2',
+                'status' => '1',
+                'is_secret' => '0',
+            ]);
+            TemplateField::create([
+                'key' => '最新进展',
+                'field_type' => '2',
+                'content' => 'S|A|B|C',
+                'module_type' => '2',
                 'status' => '1',
                 'is_secret' => '0',
             ]);

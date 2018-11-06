@@ -17,14 +17,16 @@ class TemplateField extends Model
         'is_secret',
     ];
 
-    const TYPE_TEXT = 1;
-    const TYPE_ENUM = 2;
-    const TYPE_STAR = 3;
-    const TYPE_DATE = 4;
-    const TYPE_TEXTAREA = 5;
-    const TYPE_GROUP_M = 6;
+    // 定义字段类型
+    const TEXT = 1;
+    const ENUM = 2;
+    const STAR = 3;
+    const TIME = 4;
+    const TEXTAREA = 5;
+    const GROUP_M = 6;
     const EXPECTATIONS = 7;
     const RECOMMENDATIONS = 8;
+    const TIME_INTERVAL = 8;
 
     public function values()
     {

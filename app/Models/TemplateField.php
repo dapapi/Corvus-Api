@@ -18,17 +18,15 @@ class TemplateField extends Model
     ];
 
     // 定义字段类型
-    const TEXT = 1;
-    const RADIO = 2;
-    const STAR = 3;
-    const TIME = 4;
-    const TEXTAREA = 5;
-    const SELECT = 6;
-    const EXPECTATIONS = 7;
-    const RECOMMENDATIONS = 8;
-    const TIME_INTERVAL = 9;
-    const DEPARTMENT = 10;
-    const NUM = 11;
+    const TEXT = 1; // 文本
+    const RADIO = 2; // 单选
+    const STAR = 3; // 选艺人
+    const TIME = 4; // 单个时间
+    const TEXTAREA = 5; // 长文本
+    const SELECT = 6; // 多选
+    const TIME_INTERVAL = 8; // 时间区间
+    const DEPARTMENT = 10; // 选组织架构中的组
+    const NUM = 11; // 纯数值
 
     public function values()
     {

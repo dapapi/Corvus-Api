@@ -114,6 +114,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
 
+        // project
+        $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
+
+        // template field
+        $api->get('/project_fields', 'App\Http\Controllers\TemplateFieldController@getFields');
+
     });
 
 

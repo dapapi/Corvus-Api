@@ -7,6 +7,7 @@ use App\Http\Requests\TaskParticipantRequest;
 use App\Models\ModuleUser;
 use App\Models\OperateEntity;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Task;
 use App\ModuleableType;
 use App\ModuleUserType;
@@ -30,7 +31,7 @@ class ModuleUserController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function add(TaskParticipantRequest $request, Task $task, Project $project, $type)
+    public function add(TaskParticipantRequest $request, Task $task, Project $project, Star $star, $type)
     {
         $payload = $request->all();
         $participantIds = $payload['participant_ids'];
@@ -69,7 +70,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::ADD_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -93,7 +94,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::DEL_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -117,7 +118,7 @@ class ModuleUserController extends Controller
         return $this->add($request, $task, $project, ModuleUserType::PARTICIPANT);
     }
 
-    public function remove(TaskParticipantRequest $request, Task $task, Project $project)
+    public function remove(TaskParticipantRequest $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
         $participantIds = $payload['participant_ids'];
@@ -177,7 +178,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::DEL_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,

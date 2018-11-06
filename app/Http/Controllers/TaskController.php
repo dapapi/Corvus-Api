@@ -80,6 +80,7 @@ class TaskController extends Controller
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 1);
+        $type = $request->get('type', 0);
 
         $query = Task::select('tasks.*');
 
@@ -93,6 +94,14 @@ class TaskController extends Controller
             case 1://我创建
             default:
                 $query->where('creator_id', $user->id);
+                break;
+        }
+        switch ($type) {
+            case 1://进行中
+                $query->where('status', TaskStatus::NORMAL);
+                break;
+            case 2://完成
+                $query->where('status', TaskStatus::COMPLETE);
                 break;
         }
         $tasks = $query->createDesc()->paginate($pageSize);

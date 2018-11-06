@@ -42,4 +42,24 @@ class StarTransformer extends TransformerAbstract
 
         return $array;
     }
+
+    public function includeCreator(Star $star)
+    {
+        $user = $star->creator;
+        if (!$user)
+            return null;
+        return $this->item($user, new UserTransformer());
+    }
+
+    public function includeTasks(Star $star)
+    {
+        $tasks = $star->tasks()->createDesc()->get();
+        return $this->collection($tasks, new TaskTransformer());
+    }
+
+    public function includeAffixes(Star $star)
+    {
+        $affixes = $star->affixes()->createDesc()->get();
+        return $this->collection($affixes, new AffixTransformer());
+    }
 }

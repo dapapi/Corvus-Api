@@ -46,11 +46,19 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/tasks/{task}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/tasks/{task}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        $api->get('/stars/{star}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/stars/{star}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/stars/{star}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/stars/{star}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
+        $api->delete('/stars/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
+        $api->post('/stars/{star}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         //跟进
         $api->get('/tasks/{task}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/tasks/{task}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');

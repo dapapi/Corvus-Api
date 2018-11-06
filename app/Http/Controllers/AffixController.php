@@ -8,6 +8,7 @@ use App\Http\Transformers\AffixTransformer;
 use App\Models\Affix;
 use App\Models\OperateEntity;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Task;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
@@ -61,7 +62,7 @@ class AffixController extends Controller
         return $this->response->paginator($affixes, new AffixTransformer());
     }
 
-    public function add(AffixRequest $request, Task $task, Project $project)
+    public function add(AffixRequest $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -77,7 +78,7 @@ class AffixController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::UPLOAD_AFFIX,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -92,7 +93,7 @@ class AffixController extends Controller
         return $this->response->created();
     }
 
-    public function download(Request $request, Task $task, Project $project, Affix $affix)
+    public function download(Request $request, Task $task, Project $project, Star $star, Affix $affix)
     {
         try {
             // 操作日志
@@ -102,7 +103,7 @@ class AffixController extends Controller
                 'end' => null,
                 'method' => OperateLogMethod::DOWNLOAD_AFFIX,
             ];
-            $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+            $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
             $operate = new OperateEntity($array);
             event(new OperateLogEvent([
                 $operate,
@@ -114,7 +115,7 @@ class AffixController extends Controller
         return $this->response->created();
     }
 
-    public function remove(Request $request, Task $task, Project $project, Affix $affix)
+    public function remove(Request $request, Task $task, Project $project, Star $star, Affix $affix)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -127,7 +128,7 @@ class AffixController extends Controller
                 'end' => null,
                 'method' => OperateLogMethod::DELETE_OTHER,
             ];
-            $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+            $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
             $operate = new OperateEntity($array);
             event(new OperateLogEvent([
                 $operate,
@@ -141,7 +142,7 @@ class AffixController extends Controller
         return $this->response->accepted();
     }
 
-    public function recoverRemove(Request $request, Task $task, Project $project, Affix $affix)
+    public function recoverRemove(Request $request, Task $task, Project $project, Star $star, Affix $affix)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -154,7 +155,7 @@ class AffixController extends Controller
                 'end' => null,
                 'method' => OperateLogMethod::RECOVER_OTHER,
             ];
-            $array['obj'] = $this->operateLogRepository->getObject($task, $project);
+            $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
             $operate = new OperateEntity($array);
             event(new OperateLogEvent([
                 $operate,

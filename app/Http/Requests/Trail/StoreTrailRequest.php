@@ -39,6 +39,7 @@ class StoreTrailRequest extends FormRequest
             'recommendations' => 'nullable|array',
             'expectation' => 'nullable|array',
             'fee' => 'required|numeric',
+            'lock' => 'nullable|boolean',
             'desc' => 'nullable',
         ];
     }

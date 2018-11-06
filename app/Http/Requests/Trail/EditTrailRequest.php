@@ -39,6 +39,7 @@ class EditTrailRequest extends FormRequest
             'fee' => 'nullable|numeric',
             'lock' => 'nullable|boolean',
             'desc' => 'nullable',
+            'refuse' => 'nullable|boolean',
         ];
     }
 

@@ -47,6 +47,9 @@ class TrailController extends Controller
         //金额化整
         $payload['fee'] = 100 * $payload['fee'];
 
+        if ($request->has('lock') && $payload['lock'])
+            $payload['lock_status'] = 1;
+
         $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
         // 改为直接新建
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
@@ -177,6 +180,9 @@ class TrailController extends Controller
             if ($request->has('lock') && $payload['lock'])
                 $trail['lock_status'] = 1;
 
+            if ($request->has('refuse') && $payload['refuse'])
+                $trail['status'] = Trail::STATUS_FROZEN;
+
             $trail->save();
 
             if ($request->has('expectations')) {
@@ -220,7 +226,7 @@ class TrailController extends Controller
 
     public function delete(Request $request, Trail $trail)
     {
-        $trail->status = Trail::STATUS_FROZEN;
+        $trail->status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
 

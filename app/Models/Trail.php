@@ -19,6 +19,7 @@ class Trail extends Model
 
     const STATUS_NORMAL = 1;
     const STATUS_FROZEN = 2;
+    const STATUS_DELETE = 3;
 
     const PROGRESS_FIRST = 1;
 

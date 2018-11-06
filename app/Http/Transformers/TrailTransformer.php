@@ -22,6 +22,7 @@ class TrailTransformer extends TransformerAbstract
             'status' => $trail->status,
             'progress_status' => $trail->progress_status,
             'desc' => $trail->desc,
+            'lock_status' => $trail->lock_status,
         ];
 
         if ($trail->lock_status)

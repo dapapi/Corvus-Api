@@ -19,14 +19,16 @@ class TemplateField extends Model
 
     // 定义字段类型
     const TEXT = 1;
-    const ENUM = 2;
+    const RADIO = 2;
     const STAR = 3;
     const TIME = 4;
     const TEXTAREA = 5;
-    const GROUP_M = 6;
+    const SELECT = 6;
     const EXPECTATIONS = 7;
     const RECOMMENDATIONS = 8;
-    const TIME_INTERVAL = 8;
+    const TIME_INTERVAL = 9;
+    const DEPARTMENT = 10;
+    const NUM = 11;
 
     public function values()
     {

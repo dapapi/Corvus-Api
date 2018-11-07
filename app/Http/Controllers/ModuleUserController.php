@@ -34,11 +34,16 @@ class ModuleUserController extends Controller
     public function add(ModuleUserRequest $request, Task $task, Project $project, Star $star, $type)
     {
         $payload = $request->all();
-        $participantIds = $payload['person_ids'];
+
+        if (!$request->has('person_ids') && !$request->has('del_person_ids'))
+            return $this->response->noContent();
+
+        $participantIds = $request->get('person_ids', []);
+        $participantDeleteIds = $request->get('del_person_ids', []);
 
         DB::beginTransaction();
         try {
-            $result = $this->moduleUserRepository->addModuleUser($participantIds, $task, $project, $star, $type);
+            $result = $this->moduleUserRepository->addModuleUser($participantIds, $participantDeleteIds, $task, $project, $star, $type);
             $participantIds = $result[0];
             $participantDeleteIds = $result[1];
 
@@ -97,11 +102,7 @@ class ModuleUserController extends Controller
             return $this->response->errorInternal();
         }
         DB::commit();
-        if (count($participantDeleteIds)) {
-            return $this->response->accepted();
-        } else {
-            return $this->response->created();
-        }
+        return $this->response->accepted();
     }
 
     /**

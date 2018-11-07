@@ -25,7 +25,8 @@ class ModuleUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'person_ids' => 'required|array'
+            'person_ids' => 'array',
+            'del_person_ids' => 'array'
         ];
     }
 }

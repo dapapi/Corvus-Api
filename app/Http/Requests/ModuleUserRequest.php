@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 
 use Dingo\Api\Http\FormRequest;
 
-class TaskParticipantRequest extends FormRequest
+class ModuleUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +25,7 @@ class TaskParticipantRequest extends FormRequest
     public function rules()
     {
         return [
-            'participant_ids' => 'required|array'
+            'person_ids' => 'required|array'
         ];
     }
 }

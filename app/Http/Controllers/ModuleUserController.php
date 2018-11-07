@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
-use App\Http\Requests\TaskParticipantRequest;
+use App\Http\Requests\ModuleUserRequest;
 use App\Models\ModuleUser;
 use App\Models\OperateEntity;
 use App\Models\Project;
@@ -31,28 +31,19 @@ class ModuleUserController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function add(TaskParticipantRequest $request, Task $task, Project $project, Star $star, $type)
+    public function add(ModuleUserRequest $request, Task $task, Project $project, Star $star, $type)
     {
         $payload = $request->all();
-        $participantIds = $payload['participant_ids'];
+        $participantIds = $payload['person_ids'];
 
         DB::beginTransaction();
         try {
-            $result = $this->moduleUserRepository->addModuleUser($participantIds, $task, $project, $type);
+            $result = $this->moduleUserRepository->addModuleUser($participantIds, $task, $project, $star, $type);
             $participantIds = $result[0];
             $participantDeleteIds = $result[1];
 
             // 操作日志
-            $title = '参与人';
-            switch ($type) {
-                case ModuleUserType::PARTICIPANT:
-                    $title = '参与人';
-                    break;
-                case ModuleUserType::OTHER:
-                    $title = '其他人';
-                    break;
-                //TODO
-            }
+            $title = $this->moduleUserRepository->getTypeName($type);
             if (count($participantIds)) {
                 $start = '';
                 foreach ($participantIds as $key => $participantId) {
@@ -113,15 +104,38 @@ class ModuleUserController extends Controller
         }
     }
 
-    public function addModuleUserParticipant(TaskParticipantRequest $request, Task $task, Project $project)
+    /**
+     * 参与人
+     *
+     * @param ModuleUserRequest $request
+     * @param Task $task
+     * @param Project $project
+     * @param Star $star
+     * @return \Dingo\Api\Http\Response|void
+     */
+    public function addModuleUserParticipant(ModuleUserRequest $request, Task $task, Project $project, Star $star)
     {
-        return $this->add($request, $task, $project, ModuleUserType::PARTICIPANT);
+        return $this->add($request, $task, $project, $star, ModuleUserType::PARTICIPANT);
     }
 
-    public function remove(TaskParticipantRequest $request, Task $task, Project $project, Star $star)
+    /**
+     * 宣传人
+     *
+     * @param ModuleUserRequest $request
+     * @param Task $task
+     * @param Project $project
+     * @param Star $star
+     * @return \Dingo\Api\Http\Response|void
+     */
+    public function addModuleUserPublicity(ModuleUserRequest $request, Task $task, Project $project, Star $star)
+    {
+        return $this->add($request, $task, $project, $star, ModuleUserType::PUBLICITY);
+    }
+
+    public function remove(ModuleUserRequest $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
-        $participantIds = $payload['participant_ids'];
+        $participantIds = $payload['person_ids'];
         DB::beginTransaction();
         try {
 
@@ -159,16 +173,7 @@ class ModuleUserController extends Controller
 
             if (count($participantIds)) {
                 // 操作日志
-                $title = '参与人';
-                switch ($type) {
-                    case ModuleUserType::PARTICIPANT:
-                        $title = '参与人';
-                        break;
-                    case ModuleUserType::OTHER:
-                        $title = '其他人';
-                        break;
-                    //TODO
-                }
+                $title = $this->moduleUserRepository->getTypeName($type);
 
                 $start = substr($start, 0, strlen($start) - 1);
 

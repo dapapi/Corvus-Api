@@ -14,11 +14,11 @@ class OperateLogRepository
     public function getObject(Task $task, Project $project, Star $star)
     {
         $obj = null;
-        if ($task->id) {
+        if ($task && $task->id) {
             $obj = $task;
-        } else if ($project->id) {
+        } else if ($project && $project->id) {
             $obj = $project;
-        } else if ($star->id) {
+        } else if ($star && $star->id) {
             $obj = $star;
         }
         //TODO class type

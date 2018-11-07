@@ -10,6 +10,6 @@ namespace App;
 abstract class ModuleUserType
 {
     const PARTICIPANT = 1;//参与人
-    const OTHER = 2;//其他人
+    const PUBLICITY = 2;//宣传人
 
 }

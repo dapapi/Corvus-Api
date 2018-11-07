@@ -64,6 +64,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+        //模型用户(宣传人)
+        $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+        $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
 
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');

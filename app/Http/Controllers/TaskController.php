@@ -536,7 +536,7 @@ class TaskController extends Controller
         return $this->response->accepted();
     }
 
-    public function update(TaskUpdateRequest $request, Task $task)
+    public function edit(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
 
@@ -603,36 +603,8 @@ class TaskController extends Controller
         if ($request->has('priority')) {
             $array['priority'] = $payload['priority'];
             if ($array['priority'] != $task->priority) {
-                $start = '无';
-                switch ($task->priority) {
-                    case TaskPriorityStatus::NOTHING:
-                        $start = '无';
-                        break;
-                    case TaskPriorityStatus::HIGH:
-                        $start = '高';
-                        break;
-                    case TaskPriorityStatus::MIDDLE:
-                        $start = '中';
-                        break;
-                    case TaskPriorityStatus::LOW:
-                        $start = '低';
-                        break;
-                }
-                $end = '无';
-                switch ($array['priority']) {
-                    case TaskPriorityStatus::NOTHING:
-                        $end = '无';
-                        break;
-                    case TaskPriorityStatus::HIGH:
-                        $end = '高';
-                        break;
-                    case TaskPriorityStatus::MIDDLE:
-                        $end = '中';
-                        break;
-                    case TaskPriorityStatus::LOW:
-                        $end = '低';
-                        break;
-                }
+                $start = TaskPriorityStatus::getStr($task->priority);
+                $end = TaskPriorityStatus::getStr($array['priority']);
 
                 $operatePriority = new OperateEntity([
                     'obj' => $task,
@@ -642,6 +614,8 @@ class TaskController extends Controller
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 $arrayOperateLog[] = $operatePriority;
+            } else {
+                unset($array['priority']);
             }
         }
 

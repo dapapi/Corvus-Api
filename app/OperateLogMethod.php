@@ -34,4 +34,5 @@ abstract class OperateLogMethod
     const UN_RELEVANCE_RESOURCE = 22;//解除关联资源
     const DEL_PRINCIPAL = 23;//删除负责人
     const CANCEL = 24;//取消
+    const RENEWAL = 25;//更新
 }

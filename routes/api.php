@@ -25,7 +25,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks/my_all', 'App\Http\Controllers\TaskController@myAll');
         $api->get('/tasks/recycle_bin', 'App\Http\Controllers\TaskController@recycleBin');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
-        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@update');
+        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove')->middleware('can:delete,task');
         $api->put('/tasks/{task}/status', 'App\Http\Controllers\TaskController@toggleStatus');

@@ -30,8 +30,6 @@ class StarTransformer extends TransformerAbstract
             'sign_contract_other_name' => $star->sign_contract_other_name,
             'sign_contract_at' => $star->sign_contract_at,
             'sign_contract_status' => $star->sign_contract_status,
-            'contract_type' => $star->contract_type,
-            'divide_into_proportion' => $star->divide_into_proportion,
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,

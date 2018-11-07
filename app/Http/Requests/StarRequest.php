@@ -70,11 +70,6 @@ class StarRequest extends FormRequest
                 SignContractStatus::ALREADY_SIGN_CONTRACT,
                 SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
             ]),
-            'contract_type' => Rule::in([
-                ContractType::ALL_ABOUT,
-                ContractType::OTHER,
-            ]),
-            'divide_into_proportion' => 'max:255',
             'terminate_agreement_at' => 'date',
         ];
     }

@@ -32,8 +32,6 @@ class CreateStarsTable extends Migration
             $table->string('sign_contract_other_name')->nullable();
             $table->dateTime('sign_contract_at')->nullable();
             $table->tinyInteger('sign_contract_status')->default(1);
-            $table->tinyInteger('contract_type')->default(1);
-            $table->string('divide_into_proportion')->nullable();
             $table->dateTime('terminate_agreement_at')->nullable();
             $table->unsignedInteger('creator_id');
             $table->tinyInteger('status')->default(1);

@@ -1,17 +1,18 @@
 <?php
 /**
- * Class Gender
+ * Class Whether
  * @package App
- * 性别
+ * 是否
  */
 
 namespace App;
 
 
-abstract class Gender
+abstract class Whether
 {
-    const MAN = 1;//男
-    const WOMAN = 2;//女
+    const NO = 0;//否
+    const YES = 1;//是
+
 
     /**
      * @param $key
@@ -19,15 +20,16 @@ abstract class Gender
      */
     public static function getStr($key): string
     {
-        $start = '男';
+        $start = '是';
         switch ($key) {
-            case Gender::MAN:
-                $start = '男';
+            case Whether::NO:
+                $start = '否';
                 break;
-            case Gender::WOMAN:
-                $start = '女';
+            case Whether::YES:
+                $start = '是';
                 break;
         }
         return $start;
     }
+
 }

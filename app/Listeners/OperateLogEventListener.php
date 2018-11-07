@@ -46,6 +46,7 @@ class OperateLogEventListener
     protected $un_relevance_resource = '解除关联';
     protected $principal = '负责人';
     protected $cancel = '取消';
+    protected $renewal = '更新';
 
     /**
      * Handle the event.
@@ -180,6 +181,10 @@ class OperateLogEventListener
                 case OperateLogMethod::CANCEL://取消
                     $level = OperateLogLevel::MIDDLE;
                     $content = sprintf($this->cancel_field, $title, $start);
+                    break;
+                case OperateLogMethod::RENEWAL://更新
+                    $level = OperateLogLevel::MIDDLE;
+                    $content = $this->renewal . $title;
                     break;
             }
 

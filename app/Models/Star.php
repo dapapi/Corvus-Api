@@ -27,13 +27,15 @@ class Star extends Model
         'sign_contract_other_name',//签约公司名称
         'sign_contract_at',//签约日期
         'sign_contract_status',//签约状态
-        'contract_type',//合同类型
-        'divide_into_proportion',//分成比例
         'terminate_agreement_at',//解约日期
         'creator_id',//录入人
         'status',
         'type',
     ];
+
+//隐藏字段
+//'contract_type',//合同类型
+//'divide_into_proportion',//分成比例
 
     public function scopeCreateDesc($query)
     {

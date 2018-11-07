@@ -407,8 +407,6 @@ class TaskController extends Controller
                     'task_id' => $task->id,
                 ];
 
-                $title = '项目';
-                $start = '';
                 $type = 0;
                 if ($project->id) {
                     $type = ResourceType::PROJECT;

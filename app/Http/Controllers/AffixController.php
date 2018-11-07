@@ -30,14 +30,16 @@ class AffixController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project)
+    public function index(Request $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        if ($task->id) {
+        if ($task && $task->id) {
             $affixes = $task->affixes()->createDesc()->paginate($pageSize);
-        } else if ($project->id) {
+        } else if ($project && $project->id) {
+            $affixes = $project->affixes()->createDesc()->paginate($pageSize);
+        } else if ($star && $star->id) {
             $affixes = $project->affixes()->createDesc()->paginate($pageSize);
         }
         //TODO 其他模块
@@ -46,16 +48,18 @@ class AffixController extends Controller
 
     }
 
-    public function recycleBin(Request $request, Task $task, Project $project)
+    public function recycleBin(Request $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        if ($task->id) {
+        if ($task && $task->id) {
             $affixes = $task->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
-        } else if ($project->id) {
+        } else if ($project && $project->id) {
             $affixes = $project->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
+        } else if ($star && $star->id) {
+            $affixes = $star->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
         }
         //TODO 其他模块
 

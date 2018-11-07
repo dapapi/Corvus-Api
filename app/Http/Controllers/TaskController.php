@@ -11,6 +11,7 @@ use App\Http\Transformers\TaskTransformer;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Resource;
+use App\Models\Star;
 use App\Models\Task;
 use App\Models\TaskResource;
 use App\ModuleableType;
@@ -339,21 +340,26 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relieveResource(Request $request, Project $project, Task $task)
+    public function relieveResource(Request $request, Project $project, Star $star, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
         try {
             $type = 0;
-            $title = '项目';
-            $start = '';
-            if ($project->id) {
+            if ($project && $project->id) {
                 $type = ResourceType::PROJECT;
                 $project = Project::findOrFail($project->id);
                 $resourceable_id = $project->id;
                 $resourceable_type = ModuleableType::PROJECT;
                 $title = '项目';
                 $start = $project->title;
+            } else if ($star && $star->id) {
+                $type = ResourceType::STAR;
+                $star = Star::findOrFail($star->id);
+                $resourceable_id = $star->id;
+                $resourceable_type = ModuleableType::STAR;
+                $title = '艺人';
+                $start = $star->name;
             } else {
                 //TODO 处理其他资源
                 $title = '其他';
@@ -397,7 +403,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relevanceResource(Request $request, Project $project, Task $task)
+    public function relevanceResource(Request $request, Project $project, Star $star, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -408,18 +414,26 @@ class TaskController extends Controller
                 ];
 
                 $type = 0;
-                if ($project->id) {
+                if ($project && $project->id) {
                     $type = ResourceType::PROJECT;
                     $project = Project::findOrFail($project->id);
                     $array['resourceable_id'] = $project->id;
                     $array['resourceable_type'] = ModuleableType::PROJECT;
                     $title = '项目';
                     $start = $project->title;
+                } else if ($star && $star->id) {
+                    $type = ResourceType::STAR;
+                    $star = Star::findOrFail($star->id);
+                    $array['resourceable_id'] = $star->id;
+                    $array['resourceable_type'] = ModuleableType::STAR;
+                    $title = '艺人';
+                    $start = $star->name;
                 } else {
                     //TODO 处理其他资源
                     $title = '其他';
                     $start = '其他模块';
                 }
+
                 $resource = Resource::where('type', $type)->first();
                 $array['resource_id'] = $resource->id;
 
@@ -748,14 +762,17 @@ class TaskController extends Controller
                         case ResourceType::BLOGGER:
                             //TODO
                             break;
-                        case ResourceType::ARTIST:
-                            //TODO
+                        case ResourceType::STAR:
+                            $star = Star::findOrFail($resourceableId);
+                            $array['resourceable_id'] = $star->id;
+                            $array['resourceable_type'] = ModuleableType::STAR;
                             break;
                         case ResourceType::PROJECT:
                             $project = Project::findOrFail($resourceableId);
                             $array['resourceable_id'] = $project->id;
                             $array['resourceable_type'] = ModuleableType::PROJECT;
                             break;
+                        //TODO
                         default:
                             return $this->response->errorBadRequest('关联任务失败');
                     }

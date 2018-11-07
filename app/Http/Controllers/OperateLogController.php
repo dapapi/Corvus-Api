@@ -31,11 +31,11 @@ class OperateLogController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 1);
 
-        if ($task->id) {
+        if ($task && $task->id) {
             $query = $task->operateLogs();
-        } else if ($project->id) {
+        } else if ($project && $project->id) {
             $query = $project->operateLogs();
-        } else if ($star->id) {
+        } else if ($star && $star->id) {
             $query = $star->operateLogs();
         }
         //TODO 其他模块

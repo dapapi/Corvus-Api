@@ -48,7 +48,7 @@ class ModuleUserRepository
                 }
                 //TODO 还有其他类型
 
-                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->where('type', $type)->first();
+                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantUser->id)->where('type', $type)->first();
                 if (!$moduleUser) {
                     ModuleUser::create($array);
                 } else {

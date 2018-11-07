@@ -152,15 +152,21 @@ class ModuleUserController extends Controller
                         array_splice($participantIds, $key, 1);
                     }
                     if ($participantUser) {
+                        $moduleableId = 0;
                         $moduleableType = null;
-                        if ($task->id) {
+                        if ($task && $task->id) {
+                            $moduleableId = $task->id;
                             $moduleableType = ModuleableType::TASK;
-                        } else if ($project->id) {
+                        } else if ($project && $project->id) {
+                            $moduleableId = $project->id;
                             $moduleableType = ModuleableType::PROJECT;
+                        } else if ($star && $star->id) {
+                            $moduleableId = $star->id;
+                            $moduleableType = ModuleableType::STAR;
                         }
-                        //TODO 还有其他类型
+                        // TODO 还有其他类型
 
-                        $moduleUser = ModuleUser::where('moduleable_type', $moduleableType)->where('moduleable_id', $task->id)->where('user_id', $participantUser->id)->first();
+                        $moduleUser = ModuleUser::where('moduleable_type', $moduleableType)->where('moduleable_id', $moduleableId)->where('user_id', $participantUser->id)->first();
                         if ($moduleUser) {
                             $type = $moduleUser->type;
                             $moduleUser->delete();

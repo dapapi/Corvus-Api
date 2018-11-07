@@ -72,7 +72,7 @@ class ModuleUserController extends Controller
                     $operate,
                 ]));
             }
-            //前端要求一个接口可以完成添加人和删除人,已经存在的删除
+            //要求一个接口可以完成添加人和删除人,已经存在的删除
             if (count($participantDeleteIds)) {
                 // 操作日志
                 $start = '';

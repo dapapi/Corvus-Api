@@ -30,9 +30,9 @@ class CreateStarsTable extends Migration
             $table->string('intention_desc')->nullable();
             $table->boolean('sign_contract_other')->default(false);
             $table->string('sign_contract_other_name')->nullable();
-            $table->dateTime('sign_contract_at')->nullable();
+            $table->date('sign_contract_at')->nullable();
             $table->tinyInteger('sign_contract_status')->default(1);
-            $table->dateTime('terminate_agreement_at')->nullable();
+            $table->date('terminate_agreement_at')->nullable();
             $table->unsignedInteger('creator_id');
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('type')->default(1);

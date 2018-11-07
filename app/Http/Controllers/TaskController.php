@@ -546,15 +546,16 @@ class TaskController extends Controller
 
         if ($request->has('title')) {
             $array['title'] = $payload['title'];
-
-            $operateTitle = new OperateEntity([
-                'obj' => $task,
-                'title' => '标题',
-                'start' => $task->title,
-                'end' => $array['title'],
-                'method' => OperateLogMethod::UPDATE,
-            ]);
-            $arrayOperateLog[] = $operateTitle;
+            if ($array['title'] != $task->title) {
+                $operateTitle = new OperateEntity([
+                    'obj' => $task,
+                    'title' => '标题',
+                    'start' => $task->title,
+                    'end' => $array['title'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
         }
 
         if ($request->has('desc')) {

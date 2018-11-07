@@ -48,15 +48,16 @@ class StarController extends Controller
 
         if ($request->has('name')) {
             $array['name'] = $payload['name'];
-
-            $operateName = new OperateEntity([
-                'obj' => $star,
-                'title' => '名称',
-                'start' => $star->name,
-                'end' => $array['name'],
-                'method' => OperateLogMethod::UPDATE,
-            ]);
-            $arrayOperateLog[] = $operateName;
+            if ($array['name'] != $star->name) {
+                $operateName = new OperateEntity([
+                    'obj' => $star,
+                    'title' => '名称',
+                    'start' => $star->name,
+                    'end' => $array['name'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateName;
+            }
         }
 
         if ($request->has('gender')) {

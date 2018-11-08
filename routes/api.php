@@ -35,6 +35,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/tasks/{task}/principal', 'App\Http\Controllers\TaskController@deletePrincipal');
         $api->post('/tasks/{task}/subtask', 'App\Http\Controllers\TaskController@store');
         $api->put('/tasks/{task}/privacy', 'App\Http\Controllers\TaskController@togglePrivacy');
+        $api->get('/task_types', 'App\Http\Controllers\TaskTypeController@index');
+        $api->get('/task_types/all', 'App\Http\Controllers\TaskTypeController@all');
         //任务关联资源
         $api->post('/projects/{project}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/projects/{project}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');

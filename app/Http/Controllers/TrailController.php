@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Trail\EditTrailRequest;
+use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Transformers\TrailTransformer;
 use App\Models\Star;
@@ -252,5 +253,28 @@ class TrailController extends Controller
         $trail->forceDelete();
 
         return $this->response->noContent();
+    }
+
+    public function search(SearchTrailRequest $request)
+    {
+        $type = $request->get('type');
+        $id = hashid_decode($request->get('id'));
+
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        } else {
+            $pageSize = config('page_size');
+        }
+
+        switch ($type) {
+            case 'clients':
+                $trails = Trail::where('client_id', $id)->paginate($pageSize);
+                break;
+            default:
+                return $this->response->noContent();
+                break;
+        }
+
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 }

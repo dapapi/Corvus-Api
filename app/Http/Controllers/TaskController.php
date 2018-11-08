@@ -14,6 +14,7 @@ use App\Models\Resource;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\TaskResource;
+use App\Models\TaskType;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
@@ -682,6 +683,7 @@ class TaskController extends Controller
         unset($payload['status']);
         unset($payload['complete_at']);
         unset($payload['stop_at']);
+        unset($payload['type_id']);
 
         $payload['creator_id'] = $user->id;
 
@@ -701,9 +703,17 @@ class TaskController extends Controller
             $payload['task_pid'] = $pTask->id;
         }
 
+        //验证 type
         if ($request->has('type')) {
-            //TODO 验证 type
-//                $payload['type']
+            dd($user->department);
+            $departmentId = $user->department->id;
+            $typeId = hashid_decode($payload['type']);
+            $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
+            if ($taskType) {
+                $payload['type_id'] = $taskType->id;
+            } else {
+                return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+            }
         }
 
         if (!$request->has('privacy')) {

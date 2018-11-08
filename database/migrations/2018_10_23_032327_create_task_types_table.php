@@ -19,6 +19,10 @@ class CreateTaskTypesTable extends Migration
             $table->string('title');
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('department_id')
+                ->references('id')
+                ->on('departments');
         });
     }
 

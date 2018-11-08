@@ -13,6 +13,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
 
+    //resource
+    $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
 
     $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
         // user

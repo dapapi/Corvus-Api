@@ -8,6 +8,7 @@ use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
+use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Resource;
@@ -110,6 +111,21 @@ class TaskController extends Controller
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
+
+    public function findModuleTasks(Request $request, Project $project, Client $client, Star $star)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        if ($project && $project->id) {
+            $tasks = $project->tasks()->paginate($pageSize);
+        } else if ($client && $client->id) {
+            $tasks = $client->tasks()->paginate($pageSize);
+        } else if ($star && $star->id) {
+            $tasks = $star->tasks()->paginate($pageSize);
+        }
+        //TODO 还有其他模块
+        return $this->response->paginator($tasks, new TaskTransformer());
+    }
+
 
     public function recycleBin(Request $request)
     {
@@ -540,6 +556,7 @@ class TaskController extends Controller
     public function edit(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
 
         $array = [];
 
@@ -570,6 +587,35 @@ class TaskController extends Controller
                 'method' => OperateLogMethod::UPDATE,
             ]);
             $arrayOperateLog[] = $operateDesc;
+        }
+
+        if ($request->has('type')) {
+            $departmentId = $user->department()->first()->id;
+            $typeId = hashid_decode($payload['type']);
+            $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
+            if ($taskType) {
+                $array['type_id'] = $taskType->id;
+                $start = null;
+                if ($task->type) {
+                    $start = $task->type->title;
+                }
+                $end = $taskType->title;
+
+                $operateType = new OperateEntity([
+                    'obj' => $task,
+                    'title' => '类型',
+                    'start' => $start,
+                    'end' => $end,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                if ($task->type && $task->type->id == $taskType->id) {
+                    unset($array['type_id']);
+                } else {
+                    $arrayOperateLog[] = $operateType;
+                }
+            } else {
+                return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+            }
         }
 
         if ($request->has('principal_id')) {
@@ -705,8 +751,7 @@ class TaskController extends Controller
 
         //验证 type
         if ($request->has('type')) {
-            dd($user->department);
-            $departmentId = $user->department->id;
+            $departmentId = $user->department()->first()->id;
             $typeId = hashid_decode($payload['type']);
             $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
             if ($taskType) {
@@ -774,6 +819,7 @@ class TaskController extends Controller
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, null, null, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

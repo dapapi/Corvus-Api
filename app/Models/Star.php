@@ -57,4 +57,9 @@ class Star extends Model
         return $this->morphMany(OperateLog::class, 'logable');
     }
 
+    public function tasks()
+    {
+        return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
+
 }

@@ -13,7 +13,7 @@ class Task extends Model
 
     protected $fillable = [
         'title',
-        'type',
+        'type_id',
         'task_pid',
         'creator_id',
         'principal_id',
@@ -71,6 +71,11 @@ class Task extends Model
     public function participants()
     {
         return $this->morphToMany(User::class, 'moduleable', 'module_users')->where('module_users.type', ModuleUserType::PARTICIPANT);
+    }
+
+    public function type()
+    {
+        return $this->belongsTo(TaskType::class);
     }
 
 }

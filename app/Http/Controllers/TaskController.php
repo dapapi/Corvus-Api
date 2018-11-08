@@ -656,7 +656,7 @@ class TaskController extends Controller
                 unset($array['end_at']);
             }
         }
-
+        DB::beginTransaction();
         try {
             if (count($array) == 0)
                 return $this->response->noContent();
@@ -665,9 +665,11 @@ class TaskController extends Controller
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
         } catch (Exception $e) {
+            DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('修改失败');
         }
+        DB::commit();
 
         return $this->response->accepted();
     }

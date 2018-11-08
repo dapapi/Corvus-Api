@@ -32,11 +32,86 @@ class StarController extends Controller
         return $this->response->paginator($stars, new StarTransformer());
     }
 
+    public function show(Star $star)
+    {
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $star,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
+        return $this->response->item($star, new StarTransformer());
+    }
+
     public function all(Request $request)
     {
         $stars = Star::orderBy('name')->get();
 
         return $this->response->collection($stars, new StarTransformer());
+    }
+
+    public function recycleBin(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $stars = Star::onlyTrashed()->paginate($pageSize);
+
+        return $this->response->paginator($stars, new StarTransformer());
+    }
+
+    public function remove(Star $star)
+    {
+        DB::beginTransaction();
+        try {
+            $star->delete();
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $star,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DELETE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
+        }
+        DB::commit();
+        return $this->response->noContent();
+    }
+
+    public function recoverRemove(Star $star)
+    {
+        DB::beginTransaction();
+        try {
+            $star->restore();
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $star,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::RECOVER,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('恢复艺人失败');
+        }
+        DB::commit();
     }
 
     public function edit(StarUpdateRequest $request, Star $star)
@@ -336,7 +411,7 @@ class StarController extends Controller
                 unset($array['terminate_agreement_at']);
             }
         }
-
+        DB::beginTransaction();
         try {
             if (count($array) == 0)
                 return $this->response->noContent();
@@ -345,9 +420,11 @@ class StarController extends Controller
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
         } catch (Exception $e) {
+            DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('修改失败');
         }
+        DB::commit();
 
         return $this->response->accepted();
 

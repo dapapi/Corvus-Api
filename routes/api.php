@@ -65,6 +65,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
+        $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
+        $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
+        $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
+        $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');

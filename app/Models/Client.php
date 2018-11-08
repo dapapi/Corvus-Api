@@ -21,8 +21,6 @@ class Client extends Model
 
     protected $fillable = [
         'company',
-        'industry_id',      // 行业id
-        'industry',         // 行业
         'grade',             // 级别
         'region_id',        // 地区三级，存最下级id
         'address',
@@ -31,7 +29,7 @@ class Client extends Model
         'size',             // 规模
         'keyman',           // 决策关键人
         'desc',
-        'type',
+        'type',             // 商务客户
         'status',
     ];
 

@@ -27,6 +27,7 @@ class Trail extends Model
     protected $fillable = [
         'title',
         'brand',
+        'industry_id',      // 行业id
         'principal_id',
         'client_id',
         'contact_id',

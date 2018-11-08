@@ -54,7 +54,7 @@ class TrailController extends Controller
         $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
         // 改为直接新建
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
-        $payload['artist_id'] = $request->has('artist_id') ? hashid_decode($payload['artist_id']) : null;
+        $payload['industry_id'] = hashid_decode($payload['industry_id']);
 
         if (is_numeric($payload['resource'])) {
             $payload['resource'] = hashid_decode($payload['resource']);
@@ -75,11 +75,6 @@ class TrailController extends Controller
         } else {
             $client = null;
         }
-
-
-        $artist = Star::find($payload['artist_id']);
-        if (!$artist)
-            return $this->response->errorBadRequest('艺人不存在');
 
         $user = User::find($payload['principal_id']);
         if (!$user)
@@ -127,12 +122,12 @@ class TrailController extends Controller
 
             if ($request->has('recommendations')) {
                 foreach ($payload['recommendations'] as $recommendation) {
-                    $artistId = hashid_decode($recommendation);
+                    $starId = hashid_decode($recommendation);
 
-                    if (Star::find($artistId))
+                    if (Star::find($starId))
                         TrailStar::create([
                             'trail_id' => $trail->id,
-                            'artist_id' => $artistId,
+                            'star_id' => $starId,
                             'type' => TrailStar::RECOMMENDATION,
                         ]);
                 }
@@ -203,12 +198,12 @@ class TrailController extends Controller
             if ($request->has('recommendations')) {
                 TrailStar::where('trail_id', $trail->id)->delete();
                 foreach ($payload['recommendations'] as $recommendation) {
-                    $artistId = hashid_decode($recommendation);
+                    $starId = hashid_decode($recommendation);
 
-                    if (Star::find($artistId))
+                    if (Star::find($starId))
                         TrailStar::create([
                             'trail_id' => $trail->id,
-                            'star_id' => $artistId,
+                            'star_id' => $starId,
                             'type' => TrailStar::RECOMMENDATION,
                         ]);
                 }

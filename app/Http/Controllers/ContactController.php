@@ -57,7 +57,7 @@ class ContactController extends Controller
             return $this->response->error('创建联系人失败', 500);
         }
 
-        return $this->response->item($contact);
+        return $this->response->item($contact, new ContactTransformer());
     }
 
     public function edit(EditContactRequest $request, Client $client, Contact $contact)

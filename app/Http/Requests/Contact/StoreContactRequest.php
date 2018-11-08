@@ -25,9 +25,8 @@ class StoreContactRequest extends FormRequest
     public function rules()
     {
         return [
-            'client_id' => 'required',
             'name' => 'required',
-            'phone' => ['required', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
+            'phone' => ['required', 'unique:contacts', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
             'position' => 'required'
         ];
     }

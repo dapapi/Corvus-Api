@@ -26,11 +26,11 @@ class StoreClientRequest extends FormRequest
     {
         return [
             'company' => 'required',
-            'grade' => 'required',
+            'grade' => 'required|numeric',
+            'type' => 'required|numeric',
             'region_id' => 'nullable',
             'address' => 'nullable',
             'principal_id' => 'required',
-            'industry_id' => 'required|numeric',
             'size' => 'nullable',
             'contact.name' => 'required',
             'contact.phone' => ['required', 'digits:11', 'regex:/^1[34578]\d{9}$/'],

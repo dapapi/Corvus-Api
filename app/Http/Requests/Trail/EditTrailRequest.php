@@ -28,6 +28,7 @@ class EditTrailRequest extends FormRequest
             'title' => 'nullable',
             'brand' => 'nullable',
             'principal_id' => 'nullable|numeric',
+            'industry_id' => 'nullable|numeric',
             'client.id' => 'nullable|numeric',
             'client.company' => 'required_without:client.id',
             'client.grade' => 'required_without:client.id|numeric',

@@ -136,7 +136,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
     // department
     $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
-
     // user
     $api->get('/users', 'App\Http\Controllers\UserController@index');
 

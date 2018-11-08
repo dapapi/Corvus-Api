@@ -27,6 +27,7 @@ class Trail extends Model
     protected $fillable = [
         'title',
         'brand',
+        'industry_id',      // 行业id
         'principal_id',
         'client_id',
         'contact_id',
@@ -67,4 +68,10 @@ class Trail extends Model
     {
         return $this->belongsToMany(Star::class, 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
     }
+
+    public function industry()
+    {
+        return $this->belongsTo(Industry::class, 'industry_id', 'id');
+    }
+
 }

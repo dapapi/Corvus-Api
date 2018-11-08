@@ -7,7 +7,6 @@ use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Transformers\ClientTransformer;
 use App\Models\Client;
 use App\Models\Contact;
-use App\Models\Industry;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,10 +40,7 @@ class ClientController extends Controller
         if ($request->has('region_id'))
                 $payload['region_id'] = hashid_decode($payload['region_id']);
 
-        $payload['industry_id'] = hashid_decode($payload['industry_id']);
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
-
-        $payload['industry'] = Industry::find($payload['industry_id'])->name;
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;

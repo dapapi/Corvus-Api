@@ -8,6 +8,7 @@ use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
+use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Resource;
@@ -110,6 +111,21 @@ class TaskController extends Controller
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
+
+    public function findModuleTasks(Request $request, Project $project, Client $client, Star $star)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        if ($project && $project->id) {
+            $tasks = $project->tasks()->paginate($pageSize);
+        } else if ($client && $client->id) {
+            $tasks = $client->tasks()->paginate($pageSize);
+        } else if ($star && $star->id) {
+            $tasks = $star->tasks()->paginate($pageSize);
+        }
+        //TODO 还有其他模块
+        return $this->response->paginator($tasks, new TaskTransformer());
+    }
+
 
     public function recycleBin(Request $request)
     {

@@ -54,4 +54,9 @@ class Project extends Model
         return $this->hasMany(FieldValue::class);
     }
 
+    public function tasks()
+    {
+        return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
+
 }

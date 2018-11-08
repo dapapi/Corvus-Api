@@ -56,4 +56,9 @@ class Client extends Model
     {
         return $this->hasMany(Contact::class);
     }
+
+    public function tasks()
+    {
+        return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
 }

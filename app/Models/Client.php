@@ -35,11 +35,6 @@ class Client extends Model
 
     protected $dates = ['deleted_at'];
 
-    public function region()
-    {
-        return $this->belongsTo(Region::class);
-    }
-
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');

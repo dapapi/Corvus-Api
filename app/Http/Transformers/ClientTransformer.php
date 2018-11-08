@@ -13,7 +13,6 @@ class ClientTransformer extends TransformerAbstract
             'id' => hashid_encode($client->id),
             'company' => $client->company,
             'grade' => $client->grade,
-            'industry' => $client->industry,
             'type' => $client->type,
             'address' => $client->address,
             'principal' => $client->principal ? $client->principal->name : null,

@@ -18,6 +18,7 @@ class Project extends Model
         'principal_id',
         'creator_id',
         'privacy',
+        'priority',
         'status',
         'type',
         'desc',
@@ -46,6 +47,11 @@ class Project extends Model
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');
+    }
+
+    public function fields()
+    {
+        return $this->hasMany(FieldValue::class);
     }
 
 }

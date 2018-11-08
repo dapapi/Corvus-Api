@@ -24,6 +24,7 @@ class StoreTrailRequest extends FormRequest
      */
     public function rules()
     {
+        // todo 更新 优先级字段
         return [
             'title' => 'required',
             'brand' => 'required',
@@ -36,7 +37,6 @@ class StoreTrailRequest extends FormRequest
             'contact.phone' => 'required_without:contact.id',
             'resource' => 'required',
             'resource_type' => 'required|numeric',
-            'artist_id' => 'nullable|numeric',
             'recommendations' => 'nullable|array',
             'expectation' => 'nullable|array',
             'fee' => 'required|numeric',

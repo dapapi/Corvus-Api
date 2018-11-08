@@ -116,6 +116,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
+        $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
+        $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
 
         // template field
         $api->get('/project_fields', 'App\Http\Controllers\TemplateFieldController@getFields');

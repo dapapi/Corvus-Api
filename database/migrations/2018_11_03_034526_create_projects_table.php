@@ -20,6 +20,7 @@ class CreateProjectsTable extends Migration
             $table->unsignedInteger('creator_id');
             $table->unsignedInteger('trail_id')->nullable();
             $table->boolean('privacy')->default(0);
+            $table->tinyInteger('priority')->default(0);
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('type')->default(1);
             $table->text('desc')->nullable();

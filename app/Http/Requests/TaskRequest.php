@@ -38,7 +38,11 @@ class TaskRequest extends FormRequest
             'start_at' => 'date',
             'end_at' => 'date|after_or_equal:start_at',
             'desc' => 'nullable',
-            'participant_ids' => 'array'
+            'participant_ids' => 'array',
+
+            'affix.title' => 'max:255',
+            'affix.size' => 'numeric|min:0',
+            'affix.url' => 'max:500',
         ];
     }
 }

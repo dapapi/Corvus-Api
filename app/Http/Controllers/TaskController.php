@@ -357,7 +357,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relieveResource(Request $request, Project $project, Star $star, Task $task)
+    public function relieveResource(Request $request, Project $project, Star $star, Client $client, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -377,6 +377,13 @@ class TaskController extends Controller
                 $resourceable_type = ModuleableType::STAR;
                 $title = '艺人';
                 $start = $star->name;
+            } else if ($client && $client->id) {
+                $type = ResourceType::CLIENT;
+                $client = Client::findOrFail($client->id);
+                $resourceable_id = $client->id;
+                $resourceable_type = ModuleableType::CLIENT;
+                $title = '客户';
+                $start = $client->company;
             } else {
                 //TODO 处理其他资源
                 $title = '其他';
@@ -420,7 +427,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relevanceResource(Request $request, Project $project, Star $star, Task $task)
+    public function relevanceResource(Request $request, Project $project, Star $star, Client $client, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -445,6 +452,13 @@ class TaskController extends Controller
                     $array['resourceable_type'] = ModuleableType::STAR;
                     $title = '艺人';
                     $start = $star->name;
+                } else if ($client && $client->id) {
+                    $type = ResourceType::CLIENT;
+                    $client = Client::findOrFail($client->id);
+                    $array['resourceable_id'] = $client->id;
+                    $array['resourceable_type'] = ModuleableType::CLIENT;
+                    $title = '客户';
+                    $start = $client->company;
                 } else {
                     //TODO 处理其他资源
                     $title = '其他';
@@ -782,35 +796,42 @@ class TaskController extends Controller
 
             if (!$pTask->id) {//子任务不能关联资源
                 //关联资源
-                if ($request->has('resource_id') && $request->has('resourceable_id')) {
-                    $resourceId = hashid_decode($payload['resource_id']);
+                if ($request->has('resource_type') && $request->has('resourceable_id')) {
+                    $resourceType = $payload['resource_type'];
                     $resourceableId = hashid_decode($payload['resourceable_id']);
-                    $resource = Resource::findOrFail($resourceId);
-                    $array = [
-                        'task_id' => $task->id,
-                        'resource_id' => $resourceId,
-                    ];
-                    switch ($resource->type) {
-                        case ResourceType::BLOGGER:
+                    $resource = Resource::where('type', $resourceType)->first();
+                    if ($resource) {
+                        $array = [
+                            'task_id' => $task->id,
+                            'resource_id' => $resource->id,
+                        ];
+                        switch ($resource->type) {
+                            case ResourceType::BLOGGER:
+                                //TODO
+                                break;
+                            case ResourceType::STAR:
+                                $star = Star::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $star->id;
+                                $array['resourceable_type'] = ModuleableType::STAR;
+                                break;
+                            case ResourceType::PROJECT:
+                                $project = Project::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $project->id;
+                                $array['resourceable_type'] = ModuleableType::PROJECT;
+                                break;
+                            case ResourceType::CLIENT:
+                                $client = Client::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $client->id;
+                                $array['resourceable_type'] = ModuleableType::CLIENT;
+                                break;
                             //TODO
-                            break;
-                        case ResourceType::STAR:
-                            $star = Star::findOrFail($resourceableId);
-                            $array['resourceable_id'] = $star->id;
-                            $array['resourceable_type'] = ModuleableType::STAR;
-                            break;
-                        case ResourceType::PROJECT:
-                            $project = Project::findOrFail($resourceableId);
-                            $array['resourceable_id'] = $project->id;
-                            $array['resourceable_type'] = ModuleableType::PROJECT;
-                            break;
-                        //TODO
-                        default:
-                            return $this->response->errorBadRequest('关联任务失败');
-                    }
+                        }
 
-                    TaskResource::create($array);
-                    // 操作日志 ...
+                        TaskResource::create($array);
+                        // 操作日志 ...
+                    } else {
+                        throw new Exception('没有这个类型');
+                    }
                 }
             }
 
@@ -819,7 +840,6 @@ class TaskController extends Controller
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, null, null, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

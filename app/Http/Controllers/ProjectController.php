@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\ProjectRequest;
 use App\Http\Transformers\ProjectTransformer;
@@ -72,7 +73,7 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request)
     {
-        // todo 基础字段 模板字段分别存不同表
+        // todo 可能涉及筛选可选线索
         $payload = $request->all();
 
         if ($payload['type'] != 5 && !$request->has('fields')) {
@@ -169,9 +170,25 @@ class ProjectController extends Controller
 
     }
 
-    public function edit(Request $request)
+    public function edit(EditProjectRequest $request, Project $project)
     {
+        $payload = $request->all();
 
+        if ($request->has('principal_id'))
+            $payload['principal_id'] = hashid_decode($payload['principal_id']);
+
+        DB::beginTransaction();
+        try {
+            foreach ($payload as $key => $value) {
+                $project[$key] = $value;
+            }
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+
+        return $this->response->accepted();
     }
 
     public function detail(Request $request, Project $project)

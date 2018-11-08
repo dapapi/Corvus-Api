@@ -2,13 +2,10 @@
 
 namespace App\Http\Requests\Project;
 
-
 use App\Models\Project;
-use App\Models\TemplateField;
 use Dingo\Api\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
-class StoreProjectRequest extends FormRequest
+class EditProjectRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,19 +25,20 @@ class StoreProjectRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
-            'type' => 'required',
-            'principal_id' => 'required|numeric',
-            'priority' => 'required|numeric',
-            'trail.id' => 'required_unless:type,'. Project::TYPE_BASE,
+            'title' => 'nullable',
+            'type' => 'nullable',
+            'status' => 'nullable',
+            'principal_id' => 'nullable|numeric',
+            'priority' => 'nullable|numeric',
+            'trail.id' => 'required_with:trail',
             'trail.fee' => 'nullable',
             'trail.lock' => 'nullable|boolean',
             'trail.resource_type' => 'nullable|numeric',
             'trail.resource' => 'nullable',
             'trail.recommendations' => 'nullable|array',
             'trail.expectations' => 'nullable|array',
-            'fields' => 'required_unless:type,'. Project::TYPE_BASE .'|array',
-            'desc' => 'nullable'
+            'fields' => 'nullable|array',
+            'desc' => 'nullable',
         ];
     }
 }

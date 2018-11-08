@@ -139,7 +139,7 @@ class TrailController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->error('创建线索失败', 500);
+            return $this->response->errorInternal('创建线索失败');
         }
 
         DB::commit();
@@ -216,7 +216,7 @@ class TrailController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->error('修改销售线索失败', 500);
+            return $this->response->errorInternal('修改销售线索失败');
         }
         DB::commit();
 

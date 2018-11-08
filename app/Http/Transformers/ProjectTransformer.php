@@ -7,8 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator'];
-    protected $defaultIncludes = ['fields'];
+    protected $availableIncludes = ['principal', 'creator', 'fields'];
 
     public function transform(Project $project)
     {

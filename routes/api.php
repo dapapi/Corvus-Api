@@ -118,6 +118,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
+        $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
+        $api->delete('/projects/{project}', 'App\Http\Controllers\ProjectController@delete');
 
         // template field
         $api->get('/project_fields', 'App\Http\Controllers\TemplateFieldController@getFields');

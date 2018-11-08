@@ -17,6 +17,7 @@ class Project extends Model
         'title',
         'principal_id',
         'creator_id',
+        'trail_id',
         'privacy',
         'priority',
         'status',

@@ -10,6 +10,7 @@ class ResourceTransformer extends TransformerAbstract
     public function transform(Resource $resource)
     {
         return [
+            'id' => hashid_encode($resource->id),
             'title' => $resource->title,
             'type' => $resource->type,
             'status' => $resource->status,

@@ -86,7 +86,6 @@ class ClientController extends Controller
             Log::error($exception);
             return $this->response->error('修改失败', 500);
         }
-
         return $this->response->accepted();
     }
 

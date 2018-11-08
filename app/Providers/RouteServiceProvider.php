@@ -104,6 +104,36 @@ class RouteServiceProvider extends ServiceProvider
             }
             return $entity;
         });
+
+        Route::bind('client', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Client::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('contact', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Contact::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('trail', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Trail::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
     }
 
     /**

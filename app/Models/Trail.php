@@ -22,13 +22,13 @@ class Trail extends Model
     const STATUS_DELETE = 3;
 
     const PROGRESS_FIRST = 1;
+    const PROGRESS_SECOND = 1;
 
     protected $fillable = [
         'title',
         'brand',
         'principal_id',
         'client_id',
-        'artist_id',
         'contact_id',
         'creator_id',
         'type',

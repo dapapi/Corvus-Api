@@ -7,11 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
+    const TYPE_MOVIE = 1; // 影视项目
+    const TYPE_VARIETY = 2; // 综艺项目
+    const TYPE_ENDORSEMENT = 3; // 商务代言
+    const TYPE_PAPI = 4; // papi项目
+    const TYPE_BASE = 5; // 基础项目
+
     protected $fillable = [
         'title',
         'principal_id',
         'creator_id',
         'privacy',
+        'priority',
         'status',
         'type',
         'desc',
@@ -40,6 +47,11 @@ class Project extends Model
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');
+    }
+
+    public function fields()
+    {
+        return $this->hasMany(FieldValue::class);
     }
 
 }

@@ -464,6 +464,4 @@ class StarController extends Controller
 
         return $this->response->item(Star::find($star->id), new StarTransformer());
     }
-
-
 }

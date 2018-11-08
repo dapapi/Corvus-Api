@@ -25,7 +25,7 @@ class CreateClientsTable extends Migration
             $table->string('address')->nullable();
             $table->unsignedInteger('principal_id');
             $table->unsignedInteger('creator_id');
-            $table->tinyInteger('size')->default(1);
+            $table->tinyInteger('size')->nullable();
             $table->string('keyman')->nullable();
             $table->text('desc')->nullable();
             $table->softDeletes();

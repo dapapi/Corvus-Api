@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\Contact;
 
-use Illuminate\Foundation\Http\FormRequest;
+
+use Dingo\Api\Http\FormRequest;
 
 class StoreContactRequest extends FormRequest
 {

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Requests\ProjectRequest;
 use App\Http\Transformers\ProjectTransformer;
 use App\Models\FieldValue;
 use App\Models\ModuleUser;

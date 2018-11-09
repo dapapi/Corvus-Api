@@ -24,6 +24,11 @@ class CreateProjectsTable extends Migration
             $table->tinyInteger('status')->default(1);
             $table->tinyInteger('type')->default(1);
             $table->text('desc')->nullable();
+            $table->dateTime('start_at')->nullable();
+            $table->dateTime('end_at')->nullable();
+            $table->dateTime('complete_at')->nullable();
+            $table->dateTime('stop_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('principal_id')->references('id')->on('users');

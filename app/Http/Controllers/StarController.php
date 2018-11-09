@@ -168,6 +168,36 @@ class StarController extends Controller
             $arrayOperateLog[] = $operateAvatar;
         }
 
+        if ($request->has('broker_id')) {
+            try {
+                $currentStar = Star::find($star->broker_id);
+                $start = null;
+                if ($currentStar)
+                    $start = $currentStar->name;
+
+                $brokerId = hashid_decode($payload['broker_id']);
+                $brokerUser = Star::findOrFail($brokerId);
+                $array['broker_id'] = $brokerId;
+
+                if ($brokerUser) {
+                    if ($brokerUser->id != $array['broker_id']) {
+                        $operateBroker = new OperateEntity([
+                            'obj' => $star,
+                            'title' => '经纪人',
+                            'start' => $start,
+                            'end' => $brokerUser->name,
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateBroker;
+                    } else {
+                        unset($arrayOperateLog['broker_id']);
+                    }
+                }
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest('经纪人错误');
+            }
+        }
+
         if ($request->has('birthday')) {
             $array['birthday'] = $payload['birthday'];
             if ($array['birthday'] != $star->birthday) {
@@ -440,8 +470,17 @@ class StarController extends Controller
 
         $payload['creator_id'] = $user->id;
 
-        DB::beginTransaction();
+        if ($request->has('broker_id')) {
+            try {
+                $brokerId = hashid_decode($payload['broker_id']);
+                Star::findOrFail($brokerId);
+                $payload['broker_id'] = $brokerId;
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest('经纪人错误');
+            }
+        }
 
+        DB::beginTransaction();
         try {
             $star = Star::create($payload);
             // 操作日志

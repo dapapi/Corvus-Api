@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -60,6 +61,11 @@ class Star extends Model
     public function tasks()
     {
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
+
+    public function broker()
+    {
+        return $this->belongsTo(User::class, 'broker_id', 'id');
     }
 
 }

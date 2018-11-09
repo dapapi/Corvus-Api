@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class StarTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes','broker'];
 
     public function transform(Star $star)
     {
@@ -44,6 +44,14 @@ class StarTransformer extends TransformerAbstract
     public function includeCreator(Star $star)
     {
         $user = $star->creator;
+        if (!$user)
+            return null;
+        return $this->item($user, new UserTransformer());
+    }
+
+    public function includeBroker(Star $star)
+    {
+        $user = $star->broker;
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());

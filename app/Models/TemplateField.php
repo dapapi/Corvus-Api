@@ -20,7 +20,7 @@ class TemplateField extends Model
     // 定义字段类型
     const TEXT = 1; // 文本
     const RADIO = 2; // 单选
-    const STAR = 3; // 选艺人
+//    const STAR = 3; // 选艺人
     const TIME = 4; // 单个时间
     const TEXTAREA = 5; // 长文本
     const SELECT = 6; // 多选

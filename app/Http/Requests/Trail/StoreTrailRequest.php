@@ -35,7 +35,7 @@ class StoreTrailRequest extends FormRequest
             'client.grade' => 'required_without:client.id|numeric',
             'contact.id' => 'nullable|numeric',
             'contact.name' => 'required_without:contact.id',
-            'contact.phone' => 'required_without:contact.id',
+            'contact.phone' => ['required_without:contact.id', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
             'resource' => 'required',
             'resource_type' => 'required|numeric',
             'recommendations' => 'nullable|array',

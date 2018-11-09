@@ -61,7 +61,7 @@ class ClientController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->error('创建失败', 500);
+            return $this->response->errorInternal('创建失败');
         }
         DB::commit();
 
@@ -73,14 +73,10 @@ class ClientController extends Controller
         $payload = $request->all();
 
         try {
-            foreach ($payload as $key => $val) {
-                // todo 部分字段可能没权限修改
-                $client[$key] = $val;
-            }
-            $client->save();
+            $client->update($payload);
         } catch (\Exception $exception) {
             Log::error($exception);
-            return $this->response->error('修改失败', 500);
+            return $this->response->errorInternal('修改失败');
         }
         return $this->response->accepted();
     }
@@ -93,7 +89,7 @@ class ClientController extends Controller
             $client->delete();
         } catch (Exception $exception) {
             Log::error($exception);
-            return $this->response->error('删除失败', 500);
+            return $this->response->errorInternal('删除失败');
         }
 
         return $this->response->noContent();

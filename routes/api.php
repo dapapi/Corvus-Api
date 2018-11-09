@@ -116,9 +116,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
 
-        // artist
-        $api->get('/stars', 'App\Http\Controllers\ArtistController@index');
-
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
@@ -127,6 +124,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
+        $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
+        $api->put('/projects/{project}/status', 'App\Http\Controllers\ProjectController@changeStatus');
+        $api->delete('/projects/{project}', 'App\Http\Controllers\ProjectController@delete');
 
         // template field
         $api->get('/project_fields', 'App\Http\Controllers\TemplateFieldController@getFields');

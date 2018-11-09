@@ -14,7 +14,7 @@ class EditTrailRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,12 +29,10 @@ class EditTrailRequest extends FormRequest
             'brand' => 'nullable',
             'principal_id' => 'nullable|numeric',
             'industry_id' => 'nullable|numeric',
-            'client.id' => 'nullable|numeric',
-            'client.company' => 'required_without:client.id',
-            'client.grade' => 'required_without:client.id|numeric',
-            'contact.id' => 'nullable|numeric',
-            'contact.name' => 'required_without:contact.id',
-            'contact.phone' => 'required_without:contact.id',
+            'client.company' => 'nullable',
+            'client.grade' => 'nullable|numeric',
+            'contact.name' => 'nullable',
+            'contact.phone' => ['nullable', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
             'artist_id' => 'nullable|numeric',
             'recommendations' => 'nullable|array',
             'expectation' => 'nullable|array',

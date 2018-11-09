@@ -135,7 +135,7 @@ class TrailController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->error('创建线索失败', 500);
+            return $this->response->errorInternal('创建线索失败');
         }
 
         DB::commit();
@@ -143,43 +143,32 @@ class TrailController extends Controller
         return $this->response->item($trail, new TrailTransformer());
     }
 
+    //todo 直接修改客户信息
     public function edit(EditTrailRequest $request, Trail $trail)
     {
         $payload = $request->all();
 
+        $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
         DB::beginTransaction();
         try {
-            if (!array_key_exists('id', $payload['client'])) {
-                $client = Client::create([
-                    'company' => $payload['client']['company'],
-                    'grade' => $payload['client']['grade'],
-                ]);
-            } else {
-                $client = Client::find(hashid_decode($payload['client']['id']));
-            }
-            $payload['client_id'] = $client->id;
-
-            if (!array_key_exists('id', $payload['contact'])) {
-                $contact = Contact::create([
-                    'client_id' => $client->id,
-                    'name' => $payload['contact']['name'],
-                    'phone' => $payload['contact']['phone'],
-                ]);
-            } else {
-                $contact = Contact::find(hashid_decode($payload['contact']['id']));
-            }
-            $payload['contact_id'] = $contact->id;
-
-            foreach ($payload as $key => $val) {
-                $trail[$key] = $val;
-            }
             if ($request->has('lock') && $payload['lock'])
-                $trail['lock_status'] = 1;
+                $payload['lock_status'] = 1;
 
             if ($request->has('refuse') && $payload['refuse'])
-                $trail['status'] = Trail::STATUS_FROZEN;
+                $payload['status'] = Trail::STATUS_FROZEN;
 
-            $trail->save();
+            $trail->update($payload);
+
+            if ($request->has('client')) {
+                $client = $trail->client;
+                $client->update($payload['client']);
+            }
+
+
+            if ($request->has('contact')) {
+                $contact = $trail->contact;
+                $contact->update($payload['client']);
+            }
 
             if ($request->has('expectations')) {
                 TrailStar::where('trail_id', $trail->id)->delete();
@@ -212,7 +201,7 @@ class TrailController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->error('修改销售线索失败', 500);
+            return $this->response->errorInternal('修改销售线索失败');
         }
         DB::commit();
 

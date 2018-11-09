@@ -14,7 +14,7 @@ class FieldValueTransformer extends TransformerAbstract
             'field' => [
                 'id' => hashid_encode($value->field_id),
                 'key' => $value->field->key,
-                'type' => $value->field->type,
+                'field_type' => $value->field->field_type,
                 'content' => $value->field->content,
             ],
             'value' => $value->value,

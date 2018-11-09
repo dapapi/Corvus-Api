@@ -54,7 +54,7 @@ class ContactController extends Controller
             $contact = Contact::create($payload);
         } catch (\Exception $exception) {
             Log::error($exception);
-            return $this->response->error('创建联系人失败', 500);
+            return $this->response->errorInternal('创建联系人失败');
         }
 
         return $this->response->item($contact, new ContactTransformer());
@@ -75,7 +75,7 @@ class ContactController extends Controller
             $contact->save();
         } catch (\Exception $exception) {
             Log::error($exception);
-            return $this->response->error('修改联系人失败', 500);
+            return $this->response->errorInternal('修改联系人失败');
         }
 
         return $this->response->accepted();
@@ -90,7 +90,7 @@ class ContactController extends Controller
             $contact->delete();
         } catch (Exception $exception) {
             Log::error($exception);
-            return $this->response->error('删除失败', 500);
+            return $this->response->errorInternal('删除失败');
         }
 
         return $this->response->noContent();

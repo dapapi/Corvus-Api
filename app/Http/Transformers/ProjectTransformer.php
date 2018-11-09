@@ -7,17 +7,19 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator'];
-    protected $defaultIncludes = ['fields'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail'];
 
     public function transform(Project $project)
     {
-        return [
+        $array = [
             'id' => hashid_encode($project->id),
             'title' => $project->title,
             'privacy' => $project->privacy,
             'priority' => $project->priority,
+            'status' => $project->status,
         ];
+
+        return $array;
     }
 
     public function includePrincipal(Project $project)
@@ -37,5 +39,13 @@ class ProjectTransformer extends TransformerAbstract
         $fields = $project->fields;
 
         return $this->collection($fields, new FieldValueTransformer());
+    }
+
+    public function includeTrail(Project $project)
+    {
+        $trail = $project->trail;
+        if (!$trail)
+            return null;
+        return $this->item($trail, new TrailTransformer());
     }
 }

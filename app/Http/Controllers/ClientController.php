@@ -73,11 +73,7 @@ class ClientController extends Controller
         $payload = $request->all();
 
         try {
-            foreach ($payload as $key => $val) {
-                // todo 部分字段可能没权限修改
-                $client[$key] = $val;
-            }
-            $client->save();
+            $client->update($payload);
         } catch (\Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('修改失败');

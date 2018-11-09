@@ -7,8 +7,10 @@ use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Transformers\OperateLogTransformer;
 use App\Models\OperateEntity;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Task;
 use App\OperateLogMethod;
+use App\Repositories\OperateLogRepository;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,16 +18,25 @@ use Illuminate\Support\Facades\Log;
 class OperateLogController extends Controller
 {
 
-    public function index(Request $request, Task $task, Project $project)
+    protected $operateLogRepository;
+
+    public function __construct(OperateLogRepository $operateLogRepository)
+    {
+        $this->operateLogRepository = $operateLogRepository;
+    }
+
+    public function index(Request $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 1);
 
-        if ($task->id) {
+        if ($task && $task->id) {
             $query = $task->operateLogs();
-        } else if ($project->id) {
+        } else if ($project && $project->id) {
             $query = $project->operateLogs();
+        } else if ($star && $star->id) {
+            $query = $star->operateLogs();
         }
         //TODO 其他模块
 
@@ -52,25 +63,20 @@ class OperateLogController extends Controller
         return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
 
-    public function addFollowUp(OperateLogFollowUpRequest $request, Task $task, Project $project)
+    public function addFollowUp(OperateLogFollowUpRequest $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
         $content = $payload['content'];
 
         try {
             $array = [
-                'obj' => $task,
                 'title' => null,
                 'start' => $content,
                 'end' => null,
                 'method' => OperateLogMethod::FOLLOW_UP,
             ];
-            if ($task->id) {
-                $array['obj'] = $task;
-            } else if ($project->id) {
-                $array['obj'] = $project;
-            }
-            //TODO
+
+            $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
 
             $operate = new OperateEntity($array);
             event(new OperateLogEvent([

@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\OperateLogEvent;
 use App\Models\OperateLog;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Task;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -45,6 +46,7 @@ class OperateLogEventListener
     protected $un_relevance_resource = '解除关联';
     protected $principal = '负责人';
     protected $cancel = '取消';
+    protected $renewal = '更新';
 
     /**
      * Handle the event.
@@ -67,6 +69,9 @@ class OperateLogEventListener
             } else if ($operate->obj instanceof Project) {
                 $type = ModuleableType::PROJECT;
                 $typeName = '项目';
+            } else if ($operate->obj instanceof Star) {
+                $type = ModuleableType::STAR;
+                $typeName = '艺人';
             }
             //TODO
 
@@ -176,6 +181,10 @@ class OperateLogEventListener
                 case OperateLogMethod::CANCEL://取消
                     $level = OperateLogLevel::MIDDLE;
                     $content = sprintf($this->cancel_field, $title, $start);
+                    break;
+                case OperateLogMethod::RENEWAL://更新
+                    $level = OperateLogLevel::MIDDLE;
+                    $content = $this->renewal . $title;
                     break;
             }
 

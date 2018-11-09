@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Requests\ProjectRequest;
 use App\Http\Transformers\ProjectTransformer;
 use App\Models\FieldValue;
 use App\Models\ModuleUser;
@@ -86,7 +85,6 @@ class ProjectController extends Controller
                     return $this->response->errorBadRequest('字段与项目类型匹配错误');
                 }
             }
-            unset($key);
             $payload['trail_id'] = hashid_decode($payload['trail']['id']);
         }
 
@@ -156,7 +154,7 @@ class ProjectController extends Controller
                     }
                     $trail[$key] = $val;
                 }
-                $trail->save;
+                $trail->save();
             }
 
         } catch (Exception $exception) {
@@ -177,11 +175,100 @@ class ProjectController extends Controller
         if ($request->has('principal_id'))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
+        if ($request->has('fields')) {
+            foreach ($payload['fields'] as $key => $val) {
+                $fieldId = hashid_decode((int)$key);
+                $field = TemplateField::where('module_type', $payload['type'])->find($fieldId);
+                if (!$field) {
+                    return $this->response->errorBadRequest('字段与项目类型匹配错误');
+                }
+            }
+        }
+
         DB::beginTransaction();
         try {
             foreach ($payload as $key => $value) {
+                if (!$project[$key])
+                    continue;
+
                 $project[$key] = $value;
             }
+
+            $project->save();
+            dd($project);
+            $projectId = $project->id;
+
+
+            if ($request->has('fields')) {
+                foreach ($payload['fields'] as $key => $val) {
+                    $fieldId = hashid_decode((int)$key);
+                    $fieldValue = FieldValue::where('field_id', $fieldId)->where('project_id', $projectId)->first();
+                    if ($fieldValue) {
+                        $fieldValue->value = $val;
+                        $fieldValue->save();
+                    } else {
+                        FieldValue::create([
+                            'field_id' => $fieldId,
+                            'project_id' => $projectId,
+                            'value' => $val,
+                        ]);
+                    }
+                }
+
+            }
+
+            if ($request->has('trail')) {
+                foreach ($payload['trail'] as $key => $val) {
+                    if ($key == 'id') {
+                        $trail = Trail::find(hashid_decode($val));
+                        $project->trail_id = $trail->id;
+                    } else {
+                        break;
+                    }
+
+                    if ($key == 'lock') {
+                        $trail->lock_status = $val;
+                        continue;
+                    }
+
+                    if ($key == 'fee') {
+                        $trail->fee = 100 * $val;
+                        continue;
+                    }
+
+                    if ($key == 'expectations') {
+                        TrailStar::where('trail_id', $trail->id)->delete();
+                        foreach ($payload['expectations'] as $expectation) {
+                            $starId = hashid_decode($expectation);
+
+                            if (Star::find($starId))
+                                TrailStar::create([
+                                    'trail_id' => $trail->id,
+                                    'star_id' => $starId,
+                                    'type' => TrailStar::EXPECTATION,
+                                ]);
+                        }
+                        continue;
+                    }
+
+                    if ($key == 'recommendations') {
+                        TrailStar::where('trail_id', $trail->id)->delete();
+                        foreach ($payload['recommendations'] as $recommendation) {
+                            $starId = hashid_decode($recommendation);
+                            if (Star::find($starId))
+                                TrailStar::create([
+                                    'trail_id' => $trail->id,
+                                    'star_id' => $starId,
+                                    'type' => TrailStar::RECOMMENDATION,
+                                ]);
+                        }
+                        continue;
+                    }
+                    $trail[$key] = $val;
+                    $trail->save();
+                }
+            }
+
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -199,7 +286,49 @@ class ProjectController extends Controller
 
     public function delete(Request $request, Project $project)
     {
+        try {
+            $project->status = Project::STATUS_DEL;
+            $project->save();
+            $project->delete();
+        } catch (Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('删除失败');
+        }
 
+        return $this->response->noContent();
+    }
+
+    public function recover(Request $request, Project $project)
+    {
+        $project->restore();
+        $project->status = Project::STATUS_NORMAL;
+        $project->save();
+
+        return $this->response->item($project, new ProjectTransformer());
+    }
+
+    public function changeStatus(Request $request, Project $project)
+    {
+        if (!$request->has('status'))
+            return $this->response->errorBadRequest('参数错误');
+
+        $status = $request->get('status');
+        switch ($status) {
+            case Project::STATUS_COMPLATE:
+                $project->complete_at = now();
+                $project->status = $status;
+                break;
+            case Project::STATUS_FROZEN:
+                $project->stop_at = now();
+                $project->status = $status;
+                break;
+            default:
+                break;
+        }
+
+        $project->save();
+
+        return $this->response->item($project, new ProjectTransformer());
     }
 
 }

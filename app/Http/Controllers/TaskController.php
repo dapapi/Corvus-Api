@@ -8,11 +8,14 @@ use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
+use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Resource;
+use App\Models\Star;
 use App\Models\Task;
 use App\Models\TaskResource;
+use App\Models\TaskType;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
@@ -23,7 +26,6 @@ use App\TaskStatus;
 use App\User;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -81,6 +83,7 @@ class TaskController extends Controller
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 1);
+        $type = $request->get('type', 0);
 
         $query = Task::select('tasks.*');
 
@@ -96,10 +99,33 @@ class TaskController extends Controller
                 $query->where('creator_id', $user->id);
                 break;
         }
+        switch ($type) {
+            case 1://进行中
+                $query->where('status', TaskStatus::NORMAL);
+                break;
+            case 2://完成
+                $query->where('status', TaskStatus::COMPLETE);
+                break;
+        }
         $tasks = $query->createDesc()->paginate($pageSize);
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
+
+    public function findModuleTasks(Request $request, Project $project, Client $client, Star $star)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        if ($project && $project->id) {
+            $tasks = $project->tasks()->paginate($pageSize);
+        } else if ($client && $client->id) {
+            $tasks = $client->tasks()->paginate($pageSize);
+        } else if ($star && $star->id) {
+            $tasks = $star->tasks()->paginate($pageSize);
+        }
+        //TODO 还有其他模块
+        return $this->response->paginator($tasks, new TaskTransformer());
+    }
+
 
     public function recycleBin(Request $request)
     {
@@ -331,21 +357,33 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relieveResource(Request $request, Project $project, Task $task)
+    public function relieveResource(Request $request, Project $project, Star $star, Client $client, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
         try {
             $type = 0;
-            $title = '项目';
-            $start = '';
-            if ($project->id) {
+            if ($project && $project->id) {
                 $type = ResourceType::PROJECT;
                 $project = Project::findOrFail($project->id);
                 $resourceable_id = $project->id;
                 $resourceable_type = ModuleableType::PROJECT;
                 $title = '项目';
                 $start = $project->title;
+            } else if ($star && $star->id) {
+                $type = ResourceType::STAR;
+                $star = Star::findOrFail($star->id);
+                $resourceable_id = $star->id;
+                $resourceable_type = ModuleableType::STAR;
+                $title = '艺人';
+                $start = $star->name;
+            } else if ($client && $client->id) {
+                $type = ResourceType::CLIENT;
+                $client = Client::findOrFail($client->id);
+                $resourceable_id = $client->id;
+                $resourceable_type = ModuleableType::CLIENT;
+                $title = '客户';
+                $start = $client->company;
             } else {
                 //TODO 处理其他资源
                 $title = '其他';
@@ -389,7 +427,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relevanceResource(Request $request, Project $project, Task $task)
+    public function relevanceResource(Request $request, Project $project, Star $star, Client $client, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -399,21 +437,34 @@ class TaskController extends Controller
                     'task_id' => $task->id,
                 ];
 
-                $title = '项目';
-                $start = '';
                 $type = 0;
-                if ($project->id) {
+                if ($project && $project->id) {
                     $type = ResourceType::PROJECT;
                     $project = Project::findOrFail($project->id);
                     $array['resourceable_id'] = $project->id;
                     $array['resourceable_type'] = ModuleableType::PROJECT;
                     $title = '项目';
                     $start = $project->title;
+                } else if ($star && $star->id) {
+                    $type = ResourceType::STAR;
+                    $star = Star::findOrFail($star->id);
+                    $array['resourceable_id'] = $star->id;
+                    $array['resourceable_type'] = ModuleableType::STAR;
+                    $title = '艺人';
+                    $start = $star->name;
+                } else if ($client && $client->id) {
+                    $type = ResourceType::CLIENT;
+                    $client = Client::findOrFail($client->id);
+                    $array['resourceable_id'] = $client->id;
+                    $array['resourceable_type'] = ModuleableType::CLIENT;
+                    $title = '客户';
+                    $start = $client->company;
                 } else {
                     //TODO 处理其他资源
                     $title = '其他';
                     $start = '其他模块';
                 }
+
                 $resource = Resource::where('type', $type)->first();
                 $array['resource_id'] = $resource->id;
 
@@ -516,9 +567,10 @@ class TaskController extends Controller
         return $this->response->accepted();
     }
 
-    public function update(TaskUpdateRequest $request, Task $task)
+    public function edit(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
 
         $array = [];
 
@@ -526,15 +578,16 @@ class TaskController extends Controller
 
         if ($request->has('title')) {
             $array['title'] = $payload['title'];
-
-            $operateTitle = new OperateEntity([
-                'obj' => $task,
-                'title' => '标题',
-                'start' => $task->title,
-                'end' => $array['title'],
-                'method' => OperateLogMethod::UPDATE,
-            ]);
-            $arrayOperateLog[] = $operateTitle;
+            if ($array['title'] != $task->title) {
+                $operateTitle = new OperateEntity([
+                    'obj' => $task,
+                    'title' => '标题',
+                    'start' => $task->title,
+                    'end' => $array['title'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
         }
 
         if ($request->has('desc')) {
@@ -548,6 +601,35 @@ class TaskController extends Controller
                 'method' => OperateLogMethod::UPDATE,
             ]);
             $arrayOperateLog[] = $operateDesc;
+        }
+
+        if ($request->has('type')) {
+            $departmentId = $user->department()->first()->id;
+            $typeId = hashid_decode($payload['type']);
+            $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
+            if ($taskType) {
+                $array['type_id'] = $taskType->id;
+                $start = null;
+                if ($task->type) {
+                    $start = $task->type->title;
+                }
+                $end = $taskType->title;
+
+                $operateType = new OperateEntity([
+                    'obj' => $task,
+                    'title' => '类型',
+                    'start' => $start,
+                    'end' => $end,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                if ($task->type && $task->type->id == $taskType->id) {
+                    unset($array['type_id']);
+                } else {
+                    $arrayOperateLog[] = $operateType;
+                }
+            } else {
+                return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+            }
         }
 
         if ($request->has('principal_id')) {
@@ -583,36 +665,8 @@ class TaskController extends Controller
         if ($request->has('priority')) {
             $array['priority'] = $payload['priority'];
             if ($array['priority'] != $task->priority) {
-                $start = '无';
-                switch ($task->priority) {
-                    case TaskPriorityStatus::NOTHING:
-                        $start = '无';
-                        break;
-                    case TaskPriorityStatus::HIGH:
-                        $start = '高';
-                        break;
-                    case TaskPriorityStatus::MIDDLE:
-                        $start = '中';
-                        break;
-                    case TaskPriorityStatus::LOW:
-                        $start = '低';
-                        break;
-                }
-                $end = '无';
-                switch ($array['priority']) {
-                    case TaskPriorityStatus::NOTHING:
-                        $end = '无';
-                        break;
-                    case TaskPriorityStatus::HIGH:
-                        $end = '高';
-                        break;
-                    case TaskPriorityStatus::MIDDLE:
-                        $end = '中';
-                        break;
-                    case TaskPriorityStatus::LOW:
-                        $end = '低';
-                        break;
-                }
+                $start = TaskPriorityStatus::getStr($task->priority);
+                $end = TaskPriorityStatus::getStr($array['priority']);
 
                 $operatePriority = new OperateEntity([
                     'obj' => $task,
@@ -622,6 +676,8 @@ class TaskController extends Controller
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 $arrayOperateLog[] = $operatePriority;
+            } else {
+                unset($array['priority']);
             }
         }
 
@@ -661,7 +717,7 @@ class TaskController extends Controller
                 unset($array['end_at']);
             }
         }
-
+        DB::beginTransaction();
         try {
             if (count($array) == 0)
                 return $this->response->noContent();
@@ -670,9 +726,11 @@ class TaskController extends Controller
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
         } catch (Exception $e) {
+            DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('修改失败');
         }
+        DB::commit();
 
         return $this->response->accepted();
     }
@@ -685,6 +743,7 @@ class TaskController extends Controller
         unset($payload['status']);
         unset($payload['complete_at']);
         unset($payload['stop_at']);
+        unset($payload['type_id']);
 
         $payload['creator_id'] = $user->id;
 
@@ -704,9 +763,16 @@ class TaskController extends Controller
             $payload['task_pid'] = $pTask->id;
         }
 
+        //验证 type
         if ($request->has('type')) {
-            //TODO 验证 type
-//                $payload['type']
+            $departmentId = $user->department()->first()->id;
+            $typeId = hashid_decode($payload['type']);
+            $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
+            if ($taskType) {
+                $payload['type_id'] = $taskType->id;
+            } else {
+                return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+            }
         }
 
         if (!$request->has('privacy')) {
@@ -730,38 +796,48 @@ class TaskController extends Controller
 
             if (!$pTask->id) {//子任务不能关联资源
                 //关联资源
-                if ($request->has('resource_id') && $request->has('resourceable_id')) {
-                    $resourceId = hashid_decode($payload['resource_id']);
+                if ($request->has('resource_type') && $request->has('resourceable_id')) {
+                    $resourceType = $payload['resource_type'];
                     $resourceableId = hashid_decode($payload['resourceable_id']);
-                    $resource = Resource::findOrFail($resourceId);
-                    $array = [
-                        'task_id' => $task->id,
-                        'resource_id' => $resourceId,
-                    ];
-                    switch ($resource->type) {
-                        case ResourceType::BLOGGER:
+                    $resource = Resource::where('type', $resourceType)->first();
+                    if ($resource) {
+                        $array = [
+                            'task_id' => $task->id,
+                            'resource_id' => $resource->id,
+                        ];
+                        switch ($resource->type) {
+                            case ResourceType::BLOGGER:
+                                //TODO
+                                break;
+                            case ResourceType::STAR:
+                                $star = Star::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $star->id;
+                                $array['resourceable_type'] = ModuleableType::STAR;
+                                break;
+                            case ResourceType::PROJECT:
+                                $project = Project::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $project->id;
+                                $array['resourceable_type'] = ModuleableType::PROJECT;
+                                break;
+                            case ResourceType::CLIENT:
+                                $client = Client::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $client->id;
+                                $array['resourceable_type'] = ModuleableType::CLIENT;
+                                break;
                             //TODO
-                            break;
-                        case ResourceType::ARTIST:
-                            //TODO
-                            break;
-                        case ResourceType::PROJECT:
-                            $project = Project::findOrFail($resourceableId);
-                            $array['resourceable_id'] = $project->id;
-                            $array['resourceable_type'] = ModuleableType::PROJECT;
-                            break;
-                        default:
-                            return $this->response->errorBadRequest('关联任务失败');
-                    }
+                        }
 
-                    TaskResource::create($array);
-                    // 操作日志 ...
+                        TaskResource::create($array);
+                        // 操作日志 ...
+                    } else {
+                        throw new Exception('没有这个类型');
+                    }
                 }
             }
 
             //添加参与人
             if ($request->has('participant_ids')) {
-                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $task, null, ModuleUserType::PARTICIPANT);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, null, null, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
             DB::rollBack();
@@ -769,7 +845,7 @@ class TaskController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        return $this->response->item($task, new TaskTransformer());
+        return $this->response->item(Task::find($task->id), new TaskTransformer());
 //        return $this->response->created();
     }
 

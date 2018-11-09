@@ -12,6 +12,4 @@ abstract class TaskStatus
     const NORMAL = 1;//正常
     const COMPLETE = 2;//完成
     const TERMINATION = 3;//终止
-    const POSTPONE = 4;//延期
-
 }

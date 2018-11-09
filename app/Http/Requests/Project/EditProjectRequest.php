@@ -27,7 +27,6 @@ class EditProjectRequest extends FormRequest
         return [
             'title' => 'nullable',
             'type' => 'nullable',
-            'status' => 'nullable',
             'principal_id' => 'nullable|numeric',
             'priority' => 'nullable|numeric',
             'trail.id' => 'required_with:trail',

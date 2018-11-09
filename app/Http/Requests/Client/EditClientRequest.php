@@ -26,11 +26,11 @@ class EditClientRequest extends FormRequest
     {
         return [
             'company' => 'nullable',
-            'grade' => 'nullable',
+            'grade' => 'nullable|numeric',
+            'type' => 'nullable|numeric',
             'region_id' => 'nullable',
             'address' => 'nullable',
             'principal_id' => 'nullable',
-            'industry_id' => 'nullable|numeric',
             'size' => 'nullable',
             'keyman' => 'nullable',
             'desc' => 'nullable',

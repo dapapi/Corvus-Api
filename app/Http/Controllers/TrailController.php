@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Trail\EditTrailRequest;
+use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Transformers\TrailTransformer;
 use App\Models\Star;
@@ -53,7 +54,7 @@ class TrailController extends Controller
         $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
         // 改为直接新建
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
-        $payload['artist_id'] = $request->has('artist_id') ? hashid_decode($payload['artist_id']) : null;
+        $payload['industry_id'] = hashid_decode($payload['industry_id']);
 
         if (is_numeric($payload['resource'])) {
             $payload['resource'] = hashid_decode($payload['resource']);
@@ -74,11 +75,6 @@ class TrailController extends Controller
         } else {
             $client = null;
         }
-
-
-        $artist = Star::find($payload['artist_id']);
-        if (!$artist)
-            return $this->response->errorBadRequest('艺人不存在');
 
         $user = User::find($payload['principal_id']);
         if (!$user)
@@ -126,12 +122,12 @@ class TrailController extends Controller
 
             if ($request->has('recommendations')) {
                 foreach ($payload['recommendations'] as $recommendation) {
-                    $artistId = hashid_decode($recommendation);
+                    $starId = hashid_decode($recommendation);
 
-                    if (Star::find($artistId))
+                    if (Star::find($starId))
                         TrailStar::create([
                             'trail_id' => $trail->id,
-                            'artist_id' => $artistId,
+                            'star_id' => $starId,
                             'type' => TrailStar::RECOMMENDATION,
                         ]);
                 }
@@ -147,43 +143,32 @@ class TrailController extends Controller
         return $this->response->item($trail, new TrailTransformer());
     }
 
+    //todo 直接修改客户信息
     public function edit(EditTrailRequest $request, Trail $trail)
     {
         $payload = $request->all();
 
+        $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
         DB::beginTransaction();
         try {
-            if (!array_key_exists('id', $payload['client'])) {
-                $client = Client::create([
-                    'company' => $payload['client']['company'],
-                    'grade' => $payload['client']['grade'],
-                ]);
-            } else {
-                $client = Client::find(hashid_decode($payload['client']['id']));
-            }
-            $payload['client_id'] = $client->id;
-
-            if (!array_key_exists('id', $payload['contact'])) {
-                $contact = Contact::create([
-                    'client_id' => $client->id,
-                    'name' => $payload['contact']['name'],
-                    'phone' => $payload['contact']['phone'],
-                ]);
-            } else {
-                $contact = Contact::find(hashid_decode($payload['contact']['id']));
-            }
-            $payload['contact_id'] = $contact->id;
-
-            foreach ($payload as $key => $val) {
-                $trail[$key] = $val;
-            }
             if ($request->has('lock') && $payload['lock'])
-                $trail['lock_status'] = 1;
+                $payload['lock_status'] = 1;
 
             if ($request->has('refuse') && $payload['refuse'])
-                $trail['status'] = Trail::STATUS_FROZEN;
+                $payload['status'] = Trail::STATUS_FROZEN;
 
-            $trail->save();
+            $trail->update($payload);
+
+            if ($request->has('client')) {
+                $client = $trail->client;
+                $client->update($payload['client']);
+            }
+
+
+            if ($request->has('contact')) {
+                $contact = $trail->contact;
+                $contact->update($payload['client']);
+            }
 
             if ($request->has('expectations')) {
                 TrailStar::where('trail_id', $trail->id)->delete();
@@ -202,12 +187,12 @@ class TrailController extends Controller
             if ($request->has('recommendations')) {
                 TrailStar::where('trail_id', $trail->id)->delete();
                 foreach ($payload['recommendations'] as $recommendation) {
-                    $artistId = hashid_decode($recommendation);
+                    $starId = hashid_decode($recommendation);
 
-                    if (Star::find($artistId))
+                    if (Star::find($starId))
                         TrailStar::create([
                             'trail_id' => $trail->id,
-                            'star_id' => $artistId,
+                            'star_id' => $starId,
                             'type' => TrailStar::RECOMMENDATION,
                         ]);
                 }
@@ -252,5 +237,28 @@ class TrailController extends Controller
         $trail->forceDelete();
 
         return $this->response->noContent();
+    }
+
+    public function search(SearchTrailRequest $request)
+    {
+        $type = $request->get('type');
+        $id = hashid_decode($request->get('id'));
+
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        } else {
+            $pageSize = config('page_size');
+        }
+
+        switch ($type) {
+            case 'clients':
+                $trails = Trail::where('client_id', $id)->paginate($pageSize);
+                break;
+            default:
+                return $this->response->noContent();
+                break;
+        }
+
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 }

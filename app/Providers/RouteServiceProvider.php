@@ -6,6 +6,7 @@ use App\Models\Affix;
 use App\Models\Project;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
 use Exception;
@@ -88,6 +89,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Affix::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('star', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Star::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

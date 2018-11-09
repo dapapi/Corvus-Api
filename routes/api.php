@@ -13,19 +13,21 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
 
+    //resource
+    $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
 
     $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
 
-        // task
+        //task
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
         $api->get('/tasks/my_all', 'App\Http\Controllers\TaskController@myAll');
         $api->get('/tasks/recycle_bin', 'App\Http\Controllers\TaskController@recycleBin');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
-        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@update');
+        $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove')->middleware('can:delete,task');
         $api->put('/tasks/{task}/status', 'App\Http\Controllers\TaskController@toggleStatus');
@@ -33,9 +35,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/tasks/{task}/principal', 'App\Http\Controllers\TaskController@deletePrincipal');
         $api->post('/tasks/{task}/subtask', 'App\Http\Controllers\TaskController@store');
         $api->put('/tasks/{task}/privacy', 'App\Http\Controllers\TaskController@togglePrivacy');
+        $api->get('/task_types', 'App\Http\Controllers\TaskTypeController@index');
+        $api->get('/task_types/all', 'App\Http\Controllers\TaskTypeController@all');
+        //关联任务查询
+        $api->get('/projects/{project}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        $api->get('/clients/{client}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        $api->get('/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         //任务关联资源
         $api->post('/projects/{project}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/projects/{project}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
+        $api->post('/clients/{client}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
+        $api->delete('/clients/{client}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         //模型用户(参与人)
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\ModuleUserController@addModuleUserParticipant');
         $api->put('/tasks/{task}/participant_remove', 'App\Http\Controllers\ModuleUserController@remove');
@@ -46,11 +56,32 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/tasks/{task}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/tasks/{task}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        $api->get('/stars/{star}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/stars/{star}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/stars/{star}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/stars/{star}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
+        $api->delete('/stars/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
+        $api->post('/stars/{star}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         //跟进
         $api->get('/tasks/{task}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/tasks/{task}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
+        //stars
+        $api->post('/stars', 'App\Http\Controllers\StarController@store');
+        $api->get('/stars', 'App\Http\Controllers\StarController@index');
+        $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+        $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
+        $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
+        $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
+        $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
+        $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
+        //模型用户(宣传人)
+        $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+        $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
 
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
@@ -78,37 +109,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // trail
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
+        $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
         $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
-
-        // client
-        $api->get('/clients', 'App\Http\Controllers\ClientController@index');
-        $api->post('/clients', 'App\Http\Controllers\ClientController@store');
-        $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
-        $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
-        $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
-
-        // contact
-        $api->get('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@index');
-//        $api->group(['middleware' => ''], function ($api) {
-            $api->post('/clients/{client}/contacts', 'App\Http\Controllers\ContactController@store');
-//        });
-        $api->put('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@edit');
-        $api->post('/clients/{client}/contacts/{contact}/recover', 'App\Http\Controllers\ContactController@recover');
-        $api->delete('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@delete');
-        $api->get('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@detail');
-
-        // trail
-        $api->get('/trails', 'App\Http\Controllers\TrailController@index');
-        $api->post('/trails', 'App\Http\Controllers\TrailController@store');
-        $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
-        $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
-        $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
-        // artist
-        $api->get('/stars', 'App\Http\Controllers\ArtistController@index');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -119,6 +125,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
+        $api->put('/projects/{project}/status', 'App\Http\Controllers\ProjectController@changeStatus');
         $api->delete('/projects/{project}', 'App\Http\Controllers\ProjectController@delete');
 
         // template field
@@ -129,7 +136,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
     // department
     $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
-
     // user
     $api->get('/users', 'App\Http\Controllers\UserController@index');
 

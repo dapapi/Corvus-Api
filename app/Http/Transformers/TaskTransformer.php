@@ -3,19 +3,19 @@
 namespace App\Http\Transformers;
 
 use App\Models\Task;
+use App\Models\TaskType;
 use League\Fractal\TransformerAbstract;
 
 class TaskTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks', 'resource', 'affixes', 'participants'];
+    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type'];
 
     public function transform(Task $task)
     {
-        return [
+        $array = [
             'id' => hashid_encode($task->id),
             'title' => $task->title,
-            'type' => $task->type,
             'status' => $task->status,
             'priority' => $task->priority,
             'desc' => $task->desc,
@@ -28,6 +28,13 @@ class TaskTransformer extends TransformerAbstract
             'updated_at' => $task->updated_at->toDatetimeString(),
             'deleted_at' => $task->deleted_at,
         ];
+
+        $array['task_p'] = true;
+        if ($task->task_pid) {
+            $array['task_p'] = false;
+        }
+
+        return $array;
     }
 
     public function includeParticipants(Task $task)
@@ -78,6 +85,14 @@ class TaskTransformer extends TransformerAbstract
         if (!$resource)
             return null;
         return $this->item($resource, new TaskResourceTransformer());
+    }
+
+    public function includeType(Task $task)
+    {
+        $type = $task->type;
+        if (!$type)
+            return null;
+        return $this->item($type, new TaskTypeTransformer());
     }
 
 }

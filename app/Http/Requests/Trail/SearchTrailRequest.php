@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Contact;
+namespace App\Http\Requests\Trail;
 
+use Illuminate\Foundation\Http\FormRequest;
 
-use Dingo\Api\Http\FormRequest;
-
-class StoreContactRequest extends FormRequest
+class SearchTrailRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +24,8 @@ class StoreContactRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required',
-            'phone' => ['required', 'unique:contacts', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
-            'position' => 'required'
+            'type' => 'required',
+            'id' => 'required|numeric',
         ];
     }
 }

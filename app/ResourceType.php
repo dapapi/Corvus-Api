@@ -10,7 +10,8 @@ namespace App;
 abstract class ResourceType
 {
     const BLOGGER = 1;//博主
-    const ARTIST = 2;//艺人
+    const STAR = 2;//艺人
     const PROJECT = 3;//项目
+    const CLIENT = 4;//客户
 
 }

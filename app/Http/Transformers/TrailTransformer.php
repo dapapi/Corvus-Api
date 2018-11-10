@@ -33,10 +33,14 @@ class TrailTransformer extends TransformerAbstract
 
         if ($trail->resource_type == Trail::PERSONAL) {
             $resource = User::where('id', $trail->resource)->first();
-            $array['resource'] = [
-                'id' => hashid_encode($resource->id),
-                'name' => $resource->name,
-            ];
+            if ($resource) {
+                $array['resource'] = [
+                    'id' => hashid_encode($resource->id),
+                    'name' => $resource->name,
+                ];
+            } else {
+                $array['resource'] = $trail->resource;
+            }
         } else {
             $array['resource'] = $trail->resource;
         }

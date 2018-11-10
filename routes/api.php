@@ -131,6 +131,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // template field
         $api->get('/project_fields', 'App\Http\Controllers\TemplateFieldController@getFields');
 
+        // industry
+        $api->get('/industries/all', 'App\Http\Controllers\IndustryController@all');
+
     });
 
 

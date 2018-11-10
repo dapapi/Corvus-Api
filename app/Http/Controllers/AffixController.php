@@ -73,7 +73,7 @@ class AffixController extends Controller
 
         DB::beginTransaction();
         try {
-            $affix = $this->affixRepository->addAffix($user, $task, $project, $payload['title'], $payload['url'], $payload['size'], 1);
+            $affix = $this->affixRepository->addAffix($user, $task, $project, $star, $payload['title'], $payload['url'], $payload['size'], 1);
             if ($affix) {
                 // 操作日志
                 $array = [

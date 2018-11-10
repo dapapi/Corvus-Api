@@ -51,12 +51,12 @@ class Trail extends Model
 
     public function contact()
     {
-        return $this->belongsTo(Contact::class, 'contact_id', 'id');
+        return $this->belongsTo(Contact::class);
     }
 
     public function client()
     {
-        return $this->belongsTo(Client::class, 'contact_id', 'id');
+        return $this->belongsTo(Client::class);
     }
 
     public function expectations()

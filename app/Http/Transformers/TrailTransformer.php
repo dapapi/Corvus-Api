@@ -20,6 +20,7 @@ class TrailTransformer extends TransformerAbstract
             'industry_id' => hashid_encode($trail->industry->id),
             'industry' => $trail->industry->name,
             'resource_type' => $trail->resource_type,
+            'resource' => $trail->resource,
             'type' => $trail->type,
             'status' => $trail->status,
             'progress_status' => $trail->progress_status,

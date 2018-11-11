@@ -11,6 +11,7 @@ use App\Http\Transformers\StarTransformer;
 use App\Models\OperateEntity;
 use App\Models\Star;
 use App\OperateLogMethod;
+use App\Repositories\AffixRepository;
 use App\SignContractStatus;
 use App\StarSource;
 use App\Whether;
@@ -22,6 +23,13 @@ use Illuminate\Support\Facades\Log;
 
 class StarController extends Controller
 {
+    protected $affixRepository;
+
+    public function __construct(AffixRepository $affixRepository)
+    {
+        $this->affixRepository = $affixRepository;
+    }
+
     public function index(Request $request)
     {
         $payload = $request->all();
@@ -494,6 +502,18 @@ class StarController extends Controller
             event(new OperateLogEvent([
                 $operate,
             ]));
+
+            if ($request->has('affix') && count($request->get('affix'))) {
+                $affixes = $request->get('affix');
+                foreach ($affixes as $affix) {
+                    try {
+                        $this->affixRepository->addAffix($user, null, null, $star, null, null, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                        // 操作日志 ...
+                    } catch (Exception $e) {
+                    }
+                }
+            }
+
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

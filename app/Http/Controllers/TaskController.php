@@ -863,6 +863,7 @@ class TaskController extends Controller
                     }
                 }
             }
+
             if ($request->has('affix') && count($request->get('affix'))) {
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
@@ -879,7 +880,6 @@ class TaskController extends Controller
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, null, null, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

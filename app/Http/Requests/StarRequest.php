@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 
+use App\AffixType;
 use App\CommunicationStatus;
 use App\ContractType;
 use App\Gender;
@@ -71,6 +72,12 @@ class StarRequest extends FormRequest
                 SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
             ]),
             'terminate_agreement_at' => 'date',
+
+            'affix' => 'array',
+            'affix.*.title' => 'required|max:255',
+            'affix.*.size' => 'required|numeric|min:0',
+            'affix.*.url' => 'required|max:500',
+            'affix.*.type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO])],
         ];
     }
 }

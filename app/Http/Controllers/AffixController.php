@@ -12,6 +12,7 @@ use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\OperateLogRepository;
@@ -81,14 +82,14 @@ class AffixController extends Controller
         return $this->response->paginator($affixes, new AffixTransformer());
     }
 
-    public function add(AffixRequest $request, Task $task, Project $project, Star $star)
+    public function add(AffixRequest $request, Task $task, Project $project, Star $star,Client $client,Trail $trail)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
         DB::beginTransaction();
         try {
-            $affix = $this->affixRepository->addAffix($user, $task, $project, $star, $payload['title'], $payload['url'], $payload['size'], $payload['type']);
+            $affix = $this->affixRepository->addAffix($user, $task, $project, $star,$client,$trail, $payload['title'], $payload['url'], $payload['size'], $payload['type']);
             if ($affix) {
                 // 操作日志
                 $array = [

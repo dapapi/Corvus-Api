@@ -3,15 +3,17 @@
 namespace App\Repositories;
 
 use App\Models\Affix;
+use App\Models\Client;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\Trail;
 use App\ModuleableType;
 use App\User;
 
 class AffixRepository
 {
-    public function addAffix(User $user, Task $task, Project $project, Star $star, $title, $url, $size, $type)
+    public function addAffix(User $user, $task, $project, $star, $client, $trail, $title, $url, $size, $type)
     {
         $array = [
             'user_id' => $user->id,
@@ -29,6 +31,12 @@ class AffixRepository
         } else if ($star && $star->id) {
             $array['affixable_id'] = $star->id;
             $array['affixable_type'] = ModuleableType::STAR;
+        } else if ($client && $client->id) {
+            $array['affixable_id'] = $client->id;
+            $array['affixable_type'] = ModuleableType::CLIENT;
+        } else if ($trail && $trail->id) {
+            $array['affixable_id'] = $trail->id;
+            $array['affixable_type'] = ModuleableType::TRAIL;
         }
         //TODO 还有其他类型
 

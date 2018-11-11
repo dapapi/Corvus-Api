@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\AffixType;
 use App\TaskPriorityStatus;
 use Dingo\Api\Http\FormRequest;
 use Illuminate\Validation\Rule;

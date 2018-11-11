@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AffixType;
 use App\Events\OperateLogEvent;
 use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskRequest;
@@ -20,6 +21,7 @@ use App\Models\Trail;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
+use App\Repositories\AffixRepository;
 use App\Repositories\ModuleUserRepository;
 use App\ResourceType;
 use App\TaskPriorityStatus;
@@ -37,10 +39,12 @@ class TaskController extends Controller
 {
 
     protected $moduleUserRepository;
+    protected $affixRepository;
 
-    public function __construct(ModuleUserRepository $moduleUserRepository)
+    public function __construct(ModuleUserRepository $moduleUserRepository, AffixRepository $affixRepository)
     {
         $this->moduleUserRepository = $moduleUserRepository;
+        $this->affixRepository = $affixRepository;
     }
 
     public function index(Request $request)
@@ -860,11 +864,17 @@ class TaskController extends Controller
                 }
             }
 
+            if ($request->has('affix.title') && $request->has('affix.size') && $request->has('affix.url')) {
+                $this->affixRepository->addAffix($user, $task, null, null, null, null, $payload['affix']['title'], $payload['affix']['url'], $payload['affix']['size'], AffixType::DEFAULT);
+                // 操作日志 ...
+            }
+
             //添加参与人
             if ($request->has('participant_ids')) {
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, null, null, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

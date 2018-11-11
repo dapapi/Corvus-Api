@@ -32,6 +32,13 @@ class TaskResourceTransformer extends TransformerAbstract
                 return $this->item($resourceable, new ProjectTransformer());
             case ModuleableType::TASK:
                 return $this->item($resourceable, new TaskTransformer());
+            case ModuleableType::STAR:
+                return $this->item($resourceable, new StarTransformer());
+            case ModuleableType::CLIENT:
+                return $this->item($resourceable, new ClientTransformer());
+            case ModuleableType::TRAIL:
+                return $this->item($resourceable, new TrailTransformer());
+            //TODO
         }
     }
 

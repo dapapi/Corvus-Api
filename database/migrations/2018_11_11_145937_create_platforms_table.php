@@ -20,6 +20,7 @@ class CreatePlatformsTable extends Migration
             $table->string('url')->nullable();
             $table->softDeletes();
             $table->timestamps();
+
         });
     }
 

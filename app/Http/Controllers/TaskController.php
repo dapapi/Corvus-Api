@@ -863,10 +863,15 @@ class TaskController extends Controller
                     }
                 }
             }
-
-            if ($request->has('affix.title') && $request->has('affix.size') && $request->has('affix.url')) {
-                $this->affixRepository->addAffix($user, $task, null, null, null, null, $payload['affix']['title'], $payload['affix']['url'], $payload['affix']['size'], AffixType::DEFAULT);
-                // 操作日志 ...
+            if ($request->has('affix') && count($request->get('affix'))) {
+                $affixes = $request->get('affix');
+                foreach ($affixes as $affix) {
+                    try {
+                        $this->affixRepository->addAffix($user, $task, null, null, null, null, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
+                        // 操作日志 ...
+                    } catch (Exception $e) {
+                    }
+                }
             }
 
             //添加参与人

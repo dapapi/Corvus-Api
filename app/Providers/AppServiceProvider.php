@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::STAR => Star::class,
             ModuleableType::CLIENT => Client::class,
             ModuleableType::TRAIL => Trail::class,
+            //TODO
         ]);
     }
 

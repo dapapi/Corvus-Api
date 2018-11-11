@@ -16,6 +16,7 @@ use App\Models\Star;
 use App\Models\Task;
 use App\Models\TaskResource;
 use App\Models\TaskType;
+use App\Models\Trail;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
@@ -112,17 +113,22 @@ class TaskController extends Controller
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
-    public function findModuleTasks(Request $request, Project $project, Client $client, Star $star)
+    public function findModuleTasks(Request $request, Project $project, Client $client, Star $star, Trail $trail)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
+
         if ($project && $project->id) {
-            $tasks = $project->tasks()->paginate($pageSize);
+            $query = $project->tasks();
         } else if ($client && $client->id) {
-            $tasks = $client->tasks()->paginate($pageSize);
+            $query = $client->tasks();
         } else if ($star && $star->id) {
-            $tasks = $star->tasks()->paginate($pageSize);
+            $query = $star->tasks();
+        } else if ($trail && $trail->id) {
+            $query = $trail->tasks();
         }
         //TODO 还有其他模块
+        $tasks = $query->where('privacy', false)->paginate($pageSize);
+
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
@@ -357,7 +363,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relieveResource(Request $request, Project $project, Star $star, Client $client, Task $task)
+    public function relieveResource(Request $request, Project $project, Star $star, Client $client, Trail $trail, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -384,6 +390,13 @@ class TaskController extends Controller
                 $resourceable_type = ModuleableType::CLIENT;
                 $title = '客户';
                 $start = $client->company;
+            } else if ($trail && $trail->id) {
+                $type = ResourceType::TRAIL;
+                $trail = Trail::findOrFail($trail->id);
+                $resourceable_id = $trail->id;
+                $resourceable_type = ModuleableType::TRAIL;
+                $title = '销售线索';
+                $start = $client->title;
             } else {
                 //TODO 处理其他资源
                 $title = '其他';
@@ -427,7 +440,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relevanceResource(Request $request, Project $project, Star $star, Client $client, Task $task)
+    public function relevanceResource(Request $request, Project $project, Star $star, Client $client, Trail $trail, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -459,6 +472,13 @@ class TaskController extends Controller
                     $array['resourceable_type'] = ModuleableType::CLIENT;
                     $title = '客户';
                     $start = $client->company;
+                } else if ($trail && $trail->id) {
+                    $type = ResourceType::TRAIL;
+                    $trail = Trail::findOrFail($trail->id);
+                    $array['resourceable_id'] = $trail->id;
+                    $array['resourceable_type'] = ModuleableType::TRAIL;
+                    $title = '销售线索';
+                    $start = $client->title;
                 } else {
                     //TODO 处理其他资源
                     $title = '其他';
@@ -823,6 +843,11 @@ class TaskController extends Controller
                                 $client = Client::findOrFail($resourceableId);
                                 $array['resourceable_id'] = $client->id;
                                 $array['resourceable_type'] = ModuleableType::CLIENT;
+                                break;
+                            case ResourceType::TRAIL:
+                                $trail = Trail::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $trail->id;
+                                $array['resourceable_type'] = ModuleableType::TRAIL;
                                 break;
                             //TODO
                         }

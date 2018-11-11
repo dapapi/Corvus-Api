@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
+use App\Http\Requests\AffixQueryRequest;
 use App\Http\Requests\AffixRequest;
 use App\Http\Transformers\AffixTransformer;
 use App\Models\Affix;
+use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
@@ -30,38 +32,51 @@ class AffixController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star)
+    public function index(AffixQueryRequest $request, Task $task, Project $project, Star $star, Client $client)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $type = $request->get('type');
 
         if ($task && $task->id) {
-            $affixes = $task->affixes()->createDesc()->paginate($pageSize);
+            $query = $task->affixes();
         } else if ($project && $project->id) {
-            $affixes = $project->affixes()->createDesc()->paginate($pageSize);
+            $query = $project->affixes();
         } else if ($star && $star->id) {
-            $affixes = $project->affixes()->createDesc()->paginate($pageSize);
+            $query = $project->affixes();
+        } else if ($client && $client->id) {
+            $query = $client->affixes();
         }
         //TODO 其他模块
+
+        if ($type)
+            $query->where('type', $type);
+
+        $affixes = $query->createDesc()->paginate($pageSize);
 
         return $this->response->paginator($affixes, new AffixTransformer());
 
     }
 
-    public function recycleBin(Request $request, Task $task, Project $project, Star $star)
+    public function recycleBin(AffixQueryRequest $request, Task $task, Project $project, Star $star)
     {
         $payload = $request->all();
-        $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $type = $request->get('type');
 
         if ($task && $task->id) {
-            $affixes = $task->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
+            $query = $task->affixes();
         } else if ($project && $project->id) {
-            $affixes = $project->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
+            $affixes = $project->affixes();
         } else if ($star && $star->id) {
-            $affixes = $star->affixes()->onlyTrashed()->createDesc()->paginate($pageSize);
+            $affixes = $star->affixes();
         }
         //TODO 其他模块
+
+        if ($type)
+            $query->where('type', $type);
+
+        $affixes = $query->onlyTrashed()->createDesc()->paginate($pageSize);
 
         return $this->response->paginator($affixes, new AffixTransformer());
     }
@@ -73,7 +88,7 @@ class AffixController extends Controller
 
         DB::beginTransaction();
         try {
-            $affix = $this->affixRepository->addAffix($user, $task, $project, $star, $payload['title'], $payload['url'], $payload['size'], 1);
+            $affix = $this->affixRepository->addAffix($user, $task, $project, $star, $payload['title'], $payload['url'], $payload['size'], $payload['type']);
             if ($affix) {
                 // 操作日志
                 $array = [
@@ -89,6 +104,7 @@ class AffixController extends Controller
                 ]));
             }
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal();

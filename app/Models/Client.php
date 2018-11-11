@@ -54,4 +54,9 @@ class Client extends Model
     {
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
+
+    public function affixes()
+    {
+        return $this->morphMany(Affix::class, 'affixable');
+    }
 }

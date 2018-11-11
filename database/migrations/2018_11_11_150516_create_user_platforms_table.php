@@ -15,7 +15,7 @@ class CreateUserPlatformsTable extends Migration
     {
         Schema::create('user_platforms', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('star_id')->nullable();
             $table->unsignedInteger('platformable_id');
             $table->string('platformable_type');
             $table->tinyInteger('status')->default(1);
@@ -26,9 +26,9 @@ class CreateUserPlatformsTable extends Migration
                 ->references('id')
                 ->on('platforms');
 
-            $table->foreign('user_id')
+            $table->foreign('star_id')
                 ->references('id')
-                ->on('users');
+                ->on('stars');
         });
     }
 

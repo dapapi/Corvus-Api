@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Transformers\ResourceTransformer;
+use App\Http\Transformers\StarTransformer;
+use App\Models\Project;
 use App\Models\Resource;
+use App\Models\Star;
 use Illuminate\Http\Request;
 
 class ResourceController extends Controller
@@ -12,6 +15,11 @@ class ResourceController extends Controller
     {
 //        $payload = $request->all();
         $resources = Resource::all();
-        return $this->response->collection($resources, new ResourceTransformer());
+
+        $metaArray = [
+            'stars' => Star::all(),
+            'projects' => Project::all(),
+        ];
+        return $this->response->collection($resources, new ResourceTransformer())->setMeta($metaArray);
     }
 }

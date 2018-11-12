@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class StarTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes','broker'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker'];
 
     public function transform(Star $star)
     {
@@ -36,6 +36,8 @@ class StarTransformer extends TransformerAbstract
             'created_at' => $star->created_at->toDatetimeString(),
             'updated_at' => $star->updated_at->toDatetimeString(),
             'deleted_at' => $star->deleted_at,
+            'sa' => 1,
+
         ];
 
         return $array;

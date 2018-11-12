@@ -34,6 +34,12 @@ class TaskTransformer extends TransformerAbstract
             $array['task_p'] = false;
         }
 
+        $principalUser = $task->principal;
+        if ($principalUser) {
+            $array['principal_id'] = hashid_encode($principalUser->id);
+            $array['principal_name'] = $principalUser->name;
+        }
+
         return $array;
     }
 

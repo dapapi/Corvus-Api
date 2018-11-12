@@ -67,7 +67,7 @@ class StarRequest extends FormRequest
             'sign_contract_other_name' => 'max:255',
             'sign_contract_at' => 'date',
             'sign_contract_status' => Rule::in([
-                SignContractStatus::UN_SIGN_CONTRACT,
+                SignContractStatus::SIGN_CONTRACTING,
                 SignContractStatus::ALREADY_SIGN_CONTRACT,
                 SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
             ]),

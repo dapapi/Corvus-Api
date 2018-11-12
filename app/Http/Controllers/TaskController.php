@@ -9,6 +9,7 @@ use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\TaskTransformer;
+use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
@@ -367,7 +368,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relieveResource(Request $request, Project $project, Star $star, Client $client, Trail $trail, Task $task)
+    public function relieveResource(Request $request, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -375,32 +376,34 @@ class TaskController extends Controller
             $type = 0;
             if ($project && $project->id) {
                 $type = ResourceType::PROJECT;
-                $project = Project::findOrFail($project->id);
                 $resourceable_id = $project->id;
                 $resourceable_type = ModuleableType::PROJECT;
                 $title = '项目';
                 $start = $project->title;
             } else if ($star && $star->id) {
                 $type = ResourceType::STAR;
-                $star = Star::findOrFail($star->id);
                 $resourceable_id = $star->id;
                 $resourceable_type = ModuleableType::STAR;
                 $title = '艺人';
                 $start = $star->name;
             } else if ($client && $client->id) {
                 $type = ResourceType::CLIENT;
-                $client = Client::findOrFail($client->id);
                 $resourceable_id = $client->id;
                 $resourceable_type = ModuleableType::CLIENT;
                 $title = '客户';
                 $start = $client->company;
             } else if ($trail && $trail->id) {
                 $type = ResourceType::TRAIL;
-                $trail = Trail::findOrFail($trail->id);
                 $resourceable_id = $trail->id;
                 $resourceable_type = ModuleableType::TRAIL;
                 $title = '销售线索';
                 $start = $client->title;
+            } else if ($blogger && $blogger->id) {
+                $type = ResourceType::BLOGGER;
+                $resourceable_id = $blogger->id;
+                $resourceable_type = ModuleableType::BLOGGER;
+                $title = '博主';
+                $start = $blogger->nickname;
             } else {
                 //TODO 处理其他资源
                 $title = '其他';
@@ -444,7 +447,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relevanceResource(Request $request, Project $project, Star $star, Client $client, Trail $trail, Task $task)
+    public function relevanceResource(Request $request, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger, Task $task)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -457,32 +460,34 @@ class TaskController extends Controller
                 $type = 0;
                 if ($project && $project->id) {
                     $type = ResourceType::PROJECT;
-                    $project = Project::findOrFail($project->id);
                     $array['resourceable_id'] = $project->id;
                     $array['resourceable_type'] = ModuleableType::PROJECT;
                     $title = '项目';
                     $start = $project->title;
                 } else if ($star && $star->id) {
                     $type = ResourceType::STAR;
-                    $star = Star::findOrFail($star->id);
                     $array['resourceable_id'] = $star->id;
                     $array['resourceable_type'] = ModuleableType::STAR;
                     $title = '艺人';
                     $start = $star->name;
                 } else if ($client && $client->id) {
                     $type = ResourceType::CLIENT;
-                    $client = Client::findOrFail($client->id);
                     $array['resourceable_id'] = $client->id;
                     $array['resourceable_type'] = ModuleableType::CLIENT;
                     $title = '客户';
                     $start = $client->company;
                 } else if ($trail && $trail->id) {
                     $type = ResourceType::TRAIL;
-                    $trail = Trail::findOrFail($trail->id);
                     $array['resourceable_id'] = $trail->id;
                     $array['resourceable_type'] = ModuleableType::TRAIL;
                     $title = '销售线索';
                     $start = $client->title;
+                } else if ($blogger && $blogger->id) {
+                    $type = ResourceType::BLOGGER;
+                    $array['resourceable_id'] = $blogger->id;
+                    $array['resourceable_type'] = ModuleableType::BLOGGER;
+                    $title = '博主';
+                    $start = $blogger->nickname;
                 } else {
                     //TODO 处理其他资源
                     $title = '其他';
@@ -831,7 +836,9 @@ class TaskController extends Controller
                         ];
                         switch ($resource->type) {
                             case ResourceType::BLOGGER:
-                                //TODO
+                                $blogger = Blogger::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $blogger->id;
+                                $array['resourceable_type'] = ModuleableType::BLOGGER;
                                 break;
                             case ResourceType::STAR:
                                 $star = Star::findOrFail($resourceableId);
@@ -868,7 +875,7 @@ class TaskController extends Controller
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
                     try {
-                        $this->affixRepository->addAffix($user, $task, null, null, null, null, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
+                        $this->affixRepository->addAffix($user, $task, null, null, null, null, null, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
                         // 操作日志 ...
                     } catch (Exception $e) {
                     }

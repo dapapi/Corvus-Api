@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Http\Requests\ModuleUserRequest;
+use App\Models\Blogger;
+use App\Models\Client;
 use App\Models\ModuleUser;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\Trail;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
@@ -31,7 +34,7 @@ class ModuleUserController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function add(ModuleUserRequest $request, Task $task, Project $project, Star $star, $type)
+    public function add(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger, $type)
     {
         $payload = $request->all();
 
@@ -66,7 +69,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::ADD_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star, $client, $trail, $blogger);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -90,7 +93,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::DEL_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star, $client, $trail, $blogger);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -114,9 +117,9 @@ class ModuleUserController extends Controller
      * @param Star $star
      * @return \Dingo\Api\Http\Response|void
      */
-    public function addModuleUserParticipant(ModuleUserRequest $request, Task $task, Project $project, Star $star)
+    public function addModuleUserParticipant(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
     {
-        return $this->add($request, $task, $project, $star, ModuleUserType::PARTICIPANT);
+        return $this->add($request, $task, $project, $star, $client, $trail, $blogger, ModuleUserType::PARTICIPANT);
     }
 
     /**
@@ -128,12 +131,12 @@ class ModuleUserController extends Controller
      * @param Star $star
      * @return \Dingo\Api\Http\Response|void
      */
-    public function addModuleUserPublicity(ModuleUserRequest $request, Task $task, Project $project, Star $star)
+    public function addModuleUserPublicity(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
     {
-        return $this->add($request, $task, $project, $star, ModuleUserType::PUBLICITY);
+        return $this->add($request, $task, $project, $star, $client, $trail, $blogger, ModuleUserType::PUBLICITY);
     }
 
-    public function remove(ModuleUserRequest $request, Task $task, Project $project, Star $star)
+    public function remove(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
     {
         $payload = $request->all();
         $participantIds = $payload['person_ids'];
@@ -190,7 +193,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::DEL_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
+                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star, client, $trail, $blogger);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -199,7 +202,7 @@ class ModuleUserController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
-            return $this->response->errorInternal();
+            return $this->response->errorInternal('移除错误');
         }
         DB::commit();
         return $this->response->accepted();

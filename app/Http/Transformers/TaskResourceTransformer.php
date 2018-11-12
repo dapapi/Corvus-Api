@@ -38,6 +38,8 @@ class TaskResourceTransformer extends TransformerAbstract
                 return $this->item($resourceable, new ClientTransformer());
             case ModuleableType::TRAIL:
                 return $this->item($resourceable, new TrailTransformer());
+            case ModuleableType::BLOGGER:
+                return $this->item($resourceable, new BloggerTransformer());
             //TODO
         }
     }

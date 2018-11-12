@@ -13,7 +13,7 @@ use App\User;
 
 class AffixRepository
 {
-    public function addAffix(User $user, $task, $project, $star, $client, $trail, $title, $url, $size, $type)
+    public function addAffix(User $user, $task, $project, $star, $client, $trail, $blogger, $title, $url, $size, $type)
     {
         $array = [
             'user_id' => $user->id,
@@ -37,6 +37,9 @@ class AffixRepository
         } else if ($trail && $trail->id) {
             $array['affixable_id'] = $trail->id;
             $array['affixable_type'] = ModuleableType::TRAIL;
+        } else if ($blogger && $blogger->id) {
+            $array['affixable_id'] = $blogger->id;
+            $array['affixable_type'] = ModuleableType::BLOGGER;
         }
         //TODO 还有其他类型
 

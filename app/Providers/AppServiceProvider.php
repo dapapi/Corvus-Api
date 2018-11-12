@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\Star;
@@ -30,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::STAR => Star::class,
             ModuleableType::CLIENT => Client::class,
             ModuleableType::TRAIL => Trail::class,
+            ModuleableType::BLOGGER => Blogger::class,
             //TODO
         ]);
     }

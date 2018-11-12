@@ -9,4 +9,5 @@ abstract class ModuleableType
     const STAR = 'star';
     const CLIENT = 'client';
     const TRAIL = 'trail';
+    const BLOGGER = 'blogger';
 }

@@ -12,7 +12,6 @@ use App\Models\OperateEntity;
 use App\Models\Star;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
-use App\SignContractStatus;
 use App\StarSource;
 use App\Whether;
 use Exception;
@@ -413,8 +412,8 @@ class StarController extends Controller
                 unset($array['sign_contract_at']);
             }
         }
-
-        if ($request->has('sign_contract_status')) {
+        //TODO 此状态只能在合同改变时改变
+        /*if ($request->has('sign_contract_status')) {
             $array['sign_contract_status'] = $payload['sign_contract_status'];
             if ($array['sign_contract_status'] != $star->sign_contract_status) {
 
@@ -432,7 +431,7 @@ class StarController extends Controller
             } else {
                 unset($array['sign_contract_status']);
             }
-        }
+        }*/
 
         if ($request->has('terminate_agreement_at')) {
             $array['terminate_agreement_at'] = $payload['terminate_agreement_at'];
@@ -507,7 +506,7 @@ class StarController extends Controller
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
                     try {
-                        $this->affixRepository->addAffix($user, null, null, $star, null, null, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                        $this->affixRepository->addAffix($user, null, null, $star, null, null, null, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
                         // 操作日志 ...
                     } catch (Exception $e) {
                     }

@@ -36,7 +36,6 @@ class StarTransformer extends TransformerAbstract
             'created_at' => $star->created_at->toDatetimeString(),
             'updated_at' => $star->updated_at->toDatetimeString(),
             'deleted_at' => $star->deleted_at,
-            'sa' => 1,
 
         ];
 

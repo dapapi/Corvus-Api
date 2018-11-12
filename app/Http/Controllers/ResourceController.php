@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Transformers\ResourceTransformer;
-use App\Http\Transformers\StarTransformer;
 use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Star;

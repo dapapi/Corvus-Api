@@ -3,16 +3,12 @@
 namespace App\Repositories;
 
 use App\Models\Affix;
-use App\Models\Client;
-use App\Models\Project;
-use App\Models\Star;
-use App\Models\Task;
-use App\Models\Trail;
 use App\ModuleableType;
 use App\User;
 
 class AffixRepository
 {
+    
     public function addAffix(User $user, $task, $project, $star, $client, $trail, $blogger, $title, $url, $size, $type)
     {
         $array = [

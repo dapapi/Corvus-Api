@@ -5,7 +5,6 @@ namespace App\Http\Requests;
 
 use App\AffixType;
 use App\CommunicationStatus;
-use App\ContractType;
 use App\Gender;
 use App\SignContractStatus;
 use App\StarSource;

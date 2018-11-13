@@ -21,14 +21,6 @@ class UserController extends Controller
     {
         $user = Auth::guard('api')->user();
 
-        $department = $user->department()->first();
-        if (!$department)
-            return [
-                'id' => hashid_encode($user->id),
-                'name' => $user->name,
-            ];
-        $company = $this->department($department);
-        $user->company = $company;
         return $this->response->item($user, new UserTransformer());
     }
 

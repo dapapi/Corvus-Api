@@ -122,7 +122,8 @@ class AffixController extends Controller
             return $this->response->errorInternal();
         }
         DB::commit();
-        return $this->response->created();
+//        return $this->response->created();
+        return $this->response->item(Affix::find($affix->id), new AffixTransformer());
     }
 
     public function download(Request $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger, Affix $affix)

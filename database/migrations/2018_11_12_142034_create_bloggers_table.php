@@ -27,7 +27,7 @@ class CreateBloggersTable extends Migration
             $table->tinyInteger('sign_contract_status')->default(1);
             $table->text('desc')->nullable();
             $table->tinyInteger('status')->default(1);
-            $table->tinyInteger('type')->default(1);
+            $table->unsignedInteger('type_id');
             $table->string('avatar')->nullable();
             $table->unsignedInteger('creator_id');
             $table->tinyInteger('gender')->default(1);
@@ -45,6 +45,10 @@ class CreateBloggersTable extends Migration
             $table->foreign('creator_id')
                 ->references('id')
                 ->on('users');
+
+            $table->foreign('type_id')
+                ->references('id')
+                ->on('blogger_types');
         });
     }
 

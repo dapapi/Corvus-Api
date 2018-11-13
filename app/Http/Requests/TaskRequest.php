@@ -37,9 +37,10 @@ class TaskRequest extends FormRequest
             'privacy' => 'boolean',
             'priority' => Rule::in([TaskPriorityStatus::NOTHING, TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
             'start_at' => 'date',
-            'end_at' => 'date|after_or_equal:start_at',
+            'end_at' => 'required|date|after_or_equal:start_at',
             'desc' => 'nullable',
             'participant_ids' => 'array',
+            'principal_id' => 'required|numeric',
 
             'affix' => 'array',
             'affix.*.title' => 'required|max:255',

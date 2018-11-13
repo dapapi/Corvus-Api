@@ -9,7 +9,8 @@ class ResourceTransformer extends TransformerAbstract
 {
     public function transform(Resource $resource)
     {
-        return [
+
+        $array = [
             'id' => hashid_encode($resource->id),
             'title' => $resource->title,
             'code' => $resource->code,
@@ -17,5 +18,7 @@ class ResourceTransformer extends TransformerAbstract
             'status' => $resource->status,
             'desc' => $resource->desc
         ];
+
+        return $array;
     }
 }

@@ -7,12 +7,12 @@ use League\Fractal\TransformerAbstract;
 
 class BloggerTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type'];
 
     public function transform(Blogger $blogger)
     {
         return [
-            'id' => $blogger->id,
+            'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
             'communication_status' => $blogger->communication_status,//沟通状态
             'intention' => boolval($blogger->intention),//与我司签约意向
@@ -48,6 +48,14 @@ class BloggerTransformer extends TransformerAbstract
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
+    }
+
+    public function includeType(Blogger $blogger)
+    {
+        $type = $blogger->type;
+        if (!$type)
+            return null;
+        return $this->item($type, new BloggerTypeTransformer());
     }
 
     public function includeTasks(Blogger $blogger)

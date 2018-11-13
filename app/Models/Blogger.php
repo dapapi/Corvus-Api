@@ -22,7 +22,7 @@ class Blogger extends Model
         'producer_id',//制作人
         'sign_contract_status',//签约状态
         'desc',//描述/备注
-        'type',
+        'type_id',
         'status',
         'avatar',
         'creator_id',
@@ -64,5 +64,10 @@ class Blogger extends Model
     public function producer()
     {
         return $this->belongsTo(User::class, 'producer_id', 'id');
+    }
+
+    public function type()
+    {
+        return $this->belongsTo(BloggerType::class, 'type_id', 'id');
     }
 }

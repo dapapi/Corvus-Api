@@ -118,7 +118,7 @@ class TaskController extends Controller
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
-    public function findModuleTasks(Request $request, Project $project, Client $client, Star $star, Trail $trail)
+    public function findModuleTasks(Request $request, Project $project, Client $client, Star $star, Trail $trail, Blogger $blogger)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
@@ -130,6 +130,8 @@ class TaskController extends Controller
             $query = $star->tasks();
         } else if ($trail && $trail->id) {
             $query = $trail->tasks();
+        } else if ($blogger && $blogger->id) {
+            $query = $blogger->tasks();
         }
         //TODO 还有其他模块
         $tasks = $query->where('privacy', false)->paginate($pageSize);

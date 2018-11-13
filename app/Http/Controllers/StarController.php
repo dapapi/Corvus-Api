@@ -55,13 +55,6 @@ class StarController extends Controller
         return $this->response->item($star, new StarTransformer());
     }
 
-    public function all(Request $request)
-    {
-        $stars = Star::orderBy('name')->get();
-
-        return $this->response->collection($stars, new StarTransformer());
-    }
-
     public function recycleBin(Request $request)
     {
         $payload = $request->all();

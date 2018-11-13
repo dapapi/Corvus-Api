@@ -102,7 +102,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
-        $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
         $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
@@ -111,6 +110,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+        //blogger
+        $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
+        $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
+        $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
 
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');

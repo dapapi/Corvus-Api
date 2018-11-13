@@ -12,6 +12,7 @@ class ResourceTransformer extends TransformerAbstract
         return [
             'id' => hashid_encode($resource->id),
             'title' => $resource->title,
+            'code' => $resource->code,
             'type' => $resource->type,
             'status' => $resource->status,
             'desc' => $resource->desc

@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Models\Blogger;
 use App\Models\OperateLog;
 use App\Models\Project;
 use App\Models\Star;
@@ -72,6 +73,9 @@ class OperateLogEventListener
             } else if ($operate->obj instanceof Star) {
                 $type = ModuleableType::STAR;
                 $typeName = '艺人';
+            } else if ($operate->obj instanceof Blogger) {
+                $type = ModuleableType::BLOGGER;
+                $typeName = '博主';
             }
             //TODO
 

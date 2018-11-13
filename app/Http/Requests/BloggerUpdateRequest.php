@@ -2,15 +2,15 @@
 
 namespace App\Http\Requests;
 
-
+use App\BloggerLevel;
+use App\BloggerType;
 use App\CommunicationStatus;
 use App\Gender;
 use App\SignContractStatus;
-use App\StarSource;
 use Dingo\Api\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StarUpdateRequest extends FormRequest
+class BloggerUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -30,26 +30,7 @@ class StarUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|max:255',
-            'gender' => Rule::in([Gender::MAN, Gender::WOMAN]),
-            'avatar' => 'max:500',
-            'birthday' => 'date',
-            'phone' => ['digits:11', 'regex:/^1[34578]\d{9}$/'],
-            'desc' => 'nullable',
-            'wechat' => 'max:30',
-            'email' => 'email',
-            'source' => Rule::in([
-                StarSource::ON_LINE,
-                StarSource::OFFLINE,
-                StarSource::TRILL,
-                StarSource::WEIBO,
-                StarSource::CHENHE,
-                StarSource::BEIDIAN,
-                StarSource::YANGGUANG,
-                StarSource::ZHONGXI,
-                StarSource::PAPITUBE,
-                StarSource::AREA_EXTRA,
-            ]),
+            'nickname' => 'required|max:255',
             'communication_status' => Rule::in([
                 CommunicationStatus::ALREADY_SIGN_CONTRACT,
                 CommunicationStatus::HANDLER_COMMUNICATION,
@@ -61,15 +42,27 @@ class StarUpdateRequest extends FormRequest
             ]),
             'intention' => 'boolean',
             'intention_desc' => 'max:500',
-            'sign_contract_other' => 'boolean',
-            'sign_contract_other_name' => 'max:255',
             'sign_contract_at' => 'date',
+            'level' => Rule::in([
+                BloggerLevel::S,
+                BloggerLevel::A,
+                BloggerLevel::B,
+            ]),
+            'hatch_star_at' => 'date',//孵化期开始时间
+            'hatch_end_at' => 'date',//孵化期结束时间
+            'producer_id' => 'nullable',//制作人
             'sign_contract_status' => Rule::in([
                 SignContractStatus::SIGN_CONTRACTING,
                 SignContractStatus::ALREADY_SIGN_CONTRACT,
                 SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
             ]),
-            'terminate_agreement_at' => 'date',
+            'desc' => 'nullable',//描述/备注
+            'avatar' => 'max:500',
+            'gender' => Rule::in([Gender::MAN, Gender::WOMAN]),
+            'cooperation_demand' => 'max:500',//合作需求
+            'terminate_agreement_at' => 'date',//解约日期
+            'sign_contract_other' => 'boolean',//是否签约其他公司
+            'sign_contract_other_name' => 'max:255',//签约公司名称
         ];
     }
 }

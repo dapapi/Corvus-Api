@@ -6,7 +6,7 @@ use App\AffixType;
 use Dingo\Api\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class AffixRequest extends FormRequest
+class AffixQueryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,10 +26,7 @@ class AffixRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required|max:255',
-            'size' => 'required|numeric|min:0',
-            'url' => 'required|max:500',
-            'type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO])],
+            'type' => Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO]),
         ];
     }
 }

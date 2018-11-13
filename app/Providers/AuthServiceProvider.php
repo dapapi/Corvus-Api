@@ -2,11 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Task;
-use App\Policies\TaskPolicy;
+use App\Policies\BloggerPolicy;
 use App\Policies\ClientPolicy;
-use Illuminate\Support\Facades\Gate;
+use App\Policies\TaskPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Laravel\Passport\Passport;
 
@@ -21,6 +22,7 @@ class AuthServiceProvider extends ServiceProvider
         'App\Model' => 'App\Policies\ModelPolicy',
         Client::class => ClientPolicy::class,
         Task::class => TaskPolicy::class,
+        Blogger::class => BloggerPolicy::class,
     ];
 
     /**

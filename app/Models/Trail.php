@@ -74,4 +74,9 @@ class Trail extends Model
         return $this->belongsTo(Industry::class, 'industry_id', 'id');
     }
 
+    public function tasks()
+    {
+        return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
+
 }

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Affix;
+use App\Models\Blogger;
 use App\Models\Project;
 use App\Models\Client;
 use App\Models\Contact;
@@ -129,6 +130,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Trail::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('blogger', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Blogger::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

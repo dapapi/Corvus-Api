@@ -10,7 +10,7 @@ namespace App;
 
 abstract class SignContractStatus
 {
-    const UN_SIGN_CONTRACT = 1;//未签约
+    const SIGN_CONTRACTING = 1;//签约中
     const ALREADY_SIGN_CONTRACT = 2;//已签约
     const ALREADY_TERMINATE_AGREEMENT = 3;//已解约
 
@@ -20,10 +20,10 @@ abstract class SignContractStatus
      */
     public static function getStr($key): string
     {
-        $start = '未签约';
+        $start = '签约中';
         switch ($key) {
-            case SignContractStatus::UN_SIGN_CONTRACT:
-                $start = '未签约';
+            case SignContractStatus::SIGN_CONTRACTING:
+                $start = '签约中';
                 break;
             case SignContractStatus::ALREADY_SIGN_CONTRACT:
                 $start = '已签约';

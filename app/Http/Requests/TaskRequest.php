@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\AffixType;
 use App\TaskPriorityStatus;
 use Dingo\Api\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -36,13 +37,15 @@ class TaskRequest extends FormRequest
             'privacy' => 'boolean',
             'priority' => Rule::in([TaskPriorityStatus::NOTHING, TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
             'start_at' => 'date',
-            'end_at' => 'date|after_or_equal:start_at',
+            'end_at' => 'required|date|after_or_equal:start_at',
             'desc' => 'nullable',
             'participant_ids' => 'array',
+            'principal_id' => 'required|numeric',
 
-            'affix.title' => 'max:255',
-            'affix.size' => 'numeric|min:0',
-            'affix.url' => 'max:500',
+            'affix' => 'array',
+            'affix.*.title' => 'required|max:255',
+            'affix.*.size' => 'required|numeric|min:0',
+            'affix.*.url' => 'required|max:500',
         ];
     }
 }

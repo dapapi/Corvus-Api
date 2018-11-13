@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Blogger;
+use App\Models\Client;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Task;
+use App\Models\Trail;
 use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +28,11 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             ModuleableType::TASK => Task::class,
             ModuleableType::PROJECT => Project::class,
+            ModuleableType::STAR => Star::class,
+            ModuleableType::CLIENT => Client::class,
+            ModuleableType::TRAIL => Trail::class,
+            ModuleableType::BLOGGER => Blogger::class,
+            //TODO
         ]);
     }
 

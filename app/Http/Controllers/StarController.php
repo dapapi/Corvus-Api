@@ -11,7 +11,7 @@ use App\Http\Transformers\StarTransformer;
 use App\Models\OperateEntity;
 use App\Models\Star;
 use App\OperateLogMethod;
-use App\SignContractStatus;
+use App\Repositories\AffixRepository;
 use App\StarSource;
 use App\Whether;
 use Exception;
@@ -22,6 +22,13 @@ use Illuminate\Support\Facades\Log;
 
 class StarController extends Controller
 {
+    protected $affixRepository;
+
+    public function __construct(AffixRepository $affixRepository)
+    {
+        $this->affixRepository = $affixRepository;
+    }
+
     public function index(Request $request)
     {
         $payload = $request->all();
@@ -46,13 +53,6 @@ class StarController extends Controller
             $operate,
         ]));
         return $this->response->item($star, new StarTransformer());
-    }
-
-    public function all(Request $request)
-    {
-        $stars = Star::orderBy('name')->get();
-
-        return $this->response->collection($stars, new StarTransformer());
     }
 
     public function recycleBin(Request $request)
@@ -405,8 +405,8 @@ class StarController extends Controller
                 unset($array['sign_contract_at']);
             }
         }
-
-        if ($request->has('sign_contract_status')) {
+        //TODO 此状态只能在合同改变时改变
+        /*if ($request->has('sign_contract_status')) {
             $array['sign_contract_status'] = $payload['sign_contract_status'];
             if ($array['sign_contract_status'] != $star->sign_contract_status) {
 
@@ -424,7 +424,7 @@ class StarController extends Controller
             } else {
                 unset($array['sign_contract_status']);
             }
-        }
+        }*/
 
         if ($request->has('terminate_agreement_at')) {
             $array['terminate_agreement_at'] = $payload['terminate_agreement_at'];
@@ -494,6 +494,18 @@ class StarController extends Controller
             event(new OperateLogEvent([
                 $operate,
             ]));
+
+            if ($request->has('affix') && count($request->get('affix'))) {
+                $affixes = $request->get('affix');
+                foreach ($affixes as $affix) {
+                    try {
+                        $this->affixRepository->addAffix($user, null, null, $star, null, null, null, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                        // 操作日志 ...
+                    } catch (Exception $e) {
+                    }
+                }
+            }
+
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

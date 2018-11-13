@@ -15,7 +15,7 @@ class CreateCalendarsTable extends Migration
     {
         Schema::create('calendars', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name')->unique();
+            $table->string('title')->unique();
             $table->string('color');
             $table->boolean('privacy')->default(0);
             $table->unsignedInteger('starable_id')->nullable();

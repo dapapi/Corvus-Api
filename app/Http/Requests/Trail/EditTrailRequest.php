@@ -29,7 +29,7 @@ class EditTrailRequest extends FormRequest
             'brand' => 'nullable',
             'principal_id' => 'nullable|numeric',
             'industry_id' => 'nullable|numeric',
-            'client.company' => 'nullable',
+            'client.company' => 'nullable|unique:clients,company',
             'client.grade' => 'nullable|numeric',
             'contact.name' => 'nullable',
             'contact.phone' => ['nullable', 'digits:11', 'regex:/^1[34578]\d{9}$/'],

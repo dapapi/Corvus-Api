@@ -157,6 +157,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
+        $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
+        $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');

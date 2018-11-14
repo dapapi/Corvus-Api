@@ -39,12 +39,12 @@ class ProjectController extends Controller
 
 
     // todo 按个人角度筛选 待测试
-    public function my(Request $request)
+    public function myAll(Request $request)
     {
         $payload = $request->all();
 
         $user = Auth::guard('api')->user();
-        $userId = hashid_decode($user->id);
+        $userId = $user->id;
 
         if ($request->has('page_size')) {
             $pageSize = $payload['page_size'];
@@ -52,20 +52,97 @@ class ProjectController extends Controller
             $pageSize = config('api.page_size');
         }
 
-        if ($request->has('type')) {
-            $type = $payload['type'];
-        } else {
-            $type = 1;
+        $type = $request->get('type', 0);
+
+        $status = $request->get('status', 0);
+
+        $projects = DB::table('projects')->select('projects.*');
+        switch ($status) {
+            case Project::STATUS_NORMAL:
+                $projects->where('status', Project::STATUS_NORMAL);
+                break;
+            case Project::STATUS_COMPLATE:
+                $projects->where('status', Project::STATUS_COMPLATE);
+                break;
+            case Project::STATUS_FROZEN:
+                $projects->where('status', Project::STATUS_FROZEN);
+                break;
+            default:
+                break;
         }
 
-        if ($type == 2) {
-            $projects = Project::where('principal_id', $userId)->paginate($pageSize);
-        } elseif ($type == 3) {
-            $projects = ModuleUser::where('user_id', $userId)
-                ->where('moduleable_type', ModuleableType::PROJECT)->paginate($pageSize);
-        } else {
-            $projects = Project::where('creator_id', $userId)->paginate($pageSize);
+        $projects->where(function($query) use ($userId) {
+            $query->where('creator_id', $userId)->orWhere('principal_id', $userId);
+        });
+
+        $query = DB::table('projects')->select('projects.*')->join('module_users', function ($join) use ($userId) {
+            $join->on('module_users.moduleable_id', '=', 'projects.id')
+                ->where('module_users.moduleable_type', ModuleableType::PROJECT)
+                ->where('module_users.user_id', $userId);
+        });
+
+        switch ($status) {
+            case Project::STATUS_NORMAL:
+                $query->where('status', Project::STATUS_NORMAL);
+                break;
+            case Project::STATUS_COMPLATE:
+                $query->where('status', Project::STATUS_COMPLATE);
+                break;
+            case Project::STATUS_FROZEN:
+                $query->where('status', Project::STATUS_FROZEN);
+                break;
+            default:
+                break;
         }
+
+        $query->union($projects);
+
+        $querySql = $query->toSql();
+        $result = Project::rightJoin(DB::raw("($querySql) as a"), function ($join) {
+            $join->on('projects.id', '=', 'a.id');
+        })->mergeBindings($query)
+            ->orderBy('a.created_at', 'desc')
+            ->paginate($pageSize);
+
+        return $this->response->paginator($result, new ProjectTransformer());
+    }
+
+    public function my(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', 0);
+        $type = $request->get('type', 1);
+
+        $query = Project::select('projects.*');
+
+        switch ($type) {
+            case 2://我负责
+                $query->where('principal_id', $user->id);
+                break;
+            case 3://我参与
+                $query = $user->participantProjects();
+                break;
+            case 1://我创建
+            default:
+                $query->where('creator_id', $user->id);
+                break;
+        }
+        switch ($status) {
+            case Project::STATUS_NORMAL://进行中
+                $query->where('status', Project::STATUS_NORMAL);
+                break;
+            case Project::STATUS_COMPLATE://完成
+                $query->where('status', Project::STATUS_COMPLATE);
+                break;
+            case Project::STATUS_FROZEN://终止
+                $query->where('status', Project::STATUS_FROZEN);
+                break;
+            default:
+                break;
+        }
+        $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
     }

@@ -32,6 +32,14 @@ class BloggerController extends Controller
         return $this->response->paginator($bloggers, new BloggerTransformer());
     }
 
+    public function all(Request $request)
+    {
+        $isAll = $request->get('all', false);
+
+        $bloggers = Blogger::createDesc()->get();
+        return $this->response->paginator($bloggers, new BloggerTransformer($isAll));
+    }
+
     public function show(Blogger $blogger)
     {
         // 操作日志

@@ -16,10 +16,11 @@ class CreatePlatformsTable extends Migration
         Schema::create('platforms', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
+            $table->string('code');
             $table->string('logo')->nullable();
             $table->string('url')->nullable();
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
 
         });
     }

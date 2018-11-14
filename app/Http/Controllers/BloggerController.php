@@ -229,7 +229,7 @@ class BloggerController extends Controller
 
                 $producerId = hashid_decode($payload['producer_id']);
                 $producerUser = User::findOrFail($producerId);
-                $array['producer_id'] = $producerUser;
+                $array['producer_id'] = $producerUser->id;
 
                 if ($producerUser->id != $array['producer_id']) {
                     $operateProducer = new OperateEntity([
@@ -244,7 +244,7 @@ class BloggerController extends Controller
                     unset($array['producer_id']);
                 }
             } catch (Exception $e) {
-                return $this->response->errorBadRequest('经纪人错误');
+                return $this->response->errorBadRequest('制作人错误');
             }
         }
 
@@ -321,9 +321,9 @@ class BloggerController extends Controller
         if ($request->has('cooperation_demand')) {
             $array['cooperation_demand'] = $payload['cooperation_demand'];
             if ($array['cooperation_demand'] != $blogger->cooperation_demand) {
-                $operateDesc = new OperateEntity([
+                $operateCooperationDemand = new OperateEntity([
                     'obj' => $blogger,
-                    'title' => '描述',
+                    'title' => '合作需求',
                     'start' => $blogger->cooperation_demand,
                     'end' => $array['cooperation_demand'],
                     'method' => OperateLogMethod::UPDATE,
@@ -334,8 +334,57 @@ class BloggerController extends Controller
             }
         }
 
+        if ($request->has('terminate_agreement_at')) {
+            $array['terminate_agreement_at'] = $payload['terminate_agreement_at'];
+            if ($array['terminate_agreement_at'] != $blogger->terminate_agreement_at) {
+                $operateTerminateAgreementAt = new OperateEntity([
+                    'obj' => $blogger,
+                    'title' => '解约日期',
+                    'start' => $blogger->terminate_agreement_at,
+                    'end' => $array['terminate_agreement_at'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTerminateAgreementAt;
+            } else {
+                unset($array['terminate_agreement_at']);
+            }
+        }
 
+        if ($request->has('sign_contract_other')) {
+            $array['sign_contract_other'] = $payload['sign_contract_other'];
+            if ($array['sign_contract_other'] != $blogger->sign_contract_other) {
 
+                $start = Whether::getStr($blogger->sign_contract_other);
+                $end = Whether::getStr($array['sign_contract_other']);
+
+                $operateSignContractOther = new OperateEntity([
+                    'obj' => $blogger,
+                    'title' => '是否签约其他公司',
+                    'start' => $start,
+                    'end' => $end,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateSignContractOther;
+            } else {
+                unset($array['sign_contract_other']);
+            }
+        }
+
+        if ($request->has('sign_contract_other_name')) {
+            $array['sign_contract_other_name'] = $payload['sign_contract_other_name'];
+            if ($array['sign_contract_other_name'] != $blogger->sign_contract_other_name) {
+                $operateSignContractOtherName = new OperateEntity([
+                    'obj' => $blogger,
+                    'title' => '签约公司名称',
+                    'start' => $blogger->sign_contract_other_name,
+                    'end' => $array['sign_contract_other_name'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateSignContractOtherName;
+            } else {
+                unset($array['sign_contract_other_name']);
+            }
+        }
 
         DB::beginTransaction();
         try {

@@ -443,6 +443,7 @@ class StarController extends Controller
                 unset($array['terminate_agreement_at']);
             }
         }
+
         DB::beginTransaction();
         try {
             if (count($array) == 0)

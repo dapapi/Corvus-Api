@@ -63,6 +63,65 @@ class TaskController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $type = $request->get('type', 0);
+
+        $tasks = DB::table('tasks')->select('tasks.*');
+        switch ($type) {
+            case 1://进行中
+                $tasks->where('status', TaskStatus::NORMAL);
+                break;
+            case 2://完成
+                $tasks->where('status', TaskStatus::COMPLETE);
+                break;
+            case 3://终止
+                $tasks->where('status', TaskStatus::TERMINATION);
+                break;
+            default:
+                break;
+        }
+
+        $tasks->Where(function ($query) use ($user) {
+            $query->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
+        });
+
+        $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
+            $join->on('module_users.moduleable_id', '=', 'tasks.id')
+                ->where('module_users.moduleable_type', ModuleableType::TASK)
+                ->where('module_users.user_id', $user->id);
+        });
+        switch ($type) {
+            case 1://进行中
+                $query->where('status', TaskStatus::NORMAL);
+                break;
+            case 2://完成
+                $query->where('status', TaskStatus::COMPLETE);
+                break;
+            case 3://终止
+                $query->where('status', TaskStatus::TERMINATION);
+                break;
+            default:
+                break;
+        }
+
+        $query->union($tasks);
+
+        $querySql = $query->toSql();
+        $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
+            $join->on('tasks.id', '=', 'a.id');
+        })
+            ->mergeBindings($query)
+            ->orderBy('a.created_at', 'desc')
+            ->paginate($pageSize);
+
+        return $this->response->paginator($result, new TaskTransformer());
+    }
+
+
+    public function recycleBin(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $tasks = DB::table('tasks')->select('tasks.*')->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
         $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
@@ -77,10 +136,12 @@ class TaskController extends Controller
             $join->on('tasks.id', '=', 'a.id');
         })
             ->mergeBindings($query)
+            ->onlyTrashed()
             ->orderBy('a.created_at', 'desc')
             ->paginate($pageSize);
 
         return $this->response->paginator($result, new TaskTransformer());
+
     }
 
     public function my(Request $request)
@@ -112,6 +173,8 @@ class TaskController extends Controller
             case 2://完成
                 $query->where('status', TaskStatus::COMPLETE);
                 break;
+            default:
+                break;
         }
         $tasks = $query->createDesc()->paginate($pageSize);
 
@@ -137,34 +200,6 @@ class TaskController extends Controller
         $tasks = $query->where('privacy', false)->paginate($pageSize);
 
         return $this->response->paginator($tasks, new TaskTransformer());
-    }
-
-
-    public function recycleBin(Request $request)
-    {
-        $payload = $request->all();
-        $user = Auth::guard('api')->user();
-        $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $tasks = DB::table('tasks')->select('tasks.*')->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
-        $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
-            $join->on('module_users.moduleable_id', '=', 'tasks.id')
-                ->where('module_users.moduleable_type', ModuleableType::TASK)
-                ->where('module_users.user_id', $user->id);
-        })
-            ->union($tasks);
-
-        $querySql = $query->toSql();
-        $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
-            $join->on('tasks.id', '=', 'a.id');
-        })
-            ->mergeBindings($query)
-            ->onlyTrashed()
-            ->orderBy('a.created_at', 'desc')
-            ->paginate($pageSize);
-
-        return $this->response->paginator($result, new TaskTransformer());
-
     }
 
     public function show(Task $task)
@@ -795,7 +830,7 @@ class TaskController extends Controller
         }
 
         //验证 type
-        if ($request->has('type')) {
+        if ($request->has('type') && $payload['type'] != 0) {
             $departmentId = $user->department()->first()->id;
             $typeId = hashid_decode($payload['type']);
             $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();

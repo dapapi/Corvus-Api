@@ -13,6 +13,7 @@ use App\Models\Star;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\StarSource;
+use App\User;
 use App\Whether;
 use Exception;
 use Illuminate\Http\Request;
@@ -170,28 +171,28 @@ class StarController extends Controller
 
         if ($request->has('broker_id')) {
             try {
-                $currentStar = Star::find($star->broker_id);
                 $start = null;
-                if ($currentStar)
-                    $start = $currentStar->name;
+                if ($star->broker_id) {
+                    $currentBroker = User::find($star->broker_id);
+                    if ($currentBroker)
+                        $start = $currentBroker->name;
+                }
 
                 $brokerId = hashid_decode($payload['broker_id']);
-                $brokerUser = Star::findOrFail($brokerId);
+                $brokerUser = User::findOrFail($brokerId);
                 $array['broker_id'] = $brokerId;
 
-                if ($brokerUser) {
-                    if ($brokerUser->id != $array['broker_id']) {
-                        $operateBroker = new OperateEntity([
-                            'obj' => $star,
-                            'title' => '经纪人',
-                            'start' => $start,
-                            'end' => $brokerUser->name,
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateBroker;
-                    } else {
-                        unset($arrayOperateLog['broker_id']);
-                    }
+                if ($brokerUser->id != $array['broker_id']) {
+                    $operateBroker = new OperateEntity([
+                        'obj' => $star,
+                        'title' => '经纪人',
+                        'start' => $start,
+                        'end' => $brokerUser->name,
+                        'method' => OperateLogMethod::UPDATE,
+                    ]);
+                    $arrayOperateLog[] = $operateBroker;
+                } else {
+                    unset($array['broker_id']);
                 }
             } catch (Exception $e) {
                 return $this->response->errorBadRequest('经纪人错误');
@@ -405,6 +406,7 @@ class StarController extends Controller
                 unset($array['sign_contract_at']);
             }
         }
+
         //TODO 此状态只能在合同改变时改变
         /*if ($request->has('sign_contract_status')) {
             $array['sign_contract_status'] = $payload['sign_contract_status'];

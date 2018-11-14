@@ -115,6 +115,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
+        $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
 
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');

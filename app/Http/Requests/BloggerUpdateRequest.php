@@ -30,7 +30,8 @@ class BloggerUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'nickname' => 'required|max:255',
+            'nickname' => 'max:255',
+            'type_id' => 'numeric',
             'communication_status' => Rule::in([
                 CommunicationStatus::ALREADY_SIGN_CONTRACT,
                 CommunicationStatus::HANDLER_COMMUNICATION,

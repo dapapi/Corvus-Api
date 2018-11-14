@@ -23,7 +23,7 @@ class TestController extends Controller
 
     public function signin()
     {
-        $user = User::where(self::NAME, 'wyjson')->first();
+        $user = User::where(self::NAME, 'cxy')->first();
         $token = $user->createToken('web api')->accessToken;
 
         return $this->response->array(['token_type' => 'Bearer', 'access_token' => $token]);

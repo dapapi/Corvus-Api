@@ -28,9 +28,10 @@ class ContactController extends Controller
 
     public function all(Request $request, Client $client)
     {
+        $isAll = $request->get('all', false);
         $contacts = $client->contacts()->get();
 
-        return $this->response->collection($contacts, new ContactTransformer());
+        return $this->response->collection($contacts, new ContactTransformer($isAll));
     }
 
     public function detail(Request $request, Client $client, Contact $contact)

@@ -48,6 +48,64 @@ class BloggerController extends Controller
         return $this->response->item($blogger, new BloggerTransformer());
     }
 
+    public function recycleBin(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $blogger = Blogger::onlyTrashed()->paginate($pageSize);
+
+        return $this->response->paginator($blogger, new BloggerTransformer());
+    }
+
+    public function remove(Blogger $blogger)
+    {
+        DB::beginTransaction();
+        try {
+            $blogger->delete();
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $blogger,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DELETE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
+        }
+        DB::commit();
+    }
+
+    public function recoverRemove(Blogger $blogger)
+    {
+        DB::beginTransaction();
+        try {
+            $blogger->restore();
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $blogger,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::RECOVER,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('恢复博主失败');
+        }
+        DB::commit();
+    }
+
     public function edit(BloggerUpdateRequest $request, Blogger $blogger)
     {
         $payload = $request->all();

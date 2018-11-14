@@ -149,12 +149,12 @@ class TaskController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $status = $request->get('status', 1);
-        $type = $request->get('type', 0);
+        $status = $request->get('status', 0);
+        $type = $request->get('type', 1);
 
         $query = Task::select('tasks.*');
 
-        switch ($status) {
+        switch ($type) {
             case 2://我负责
                 $query->where('principal_id', $user->id);
                 break;
@@ -166,7 +166,7 @@ class TaskController extends Controller
                 $query->where('creator_id', $user->id);
                 break;
         }
-        switch ($type) {
+        switch ($status) {
             case 1://进行中
                 $query->where('status', TaskStatus::NORMAL);
                 break;

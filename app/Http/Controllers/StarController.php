@@ -40,6 +40,14 @@ class StarController extends Controller
         return $this->response->paginator($stars, new StarTransformer());
     }
 
+    public function all(Request $request)
+    {
+        $isAll = $request->get('all', false);
+        $stars = Star::createDesc()->get();
+
+        return $this->response->collection($stars, new StarTransformer($isAll));
+    }
+
     public function show(Star $star)
     {
         // 操作日志

@@ -103,6 +103,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
+        $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
         $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
@@ -114,6 +115,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
+        $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');

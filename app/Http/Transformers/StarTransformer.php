@@ -8,6 +8,13 @@ use League\Fractal\TransformerAbstract;
 class StarTransformer extends TransformerAbstract
 {
 
+    private $isAll;
+
+    public function __construct($isAll = true)
+    {
+        $this->isAll = $isAll;
+    }
+
     protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker'];
 
     public function transform(Star $star)
@@ -39,7 +46,13 @@ class StarTransformer extends TransformerAbstract
 
         ];
 
-        return $array;
+        $arraySimple = [
+            'id' => hashid_encode($star->id),
+            'name' => $star->name,
+            'avatar' => $star->avatar
+        ];
+
+        return $this->isAll ? $array : $arraySimple;
     }
 
     public function includeCreator(Star $star)

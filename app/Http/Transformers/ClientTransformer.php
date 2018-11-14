@@ -7,6 +7,8 @@ use League\Fractal\TransformerAbstract;
 
 class ClientTransformer extends TransformerAbstract
 {
+    protected $availableIncludes = ['principal', 'creator'];
+
     public function transform(Client $client)
     {
         $array = [
@@ -15,13 +17,29 @@ class ClientTransformer extends TransformerAbstract
             'grade' => $client->grade,
             'type' => $client->type,
             'address' => $client->address,
-            'principal' => $client->principal ? $client->principal->name : null,
-            'creator' => $client->creator->name,
             'size' => $client->size,
             'keyman' => $client->keyman,
             'desc' => $client->desc,
         ];
 
         return $array;
+    }
+
+    public function includePrincipal(Client $client)
+    {
+        $principal = $client->principal;
+        if (!$principal)
+            return null;
+
+        return $this->item($principal, new UserTransformer());
+    }
+
+    public function includeCreator(Client $client)
+    {
+        $creator = $client->creator;
+        if (!$creator)
+            return null;
+
+        return $this->item($creator, new UserTransformer());
     }
 }

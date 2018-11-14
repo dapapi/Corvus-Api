@@ -155,11 +155,11 @@ class TaskController extends Controller
         $query = Task::select('tasks.*');
 
         switch ($type) {
-            case 2://我负责
-                $query->where('principal_id', $user->id);
-                break;
-            case 3://我参与
+            case 2://我参与
                 $query = $user->participantTasks();
+                break;
+            case 3://我负责
+                $query->where('principal_id', $user->id);
                 break;
             case 1://我创建
             default:

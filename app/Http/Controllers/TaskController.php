@@ -173,6 +173,9 @@ class TaskController extends Controller
             case 2://完成
                 $query->where('status', TaskStatus::COMPLETE);
                 break;
+            case 3://终止
+                $query->where('status', TaskStatus::TERMINATION);
+                break;
             default:
                 break;
         }

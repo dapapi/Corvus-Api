@@ -63,10 +63,10 @@ class TaskController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $type = $request->get('type', 0);
+        $status = $request->get('status', 0);
 
         $tasks = DB::table('tasks')->select('tasks.*');
-        switch ($type) {
+        switch ($status) {
             case 1://进行中
                 $tasks->where('status', TaskStatus::NORMAL);
                 break;
@@ -89,7 +89,7 @@ class TaskController extends Controller
                 ->where('module_users.moduleable_type', ModuleableType::TASK)
                 ->where('module_users.user_id', $user->id);
         });
-        switch ($type) {
+        switch ($status) {
             case 1://进行中
                 $query->where('status', TaskStatus::NORMAL);
                 break;

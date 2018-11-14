@@ -25,7 +25,7 @@ class StoreClientRequest extends FormRequest
     public function rules()
     {
         return [
-            'company' => 'required',
+            'company' => 'required|unique',
             'grade' => 'required|numeric',
             'type' => 'required|numeric',
             'region_id' => 'nullable',

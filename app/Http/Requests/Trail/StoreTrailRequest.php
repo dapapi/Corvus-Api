@@ -31,7 +31,7 @@ class StoreTrailRequest extends FormRequest
             'principal_id' => 'required|numeric',
             'industry_id' => 'required|numeric',
             'client.id' => 'nullable|numeric',
-            'client.company' => 'required_without:client.id',
+            'client.company' => 'required_without:client.id|unique:clients,company',
             'client.grade' => 'required_without:client.id|numeric',
             'contact.id' => 'nullable|numeric',
             'contact.name' => 'required_without:contact.id',

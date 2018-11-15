@@ -65,9 +65,9 @@ class TrailController extends Controller
         }
 
         if (array_key_exists('id', $payload['client'])) {
-            $client = Contact::find(hashid_decode($payload['client']['id']));
+            $client = Client::find(hashid_decode($payload['client']['id']));
             if (!$client)
-                return $this->response->errorBadRequest('联系人与客户不匹配');
+                return $this->response->errorBadRequest('客户不存在');
         } else {
             $client = null;
         }

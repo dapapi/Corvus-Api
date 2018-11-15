@@ -9,7 +9,9 @@ use League\Fractal\TransformerAbstract;
 class TaskTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type'];
+    protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type'];
+
+    protected $defaultIncludes = ['principal'];
 
     public function transform(Task $task)
     {
@@ -32,12 +34,6 @@ class TaskTransformer extends TransformerAbstract
         $array['task_p'] = true;
         if ($task->task_pid) {
             $array['task_p'] = false;
-        }
-
-        $principalUser = $task->principal;
-        if ($principalUser) {
-            $array['principal_id'] = hashid_encode($principalUser->id);
-            $array['principal_name'] = $principalUser->name;
         }
 
         return $array;

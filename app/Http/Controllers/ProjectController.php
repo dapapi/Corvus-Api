@@ -37,8 +37,14 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
+    public function all(Request $request)
+    {
+        $isAll = $request->get('all', false);
 
-    // todo 按个人角度筛选 待测试
+        $projects = Project::orderBy('created_at', 'desc')->get();
+        return $this->response->collection($projects, new ProjectTransformer($isAll));
+    }
+
     public function myAll(Request $request)
     {
         $payload = $request->all();

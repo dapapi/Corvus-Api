@@ -29,8 +29,10 @@ class ClientController extends Controller
 
     public function all(Request $request)
     {
+        $isAll = $request->get('all', false);
         $clients = Client::orderBy('company', 'asc')->get();
-        return $this->response->collection($clients, new ClientTransformer());
+
+        return $this->response->collection($clients, new ClientTransformer($isAll));
     }
 
     public function store(StoreClientRequest $request)

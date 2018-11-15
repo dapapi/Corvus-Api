@@ -21,11 +21,7 @@ class TrailController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $clients = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($clients, new TrailTransformer());
@@ -244,11 +240,7 @@ class TrailController extends Controller
         $type = $request->get('type');
         $id = hashid_decode($request->get('id'));
 
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         switch ($type) {
             case 'clients':

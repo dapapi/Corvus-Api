@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\EditProjectRequest;
+use App\Http\Requests\Project\SearchProjectRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Transformers\ProjectTransformer;
+use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\ModuleUser;
 use App\Models\Project;
@@ -26,11 +28,7 @@ class ProjectController extends Controller
     {
         $payload = $request->all();
 
-        if ($request->has('page_size')) {
-            $pageSize = $payload['page_size'];
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $projects = Project::paginate($pageSize);
 
@@ -414,4 +412,30 @@ class ProjectController extends Controller
         return $this->response->item($project, new ProjectTransformer());
     }
 
+    public function search(SearchProjectRequest $request)
+    {
+        $type = $request->get('type');
+        $id = hashid_decode($request->get('id'));
+
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        } else {
+            $pageSize = config('app.page_size');
+        }
+
+        switch ($type) {
+            case 'clients':
+                $projects = Project::select('projects.*')->rightJoin('trails', function($join) {
+                    $join->on('projects.trail_id', '=', 'trails.id');
+                })->where('trails.client_id', '=', $id)
+                    ->whereNotNull('projects.id')
+                    ->paginate($pageSize);
+                break;
+            default:
+                return $this->response->noContent();
+                break;
+        }
+
+        return $this->response->paginator($projects, new ProjectTransformer());
+    }
 }

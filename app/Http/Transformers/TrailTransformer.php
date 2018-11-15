@@ -9,7 +9,7 @@ use League\Fractal\TransformerAbstract;
 
 class TrailTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations', 'expectations'];
+    protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations', 'expectations', 'projects'];
 
     public function transform(Trail $trail)
     {
@@ -89,5 +89,12 @@ class TrailTransformer extends TransformerAbstract
         $expectations = $trail->expectations;
 
         return $this->collection($expectations, new StarTransformer());
+    }
+
+    public function includeProjects(Trail $trail)
+    {
+        $projects = $trail->projects;
+
+        return $this->collection($projects, new ProjectTransformer());
     }
 }

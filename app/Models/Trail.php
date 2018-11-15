@@ -79,4 +79,8 @@ class Trail extends Model
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
 
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'trail_id','id');
+    }
 }

@@ -19,7 +19,7 @@ class CreateSchedulesTable extends Migration
             $table->unsignedInteger('calendar_id');
             $table->boolean('is_allday')->default(0);
             $table->boolean('privacy')->default(0);
-            $table->dateTime('star_at');
+            $table->dateTime('start_at');
             $table->dateTime('end_at');
             $table->string('position')->nullable();
             $table->tinyInteger('repeat')->default(0);

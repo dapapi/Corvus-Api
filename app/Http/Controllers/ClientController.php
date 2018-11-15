@@ -39,9 +39,6 @@ class ClientController extends Controller
     {
         $payload = $request->all();
 
-        if ($request->has('region_id'))
-                $payload['region_id'] = hashid_decode($payload['region_id']);
-
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         $user = Auth::guard('api')->user();

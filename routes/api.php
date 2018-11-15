@@ -175,6 +175,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // industry
         $api->get('/industries/all', 'App\Http\Controllers\IndustryController@all');
 
+        // calendar
+        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
+        $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
+        $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
+        $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
+
     });
 
 

@@ -33,6 +33,7 @@ class ClientTransformer extends TransformerAbstract
             $array = [
                 'id' => hashid_encode($client->id),
                 'company' => $client->company,
+                'grade' => $client->grade,
             ];
         }
 

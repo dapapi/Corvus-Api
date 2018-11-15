@@ -13,10 +13,9 @@ class CreateUserPlatformsTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_platforms', function (Blueprint $table) {
+        Schema::create('star_platforms', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('star_id')->nullable();
-            $table->unsignedInteger('blogger_id')->nullable();
             $table->unsignedInteger('platformable_id');
             $table->string('platformable_type');
             $table->tinyInteger('status')->default(1);
@@ -30,10 +29,6 @@ class CreateUserPlatformsTable extends Migration
             $table->foreign('star_id')
                 ->references('id')
                 ->on('stars');
-
-            $table->foreign('blogger_id')
-                ->references('id')
-                ->on('bloggers');
         });
     }
 
@@ -44,6 +39,6 @@ class CreateUserPlatformsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_platforms');
+        Schema::dropIfExists('star_platforms');
     }
 }

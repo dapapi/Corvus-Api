@@ -3,7 +3,6 @@
 namespace App\Http\Transformers;
 
 use App\Models\Task;
-use App\Models\TaskType;
 use League\Fractal\TransformerAbstract;
 
 class TaskTransformer extends TransformerAbstract

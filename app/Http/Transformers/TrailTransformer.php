@@ -94,9 +94,9 @@ class TrailTransformer extends TransformerAbstract
     public function includeProject(Trail $trail)
     {
         $project = $trail->project;
-        if ($project)
+        if (!$project)
             return null;
 
-        return $this->collection($project, new ProjectTransformer());
+        return $this->item($project, new ProjectTransformer());
     }
 }

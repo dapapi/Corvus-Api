@@ -43,10 +43,6 @@ class ModuleUserRepository
             try {
                 $participantDeleteId = hashid_decode($participantDeleteId);
                 $participantDeleteUser = User::findOrFail($participantDeleteId);
-            } catch (Exception $e) {
-                array_splice($participantDeleteIds, $key, 1);
-            }
-            if ($participantDeleteUser) {
                 $array['user_id'] = $participantDeleteUser->id;
 
                 $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantDeleteUser->id)->where('type', $type)->first();
@@ -55,6 +51,8 @@ class ModuleUserRepository
                 } else {
                     array_splice($participantDeleteIds, $key, 1);
                 }
+            } catch (Exception $e) {
+                array_splice($participantDeleteIds, $key, 1);
             }
         }
 
@@ -63,10 +61,6 @@ class ModuleUserRepository
             try {
                 $participantId = hashid_decode($participantId);
                 $participantUser = User::findOrFail($participantId);
-            } catch (Exception $e) {
-                array_splice($participantIds, $key, 1);
-            }
-            if ($participantUser) {
                 $array['user_id'] = $participantUser->id;
 
                 $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantUser->id)->where('type', $type)->first();
@@ -78,6 +72,8 @@ class ModuleUserRepository
 //                    //要求一个接口可以完成添加人和删除人,已经存在的删除
 //                    $moduleUser->delete();
                 }
+            } catch (Exception $e) {
+                array_splice($participantIds, $key, 1);
             }
         }
         return [$participantIds, $participantDeleteIds];

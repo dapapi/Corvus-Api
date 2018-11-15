@@ -15,6 +15,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
+    $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
         // user

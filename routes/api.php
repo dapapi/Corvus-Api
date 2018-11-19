@@ -115,6 +115,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
+        $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Trail\EditTrailRequest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
+use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Transformers\TrailTransformer;
 use App\Models\Star;
 use App\Models\Client;
@@ -221,7 +222,7 @@ class TrailController extends Controller
     public function recover(Request $request, Trail $trail)
     {
         $trail->restore();
-        $trail->status = Trail::STATUS_NORMAL;
+        $trail->status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
 
         $this->response->item($trail, new TrailTransformer());
@@ -260,5 +261,14 @@ class TrailController extends Controller
         }
 
         return $this->response->paginator($trails, new TrailTransformer());
+    }
+
+    public function type(TypeTrailReuqest $reuqest)
+    {
+        $type = $reuqest->get('type');
+
+        $trails = Trail::where('type', $type)->get();
+
+        return $this->response->collection($trails, new TrailTransformer());
     }
 }

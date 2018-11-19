@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Trail\EditTrailRequest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
+use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Transformers\TrailTransformer;
 use App\Models\Star;
 use App\Models\Client;
@@ -21,11 +22,7 @@ class TrailController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $clients = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($clients, new TrailTransformer());
@@ -69,9 +66,9 @@ class TrailController extends Controller
         }
 
         if (array_key_exists('id', $payload['client'])) {
-            $client = Contact::find(hashid_decode($payload['client']['id']));
+            $client = Client::find(hashid_decode($payload['client']['id']));
             if (!$client)
-                return $this->response->errorBadRequest('联系人与客户不匹配');
+                return $this->response->errorBadRequest('客户不存在');
         } else {
             $client = null;
         }
@@ -221,7 +218,7 @@ class TrailController extends Controller
     public function recover(Request $request, Trail $trail)
     {
         $trail->restore();
-        $trail->status = Trail::STATUS_NORMAL;
+        $trail->status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
 
         $this->response->item($trail, new TrailTransformer());
@@ -244,11 +241,7 @@ class TrailController extends Controller
         $type = $request->get('type');
         $id = hashid_decode($request->get('id'));
 
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         switch ($type) {
             case 'clients':
@@ -260,5 +253,14 @@ class TrailController extends Controller
         }
 
         return $this->response->paginator($trails, new TrailTransformer());
+    }
+
+    public function type(TypeTrailReuqest $reuqest)
+    {
+        $type = $reuqest->get('type');
+
+        $trails = Trail::where('type', $type)->get();
+
+        return $this->response->collection($trails, new TrailTransformer());
     }
 }

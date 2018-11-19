@@ -9,6 +9,7 @@ class UserPlatform extends Model
 {
     protected $fillable = [
         'user_id',
+        'blogger_id',
         'platformable_id',
         'platformable_type',
         'platform_id',

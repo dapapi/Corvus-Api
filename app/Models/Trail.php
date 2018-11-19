@@ -17,12 +17,39 @@ class Trail extends Model
     const MAIL = 2;
     const SENIOR = 3;
 
-    const STATUS_NORMAL = 1;
-    const STATUS_FROZEN = 2;
+    // 销售进展
+    const STATUS_UNCONFIRMED = 1;
+    const STATUS_CONFIRMED = 2;
     const STATUS_DELETE = 3;
+    const STATUS_REFUSE = 0;
 
-    const PROGRESS_FIRST = 1;
-    const PROGRESS_SECOND = 1;
+    // 线索状态
+    const PROGRESS_BEGIN= 1;
+    const PROGRESS_REFUSE = 2;
+    const PROGRESS_CANCEL= 3;
+    const PROGRESS_TALK = 4;
+    const PROGRESS_INTENTION = 5;
+    const PROGRESS_SIGNING = 6;
+    const PROGRESS_SIGNED = 7;
+    const PROGRESS_EXECUTE = 8;
+    const PROGRESS_EXECUTING = 9;
+    const PROGRESS_EXECUTED = 10;
+    const PROGRESS_PAYBACK = 11;
+    const PROGRESS_FEEDBACK = 12;
+    const PROGRESS_ANALYSIS = 13;
+
+    //
+    const TYPE_MOVIE = 1; // 影视项目
+    const TYPE_VARIETY = 2; // 综艺项目
+    const TYPE_ENDORSEMENT = 3; // 商务代言
+    const TYPE_PAPI = 4; // papi项目
+    const TYPE_BASE = 5; // 基础项目
+
+    // priority
+    const PRIORITY_C = 1;
+    const PRIORITY_B = 2;
+    const PRIORITY_A = 3;
+    const PRIORITY_S = 4;
 
     protected $fillable = [
         'title',
@@ -34,6 +61,8 @@ class Trail extends Model
         'creator_id',
         'type',
         'status',
+        'priority',
+        'cooperation_type',
         'lock_status',
         'progress_status',
         'resource',
@@ -79,4 +108,8 @@ class Trail extends Model
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
 
+    public function project()
+    {
+        return $this->hasOne(Project::class, 'trail_id','id');
+    }
 }

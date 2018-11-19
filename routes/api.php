@@ -15,6 +15,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
+    $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
         // user
@@ -154,6 +155,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
+        $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -161,6 +163,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
+        $api->get('/projects/search', 'App\Http\Controllers\ProjectController@search');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');

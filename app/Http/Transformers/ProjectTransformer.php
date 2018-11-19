@@ -39,12 +39,18 @@ class ProjectTransformer extends TransformerAbstract
     public function includePrincipal(Project $project)
     {
         $principal = $project->principal;
+        if (!$principal)
+            return null;
+
         return $this->item($principal, new UserTransformer());
     }
 
     public function includeCreator(Project $project)
     {
         $creator = $project->creator;
+        if (!$creator)
+            return null;
+
         return $this->item($creator, new UserTransformer());
     }
 

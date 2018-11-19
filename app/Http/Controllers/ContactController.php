@@ -15,11 +15,8 @@ class ContactController extends Controller
 {
     public function index(Request $request, Client $client)
     {
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $contacts = $client->contacts()->paginate($pageSize);
 

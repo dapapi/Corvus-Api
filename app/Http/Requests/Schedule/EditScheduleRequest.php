@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests\Schedule;
 
+use Illuminate\Foundation\Http\FormRequest;
 
-use Dingo\Api\Http\FormRequest;
-
-class StoreScheduleRequest extends FormRequest
+class EditScheduleRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,12 +24,12 @@ class StoreScheduleRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
-            'calendar_id' => 'required',
-            'is_allday' => 'required|boolean',
-            'start_at' => 'required|date|after_or_equal:today',
-            'end_at' => 'required|date|after:start_at',
-            'privacy' => 'required|boolean',
+            'title' => 'nullable',
+            'calendar_id' => 'nullable',
+            'is_allday' => 'nullable|boolean',
+            'start_at' => 'nullable|date|after_or_equal:today',
+            'end_at' => 'nullable|date|after:start_at',
+            'privacy' => 'nullable|boolean',
             'material_id' => 'nullable',
             'repeat' => 'nullable',
             'position' => 'nullable',

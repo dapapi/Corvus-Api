@@ -184,6 +184,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
         $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
 
+        // schedule
+        $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
+        $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
+        $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@store');
+        $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@store');
+
     });
 
 

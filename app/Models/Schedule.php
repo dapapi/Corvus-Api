@@ -15,12 +15,17 @@ class Schedule extends Model
     const OPEN = 0;
     const SECRET = 1;
 
+    const NOREPEAT = 0;
+    const DAILY = 1;
+    const WEEKLY = 2;
+    const MONTHLY = 3;
+
     protected $fillable = [
         'title',
         'calendar_id',
         'is_allday',
         'privacy',
-        'star_at',
+        'start_at',
         'end_at',
         'position',
         'repeat',

@@ -10,7 +10,6 @@ class ResourceController extends Controller
 {
     public function index(Request $request)
     {
-//        $payload = $request->all();
         $resources = Resource::all();
         return $this->response->collection($resources, new ResourceTransformer());
     }

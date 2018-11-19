@@ -17,11 +17,7 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $clients = Client::orderBy('company', 'asc')->paginate($pageSize);
         return $this->response->paginator($clients, new ClientTransformer());
@@ -29,8 +25,10 @@ class ClientController extends Controller
 
     public function all(Request $request)
     {
+        $isAll = $request->get('all', false);
         $clients = Client::orderBy('company', 'asc')->get();
-        return $this->response->collection($clients, new ClientTransformer());
+
+        return $this->response->collection($clients, new ClientTransformer($isAll));
     }
 
     public function store(StoreClientRequest $request)

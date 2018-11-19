@@ -3,13 +3,14 @@
 namespace App\Http\Transformers;
 
 use App\Models\Task;
-use App\Models\TaskType;
 use League\Fractal\TransformerAbstract;
 
 class TaskTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'principal', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type'];
+    protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type'];
+
+    protected $defaultIncludes = ['principal'];
 
     public function transform(Task $task)
     {

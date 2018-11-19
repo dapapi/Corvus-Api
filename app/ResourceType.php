@@ -13,5 +13,6 @@ abstract class ResourceType
     const STAR = 2;//艺人
     const PROJECT = 3;//项目
     const CLIENT = 4;//客户
+    const TRAIL = 5;//销售线索
 
 }

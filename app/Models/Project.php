@@ -19,8 +19,8 @@ class Project extends Model
     const TYPE_BASE = 5; // 基础项目
 
     const STATUS_NORMAL = 1; // 进行中
-    const STATUS_FROZEN = 2; // 终止
-    const STATUS_COMPLATE = 3; // 完成
+    const STATUS_COMPLATE = 2; // 完成
+    const STATUS_FROZEN = 3; // 终止
     const STATUS_DEL = 4; // 删除
 
     protected $fillable = [

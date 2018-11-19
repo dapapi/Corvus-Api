@@ -22,11 +22,7 @@ class TrailController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         $clients = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($clients, new TrailTransformer());
@@ -70,9 +66,9 @@ class TrailController extends Controller
         }
 
         if (array_key_exists('id', $payload['client'])) {
-            $client = Contact::find(hashid_decode($payload['client']['id']));
+            $client = Client::find(hashid_decode($payload['client']['id']));
             if (!$client)
-                return $this->response->errorBadRequest('联系人与客户不匹配');
+                return $this->response->errorBadRequest('客户不存在');
         } else {
             $client = null;
         }
@@ -245,11 +241,7 @@ class TrailController extends Controller
         $type = $request->get('type');
         $id = hashid_decode($request->get('id'));
 
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
         switch ($type) {
             case 'clients':

@@ -12,6 +12,11 @@ class Client extends Model
         restore as private restoreSoftDeletes;
     }
 
+    const TYPE_MOVIE = 1; // 影视项目
+    const TYPE_VARIETY = 2; // 综艺项目
+    const TYPE_ENDORSEMENT = 3; // 商务代言
+    const TYPE_PAPI = 4; // papi项目
+
     const SIZE_NORMAL = 1;
     const SIZE_LISTED = 2;
     const SIZE_TOP500 = 3;
@@ -22,7 +27,7 @@ class Client extends Model
     protected $fillable = [
         'company',
         'grade',             // 级别
-        'region_id',        // 地区三级，存最下级id
+//        'region_id',        // 地区三级，存最下级id
         'address',
         'principal_id',
         'creator_id',
@@ -53,5 +58,10 @@ class Client extends Model
     public function tasks()
     {
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
+
+    public function affixes()
+    {
+        return $this->morphMany(Affix::class, 'affixable');
     }
 }

@@ -9,7 +9,7 @@ use League\Fractal\TransformerAbstract;
 
 class TrailTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations', 'expectations'];
+    protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations', 'expectations', 'project'];
 
     public function transform(Trail $trail)
     {
@@ -20,6 +20,7 @@ class TrailTransformer extends TransformerAbstract
             'industry_id' => hashid_encode($trail->industry->id),
             'industry' => $trail->industry->name,
             'resource_type' => $trail->resource_type,
+            'resource' => $trail->resource,
             'type' => $trail->type,
             'status' => $trail->status,
             'progress_status' => $trail->progress_status,
@@ -32,10 +33,14 @@ class TrailTransformer extends TransformerAbstract
 
         if ($trail->resource_type == Trail::PERSONAL) {
             $resource = User::where('id', $trail->resource)->first();
-            $array['resource'] = [
-                'id' => hashid_encode($resource->id),
-                'name' => $resource->name,
-            ];
+            if ($resource) {
+                $array['resource'] = [
+                    'id' => hashid_encode($resource->id),
+                    'name' => $resource->name,
+                ];
+            } else {
+                $array['resource'] = $trail->resource;
+            }
         } else {
             $array['resource'] = $trail->resource;
         }
@@ -84,5 +89,14 @@ class TrailTransformer extends TransformerAbstract
         $expectations = $trail->expectations;
 
         return $this->collection($expectations, new StarTransformer());
+    }
+
+    public function includeProject(Trail $trail)
+    {
+        $project = $trail->project;
+        if (!$project)
+            return null;
+
+        return $this->item($project, new ProjectTransformer());
     }
 }

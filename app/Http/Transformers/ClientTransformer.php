@@ -7,21 +7,55 @@ use League\Fractal\TransformerAbstract;
 
 class ClientTransformer extends TransformerAbstract
 {
+    protected $availableIncludes = ['principal', 'creator'];
+
+    private  $isAll = true;
+
+    public function __construct($isAll = true)
+    {
+        $this->isAll = $isAll;
+    }
+
     public function transform(Client $client)
     {
-        $array = [
-            'id' => hashid_encode($client->id),
-            'company' => $client->company,
-            'grade' => $client->grade,
-            'type' => $client->type,
-            'address' => $client->address,
-            'principal' => $client->principal ? $client->principal->name : null,
-            'creator' => $client->creator->name,
-            'size' => $client->size,
-            'keyman' => $client->keyman,
-            'desc' => $client->desc,
-        ];
+        if ($this->isAll) {
+            $array = [
+                'id' => hashid_encode($client->id),
+                'company' => $client->company,
+                'grade' => $client->grade,
+                'type' => $client->type,
+                'address' => $client->address,
+                'size' => $client->size,
+                'keyman' => $client->keyman,
+                'desc' => $client->desc,
+            ];
+        } else {
+            $array = [
+                'id' => hashid_encode($client->id),
+                'company' => $client->company,
+                'grade' => $client->grade,
+            ];
+        }
+
 
         return $array;
+    }
+
+    public function includePrincipal(Client $client)
+    {
+        $principal = $client->principal;
+        if (!$principal)
+            return null;
+
+        return $this->item($principal, new UserTransformer());
+    }
+
+    public function includeCreator(Client $client)
+    {
+        $creator = $client->creator;
+        if (!$creator)
+            return null;
+
+        return $this->item($creator, new UserTransformer());
     }
 }

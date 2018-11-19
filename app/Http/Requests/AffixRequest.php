@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\AffixType;
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AffixRequest extends FormRequest
 {
@@ -27,6 +29,7 @@ class AffixRequest extends FormRequest
             'title' => 'required|max:255',
             'size' => 'required|numeric|min:0',
             'url' => 'required|max:500',
+            'type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO])],
         ];
     }
 }

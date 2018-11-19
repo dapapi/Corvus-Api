@@ -15,6 +15,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
+    $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
         // user
@@ -41,11 +42,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/{project}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/clients/{client}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        $api->get('/trails/{trail}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        $api->get('/bloggers/{blogger}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         //任务关联资源
         $api->post('/projects/{project}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/projects/{project}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         $api->post('/clients/{client}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/clients/{client}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
+        $api->post('/stars/{star}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
+        $api->delete('/stars/{star}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
+        $api->post('/trails/{trail}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
+        $api->delete('/trails/{trail}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         //模型用户(参与人)
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\ModuleUserController@addModuleUserParticipant');
         $api->put('/tasks/{task}/participant_remove', 'App\Http\Controllers\ModuleUserController@remove');
@@ -56,12 +63,36 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/tasks/{task}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/tasks/{task}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/projects/{project}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/projects/{project}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/projects/{project}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
+        $api->delete('/projects/{project}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
+        $api->post('/projects/{project}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/stars/{star}/affix', 'App\Http\Controllers\AffixController@index');
         $api->get('/stars/{star}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
         $api->post('/stars/{star}/affix', 'App\Http\Controllers\AffixController@add');
         $api->post('/stars/{star}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/stars/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/stars/{star}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        $api->get('/bloggers/{blogger}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/bloggers/{blogger}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/bloggers/{blogger}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/bloggers/{blogger}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
+        $api->delete('/bloggers/{blogger}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
+        $api->post('/bloggers/{blogger}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        $api->get('/clients/{client}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/clients/{client}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/clients/{client}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/clients/{client}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
+        $api->delete('/clients/{client}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
+        $api->post('/clients/{client}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        $api->get('/trails/{trail}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/trails/{trail}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/trails/{trail}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/trails/{trail}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
+        $api->delete('/trails/{trail}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
+        $api->post('/trails/{trail}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         //跟进
         $api->get('/tasks/{task}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/tasks/{task}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
@@ -82,6 +113,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+        //blogger
+        $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
+        $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
+        $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
+        $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
+        $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
+        $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
+        $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
 
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
@@ -123,6 +163,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
+        $api->get('/projects/search', 'App\Http\Controllers\ProjectController@search');
+        $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
+        $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
@@ -131,6 +174,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // template field
         $api->get('/project_fields', 'App\Http\Controllers\TemplateFieldController@getFields');
+
+        // industry
+        $api->get('/industries/all', 'App\Http\Controllers\IndustryController@all');
 
     });
 

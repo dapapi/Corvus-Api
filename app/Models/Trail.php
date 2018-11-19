@@ -80,12 +80,12 @@ class Trail extends Model
 
     public function contact()
     {
-        return $this->belongsTo(Contact::class, 'contact_id', 'id');
+        return $this->belongsTo(Contact::class);
     }
 
     public function client()
     {
-        return $this->belongsTo(Client::class, 'contact_id', 'id');
+        return $this->belongsTo(Client::class);
     }
 
     public function expectations()
@@ -103,4 +103,13 @@ class Trail extends Model
         return $this->belongsTo(Industry::class, 'industry_id', 'id');
     }
 
+    public function tasks()
+    {
+        return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
+
+    public function project()
+    {
+        return $this->hasOne(Project::class, 'trail_id','id');
+    }
 }

@@ -9,15 +9,29 @@ class ProjectTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['principal', 'creator', 'fields', 'trail'];
 
+    private  $isAll = true;
+
+    public function __construct($isAll = true)
+    {
+        $this->isAll = $isAll;
+    }
+
     public function transform(Project $project)
     {
-        $array = [
-            'id' => hashid_encode($project->id),
-            'title' => $project->title,
-            'privacy' => $project->privacy,
-            'priority' => $project->priority,
-            'status' => $project->status,
-        ];
+        if ($this->isAll) {
+            $array = [
+                'id' => hashid_encode($project->id),
+                'title' => $project->title,
+                'privacy' => $project->privacy,
+                'priority' => $project->priority,
+                'status' => $project->status,
+            ];
+        } else {
+            $array = [
+                'id' => hashid_encode($project->id),
+                'title' => $project->title,
+            ];
+        }
 
         return $array;
     }
@@ -25,12 +39,18 @@ class ProjectTransformer extends TransformerAbstract
     public function includePrincipal(Project $project)
     {
         $principal = $project->principal;
+        if (!$principal)
+            return null;
+
         return $this->item($principal, new UserTransformer());
     }
 
     public function includeCreator(Project $project)
     {
         $creator = $project->creator;
+        if (!$creator)
+            return null;
+
         return $this->item($creator, new UserTransformer());
     }
 

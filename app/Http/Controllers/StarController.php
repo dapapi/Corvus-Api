@@ -11,8 +11,9 @@ use App\Http\Transformers\StarTransformer;
 use App\Models\OperateEntity;
 use App\Models\Star;
 use App\OperateLogMethod;
-use App\SignContractStatus;
+use App\Repositories\AffixRepository;
 use App\StarSource;
+use App\User;
 use App\Whether;
 use Exception;
 use Illuminate\Http\Request;
@@ -22,6 +23,13 @@ use Illuminate\Support\Facades\Log;
 
 class StarController extends Controller
 {
+    protected $affixRepository;
+
+    public function __construct(AffixRepository $affixRepository)
+    {
+        $this->affixRepository = $affixRepository;
+    }
+
     public function index(Request $request)
     {
         $payload = $request->all();
@@ -30,6 +38,14 @@ class StarController extends Controller
         $stars = Star::createDesc()->paginate($pageSize);
 
         return $this->response->paginator($stars, new StarTransformer());
+    }
+
+    public function all(Request $request)
+    {
+        $isAll = $request->get('all', false);
+        $stars = Star::createDesc()->get();
+
+        return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
     public function show(Star $star)
@@ -46,13 +62,6 @@ class StarController extends Controller
             $operate,
         ]));
         return $this->response->item($star, new StarTransformer());
-    }
-
-    public function all(Request $request)
-    {
-        $stars = Star::orderBy('name')->get();
-
-        return $this->response->collection($stars, new StarTransformer());
     }
 
     public function recycleBin(Request $request)
@@ -170,28 +179,28 @@ class StarController extends Controller
 
         if ($request->has('broker_id')) {
             try {
-                $currentStar = Star::find($star->broker_id);
                 $start = null;
-                if ($currentStar)
-                    $start = $currentStar->name;
+                if ($star->broker_id) {
+                    $currentBroker = User::find($star->broker_id);
+                    if ($currentBroker)
+                        $start = $currentBroker->name;
+                }
 
                 $brokerId = hashid_decode($payload['broker_id']);
-                $brokerUser = Star::findOrFail($brokerId);
+                $brokerUser = User::findOrFail($brokerId);
                 $array['broker_id'] = $brokerId;
 
-                if ($brokerUser) {
-                    if ($brokerUser->id != $array['broker_id']) {
-                        $operateBroker = new OperateEntity([
-                            'obj' => $star,
-                            'title' => '经纪人',
-                            'start' => $start,
-                            'end' => $brokerUser->name,
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateBroker;
-                    } else {
-                        unset($arrayOperateLog['broker_id']);
-                    }
+                if ($brokerUser->id != $array['broker_id']) {
+                    $operateBroker = new OperateEntity([
+                        'obj' => $star,
+                        'title' => '经纪人',
+                        'start' => $start,
+                        'end' => $brokerUser->name,
+                        'method' => OperateLogMethod::UPDATE,
+                    ]);
+                    $arrayOperateLog[] = $operateBroker;
+                } else {
+                    unset($array['broker_id']);
                 }
             } catch (Exception $e) {
                 return $this->response->errorBadRequest('经纪人错误');
@@ -406,7 +415,8 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('sign_contract_status')) {
+        //TODO 此状态只能在合同改变时改变
+        /*if ($request->has('sign_contract_status')) {
             $array['sign_contract_status'] = $payload['sign_contract_status'];
             if ($array['sign_contract_status'] != $star->sign_contract_status) {
 
@@ -424,7 +434,7 @@ class StarController extends Controller
             } else {
                 unset($array['sign_contract_status']);
             }
-        }
+        }*/
 
         if ($request->has('terminate_agreement_at')) {
             $array['terminate_agreement_at'] = $payload['terminate_agreement_at'];
@@ -441,6 +451,7 @@ class StarController extends Controller
                 unset($array['terminate_agreement_at']);
             }
         }
+
         DB::beginTransaction();
         try {
             if (count($array) == 0)
@@ -494,6 +505,18 @@ class StarController extends Controller
             event(new OperateLogEvent([
                 $operate,
             ]));
+
+            if ($request->has('affix') && count($request->get('affix'))) {
+                $affixes = $request->get('affix');
+                foreach ($affixes as $affix) {
+                    try {
+                        $this->affixRepository->addAffix($user, null, null, $star, null, null, null, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                        // 操作日志 ...
+                    } catch (Exception $e) {
+                    }
+                }
+            }
+
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

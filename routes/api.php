@@ -178,7 +178,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // industry
         $api->get('/industries/all', 'App\Http\Controllers\IndustryController@all');
 
+        $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
+
     });
+        $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
 
 
     // department

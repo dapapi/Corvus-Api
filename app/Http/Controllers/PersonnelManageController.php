@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Transformers\UserTransformer;
+use App\Events\OperateLogEvent;
 
 use App\Models\Department;
+use Carbon\Carbon;
 use App\User;
 use App\Models\Users;
 use App\Models\Record;
@@ -12,35 +14,35 @@ use App\Models\Education;
 use App\Models\FamilyData;
 use App\Models\PersonalSkills;
 use Illuminate\Http\Request;
+use App\Models\OperateEntity;
+use App\OperateLogMethod;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PersonnelManageController extends Controller
 {
-    public function index(Request $request,Users $users)
+    public function index(Request $request,User $user)
     {
-       // $users = User::orderBy('name')->get();
-
 
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $query = $users->affixes();
-        $name = 'cxy';
-        if($name){
-            $query->where('name', $name);
-        }
+
 
         $user = User::orderBy('entry_time','asc')
             ->where(function($query) use($request){
                 //检测关键字
+                $query->where('position_type',1)->count();
 
+                //$result1 = $query->where('position_type',2)->count();
+
+                //dd($result1);
                 $status = addslashes($request->input('status'));//状态
+                $positionType = addslashes($request->input('position_type'));//在职状态
                 $entryTime = addslashes($request->input('entry_time'));//入职日期
                 $ehireShape = addslashes($request->input('hire_shape'));//聘用形式
 
-                $username = addslashes($request->input('name'));//姓名
-                $phone = addslashes($request->input('phone'));//手机号
                 $position = addslashes($request->input('position'));//职位
 
                 $search = addslashes($request->input('search'));//职位
@@ -53,8 +55,26 @@ class PersonnelManageController extends Controller
                     $query->where('name','like','%'.$username.'%');
                 }
 
+                if(!empty($positionType)) {
+                    $query->where('position_type',$positionType);
+                }
+
+                // 1 正式 2实习 3管培生 4外包
+
                 if(!empty($status)) {
-                 $query->where('status',$status);
+                   if($status == 1){
+                       $query->where('status',User::USER_STATUS_ONE)->orWhere('status',User::USER_STATUS_TOW);
+
+                   }elseif($status == 2){
+                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_INTERN);
+
+                   }elseif($status == 3){
+                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_GUANPEI);
+
+                   }elseif($status == 4){
+                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
+
+                   }
                 }
 
                 if(!empty($entryTime)) {
@@ -67,35 +87,25 @@ class PersonnelManageController extends Controller
 
                 if(!empty($search)) {
 
-                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');//->orWhere('position', 'like', '%'.$search.'%');
+                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
 
                 }
-
-
-
-             }) ->paginate($request->input('num', 5));
-
+             })->paginate($pageSize);
 
 
         return $this->response->paginator($user, new UserTransformer());
 
     }
 
-    public function store(Request $request)
+    public function store(Request $request,User $user)
     {
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
-        //dd($payload['family']);
-
         $userEmail = User::where('email', $payload['email'])->get()->keyBy('email')->toArray();
         $pageSize = config('api.page_size');
-//        if(!empty($payload['family'])) {
-//            dd(1);
-//        }else{
-//            dd(2);
-//        }
+
 
         if(!empty($userEmail)){
             return $this->response->errorInternal('邮箱已经注册！');
@@ -182,6 +192,22 @@ class PersonnelManageController extends Controller
             //添加个人特长
             $skillsInfo = PersonalSkills::create($skills);
 
+            if ($user) {
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $user,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            } else {
+                    return $this->response->noContent();
+            }
+
 
          } catch (Exception $e) {
             DB::rollBack();
@@ -193,5 +219,39 @@ class PersonnelManageController extends Controller
 
 
         }
+    }
+
+
+    public function statusEdit(Request $request, Users $users)
+    {
+
+        $payload = $request->all();
+        $status = $payload['status'];
+        if ($users->status == $status)
+            return $this->response->noContent();
+        $now = Carbon::now();
+        $array = [
+            'status' => $status,
+        ];
+        DB::beginTransaction();
+        try {
+            $users->update($array);
+
+//                $operateTitle = new OperateEntity([
+//                    'obj' => $user,
+//                    'title' => '标题',
+//                    'start' => $user->status,
+//                    'end' => $array['status'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateTitle;
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('操作失败');
+        }
+        DB::commit();
+        return $this->response->accepted();
     }
 }

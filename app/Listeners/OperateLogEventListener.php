@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Users;
+use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
 use App\OperateLogMethod;
@@ -77,7 +78,7 @@ class OperateLogEventListener
             } else if ($operate->obj instanceof Blogger) {
                 $type = ModuleableType::BLOGGER;
                 $typeName = '博主';
-            }else if ($operate->obj instanceof Users) {
+            }else if ($operate->obj instanceof User) {
                 $type = ModuleableType::USER;
                 $typeName = '用户';
             }

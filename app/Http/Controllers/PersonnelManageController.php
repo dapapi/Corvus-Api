@@ -28,7 +28,8 @@ class PersonnelManageController extends Controller
 
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
+        $data['onjob'] = $user->where('position_type',1)->count();
+        $data['departure'] = $user->where('position_type',2)->count();
 
         $user = User::orderBy('entry_time','asc')
             ->where(function($query) use($request){
@@ -90,10 +91,12 @@ class PersonnelManageController extends Controller
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
 
                 }
+
              })->paginate($pageSize);
 
-
-        return $this->response->paginator($user, new UserTransformer());
+        $result = $this->response->paginator($user, new UserTransformer());
+        $result->addMeta('date', $data);
+        return $result;
 
     }
 
@@ -124,7 +127,7 @@ class PersonnelManageController extends Controller
             DB::beginTransaction();
 
         try {
-            $user = Users::create($payload);
+            $user = User::create($payload);
             $userid = DB::getPdo()->lastInsertId();
             // 添加个人技能
             $skills = [
@@ -222,12 +225,13 @@ class PersonnelManageController extends Controller
     }
 
 
-    public function statusEdit(Request $request, Users $users)
+    public function statusEdit(Request $request,User $user)
     {
 
         $payload = $request->all();
         $status = $payload['status'];
-        if ($users->status == $status)
+
+        if ($user->status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
         $array = [
@@ -235,16 +239,27 @@ class PersonnelManageController extends Controller
         ];
         DB::beginTransaction();
         try {
-            $users->update($array);
+            //dd($array);
 
-//                $operateTitle = new OperateEntity([
-//                    'obj' => $user,
-//                    'title' => '标题',
-//                    'start' => $user->status,
-//                    'end' => $array['status'],
-//                    'method' => OperateLogMethod::UPDATE,
-//                ]);
-//                $arrayOperateLog[] = $operateTitle;
+            $user->update($array);
+
+//                 if (!empty($array)) {
+//
+//                     // 操作日志
+//                     $operate = new OperateEntity([
+//                         'obj' => $user,
+//                         'title' => null,
+//                         'start' => null,
+//                         'end' => null,
+//                         'method' => OperateLogMethod::UPDATE,
+//                     ]);
+//
+//                     event(new OperateLogEvent([
+//                         $operate,
+//                     ]));
+//                 } else {
+//                     return $this->response->noContent();
+//                 }
 
         } catch (Exception $e) {
             DB::rollBack();

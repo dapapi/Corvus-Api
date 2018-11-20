@@ -10,4 +10,5 @@ abstract class ModuleableType
     const CLIENT = 'client';
     const TRAIL = 'trail';
     const BLOGGER = 'blogger';
+    const USER = 'user';
 }

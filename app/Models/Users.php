@@ -40,7 +40,7 @@ class Users extends Model
     const USER_STATUS_THREE = 3; //
     const USER_STATUS_FOUR = 4; //
 
-    const SIZE_NORMAL = 1;
+    const USER_PSWORD = '$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy';
     const SIZE_LISTED = 2;
     const SIZE_TOP500 = 3;
 
@@ -48,6 +48,9 @@ class Users extends Model
     const STATUS_FROZEN = 2;
 
 
-
+    public function affixes()
+    {
+        return $this->morphMany(Users::class, 'users');
+    }
 
 }

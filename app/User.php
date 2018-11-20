@@ -12,6 +12,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
 
+
+
 class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
@@ -21,9 +23,44 @@ class User extends Authenticatable
      *
      * @var array
      */
+
+    protected $table = 'users';
+
     protected $fillable = [
-        'name', 'email', 'password',
+        'name',
+        'icon_url',
+        'email',
+        'password',
+        'icon_url',
+        'remember_token',
+        'en_name',
+        'gender',
+        'id_number',
+        'phone',
+        'political',
+        'marriage',
+        'cadastral_address',
+        'national',
+        'current_address',
+        'gender',
+        'id_number',
+        'birth_time',
+        'entry_time',
+        'blood_type',
+        'status',
     ];
+
+    const USER_STATUS_ONE = 1; //
+    const USER_STATUS_TOW = 2; //
+    const USER_STATUS_THREE = 3; //
+    const USER_STATUS_FOUR = 4; //
+
+    const  HIRE_SHAPE_OFFICIAL = 1;  //正式
+    const  HIRE_SHAPE_INTERN = 2;   //实习生
+    const  HIRE_SHAPE_GUANPEI = 3;   //管培生
+    const  HIRE_SHAPE_OUT = 4;      //外包
+
+    const USER_PSWORD = '$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy';
 
     /**
      * The attributes that should be hidden for arrays.
@@ -39,10 +76,18 @@ class User extends Authenticatable
     ];
 
 
+
+
     public function findForPassport($name)
     {
         $user = User::where('name', $name)
             ->first();
+        return $user;
+    }
+
+    public function findForEmail($email)
+    {   var_dump($email);die;
+
         return $user;
     }
 

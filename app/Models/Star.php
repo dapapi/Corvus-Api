@@ -11,15 +11,15 @@ class Star extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'desc',
-        'broker_id',
-        'avatar',
-        'gender',
-        'birthday',
-        'phone',
-        'wechat',
-        'email',
+        'name',//姓名
+        'desc',//描述
+        'broker_id',//经纪人ID
+        'avatar',//头像
+        'gender',//性别
+        'birthday',//生日
+        'phone',//电话
+        'wechat',//微信
+        'email',//邮箱
         'source',//艺人来源
         'communication_status',//沟通状态
         'intention',//与我司签约意向
@@ -27,22 +27,34 @@ class Star extends Model
         'sign_contract_other',//是否签约其他公司
         'sign_contract_other_name',//签约公司名称
         'sign_contract_at',//签约日期
-        'sign_contract_status',//签约状态
+        'sign_contract_status',//签约状态  签约中，已签约，已解约
         'terminate_agreement_at',//解约日期
         'creator_id',//录入人
-        'status',
-        'type',
+        'status',//项目状态  进行中  已完成  撤单
+        'type',//合同类型 全约  其他
+
+        'platform',//社交平台
+        'weibo_url',//微博主页地址
+        'weibo_fans_num',//微博粉丝数
+        'baike_url',//百科地址
+        'baike_fans_num',//百科粉丝数
+        'douyin_id',//抖音ID
+        'douyin_fans_num',//抖音粉丝数
+        'qita_url',//其他平台地址
+        'qita_fans_num',//其他平台粉丝数
+        'artist_scout_name',//星探
+        'artist_location',//地区
     ];
 
 //隐藏字段
 //'contract_type',//合同类型
 //'divide_into_proportion',//分成比例
-
+    //按创建时间倒叙
     public function scopeCreateDesc($query)
     {
         return $query->orderBy('created_at', 'desc');
     }
-
+    
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');

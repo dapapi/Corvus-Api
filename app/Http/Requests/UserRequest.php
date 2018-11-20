@@ -43,7 +43,7 @@ class UserRequest extends FormRequest
             'blood_type' => 'required',
             'status' => 'required',
         ];
-        
+
 
     }
 }

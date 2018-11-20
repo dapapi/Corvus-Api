@@ -41,8 +41,8 @@ class ModuleUserController extends Controller
         if (!$request->has('person_ids') && !$request->has('del_person_ids'))
             return $this->response->noContent();
 
-        $participantIds = $request->get('person_ids', []);
-        $participantDeleteIds = $request->get('del_person_ids', []);
+        $participantIds = $request->get('person_ids', []);//参与人或宣传人ID数组
+        $participantDeleteIds = $request->get('del_person_ids', []);//参与人或宣传人删除ID数组
 
         DB::beginTransaction();
         try {
@@ -50,7 +50,7 @@ class ModuleUserController extends Controller
             $participantIds = $result[0];
             $participantDeleteIds = $result[1];
 
-            // 操作日志
+            // 操作日志 $type类型参与人或者宣传人
             $title = $this->moduleUserRepository->getTypeName($type);
             if (count($participantIds)) {
                 $start = '';
@@ -134,6 +134,20 @@ class ModuleUserController extends Controller
     public function addModuleUserPublicity(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
     {
         return $this->add($request, $task, $project, $star, $client, $trail, $blogger, ModuleUserType::PUBLICITY);
+    }
+
+    /**
+     * 分配经纪人
+     *
+     * @param ModuleUserRequest $request
+     * @param Task $task
+     * @param Project $project
+     * @param Star $star
+     * @return \Dingo\Api\Http\Response|void
+     */
+    public function addModuleUserBroker(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
+    {
+        return $this->add($request, $task, $project, $star, $client, $trail, $blogger, ModuleUserType::BROKER);
     }
 
     public function remove(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)

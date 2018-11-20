@@ -110,9 +110,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
+        //获取明星作品列表
+        $api->get('/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
+        //创建明星作品
+        $api->post('/stars/{star}/works','App\Http\Controllers\WorkController@store');
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+        //分配经纪人
+        $api->post('/stars/{star}/broker','App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');

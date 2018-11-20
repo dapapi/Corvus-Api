@@ -33,10 +33,23 @@ class StarController extends Controller
     public function index(Request $request)
     {
         $payload = $request->all();
+        $array = [];//查询条件
+        if($request->has('name')){//姓名
+          $array[] = ['name','like','%'.$payload['name'].'%'];
+        }
+        if($request->has('sign_contract_status')){//签约状态
+          $array[] = ['sign_contract_status',$payload['sign_contract_status']];
+        }
+        if($request->has('communication_status')){//沟通状态
+          $array[] = ['communication_status',$payload['communication_status']];
+        }
+        if($request->has('source')){//艺人来源
+          $array[] = ['source',$payload['source']];
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $stars = Star::createDesc()->paginate($pageSize);
-
+        $stars = Star::createDesc()
+        ->where($array)//根据条件查询
+        ->paginate($pageSize);
         return $this->response->paginator($stars, new StarTransformer());
     }
 
@@ -122,7 +135,7 @@ class StarController extends Controller
         }
         DB::commit();
     }
-
+    //update
     public function edit(StarUpdateRequest $request, Star $star)
     {
         $payload = $request->all();
@@ -131,7 +144,7 @@ class StarController extends Controller
         $arrayOperateLog = [];
 
         if ($request->has('name')) {
-            $array['name'] = $payload['name'];
+            $array['name'] = $payload['name'];//姓名
             if ($array['name'] != $star->name) {
                 $operateName = new OperateEntity([
                     'obj' => $star,
@@ -144,7 +157,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('gender')) {
+        if ($request->has('gender')) {//性别
             $array['gender'] = $payload['gender'];
             if ($array['gender'] != $star->gender) {
 
@@ -164,7 +177,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('avatar')) {
+        if ($request->has('avatar')) {//头像
             $array['avatar'] = $payload['avatar'];
 
             $operateAvatar = new OperateEntity([
@@ -186,7 +199,7 @@ class StarController extends Controller
                         $start = $currentBroker->name;
                 }
 
-                $brokerId = hashid_decode($payload['broker_id']);
+                $brokerId = hashid_decode($payload['broker_id']); //经纪人
                 $brokerUser = User::findOrFail($brokerId);
                 $array['broker_id'] = $brokerId;
 
@@ -207,7 +220,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('birthday')) {
+        if ($request->has('birthday')) {//生日
             $array['birthday'] = $payload['birthday'];
             if ($array['birthday'] != $star->birthday) {
                 $operateBirthday = new OperateEntity([
@@ -239,7 +252,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('desc')) {
+        if ($request->has('desc')) { //描述
             $array['desc'] = $payload['desc'];
             if ($array['desc'] != $star->desc) {
                 $operateDesc = new OperateEntity([
@@ -255,7 +268,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('wechat')) {
+        if ($request->has('wechat')) { //微信
             $array['wechat'] = $payload['wechat'];
             if ($array['wechat'] != $star->wechat) {
                 $operateWechat = new OperateEntity([
@@ -271,7 +284,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('email')) {
+        if ($request->has('email')) {//邮箱
             $array['email'] = $payload['email'];
             if ($array['email'] != $star->email) {
                 $operateEmail = new OperateEntity([
@@ -287,7 +300,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('source')) {
+        if ($request->has('source')) {//来源
             $array['source'] = $payload['source'];
             if ($array['source'] != $star->source) {
 
@@ -307,7 +320,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('communication_status')) {
+        if ($request->has('communication_status')) {//沟通状态
             $array['communication_status'] = $payload['communication_status'];
             if ($array['communication_status'] != $star->communication_status) {
 
@@ -327,7 +340,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('intention')) {
+        if ($request->has('intention')) {//与我公司签约意向
             $array['intention'] = $payload['intention'];
             if ($array['intention'] != $star->intention) {
 
@@ -347,7 +360,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('intention_desc')) {
+        if ($request->has('intention_desc')) {//不与我公司签约原因
             $array['intention_desc'] = $payload['intention_desc'];
             if ($array['intention_desc'] != $star->intention_desc) {
                 $operateIntentionDesc = new OperateEntity([
@@ -363,7 +376,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('sign_contract_other')) {
+        if ($request->has('sign_contract_other')) {//是否与其他公司签约
             $array['sign_contract_other'] = $payload['sign_contract_other'];
             if ($array['sign_contract_other'] != $star->sign_contract_other) {
 
@@ -383,7 +396,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('sign_contract_other_name')) {
+        if ($request->has('sign_contract_other_name')) {//签约公司名称
             $array['sign_contract_other_name'] = $payload['sign_contract_other_name'];
             if ($array['sign_contract_other_name'] != $star->sign_contract_other_name) {
                 $operateSignContractOtherName = new OperateEntity([
@@ -399,7 +412,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('sign_contract_at')) {
+        if ($request->has('sign_contract_at')) {//签约日期
             $array['sign_contract_at'] = $payload['sign_contract_at'];
             if ($array['sign_contract_at'] != $star->sign_contract_at) {
                 $operateSignContractAt = new OperateEntity([
@@ -479,9 +492,9 @@ class StarController extends Controller
         unset($payload['status']);
         unset($payload['type']);
 
-        $payload['creator_id'] = $user->id;
+        $payload['creator_id'] = $user->id;  //创建者
 
-        if ($request->has('broker_id')) {
+        if ($request->has('broker_id')) {//经纪人
             try {
                 $brokerId = hashid_decode($payload['broker_id']);
                 Star::findOrFail($brokerId);
@@ -493,7 +506,7 @@ class StarController extends Controller
 
         DB::beginTransaction();
         try {
-            $star = Star::create($payload);
+            $star = Star::create($payload);//生成艺人对象,并插入数据库
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $star,
@@ -523,7 +536,6 @@ class StarController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-
         return $this->response->item(Star::find($star->id), new StarTransformer());
     }
 }

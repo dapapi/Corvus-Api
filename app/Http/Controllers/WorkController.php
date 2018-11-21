@@ -7,6 +7,11 @@ use App\Models\Work;
 use App\Models\Star;
 use App\Http\Transformers\WorkTransformer;
 use App\Http\Requests\WorkRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Events\OperateLogEvent;
+use App\Models\OperateEntity;
+use App\OperateLogMethod;
 
 class WorkController extends Controller
 {

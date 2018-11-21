@@ -5,6 +5,7 @@ use Dingo\Api\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Models\Work;
 
+
 class WorkRequest extends FormRequest
 {
     /**
@@ -27,7 +28,7 @@ class WorkRequest extends FormRequest
         return [
             'name'  =>  'required|max:50',
             'director'  =>  'required|max:50',
-            'release_time'  =>  'date',
+            'release_time'  =>  'required|date',
             'works_type'  =>  Rule::in([
               Work::MOVIE,
               Work::TV_PLAY,
@@ -35,7 +36,7 @@ class WorkRequest extends FormRequest
               Work::NET_PLAY,
             ]),
             'role'  =>  'required|max:50',
-            'co-star' =>  'required|max:100',
+            'co_star' =>  'required|max:100',
         ];
     }
 }

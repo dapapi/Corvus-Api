@@ -22,7 +22,7 @@ class CreateWorksTable extends Migration
             $table->integer('works_type')->comment('作品类型');
             $table->string('role',50)->comment('角色');
             $table->string('co-star',100)->comment('合作明星');
-            $table->integer('creator_id')->comment('创建者ID');
+            $table->unsignedInteger('creator_id')->comment('创建者ID');
             $table->timestamps();
 
             $table->foreign('star_id')

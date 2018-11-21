@@ -28,10 +28,10 @@ class WorkRequest extends FormRequest
             'name'  =>  'required|max:50',
             'director'  =>  'required|max:50',
             'release_time'  =>  'date',
-            'works_type'  =>  Rule:in([
+            'works_type'  =>  Rule::in([
               Work::MOVIE,
               Work::TV_PLAY,
-              Work::VARIETY_SHOW;
+              Work::VARIETY_SHOW,
               Work::NET_PLAY,
             ]),
             'role'  =>  'required|max:50',

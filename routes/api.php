@@ -151,7 +151,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
-
+        //  report
+        $api->get('/report', 'App\Http\Controllers\ReportController@index');
+        $api->post('report', 'App\Http\Controllers\ReportController@store');
+        $api->get('report/all', 'App\Http\Controllers\ReportController@all');
+        $api->delete('report', 'App\Http\Controllers\ReportController@delete');
+        //  launch
+        $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
+        $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
+        $api->post('launch', 'App\Http\Controllers\LaunchController@store');
         // trail
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');

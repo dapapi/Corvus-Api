@@ -180,6 +180,23 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
+        // calendar
+        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
+        $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
+        $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
+        $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
+
+        // schedule
+        $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
+        $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
+        $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@edit');
+        $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
+        $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
+        $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
+
+        // material
+        $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+
     });
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
 

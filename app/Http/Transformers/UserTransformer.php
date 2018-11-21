@@ -5,6 +5,8 @@ namespace App\Http\Transformers;
 use App\Models\Department;
 use App\User;
 use League\Fractal\TransformerAbstract;
+use Illuminate\Support\Facades\DB;
+
 
 class UserTransformer extends TransformerAbstract
 {
@@ -15,8 +17,18 @@ class UserTransformer extends TransformerAbstract
     {
         $array = [
             'id' => hashid_encode($user->id),
+            'user_id' => $user->id,
             'name' => $user->name,
+            'phone' => $user->phone,
+            'status' => $user->status,
+            'department' => $user->department,
+            'position' => $user->position,
+            'hire_shape' => $user->hire_shape,
+            'entry_time' => $user->entry_time,
+
         ];
+
+
         if ($user->company) {
             $array['company'] = $user->company->name;
             $array['company_id'] = hashid_encode($user->company->id);
@@ -32,4 +44,5 @@ class UserTransformer extends TransformerAbstract
         }
         return $this->item($department, new DepartmentTransformer());
     }
+
 }

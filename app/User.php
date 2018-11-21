@@ -60,6 +60,15 @@ class User extends Authenticatable
     const  HIRE_SHAPE_GUANPEI = 3;   //管培生
     const  HIRE_SHAPE_OUT = 4;      //外包
 
+
+    const  USER_POSITIVE = 1;//转正
+    const  USER_ARCHIVE = 4; //存档
+    const  USER_DEPARTUE = 2; //离职
+    const  USER_DTRANSFER = 3; //调岗
+
+    const  USER_TYPE_DEPARTUE = 5; //离职
+
+
     const USER_PSWORD = '$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy';
 
     /**

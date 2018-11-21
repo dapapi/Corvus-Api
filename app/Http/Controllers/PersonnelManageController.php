@@ -28,7 +28,7 @@ class PersonnelManageController extends Controller
 
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $data['onjob'] = $user->where('position_type',1)->count();
+        $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->count();
         $data['departure'] = $user->where('position_type',2)->count();
 
         $user = User::orderBy('entry_time','asc')
@@ -62,20 +62,24 @@ class PersonnelManageController extends Controller
 
                 // 1 正式 2实习 3管培生 4外包
 
-                if(!empty($status)) {
-                   if($status == 1){
-                       $query->where('status',User::USER_STATUS_ONE)->orWhere('status',User::USER_STATUS_TOW);
+//                if(!empty($status)) {
+//                   if($status == 1){
+//                       $query->where('status',User::USER_STATUS_ONE)->orWhere('status',User::USER_STATUS_TOW);
+//
+//                   }elseif($status == 2){
+//                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_INTERN);
+//
+//                   }elseif($status == 3){
+//                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_GUANPEI);
+//
+//                   }elseif($status == 4){
+//                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
+//
+//                   }
+//                }
 
-                   }elseif($status == 2){
-                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_INTERN);
-
-                   }elseif($status == 3){
-                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_GUANPEI);
-
-                   }elseif($status == 4){
-                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
-
-                   }
+                if($status == 5){
+                    $query->where('status',User::USER_TYPE_DEPARTUE);
                 }
 
                 if(!empty($entryTime)) {
@@ -91,6 +95,8 @@ class PersonnelManageController extends Controller
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
 
                 }
+                //不显示存档信息
+                $query->where('status','!=',User::USER_ARCHIVE);
 
              })->paginate($pageSize);
 
@@ -227,39 +233,63 @@ class PersonnelManageController extends Controller
 
     public function statusEdit(Request $request,User $user)
     {
-
         $payload = $request->all();
         $status = $payload['status'];
 
         if ($user->status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
-        $array = [
-            'status' => $status,
-        ];
+
+
+//        const  HIRE_SHAPE_INTERN = 2;   //实习生
+//        const  HIRE_SHAPE_GUANPEI = 3;   //管培生
+//        const  HIRE_SHAPE_OUT = 4;      //外包
+        //离职
+//        if($status == 2){
+//            $array = [
+//                'archive_time' => User::USER_DEPARTUE,
+//            ];
+//         //归档
+//        }elseif($status == 4) {
+//
+//            $array = [
+//                'status' => User::USER_ARCHIVE,
+//            ];
+//
+//        }else{
+//            $array = [
+//                'status' => User::USER_POSITIVE,
+//            ];
+//        }
+
+
+            $array = [
+                'status' => $payload['status'],
+            ];
+            //归档
+ //       }
         DB::beginTransaction();
         try {
-            //dd($array);
+             if (!empty($array)) {
+                 $operate = new OperateEntity([
 
-            $user->update($array);
+                     'obj' => $user,
+                     'title' => '状态',
+                     'start' => $user->status,
+                     //'end' => isset($array['status'])? $array['status'] : $array['archive_time'],
+                     'end' => $array['status'],
 
-//                 if (!empty($array)) {
-//
-//                     // 操作日志
-//                     $operate = new OperateEntity([
-//                         'obj' => $user,
-//                         'title' => null,
-//                         'start' => null,
-//                         'end' => null,
-//                         'method' => OperateLogMethod::UPDATE,
-//                     ]);
-//
-//                     event(new OperateLogEvent([
-//                         $operate,
-//                     ]));
-//                 } else {
-//                     return $this->response->noContent();
-//                 }
+                     'method' => OperateLogMethod::UPDATE,
+
+                 ]);
+                 $user->update($array);
+
+                 event(new OperateLogEvent([
+                     $operate,
+                 ]));
+             } else {
+                 return $this->response->noContent();
+             }
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -269,4 +299,18 @@ class PersonnelManageController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+
+    //存档列表
+    public function archiveList(Request $request)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $user = User::orderBy('entry_time','asc')
+            ->where(function($query) use($request){
+                $query->where('status',User::USER_ARCHIVE);
+            })->paginate($pageSize);
+
+        return $this->response->paginator($user, new UserTransformer());
+
+    }
+
 }

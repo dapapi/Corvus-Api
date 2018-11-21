@@ -12,6 +12,7 @@ use App\Models\OperateEntity;
 use App\Models\Star;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
+use App\SignContractStatus;
 use App\StarSource;
 use App\User;
 use App\Whether;
@@ -193,7 +194,7 @@ class StarController extends Controller
             $arrayOperateLog[] = $operateAvatar;
         }
 
-        if ($request->has('broker_id')) {
+        if ($request->has('broker_id')) {//经纪人
             try {
                 $start = null;
                 if ($star->broker_id) {
@@ -239,7 +240,7 @@ class StarController extends Controller
             }
         }
 
-        if ($request->has('phone')) {
+        if ($request->has('phone')) {//电话
             $array['phone'] = $payload['phone'];
             if ($array['phone'] != $star->phone) {
                 $operatePhone = new OperateEntity([
@@ -541,5 +542,34 @@ class StarController extends Controller
         }
         DB::commit();
         return $this->response->item(Star::find($star->id), new StarTransformer());
+    }
+
+    /**
+     * 签约
+     * @param Request $request
+     * @param Star $star
+     */
+    public function contract(Request $request,Star $star)
+    {
+        //设置签约状态为已签约
+        $star->update([
+            'sign_contract_status'=>SignContractStatus::ALREADY_SIGN_CONTRACT,
+            'sign_contract_at'  =>  date('Y/m/d H:i:s')
+        ]);
+        return $this->response->item(Star::find($star->id),new StarTransformer());
+    }
+
+    /**解约
+     * @param Request $request
+     * @param Star $star
+     */
+    public function terminateAgreement(Request $request,Star $star)
+    {
+        //设置签约状态为解约
+        $star->update([
+            'sign_contract_status'=>SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
+            'terminate_agreement_at'    =>  date('Y/m/d H:i:s')
+        ]);
+        return $this->response->item(Star::find($star->id),new StarTransformer());
     }
 }

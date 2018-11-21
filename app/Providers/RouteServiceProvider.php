@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Affix;
+use App\Models\ApprovalGroup;
 use App\Models\Blogger;
 use App\Models\Calendar;
+use App\Models\Material;
 use App\Models\Project;
 use App\Models\Client;
 use App\Models\Contact;
@@ -162,6 +164,26 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Schedule::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('material', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Material::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('approval_group', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = ApprovalGroup::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

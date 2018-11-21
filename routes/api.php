@@ -202,6 +202,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+        $api->post('/materials', 'App\Http\Controllers\MaterialController@store');
+        $api->put('/materials/{material}', 'App\Http\Controllers\MaterialController@edit');
+        $api->delete('/materials/{material}', 'App\Http\Controllers\MaterialController@delete');
+        $api->get('/materials/{material}', 'App\Http\Controllers\MaterialController@detail');
+
+        // approval_groups
+        $api->get('/approval_groups/all', 'App\Http\Controllers\ApprovalGroupController@all');
+        $api->post('/approval_groups', 'App\Http\Controllers\ApprovalGroupController@store');
+        $api->put('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@edit');
+        $api->delete('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@delete');
+        $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
 
     });
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');

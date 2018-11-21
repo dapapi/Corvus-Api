@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Material;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Dingo\Api\Http\FormRequest;
 
 class MaterialEditRequest extends FormRequest
 {

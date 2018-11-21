@@ -187,8 +187,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // schedule
         $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
         $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
-        $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@store');
-        $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@store');
+        $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@edit');
+        $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
+        $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
+        $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
+
+        // material
+        $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
 
     });
 

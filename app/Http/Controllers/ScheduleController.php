@@ -86,7 +86,7 @@ class ScheduleController extends Controller
                 return $this->response->errorBadRequest('日历id不存在');
         }
 
-        if ($request->has('material_id')) {
+        if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);
             $material = Material::find($payload['material_id']);
             if (!$material)
@@ -105,6 +105,18 @@ class ScheduleController extends Controller
 
     public function detail(Request $request, Schedule $schedule)
     {
+        return $this->response->item($schedule, new ScheduleTransformer());
+    }
+
+    public function delete(Request $request, Schedule $schedule)
+    {
+        $schedule->delete();
+        return $this->response->noContent();
+    }
+
+    public function recover(Request $request, Schedule $schedule)
+    {
+        $schedule->restore();
         return $this->response->item($schedule, new ScheduleTransformer());
     }
 }

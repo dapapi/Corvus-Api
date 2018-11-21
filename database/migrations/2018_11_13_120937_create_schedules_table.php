@@ -27,7 +27,7 @@ class CreateSchedulesTable extends Migration
             $table->unsignedInteger('creator_id');
             $table->tinyInteger('type')->default(1);
             $table->tinyInteger('status')->default(1);
-            $table->string('desc');
+            $table->string('desc')->nullable();
             $table->softDeletes();
             $table->timestamps();
 

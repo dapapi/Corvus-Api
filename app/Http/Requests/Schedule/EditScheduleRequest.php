@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\Schedule;
 
-use Illuminate\Foundation\Http\FormRequest;
+
+use Dingo\Api\Http\FormRequest;
 
 class EditScheduleRequest extends FormRequest
 {

@@ -8,6 +8,7 @@ use App\Models\Calendar;
 use App\Models\Project;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\Schedule;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
@@ -151,6 +152,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Calendar::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('schedule', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Schedule::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

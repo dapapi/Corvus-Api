@@ -44,6 +44,18 @@ class StarTransformer extends TransformerAbstract
             'updated_at' => $star->updated_at->toDatetimeString(),
             'deleted_at' => $star->deleted_at,
 
+            'platform'  =>  $star->platform,
+            'weibo_url' =>  $star->weibo_url,
+            'weibo_fans_num'  =>  $star->weibo_fans_num,
+            'baike_url' =>  $star->baike_url,
+            'baike_fans_num'  =>  $star->baike_fans_num,
+            'douyin_id' =>  $star->douyin_id,
+            'douyin_fans_num' =>  $star->douyin_fans_num,
+            'qita_url'  =>  $star->qita_url,
+            'qita_fans_num' =>  $star->qita_fans_num,
+            'artist_scout_name' =>  $star->artist_scout_name,
+            'artist_location' =>  $star->artist_location,
+
         ];
 
         $arraySimple = [

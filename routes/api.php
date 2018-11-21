@@ -110,9 +110,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
+        //获取明星作品列表
+        $api->get('/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
+        //创建明星作品
+        $api->post('/stars/{star}/works','App\Http\Controllers\WorkController@store');
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+        //分配经纪人
+        $api->post('/stars/{star}/broker','App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
@@ -163,6 +169,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
+        $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -185,7 +192,27 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // industry
         $api->get('/industries/all', 'App\Http\Controllers\IndustryController@all');
 
+        $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
+
+        // calendar
+        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
+        $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
+        $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
+        $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
+
+        // schedule
+        $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
+        $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
+        $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@edit');
+        $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
+        $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
+        $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
+
+        // material
+        $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+
     });
+        $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
 
 
     // department

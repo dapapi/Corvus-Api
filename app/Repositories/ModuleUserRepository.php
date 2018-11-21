@@ -12,7 +12,7 @@ class ModuleUserRepository
 {
 
     /**
-     * @param $participantIds
+     * @param $participantIds  参与人或宣传人ID数组
      * @param $task
      * @param $project
      * @param $type
@@ -23,7 +23,6 @@ class ModuleUserRepository
         $array = [
             'type' => $type,
         ];
-
         if ($task && $task->id) {
             $array['moduleable_id'] = $task->id;
             $array['moduleable_type'] = ModuleableType::TASK;
@@ -38,17 +37,17 @@ class ModuleUserRepository
         }
         //TODO 还有其他类型
 
-        $participantDeleteIds = array_unique($participantDeleteIds);
+        $participantDeleteIds = array_unique($participantDeleteIds);//去除数组中的重复值
         foreach ($participantDeleteIds as $key => &$participantDeleteId) {
             try {
-                $participantDeleteId = hashid_decode($participantDeleteId);
-                $participantDeleteUser = User::findOrFail($participantDeleteId);
+                $participantDeleteId = hashid_decode($participantDeleteId);//解码
+                $participantDeleteUser = User::findOrFail($participantDeleteId);//从用户标中查找
                 $array['user_id'] = $participantDeleteUser->id;
-
+                //查找moduleUser表中
                 $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantDeleteUser->id)->where('type', $type)->first();
-                if ($moduleUser) {
+                if ($moduleUser) {//数据存在则从数据库中删除
                     $moduleUser->delete();
-                } else {
+                } else {//不存在则将ID从要删除的参与人或者宣传人列表中删除
                     array_splice($participantDeleteIds, $key, 1);
                 }
             } catch (Exception $e) {
@@ -56,7 +55,7 @@ class ModuleUserRepository
             }
         }
 
-        $participantIds = array_unique($participantIds);
+        $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
         foreach ($participantIds as $key => &$participantId) {
             try {
                 $participantId = hashid_decode($participantId);
@@ -64,9 +63,9 @@ class ModuleUserRepository
                 $array['user_id'] = $participantUser->id;
 
                 $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantUser->id)->where('type', $type)->first();
-                if (!$moduleUser) {
+                if (!$moduleUser) {//不存在则添加
                     ModuleUser::create($array);
-                } else {
+                } else {//存在则从列表中删除
                     array_splice($participantIds, $key, 1);
 //                    $participantDeleteIds[] = $participantId;
 //                    //要求一个接口可以完成添加人和删除人,已经存在的删除
@@ -76,6 +75,7 @@ class ModuleUserRepository
                 array_splice($participantIds, $key, 1);
             }
         }
+        //返回添加成功或者删除成功的参与人和宣传人
         return [$participantIds, $participantDeleteIds];
     }
 

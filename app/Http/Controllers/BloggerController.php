@@ -37,7 +37,7 @@ class BloggerController extends Controller
         $isAll = $request->get('all', false);
 
         $bloggers = Blogger::createDesc()->get();
-        return $this->response->paginator($bloggers, new BloggerTransformer($isAll));
+        return $this->response->collection($bloggers, new BloggerTransformer($isAll));
     }
 
     public function show(Blogger $blogger)
@@ -514,7 +514,7 @@ class BloggerController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
-            dd($e);
+
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

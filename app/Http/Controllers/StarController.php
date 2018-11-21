@@ -76,9 +76,11 @@ class StarController extends Controller
 
     public function remove(Star $star)
     {
+
         DB::beginTransaction();
         try {
             $star->delete();
+
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $star,
@@ -101,6 +103,7 @@ class StarController extends Controller
 
     public function recoverRemove(Star $star)
     {
+
         DB::beginTransaction();
         try {
             $star->restore();
@@ -473,6 +476,7 @@ class StarController extends Controller
 
     public function store(StarRequest $request)
     {
+
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 

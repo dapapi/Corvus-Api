@@ -24,6 +24,7 @@ class TrailController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $clients = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
+
         return $this->response->paginator($clients, new TrailTransformer());
     }
 
@@ -207,6 +208,7 @@ class TrailController extends Controller
 
     public function delete(Request $request, Trail $trail)
     {
+
         $trail->status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();

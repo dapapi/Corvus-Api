@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Attendance;
-use Binding\Api\Http\FormRequest;
+use Dingo\Api\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class AttendanceRequest extends FormRequest
@@ -39,7 +39,6 @@ class AttendanceRequest extends FormRequest
             'affixes'   =>  'required|max:255',
             'approval_flow' =>  'required|Integer',
             'notification_person'   =>  'required|max:255',
-            'creator_id'    =>  'required|Integer',
             'leave_type'    =>  Rule::in([
                 Attendance::CASUAL_LEAVE,//事假
                 Attendance::SICK_LEAVE,//病假

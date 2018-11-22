@@ -12,4 +12,5 @@ abstract class ModuleableType
     const BLOGGER = 'blogger';
     const USER = 'user';
     const WORK = 'work';
+    const ATTENDANCE = 'attendance';
 }

@@ -8,10 +8,12 @@ use App\Events\OperateLogEvent;
 use App\Models\Department;
 use Carbon\Carbon;
 use App\User;
-use App\Models\Users;
 use App\Models\Record;
 use App\Models\Education;
+
 use App\Models\FamilyData;
+use App\Models\PersonalDetail;
+
 use App\Models\PersonalSkills;
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
@@ -231,7 +233,7 @@ class PersonnelManageController extends Controller
     }
 
 
-    public function statusEdit(Request $request,User $user)
+    public function statusEdit(Request $request, User $user)
     {
         $payload = $request->all();
         $status = $payload['status'];
@@ -310,6 +312,41 @@ class PersonnelManageController extends Controller
             })->paginate($pageSize);
 
         return $this->response->paginator($user, new UserTransformer());
+
+    }
+
+
+    public function detail(Request $request,User $user)
+    {
+        $res = User::belongsTo('App\User');
+        dd($res);
+        return $this->response->item($user, new UserTransformer());
+
+    }
+
+    public function edit(Request $request, User $user,PersonalDetail $personalDetail)
+    {
+        $payload = $request->all();
+        //dd($payload['personalDetail']['id']);
+        $userid=17;
+        $payload['user_id'] = $userid;
+        dd($payload['personalDetail']);
+        try {
+            $skillsData = $personalDetail->where('user_id',$userid)->count();
+            if($payload['personalDetail']['id']!==""){
+                dd(1);
+                $personalDetail->create($payload['personalDetail']);
+            }else{
+                dd(2);
+                $personalDetail->update($payload);
+            }
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
 
     }
 

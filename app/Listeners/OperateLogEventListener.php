@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\OperateLog;
 use App\Models\Project;
@@ -84,7 +85,10 @@ class OperateLogEventListener
                 $typeName = '用户';
             }else if($operate->obj instanceof Work){
                 $type = ModuleableType::WORK;
-                $typeName = '艺人';
+                $typeName = '作品库';
+            }else if($operate->obj instanceof Attendance){
+                $type = ModuleableType::ATTENDANCE;
+                $typeName = '考勤';
             }
             //TODO
 

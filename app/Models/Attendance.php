@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Attendance extends Model
 {
-
+    use SoftDeletes;
     //申请类型常量 申请类型 1:请假 2:加班 3:出差 4:外勤
     const LEAVE = 1; //请假
     const OVERTIME = 2;//加班

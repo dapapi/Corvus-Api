@@ -129,6 +129,19 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
 
+        //考勤
+        //提交申请
+        $api->post('/attendance','App\Http\Controllers\AttendanceController@store');
+        //我的考勤统计
+        $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@MyselfStatistics');
+        //我的考勤请假统计
+        $api->get('/attendance/myselfleavelstatistics','App\Http\Controllers\AttendanceController@myselfLeavelStatistics');
+        //根据条件统计考勤  成员考勤--考勤统计
+        $api->get('/attendance/statistics','App\Http\Controllers\AttendanceController@Statistics');
+        //成员考勤--请假统计
+       $api->get('/attendance/leavestatistics','App\Http\Controllers\AttendanceController@leaveStatistics');
+       //考勤汇总 type 1:请假  2:加班 3:出差  4:外勤
+        $api->get('/attendance/collect','App\Http\Controllers\AttendanceController@collect');
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
 
@@ -230,6 +243,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
     // user
     $api->get('/users', 'App\Http\Controllers\UserController@index');
+
+
+
 
 
 });

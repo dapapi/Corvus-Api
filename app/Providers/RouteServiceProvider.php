@@ -11,9 +11,15 @@ use App\Models\Project;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Schedule;
+use App\Models\personalJob;
+use App\Models\PersonalSalary;
+use App\Models\personalDetail;
+
+
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
+use App\User;
 use Exception;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
@@ -170,10 +176,54 @@ class RouteServiceProvider extends ServiceProvider
             return $entity;
         });
 
+        Route::bind('user', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = User::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
         Route::bind('material', function ($value) {
             try {
                 $id = hashid_decode($value);
                 $entity = Material::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('personalJob', function ($value) {
+
+            try {
+                $id = hashid_decode($value);
+                $entity = personalJob::withTrashed()->findOrFail($id);
+
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('personalSalary', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = personalSalary::withTrashed()->findOrFail($id);
+
+
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('personalDetail', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = personalDetail::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }
@@ -189,6 +239,8 @@ class RouteServiceProvider extends ServiceProvider
             }
             return $entity;
         });
+
+
     }
 
     /**

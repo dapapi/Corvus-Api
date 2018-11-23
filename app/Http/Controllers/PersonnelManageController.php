@@ -8,10 +8,18 @@ use App\Events\OperateLogEvent;
 use App\Models\Department;
 use Carbon\Carbon;
 use App\User;
-use App\Models\Users;
 use App\Models\Record;
 use App\Models\Education;
+
 use App\Models\FamilyData;
+use App\Models\PersonalDetail;
+use App\Models\PersonalJob;
+use App\Models\PersonalSalary;
+use App\Models\PersonalSocialSecurity;
+
+
+
+
 use App\Models\PersonalSkills;
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
@@ -231,8 +239,8 @@ class PersonnelManageController extends Controller
     }
 
 
-    public function statusEdit(Request $request,User $user)
-    {
+    public function statusEdit(Request $request, User $user)
+    {dd(1);
         $payload = $request->all();
         $status = $payload['status'];
 
@@ -313,4 +321,216 @@ class PersonnelManageController extends Controller
 
     }
 
+
+    public function detail(Request $request,User $user)
+    {
+        //$res = User::belongsTo('App\User');
+        //dd($user->skills());
+        return $this->response->item($user, new UserTransformer());
+
+    }
+
+    //增加个人信息
+    public function storePersonal(Request $request, User $user,PersonalDetail $personalDetail)
+    {
+
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+//            $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $payload['user_id'] = $userid;
+            $personalDetail->create($payload);
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+    }
+
+
+        //修改个人信息
+    public function editPersonal(Request $request, User $user,PersonalDetail $personalDetail)
+    {
+
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+//            $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+
+            $personalDetail->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+    }
+
+    //增加职位信息
+    public function storeJobs(Request $request, User $user,PersonalJob $personalJob)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+
+        try {
+            $payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+                $personalJob->create($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+
+    }
+
+    //修改职位信息
+    public function editJobs(Request $request, User $user,PersonalJob $personalJob)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+
+        try {
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+                $personalJob->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+
+    }
+
+    //修改薪资信息
+    public function editSalary(Request $request, User $user,PersonalSalary $personalSalary)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+            //$payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $personalSalary->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+    }
+
+    //增加薪资信息
+    public function storeSalary(Request $request, User $user,PersonalSalary $personalSalary)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+            $payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalSalary,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $personalSalary->create($payload);
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+
+    }
+
+    //增加薪资信息
+    public function storeSecurity(Request $request, User $user,PersonalSocialSecurity $personalSocialSecurity)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+            $payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalSalary,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $personalSocialSecurity->create($payload);
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('增加失败');
+        }
+        return $this->response->accepted();
+
+
+    }
 }

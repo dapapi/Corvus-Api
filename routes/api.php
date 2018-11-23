@@ -129,6 +129,23 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
 
+        //考勤
+        //提交申请
+        $api->post('/attendance','App\Http\Controllers\attendanceController@store');
+        //我的考勤统计
+        $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@myselfStatistics');
+        //我的考勤请假统计
+        $api->get('/attendance/myselfleavelstatistics','App\Http\Controllers\AttendanceController@myselfLeavelStatistics');
+        //根据条件统计考勤  成员考勤--考勤统计
+        $api->get('/attendance/statistics','App\Http\Controllers\AttendanceController@Statistics');
+        //成员考勤--请假统计
+       $api->get('/attendance/leavestatistics','App\Http\Controllers\AttendanceController@leaveStatistics');
+       //考勤汇总 type 1:请假  2:加班 3:出差  4:外勤
+        $api->get('/attendance/collect','App\Http\Controllers\AttendanceController@collect');
+        //考勤日历
+        $api->get('/attendance/calendar','App\Http\Controllers\AttendanceController@attendanceCalendar');
+        //我申请的
+        $api->get('/attendance/myapply','App\Http\Controllers\AttendanceController@myApply');
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
 
@@ -210,6 +227,28 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+
+        // personnel
+        $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
+        $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+        $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
+        $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
+        $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
+        $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
+        $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');
+        $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
+        $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
+        $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
+
+        // department
+        $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        // user
+        $api->get('/users', 'App\Http\Controllers\UserController@index');
+
+
+        //$api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+
+
         $api->post('/materials', 'App\Http\Controllers\MaterialController@store');
         $api->put('/materials/{material}', 'App\Http\Controllers\MaterialController@edit');
         $api->delete('/materials/{material}', 'App\Http\Controllers\MaterialController@delete');
@@ -223,13 +262,4 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
 
     });
-        $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
-
-
-    // department
-    $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
-    // user
-    $api->get('/users', 'App\Http\Controllers\UserController@index');
-
-
 });

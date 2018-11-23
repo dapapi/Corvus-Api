@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PersonalDetail extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'personal_detail';
 
 

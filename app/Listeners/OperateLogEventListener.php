@@ -9,6 +9,9 @@ use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Users;
+use App\Models\PersonalJob;
+use App\Models\PersonalSalary;
+
 use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -81,6 +84,12 @@ class OperateLogEventListener
             }else if ($operate->obj instanceof User) {
                 $type = ModuleableType::USER;
                 $typeName = '用户';
+            }else if ($operate->obj instanceof PersonalJob) {
+                $type = ModuleableType::PERSONA_JOB;
+                $typeName = '岗位';
+            }else if ($operate->obj instanceof PersonalSalary) {
+                $type = ModuleableType::PERSONA_SALARY;
+                $typeName = '薪资';
             }
             //TODO
 

@@ -4,6 +4,9 @@ namespace App;
 
 use App\Models\Affix;
 use App\Models\Department;
+use App\Models\PersonalSkills;
+use App\Models\PersonalDetail;
+
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
@@ -145,6 +148,16 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    public function skills()
+    {
+        return $this->hasMany(PersonalSkills::class, 'user_id', 'id');
+    }
+
+    public function personalDetail()
+    {
+        return $this->hasMany(PersonalDetail::class, 'user_id', 'id');
+    }
+
     private function departmentToCompany(Department $department)
     {
         $department = $department->pDepartment;
@@ -154,4 +167,5 @@ class User extends Authenticatable
             $this->department($department);
         }
     }
+
 }

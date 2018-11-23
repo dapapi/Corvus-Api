@@ -11,4 +11,7 @@ abstract class ModuleableType
     const TRAIL = 'trail';
     const BLOGGER = 'blogger';
     const USER = 'user';
+    const PERSONA_JOB = 'personalJob';
+    const PERSONA_SALARY = 'personalSalary';
+
 }

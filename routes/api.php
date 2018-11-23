@@ -202,9 +202,45 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+        $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
+        $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+
+        //$api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+
+
 
     });
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
+
+       // $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+
+        //增加个人信息
+        $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
+
+        //修改个人信息
+        $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
+
+        //修改职位信息
+        $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
+        //增加职位信息
+        $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
+
+        //增加岗位信息
+        $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');
+        //修改岗位信息
+        $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
+        //增加社保信息
+        $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
+        //获取员工信息
+        $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
+
+
+
+
+
+
+
+
 
 
     // department

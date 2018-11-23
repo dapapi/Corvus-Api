@@ -131,9 +131,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //考勤
         //提交申请
-        $api->post('/attendance','App\Http\Controllers\AttendanceController@store');
+        $api->post('/attendance','App\Http\Controllers\attendanceController@store');
         //我的考勤统计
-        $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@MyselfStatistics');
+        $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@myselfStatistics');
         //我的考勤请假统计
         $api->get('/attendance/myselfleavelstatistics','App\Http\Controllers\AttendanceController@myselfLeavelStatistics');
         //根据条件统计考勤  成员考勤--考勤统计
@@ -142,6 +142,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
        $api->get('/attendance/leavestatistics','App\Http\Controllers\AttendanceController@leaveStatistics');
        //考勤汇总 type 1:请假  2:加班 3:出差  4:外勤
         $api->get('/attendance/collect','App\Http\Controllers\AttendanceController@collect');
+        //考勤日历
+        $api->get('/attendance/calendar','App\Http\Controllers\AttendanceController@attendanceCalendar');
+        //我申请的
+        $api->get('/attendance/myapply','App\Http\Controllers\AttendanceController@myApply');
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
 

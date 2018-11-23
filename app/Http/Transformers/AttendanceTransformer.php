@@ -3,6 +3,7 @@
 namespace App\Http\Transformers;
 
 use App\Models\Attendance;
+use Illuminate\Validation\Rule;
 use League\Fractal\TransformerAbstract;
 
 class AttendanceTransformer extends TransformerAbstract
@@ -22,6 +23,7 @@ class AttendanceTransformer extends TransformerAbstract
             'notification_person'   =>  $attendance->notification_person,
             'leave_type'    =>  $attendance->leave_type,
             'place' =>  $attendance->place,
+            'status'    => $attendance->status
         ];
     }
 }

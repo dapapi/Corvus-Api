@@ -67,12 +67,12 @@ class AttendanceController extends Controller
      * 统计当前登陆用户的考勤
      * @return \Dingo\Api\Http\Response
      */
-    public function MyselfStatistics()
+    public function myselfStatistics()
     {
         $user = Auth::guard('api')->user();
         $myselfAttendance = AttendanceRepository::MyselfStatistics($user);
-//        return $this->response->collection($myselfAttendance,new AttendanceTransformer());
-        return $myselfAttendance;
+        return $this->response->collection($myselfAttendance,new AttendanceTransformer());
+//        return $myselfAttendance;
     }
 
     /**
@@ -83,20 +83,21 @@ class AttendanceController extends Controller
     {
         $user = Auth::guard('api')->user();
         $myselfLeavelStatistics = AttendanceRepository::myselfLeavelStatistics($user);
-        return $myselfLeavelStatistics;
+//        return $myselfLeavelStatistics;
+        return $this->response->collection($myselfLeavelStatistics,new AttendanceTransformer());
     }
 
     /**
      * 根据条件查询考勤统计
      * @param Request $request
      */
-    public function Statistics(AttendanceStatisticsRequest $request)
+    public function statistics(AttendanceStatisticsRequest $request)
     {
         $start_time = $request->get('start_time',null);
         $end_time = $request->get('end_time',null);
         $department = $request->get('department',null);
         $statistics = AttendanceRepository::statistics($department,$start_time,$end_time);
-        return $statistics;
+        return $this->response->collection($statistics,new AttendanceTransformer());
     }
 
     /**
@@ -110,7 +111,7 @@ class AttendanceController extends Controller
         $end_time = $request->get('end_time',null);
         $department = $request->get('department',null);
         $leavestatistics = AttendanceRepository::leaveStatistics($department,$start_time,$end_time);
-        return $leavestatistics;
+        return $this->response->collection($leavestatistics,new AttendanceTransformer());
     }
 
     /**
@@ -125,7 +126,28 @@ class AttendanceController extends Controller
         $department = $request->get('department',null);
         $type = $request->get('type',null);
         $leavecollect = AttendanceRepository::collect($department,$start_time,$end_time,$type);
-        return $leavecollect;
+        return $this->response->collection($leavecollect,new AttendanceTransformer());
     }
+
+    /**
+     * 考勤日历
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
+    public function attendanceCalendar(Request $request){
+        $start_time = $request->get('start_time',null);
+        $end_time = $request->get('end_time',null);
+        $attendanceCalendar = AttendanceRepository::attendanceCalendar($start_time,$end_time);
+        return $attendanceCalendar;
+        return $this->response->collection($attendanceCalendar,new AttendanceTransformer());
+    }
+
+    public function myApply(Request $request){
+        $status = $request->get("status",null);
+        $user = Auth::guard('api')->user();
+        $myapply = AttendanceRepository::myApply($user->id,$status);
+        return $this->response->collection($myapply,new AttendanceTransformer());
+    }
+
 
 }

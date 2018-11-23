@@ -14,7 +14,7 @@ class AttendanceRepository
     {
 
     }
-    public static function MyselfStatistics(User $user){
+    public static function myselfStatistics(User $user){
         $myselfAttendance = Attendance::where('creator_id',$user->id)
                                     ->groupBy(DB::raw('month(start_at)'))
                                     ->get(
@@ -236,7 +236,7 @@ class AttendanceRepository
         }
         $leavecollect = (new Attendance())
                         ->setTable('a')
-                        ->from('cs as a')
+                        ->from('attendances as a')
                         ->leftJoin('department_user as du','a.creator_id','=','du.user_id')
                         ->leftjoin('departments as d','d.id','=','du.department_id')
                         ->leftJoin('users as u','u.id','=','a.creator_id')
@@ -259,11 +259,55 @@ class AttendanceRepository
      * @param $start_day
      * @param $end_day
      */
-    public static function AttendanceCalendar($start_day,$end_day)
+    public static function attendanceCalendar($start_time,$end_time)
     {
         $field = [
+            'a.start_at',
+            'a.end_at',
+            'number',//请假时长
             'u.name',
-            ''
+            //如果开始时间小于等于查询的开始时间，那么请假时间还剩 结束时间减去开始时间
+            //如果开始时间大于查询开始时间，那么请假剩余时间是请假时长
+            DB::raw("CASE (start_at <= '2018-01-03 00:00:00')
+                                WHEN  1 THEN end_at - '{$start_time}'
+                                WHEN  0 THEN number
+                                ELSE
+                                    '数据错误'
+                            END remaining_time"
+            )
         ];
+        $attendanceCalendar = (new Attendance())
+                                ->setTable('a')
+                                ->from('attendances as a')
+                                ->leftJoin('users as u','u.id','=','a.creator_id')
+                                ->where([
+                                   ['end_at','>',$start_time],
+                                   ['start_at','<',$end_time],
+                                ])->get($field);
+        return $attendanceCalendar;
+    }
+
+    /**
+     * 查询用户申请
+     */
+    public static function myApply($creator_id,$status)
+    {
+        $myApplyList = (new Attendance())
+            ->where('creator_id',$creator_id)
+            ->where('status',$status)
+            ->get([
+                'start_at',
+                'end_at',
+                'number',
+                DB::raw("case status
+                when 1 then '已同意'
+                when 2 then '待审批'
+                when 3 then '已拒绝'
+                when 4 then '已作废'
+                else '数据错误'
+                end status
+                ")
+            ]);
+        return $myApplyList;
     }
 }

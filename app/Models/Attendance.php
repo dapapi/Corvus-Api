@@ -27,6 +27,13 @@ class Attendance extends Model
     const FUNERAL_LEAVE = 8;//丧假
     const OTHER_LEAVE = 9;//其他
 
+    //状态 1:已同意  2:待审批  3:已拒绝  4:已作废
+    const APPROVAL_PENFING = 1;//待审批
+    const AGREED = 2;//已同意
+    const REFUSED = 3;//已拒绝
+    const INVALID = 4;//已作废
+
+
     protected $fillable = [
         'type',
         'start_at',

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Material;
+namespace App\Http\Requests\Approval;
 
-use Dingo\Api\Http\FormRequest;
+use Illuminate\Foundation\Http\FormRequest;
 
-class MaterialStoreRequest extends FormRequest
+class StoreApprovalGroupRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +25,7 @@ class MaterialStoreRequest extends FormRequest
     {
         return [
             'name' => 'required',
-            'type' => 'nullable',
+            'desc' => 'nullable'
         ];
     }
 }

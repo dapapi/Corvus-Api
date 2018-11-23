@@ -129,6 +129,19 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
 
+        //考勤
+        //提交申请
+        $api->post('/attendance','App\Http\Controllers\AttendanceController@store');
+        //我的考勤统计
+        $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@MyselfStatistics');
+        //我的考勤请假统计
+        $api->get('/attendance/myselfleavelstatistics','App\Http\Controllers\AttendanceController@myselfLeavelStatistics');
+        //根据条件统计考勤  成员考勤--考勤统计
+        $api->get('/attendance/statistics','App\Http\Controllers\AttendanceController@Statistics');
+        //成员考勤--请假统计
+       $api->get('/attendance/leavestatistics','App\Http\Controllers\AttendanceController@leaveStatistics');
+       //考勤汇总 type 1:请假  2:加班 3:出差  4:外勤
+        $api->get('/attendance/collect','App\Http\Controllers\AttendanceController@collect');
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
 
@@ -151,7 +164,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
-
+        //  report
+        $api->get('/report', 'App\Http\Controllers\ReportController@index');
+        $api->post('report', 'App\Http\Controllers\ReportController@store');
+        $api->get('report/all', 'App\Http\Controllers\ReportController@all');
+        $api->delete('report', 'App\Http\Controllers\ReportController@delete');
+        //  launch
+        $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
+        $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
+        $api->post('launch', 'App\Http\Controllers\LaunchController@store');
         // trail
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
@@ -202,51 +223,39 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+
+        // personnel
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
         $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+        $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
+        $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
+        $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
+        $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
+        $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');
+        $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
+        $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
+        $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
+
+        // department
+        $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        // user
+        $api->get('/users', 'App\Http\Controllers\UserController@index');
+
 
         //$api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
 
 
+        $api->post('/materials', 'App\Http\Controllers\MaterialController@store');
+        $api->put('/materials/{material}', 'App\Http\Controllers\MaterialController@edit');
+        $api->delete('/materials/{material}', 'App\Http\Controllers\MaterialController@delete');
+        $api->get('/materials/{material}', 'App\Http\Controllers\MaterialController@detail');
+
+        // approval_groups
+        $api->get('/approval_groups/all', 'App\Http\Controllers\ApprovalGroupController@all');
+        $api->post('/approval_groups', 'App\Http\Controllers\ApprovalGroupController@store');
+        $api->put('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@edit');
+        $api->delete('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@delete');
+        $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
 
     });
-        $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
-
-       // $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
-
-        //增加个人信息
-        $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
-
-        //修改个人信息
-        $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
-
-        //修改职位信息
-        $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
-        //增加职位信息
-        $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
-
-        //增加岗位信息
-        $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');
-        //修改岗位信息
-        $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
-        //增加社保信息
-        $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
-        //获取员工信息
-        $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
-
-
-
-
-
-
-
-
-
-
-    // department
-    $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
-    // user
-    $api->get('/users', 'App\Http\Controllers\UserController@index');
-
-
 });

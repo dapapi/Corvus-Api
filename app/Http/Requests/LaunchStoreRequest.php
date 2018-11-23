@@ -1,10 +1,15 @@
 <?php
 
-namespace App\Http\Requests\Material;
+namespace App\Http\Requests;
 
+
+use App\CommunicationStatus;
+use App\Gender;
+use App\SignContractStatus;
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class MaterialStoreRequest extends FormRequest
+class LaunchStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +29,11 @@ class MaterialStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required',
-            'type' => 'nullable',
+            'answer' => 'required|max:255',
+            'issues_id' =>'',
+            'parent_id' =>'',
+            'creator_id'=>''
+
         ];
     }
 }

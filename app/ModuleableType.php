@@ -13,5 +13,6 @@ abstract class ModuleableType
     const USER = 'user';
     const PERSONA_JOB = 'personalJob';
     const PERSONA_SALARY = 'personalSalary';
-
+    const WORK = 'work';
+    const ATTENDANCE = 'attendance';
 }

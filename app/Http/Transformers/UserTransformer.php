@@ -14,6 +14,7 @@ class UserTransformer extends TransformerAbstract
         'department',
         'skills',
         'detail',
+        'job',
     ];
     public function transform(User $user)
     {
@@ -27,6 +28,7 @@ class UserTransformer extends TransformerAbstract
             'position' => $user->position,
             'hire_shape' => $user->hire_shape,
             'entry_time' => $user->entry_time,
+            'archive_time' => $user->entry_time,
 
 
         ];
@@ -57,9 +59,17 @@ class UserTransformer extends TransformerAbstract
     //关联个人信息表
     public function includeDetail(User $user)
     {
-        $detail = $user->detail;
+        $detail = $user->personalDetail;
 
-        return $this->collection($detail, new DetailTransformer());
+
+        return $this->item($detail, new DetailTransformer());
+    }
+
+    public function includeJob(User $user)
+    {
+        $job = $user->personalJob;
+
+        return $this->item($job, new JobTransformer());
     }
 
 }

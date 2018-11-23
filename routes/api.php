@@ -230,6 +230,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // personnel
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
+        $api->get('/archive', 'App\Http\Controllers\PersonnelManageController@archivelist');
         $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
         $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
         $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
@@ -239,6 +240,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
         $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
         $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
+        $api->get('/security/{user}', 'App\Http\Controllers\PersonnelManageController@securityDetail');
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');

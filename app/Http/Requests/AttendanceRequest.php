@@ -51,6 +51,12 @@ class AttendanceRequest extends FormRequest
                 Attendance::OTHER_LEAVE,//其他
             ]),
             'place' => 'max:255',
+            'status'    =>  Rule::in([
+                Attendance::AGREED,//已同意
+                Attendance::APPROVAL_PENFING,//待审批
+                Attendance::REFUSED,//已拒绝
+                Attendance::INVALID,//已作废
+            ])
 
         ];
     }

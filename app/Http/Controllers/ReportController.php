@@ -110,7 +110,7 @@ class ReportController extends Controller
                 }
             }
 
-         }catch (Exception $e) {
+         }catch (\Exception $e) {
             DB::rollBack();
             Log::error($e);
            return $this->response->errorInternal('创建失败');
@@ -121,15 +121,15 @@ class ReportController extends Controller
         }
 
     }
-    public function edit(ReportStoreRequest $request,report $star){
+    public function edit(ReportStoreRequest $request,Report $report){
         $payload = $request->all();
         $isAll = Report::where('template_name',$payload['template_name'])->first();
         if($isAll){
-            return $this->response->errorInternal('修改失败');
+            return $this->response->errorBadRequest('修改失败');
         }
         if ($request->has('template_name')) {
             $array['template_name'] = $payload['template_name'];//姓名
-            if ($array['template_name'] != $star->template_name) {
+            if ($array['template_name'] != $report->template_name) {
 //                $operateName = new OperateEntity([
 //                    'obj' => $star,
 //                    'title' => '名称',
@@ -146,10 +146,10 @@ class ReportController extends Controller
             if (count($array) == 0)
                 return $this->response->noContent();
 
-            $request->report->update($array);
+            $report->update($array);
             // 操作日志
            // event(new OperateLogEvent($arrayOperateLog));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('修改失败');

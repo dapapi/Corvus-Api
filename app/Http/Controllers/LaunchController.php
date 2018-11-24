@@ -17,9 +17,11 @@ use App\Http\Requests\LaunchStoreRequest;
 use App\Http\Transformers\LaunchTransformer;
 use App\Http\Transformers\IssuesTransformer;
 use App\Http\Transformers\AnswerTransformer;
-use App\Models\Launch;
+Use App\Http\Transformers\ReportTransformer;
+use App\Models\Report;
 use App\Models\Issues;
 use App\Models\Answer;
+use App\Models\ReportTemplateUser;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\User;
@@ -42,19 +44,18 @@ class LaunchController extends Controller
 
     public function index(Request $request)
     {
-
         $payload = $request->all();
-
+        $user = Auth::guard('api')->user();
+        $arr = ReportTemplateUser::where('user_id',$user->id)->get(['report_template_name_id']);
+        //$arr = DB::table('report_template_user')->where('user_id',$user->id)->get(['report_template_name_id']);
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $stars = Report::wherein('id',$arr)->createDesc()->paginate($pageSize);
 
-        $stars = Launch::createDesc()->paginate($pageSize);
-
-
-        return $this->response->paginator($stars, new LaunchTransformer());
+        return $this->response->paginator($stars, new ReportTransformer());
     }
     public function all(LaunchAllRequest $request)
     {
-        $isAll = $request->get('bulletin',false);
+        $isAll = $request->get('accessory',false);
 //        $bloggers = Launch::createDesc()->get();
 //        return $this->response->collection($bloggers, new LaunchTransformer($isAll));
 //
@@ -66,37 +67,42 @@ class LaunchController extends Controller
         {
             return $this->response->errorInternal('参数不能为零');
         }
-        $getbulletinlist = issues::where('bulletin_id',hashid_decode($isAll))->createDesc()->get();
+
+        $getbulletinlist = issues::where('accessory',hashid_decode($isAll))->createDesc()->get();
 
 
         return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
     }
     public function store(LaunchStoreRequest $request)
     {
+
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         unset($payload['status']);
         unset($payload['type']);
         $payload['creator_id'] = $user->id;
+        if($payload['answer']){
 
-        if($payload['issues_id']){
+            DB::beginTransaction();
+       try {
 
-            $arr = explode(',',$payload['issues_id']);
-            unset($payload['issues_id']);
-             $len = count($arr);
-             for($i=0;$i < $len;$i++){
 
-             $payload['issues_id'] = hashid_decode($arr[$i]);
-                 $star = Answer::create($payload);
-           }
+           foreach($payload['answer'] as $key => $value){
+               $payload['issues_id'] = hashid_decode($key);
+               $payload['answer'] = $value;
+               $star = Answer::create($payload);
+             }
+
+
+           }catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
         }
-        echo 1;
-print($star);die;
-
-        DB::beginTransaction();
-        try {
-
-
+        DB::commit();
+        }
+//        DB::beginTransaction();
+//       try {
             // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $star,
@@ -119,14 +125,16 @@ print($star);die;
 //                    }
 //                }
 //            }
+//        } catch (Exception $e) {
+//            DB::rollBack();
+//            Log::error($e);
+//            return $this->response->errorInternal('创建失败');
+//        }
+//        DB::commit();
 
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error($e);
-            return $this->response->errorInternal('创建失败');
-        }
-        DB::commit();
-
-        return $this->response->item(Star::find($star->id), new StarTransformer());
+        return $this->response->noContent();
     }
+
+
+
 }

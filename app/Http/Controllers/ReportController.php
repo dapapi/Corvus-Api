@@ -9,8 +9,16 @@ namespace App\Http\Controllers;
  */
 use App\Http\Requests\ReportStoreRequest;
 use App\Http\Requests\ReportAllRequest;
+use App\Events\OperateLogEvent;
 use App\Http\Transformers\ReportTransformer;
+use App\Http\Transformers\IssuesTransformer;
 use App\Models\Report;
+use App\Gender;
+use App\OperateLogMethod;
+use App\Models\Issues;
+use App\Models\IssuesTN;
+use App\Models\OperateEntity;
+use App\Models\IssuesTU;
 use App\Models\ReportTN;
 use App\Models\ReportTU;
 use App\Repositories\AffixRepository;
@@ -51,15 +59,14 @@ class ReportController extends Controller
             return $this->response->errorInternal('参数不能为零');
         }
         $getbulletinlist = Report::where('template_name',$isAll)->get();
-
         return $this->response->collection($getbulletinlist, new ReportTransformer($isAll));
 
     }
 
     public function store(ReportStoreRequest $request)
     {
-
         $payload = $request->all();
+
         $user = Auth::guard('api')->user();
         unset($payload['status']);
         unset($payload['type']);
@@ -79,7 +86,7 @@ class ReportController extends Controller
 
              $star = Report::create($payload);
 
-
+            if(!empty($payload['department_id'])){
             $arr1 = explode(',',$payload['department_id']);
             unset($payload['department_id']);
             $len = count($arr1);
@@ -90,15 +97,18 @@ class ReportController extends Controller
                 $pay['department_id'] = hashid_decode($arr1[$i]);
                 $st1= ReportTN::create($pay);
             }
-            $arr2 = explode(',',$payload['member']);
-            unset($payload['member']);
-            $len = count($arr2);
-            $pay = [];
-            for($i=0;$i < $len;$i++){
+            }
+            if(!empty($payload['member'])) {
+                $arr2 = explode(',', $payload['member']);
+                unset($payload['member']);
+                $len = count($arr2);
+                $pay = [];
+                for ($i = 0; $i < $len; $i++) {
 
-                $pay['report_template_name_id'] = $star->id;
-                $pay['user_id'] = hashid_decode($arr2[$i]);
-                $st2= ReportTU::create($pay);
+                    $pay['report_template_name_id'] = $star->id;
+                    $pay['user_id'] = hashid_decode($arr2[$i]);
+                    $st2 = ReportTU::create($pay);
+                }
             }
 
          }catch (Exception $e) {
@@ -110,6 +120,37 @@ class ReportController extends Controller
         }else{
             return $this->response->errorInternal('创建失败');
         }
+
+    }
+    public function edit(ReportStoreRequest $request,report $star){
+        $payload = $request->all();
+        if(!$request->has('id')){
+            return $this->response->errorInternal('修改失败');
+        }
+        $arr = report::where('template_name',$payload['template_name'])->first();
+        if(!empty($arr)){
+            return $this->response->errorInternal('修改失败');
+        }
+        $id = hashid_decode($payload['id']);
+        unset($payload['id']);
+        $star->where('id',$id)->update($payload);
+
+//        DB::beginTransaction();
+//        try{
+//            if (count($payload) == 0)
+//                return $this->response->noContent();
+//            print_r($payload);
+//            $star->update($payload);
+//            // 操作日志
+//
+//        } catch (Exception $e) {
+//            DB::rollBack();
+//            Log::error($e);
+//
+//        }
+//        DB::commit();
+
+        return $this->response->accepted();
 
     }
     public function delete(Request $request)
@@ -126,26 +167,182 @@ class ReportController extends Controller
         }else{
             return $this->response->noContent();
         }
+   }
+    public function index_issues(Request $request)
+    {
+
+        $user = $request->get('id', false);
+//        $user = Auth::guard('api')->user();
+        //$arr = DB::table('report_template_user')->where('user_id',$user->id)->get(['report_template_name_id']);
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $stars = Issues::where('accessory',hashid_decode($user))->createDesc()->paginate($pageSize);
+        return $this->response->paginator($stars, new IssuesTransformer());
+    }
+    public function store_issues(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        unset($payload['status']);
+        unset($payload['type']);
+        $payload['creator_id'] = $user->id;
+        $accessory = hashid_decode($payload['accessory']);
+        $payload['accessory'] = $accessory;
+        if ($payload['creator_id']) {
+            DB::beginTransaction();
+
+            try {
+
+                $arr = Issues::where('issues',$payload['issues'])->get();
+                if(!empty($arr[0])){
+                    return $this->response->errorInternal('问题已存在');
+
+                }
+                $star = Issues::create($payload);
+                if(!empty($payload['department_id'])){
+                $arr1 = explode(',',$payload['department_id']);
+                unset($payload['department_id']);
+                $len = count($arr1);
+                $pay = [];
+                for($i=0;$i < $len;$i++){
+
+                    $pay['issues_template_name_id'] = $star->id;
+                    $pay['department_id'] = hashid_decode($arr1[$i]);
+                    $st1= IssuesTN::create($pay);
+                }}
+                if(!empty($payload['member_id'])){
+                $arr2 = explode(',',$payload['member_id']);
+                unset($payload['member_Id']);
+                $len = count($arr2);
+                $pay = [];
+                for($i=0;$i < $len;$i++){
+
+                    $pay['issues_template_name_id'] = $star->id;
+                    $pay['user_id'] = hashid_decode($arr2[$i]);
+                    $st2= IssuesTU::create($pay);
+                }}
+
+            }catch (Exception $e) {
+                DB::rollBack();
+                Log::error($e);
+                return $this->response->errorInternal('创建失败');
+            }
+            DB::commit();
+        }else{
+            return $this->response->errorInternal('创建失败');
+        }
+
+    }
+    public function edit_issues(Request $request,issues $star)
+    {
+        $payload = $request->all();
+        if(!$request->has('id')){
+            return $this->response->errorInternal('修改失败');
+        }
+        $arr = Issues::where('issues',$payload['issues'])->first();
+        if(!empty($arr)){
+            return $this->response->errorInternal('修改失败');
+        }
+        $id = hashid_decode($payload['id']);
+        unset($payload['id']);
+        $star->where('id',$id)->update($payload);
 //        DB::beginTransaction();
-//        try {
-//           // $request->delete();
-////            // 操作日志
-////            $operate = new OperateEntity([
-////                'obj' => $star,
-////                'title' => null,
-////                'start' => null,
-////                'end' => null,
-////                'method' => OperateLogMethod::DELETE,
-////            ]);
-////            event(new OperateLogEvent([
-////                $operate,
-////            ]));
+//        try{
+//            if (count($payload) == 0)
+//                return $this->response->noContent();
+//            print_r($payload);
+//            $star->update($payload);
+//            // 操作日志
+//
 //        } catch (Exception $e) {
 //            DB::rollBack();
 //            Log::error($e);
-//            return $this->response->errorInternal('删除失败');
+//
 //        }
 //        DB::commit();
-//        return $this->response->noContent();
-   }
+
+        return $this->response->accepted();
+
+    }
+    public function edit1_issues(Request $request,issues $star)
+    {
+        $payload = $request->all();
+        if(!$request->has('id')){
+            return $this->response->errorInternal('修改失败');
+        }
+        $id = hashid_decode($payload['id']);
+        unset($payload['id']);
+        if($payload['operation']=='bottom'){
+            DB::beginTransaction();
+
+            try {
+
+           $othertime = Issues::find(hashid_decode($payload['other_id']))->updated_at->format('Y-m-d H:i:s');
+           $ottime   =  Issues::find($id)->updated_at->format('Y-m-d H:i:s');
+           $temp = $othertime;
+             if( $othertime > $ottime){
+            Issues::where('id',hashid_decode($payload['other_id']))->update(['updated_at'=>$ottime]);
+            Issues::where('id',$id)->update(['updated_at'=>$temp]);
+           unset($payload['other_id']);
+             }
+            }catch (Exception $e) {
+                DB::rollBack();
+                Log::error($e);
+                return $this->response->errorInternal('创建失败');
+            }
+            DB::commit();
+        }else if($payload['operation']=='top'){
+            DB::beginTransaction();
+
+            try {
+            $othertime = Issues::find(hashid_decode($payload['other_id']))->updated_at->format('Y-m-d H:i:s');
+            $ottime =  Issues::find($id)->updated_at->format('Y-m-d H:i:s');
+            $temp = $othertime ;
+                if( $othertime > $ottime) {
+                    Issues::where('id', hashid_decode($payload['other_id']))->update(['updated_at' => $ottime]);
+                    Issues::where('id', $id)->update(['updated_at' => $temp]);
+                }
+
+                unset($payload['other_id']);
+            }catch (Exception $e) {
+                DB::rollBack();
+                Log::error($e);
+                return $this->response->errorInternal('创建失败');
+            }
+            DB::commit();
+
+      }
+
+//        DB::beginTransaction();
+//        try{
+//            if (count($payload) == 0)
+//                return $this->response->noContent();
+//            print_r($payload);
+//            $star->update($payload);
+//            // 操作日志
+//
+//        } catch (Exception $e) {
+//            DB::rollBack();
+//            Log::error($e);
+//
+//        }
+//        DB::commit();
+
+        return $this->response->accepted();
+
+    }
+    public function delete_issues(Request $request)
+    {
+        $isAll = $request->get('all', false);
+//
+        $payload = hashid_decode($isAll);
+        $payload = issues::find($payload)->delete();
+//       // print_r($payload);
+//        $star = report::destroy($payload);
+        //  $post = report::find(2)->delete();
+        if(!$payload){
+            return $this->response->errorInternal('删除失败');
+        }else{
+            return $this->response->noContent();
+        }
+    }
 }

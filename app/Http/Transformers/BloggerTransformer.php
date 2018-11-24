@@ -39,13 +39,11 @@ class BloggerTransformer extends TransformerAbstract
             'sign_contract_other_name' => $blogger->sign_contract_other_name,//签约公司名称
             'status' => $blogger->status,
         ];
-
         $arraySimple = [
             'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
             'avatar' => $blogger->avatar
         ];
-
         return $this->isAll ? $array : $arraySimple;
     }
 

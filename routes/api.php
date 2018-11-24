@@ -153,13 +153,21 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
         //  report
         $api->get('/report', 'App\Http\Controllers\ReportController@index');
-        $api->post('report', 'App\Http\Controllers\ReportController@store');
-        $api->get('report/all', 'App\Http\Controllers\ReportController@all');
-        $api->delete('report', 'App\Http\Controllers\ReportController@delete');
+        $api->post('/report', 'App\Http\Controllers\ReportController@store');
+        $api->get('/report/all', 'App\Http\Controllers\ReportController@all');
+        $api->put('/report/{report}', 'App\Http\Controllers\ReportController@edit');
+        $api->delete('/report', 'App\Http\Controllers\ReportController@delete');
+        $api->get('/report/issues', 'App\Http\Controllers\ReportController@index_issues');
+        $api->post('/report/issues', 'App\Http\Controllers\ReportController@store_issues');
+        $api->put('/report/issues/{report}', 'App\Http\Controllers\ReportController@edit_issues');
+        $api->put('/report/issues/order/{report}', 'App\Http\Controllers\ReportController@edit1_issues');
+        $api->delete('/report/issues', 'App\Http\Controllers\ReportController@delete_issues');
+
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
-        $api->post('launch', 'App\Http\Controllers\LaunchController@store');
+        $api->post('/launch', 'App\Http\Controllers\LaunchController@store');
+       // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
         // trail
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');

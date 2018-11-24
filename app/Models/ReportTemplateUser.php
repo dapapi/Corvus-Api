@@ -4,15 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Answer extends Model
+class ReportTemplateUser extends Model
 {
-    protected $table = 'answer';
+    protected $table = 'report_template_user';
     protected $fillable = [
-        'answer', // 答案
-        'issues_id',  //   问题id
-        'reviewer_id',  //评审人
-        'creator_id', //创建人id
-        'parent_id', //     暂时没用到
+        'report_template_name_id',
+        'user_id',
+
 
     ];
 

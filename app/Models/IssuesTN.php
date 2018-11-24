@@ -6,12 +6,12 @@ use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ReportTN extends Model
+class IssuesTN extends Model
 {
     use SoftDeletes;
-    protected $table = 'report_template_department';
+    protected $table = 'issues_template_department';
     protected $fillable = [
-        'report_template_name_id', // 模板名称ReportTN.php
+        'issues_template_name_id', // 模板名称ReportTN.php
         'department_id',
 
 

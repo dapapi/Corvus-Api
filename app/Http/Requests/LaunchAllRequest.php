@@ -30,7 +30,7 @@ class LaunchAllRequest extends FormRequest
     {
         return [
 
-            'bulletin' => 'required|numeric',
+            'accessory' => 'required|numeric',
 
         ];
     }

@@ -27,19 +27,15 @@ class BloggerController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $bloggers = Blogger::createDesc()->paginate($pageSize);
         return $this->response->paginator($bloggers, new BloggerTransformer());
     }
-
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-
         $bloggers = Blogger::createDesc()->get();
         return $this->response->collection($bloggers, new BloggerTransformer($isAll));
     }
-
     public function show(Blogger $blogger)
     {
         // 操作日志
@@ -55,17 +51,13 @@ class BloggerController extends Controller
         ]));
         return $this->response->item($blogger, new BloggerTransformer());
     }
-
     public function recycleBin(Request $request)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $blogger = Blogger::onlyTrashed()->paginate($pageSize);
-
         return $this->response->paginator($blogger, new BloggerTransformer());
     }
-
     public function remove(Blogger $blogger)
     {
         DB::beginTransaction();
@@ -89,7 +81,6 @@ class BloggerController extends Controller
         }
         DB::commit();
     }
-
     public function recoverRemove(Blogger $blogger)
     {
         DB::beginTransaction();
@@ -113,13 +104,11 @@ class BloggerController extends Controller
         }
         DB::commit();
     }
-
     public function edit(BloggerUpdateRequest $request, Blogger $blogger)
     {
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
-
         if ($request->has('nickname')) {
             $array['nickname'] = $payload['nickname'];
             if ($array['nickname'] != $blogger->nickname) {
@@ -474,11 +463,8 @@ class BloggerController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-
         unset($payload['status']);
-
         $payload['creator_id'] = $user->id;
-
         if ($request->has('producer_id')) {
             try {
                 $producerId = hashid_decode($payload['producer_id']);
@@ -488,7 +474,6 @@ class BloggerController extends Controller
                 return $this->response->errorBadRequest('制作人错误');
             }
         }
-
         if ($request->has('type_id')) {
             try {
                 $typeId = hashid_decode($payload['type_id']);
@@ -498,7 +483,6 @@ class BloggerController extends Controller
                 return $this->response->errorBadRequest('类型错误');
             }
         }
-
         DB::beginTransaction();
         try {
             $blogger = Blogger::create($payload);

@@ -19,14 +19,8 @@ class Report extends Model
 
 
     ];
-    //设置主键
-//    public $primaryKey = 'id';
-
-//    //设置日期时间格式
-//    public $dateFormat = 'U';
-//
-//    protected $guarded = ['id','updated_at','created_at'];
     protected $dates = ['deleted_at'];
+
     public function scopeCreateDesc($query)
     {
 
@@ -60,9 +54,6 @@ class Report extends Model
         return $this->belongsTo(User::class, 'broker_id', 'id');
 
     }
-//    public function getgroup(){
-//        echo 1;die;
-//        return $this->hasOne(Groups::class,'group_id','id');
-//    }
+
 
 }

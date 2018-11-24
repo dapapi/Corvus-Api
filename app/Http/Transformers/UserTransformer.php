@@ -15,7 +15,9 @@ class UserTransformer extends TransformerAbstract
         'skills',
         'detail',
         'job',
+        'salary',
     ];
+   // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
     {
         $array = [
@@ -70,6 +72,13 @@ class UserTransformer extends TransformerAbstract
         $job = $user->personalJob;
 
         return $this->item($job, new JobTransformer());
+    }
+
+    public function includeSalary(User $user)
+    {
+        $salary = $user->personalSalary;
+
+        return $this->item($salary, new salaryTransformer());
     }
 
 }

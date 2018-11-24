@@ -22,10 +22,12 @@ class IssuesTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($Issues->id),
             'issues' => $Issues->issues,
-            'bulletin_id' => $Issues->bulletin_id,
+            //'department_id' => $Issues->department_id,
+            'member_id' => $Issues->member_id,
             'task_id' => $Issues->task_id,
             'accessory' => $Issues->accessory,
-
+            'type' =>$Issues->type,
+            'required' =>$Issues->required,
             'created_at' => $Issues->created_at->toDatetimeString(),
             'updated_at' => $Issues->updated_at->toDatetimeString()
 

@@ -7,17 +7,16 @@ namespace App\Http\Controllers;
  * Date: 2018/11/19
  * Time: 下午2:14
  */
+
+use App\Http\Requests\ReportEditIssuesRequest;
 use App\Http\Requests\ReportStoreRequest;
 use App\Http\Requests\ReportAllRequest;
-use App\Events\OperateLogEvent;
+use App\Http\Requests\IssuesRequest;
 use App\Http\Transformers\ReportTransformer;
 use App\Http\Transformers\IssuesTransformer;
 use App\Models\Report;
-use App\Gender;
-use App\OperateLogMethod;
 use App\Models\Issues;
 use App\Models\IssuesTN;
-use App\Models\OperateEntity;
 use App\Models\IssuesTU;
 use App\Models\ReportTN;
 use App\Models\ReportTU;
@@ -111,7 +110,7 @@ class ReportController extends Controller
                 }
             }
 
-         }catch (Exception $e) {
+         }catch (\Exception $e) {
             DB::rollBack();
             Log::error($e);
            return $this->response->errorInternal('创建失败');
@@ -122,33 +121,40 @@ class ReportController extends Controller
         }
 
     }
-    public function edit(ReportStoreRequest $request,report $star){
+    public function edit(ReportStoreRequest $request,Report $report){
         $payload = $request->all();
-        if(!$request->has('id')){
-            return $this->response->errorInternal('修改失败');
+        $isAll = Report::where('template_name',$payload['template_name'])->first();
+        if($isAll){
+            return $this->response->errorBadRequest('修改失败');
         }
-        $arr = report::where('template_name',$payload['template_name'])->first();
-        if(!empty($arr)){
-            return $this->response->errorInternal('修改失败');
+        if ($request->has('template_name')) {
+            $array['template_name'] = $payload['template_name'];//姓名
+            if ($array['template_name'] != $report->template_name) {
+//                $operateName = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '名称',
+//                    'start' => $star->name,
+//                    'end' => $array['name'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
+            }
         }
-        $id = hashid_decode($payload['id']);
-        unset($payload['id']);
-        $star->where('id',$id)->update($payload);
 
-//        DB::beginTransaction();
-//        try{
-//            if (count($payload) == 0)
-//                return $this->response->noContent();
-//            print_r($payload);
-//            $star->update($payload);
-//            // 操作日志
-//
-//        } catch (Exception $e) {
-//            DB::rollBack();
-//            Log::error($e);
-//
-//        }
-//        DB::commit();
+        DB::beginTransaction();
+        try {
+            if (count($array) == 0)
+                return $this->response->noContent();
+
+            $report->update($array);
+            // 操作日志
+           // event(new OperateLogEvent($arrayOperateLog));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
 
         return $this->response->accepted();
 
@@ -232,33 +238,41 @@ class ReportController extends Controller
         }
 
     }
-    public function edit_issues(Request $request,issues $star)
+    public function edit_issues(IssuesRequest $request,issues $star)
     {
         $payload = $request->all();
-        if(!$request->has('id')){
-            return $this->response->errorInternal('修改失败');
-        }
         $arr = Issues::where('issues',$payload['issues'])->first();
         if(!empty($arr)){
             return $this->response->errorInternal('修改失败');
         }
-        $id = hashid_decode($payload['id']);
-        unset($payload['id']);
-        $star->where('id',$id)->update($payload);
-//        DB::beginTransaction();
-//        try{
-//            if (count($payload) == 0)
-//                return $this->response->noContent();
-//            print_r($payload);
-//            $star->update($payload);
-//            // 操作日志
-//
-//        } catch (Exception $e) {
-//            DB::rollBack();
-//            Log::error($e);
-//
-//        }
-//        DB::commit();
+        if ($request->has('issues')) {
+            $array['issues'] = $payload['issues'];//姓名
+            if ($array['issues'] != $star->issues) {
+//                $operateName = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '名称',
+//                    'start' => $star->name,
+//                    'end' => $array['name'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            if (count($array) == 0)
+                return $this->response->noContent();
+
+            $star->update($array);
+            // 操作日志
+            // event(new OperateLogEvent($arrayOperateLog));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
 
         return $this->response->accepted();
 

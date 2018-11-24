@@ -176,8 +176,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/report', 'App\Http\Controllers\ReportController@delete');
         $api->get('/report/issues', 'App\Http\Controllers\ReportController@index_issues');
         $api->post('/report/issues', 'App\Http\Controllers\ReportController@store_issues');
-        $api->put('/report/issues/{report}', 'App\Http\Controllers\ReportController@edit_issues');
-        $api->put('/report/issues/order/{report}', 'App\Http\Controllers\ReportController@edit1_issues');
+        $api->put('/report/issues/{issues}', 'App\Http\Controllers\ReportController@edit_issues');
+        $api->put('/report/issues/order/template', 'App\Http\Controllers\ReportController@edit1_issues');
         $api->delete('/report/issues', 'App\Http\Controllers\ReportController@delete_issues');
 
         //  launch
@@ -252,6 +252,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        $api->post('/departments/{department}/user/{user}', 'App\Http\Controllers\DepartmentController@store');
+
         // user
         $api->get('/users', 'App\Http\Controllers\UserController@index');
 

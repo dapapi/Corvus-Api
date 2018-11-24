@@ -8,6 +8,8 @@ use App\Models\Blogger;
 use App\Models\Calendar;
 use App\Models\Material;
 use App\Models\Project;
+use App\Models\Report;
+use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Schedule;
@@ -145,7 +147,26 @@ class RouteServiceProvider extends ServiceProvider
             }
             return $entity;
         });
-
+        Route::bind('report', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Report::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('issues', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Issues::withTrashed()->findOrFail($id);
+               // $entity = Issues::findOrFail($id);
+             //   dd($entity);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
         Route::bind('blogger', function ($value) {
             try {
                 $id = hashid_decode($value);

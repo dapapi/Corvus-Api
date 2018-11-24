@@ -11,6 +11,8 @@ use App\Models\Star;
 use App\Models\Task;
 use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
+use App\Models\Department;
+
 use App\Models\Work;
 use App\User;
 use App\ModuleableType;
@@ -97,6 +99,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Attendance){
                 $type = ModuleableType::ATTENDANCE;
                 $typeName = '考勤';
+            }else if($operate->obj instanceof Department){
+                $type = ModuleableType::ATTENDANCE;
+                $typeName = '部门';
             }
             //TODO
 

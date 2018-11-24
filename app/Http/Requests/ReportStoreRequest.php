@@ -1,16 +1,7 @@
 <?php
 
 namespace App\Http\Requests;
-
-
-use App\AffixType;
-use App\CommunicationStatus;
-use App\Gender;
-use App\SignContractStatus;
-use App\StarSource;
 use Dingo\Api\Http\FormRequest;
-use Illuminate\Validation\Rule;
-
 class ReportStoreRequest extends FormRequest
 {
     /**
@@ -31,6 +22,7 @@ class ReportStoreRequest extends FormRequest
     public function rules()
     {
         return [
+            'template_name' => 'required|max:255',
     ];
     }
 }

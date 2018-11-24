@@ -7,6 +7,8 @@ use App\Models\Department;
 use App\Models\PersonalSkills;
 use App\Models\PersonalDetail;
 use App\Models\PersonalJob;
+use App\Models\PersonalSalary;
+
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
@@ -167,6 +169,11 @@ class User extends Authenticatable
     public function personalJob()
     {
         return $this->hasOne(PersonalJob::class, 'user_id', 'id');
+    }
+
+    public function PersonalSalary()
+    {
+        return $this->hasOne(PersonalSalary::class, 'user_id', 'id');
     }
 
     private function departmentToCompany(Department $department)

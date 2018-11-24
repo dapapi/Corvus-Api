@@ -7,11 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Department extends Model
 {
+
     protected $fillable = [
         'name',
         'department_pid',
         'desc',
     ];
+    const DEPARTMENT_HEAD_TYPE = 1; // 部门负责人
+
 
     public function pDepartment()
     {

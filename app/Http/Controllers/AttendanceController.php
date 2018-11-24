@@ -75,20 +75,21 @@ class AttendanceController extends Controller
     {
         $user = Auth::guard('api')->user();
         $year = $request->get('year',null);
-        $myselfAttendance = AttendanceRepository::myselfStatistics($user,$year);
-        return $myselfAttendance;
+        $daynumber = AttendanceRepository::myselfStatistics($user,$year);
+        return $daynumber;
     }
 
     /**
      * 统计当前用户的请假
      * @return array
      */
-    public function myselfLeavelStatistics()
+    public function myselfLeavelStatistics(AttendanceYearRequest $request)
     {
         $user = Auth::guard('api')->user();
-        $myselfLeavelStatistics = AttendanceRepository::myselfLeavelStatistics($user);
-//        return $myselfLeavelStatistics;
-        return $this->response->collection($myselfLeavelStatistics,new AttendanceTransformer());
+        $year = $request->get('year',null);
+        $daynumber = AttendanceRepository::myselfLeavelStatistics($user,$year);
+        return $daynumber;
+//        return $this->response->collection($myselfLeavelStatistics,new AttendanceTransformer());
     }
 
     /**
@@ -101,7 +102,8 @@ class AttendanceController extends Controller
         $end_time = $request->get('end_time',null);
         $department = $request->get('department',null);
         $statistics = AttendanceRepository::statistics($department,$start_time,$end_time);
-        return $this->response->collection($statistics,new AttendanceTransformer());
+        return $statistics;
+//        return $this->response->collection($statistics,new AttendanceTransformer());
     }
 
     /**
@@ -114,8 +116,9 @@ class AttendanceController extends Controller
         $start_time = $request->get('start_time',null);
         $end_time = $request->get('end_time',null);
         $department = $request->get('department',null);
-        $leavestatistics = AttendanceRepository::leaveStatistics($department,$start_time,$end_time);
-        return $this->response->collection($leavestatistics,new AttendanceTransformer());
+        $daynumber = AttendanceRepository::leaveStatistics($department,$start_time,$end_time);
+        return $daynumber;
+//        return $this->response->collection($leavestatistics,new AttendanceTransformer());
     }
 
     /**
@@ -130,7 +133,8 @@ class AttendanceController extends Controller
         $department = $request->get('department',null);
         $type = $request->get('type',null);
         $leavecollect = AttendanceRepository::collect($department,$start_time,$end_time,$type);
-        return $this->response->collection($leavecollect,new AttendanceTransformer());
+        return $leavecollect;
+//        return $this->response->collection($leavecollect,new AttendanceTransformer());
     }
 
     /**

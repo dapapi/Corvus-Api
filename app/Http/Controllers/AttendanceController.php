@@ -6,6 +6,7 @@ use App\Events\OperateLogEvent;
 use App\Http\Requests\AttendanceRequest;
 use App\Http\Requests\AttendancesStatisticsRepository;
 use App\Http\Requests\AttendanceStatisticsRequest;
+use App\Http\Requests\AttendanceYearRequest;
 use App\Http\Transformers\AttendanceTransformer;
 use App\Models\Attendance;
 use App\Models\OperateEntity;
@@ -34,7 +35,10 @@ class AttendanceController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-        unset($payload['creator_id']);
+        if(isset($payload['creator_id'])){
+            unset($payload['creator_id']);
+        }
+
         $payload['creator_id']  =   $user->id;
         //暂时存疑,应该判断审批流是否存在
         $payload['approval_flow']   = hashid_decode($payload['approval_flow']);
@@ -67,12 +71,12 @@ class AttendanceController extends Controller
      * 统计当前登陆用户的考勤
      * @return \Dingo\Api\Http\Response
      */
-    public function myselfStatistics()
+    public function myselfStatistics(AttendanceYearRequest $request)
     {
         $user = Auth::guard('api')->user();
-        $myselfAttendance = AttendanceRepository::MyselfStatistics($user);
-        return $this->response->collection($myselfAttendance,new AttendanceTransformer());
-//        return $myselfAttendance;
+        $year = $request->get('year',null);
+        $myselfAttendance = AttendanceRepository::myselfStatistics($user,$year);
+        return $myselfAttendance;
     }
 
     /**

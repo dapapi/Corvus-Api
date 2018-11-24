@@ -35,4 +35,5 @@ abstract class OperateLogMethod
     const DEL_PRINCIPAL = 23;//删除负责人
     const CANCEL = 24;//取消
     const RENEWAL = 25;//更新
+    const TRANSFER = 26;//调岗
 }

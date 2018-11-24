@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserWeiboInfosTable extends Migration
+class CreateStarBaikeInfosTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,10 @@ class CreateUserWeiboInfosTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_weibo_infos', function (Blueprint $table) {
+        Schema::create('star_baike_infos', function (Blueprint $table) {
             $table->increments('id');
             $table->string('open_id');
             $table->string('url')->nullable();
-            $table->string('nickname');
-            $table->string('avatar');
             $table->timestamps();
         });
     }
@@ -30,6 +28,6 @@ class CreateUserWeiboInfosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_weibo_infos');
+        Schema::dropIfExists('user_baike_infos');
     }
 }

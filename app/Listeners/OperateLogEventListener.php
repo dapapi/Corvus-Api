@@ -3,12 +3,14 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\OperateLog;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
-use App\Models\Users;
+use App\Models\PersonalJob;
+use App\Models\PersonalSalary;
 use App\Models\Work;
 use App\User;
 use App\ModuleableType;
@@ -51,6 +53,7 @@ class OperateLogEventListener
     protected $principal = '负责人';
     protected $cancel = '取消';
     protected $renewal = '更新';
+    protected $transfer = '调岗';
 
     /**
      * Handle the event.
@@ -82,9 +85,18 @@ class OperateLogEventListener
             }else if ($operate->obj instanceof User) {
                 $type = ModuleableType::USER;
                 $typeName = '用户';
+            }else if ($operate->obj instanceof PersonalJob) {
+                $type = ModuleableType::PERSONA_JOB;
+                $typeName = '岗位';
+            }else if ($operate->obj instanceof PersonalSalary) {
+                $type = ModuleableType::PERSONA_SALARY;
+                $typeName = '薪资';
             }else if($operate->obj instanceof Work){
                 $type = ModuleableType::WORK;
-                $typeName = '艺人';
+                $typeName = '作品库';
+            }else if($operate->obj instanceof Attendance){
+                $type = ModuleableType::ATTENDANCE;
+                $typeName = '考勤';
             }
             //TODO
 
@@ -195,9 +207,13 @@ class OperateLogEventListener
                     $level = OperateLogLevel::MIDDLE;
                     $content = sprintf($this->cancel_field, $title, $start);
                     break;
-                case OperateLogMethod::RENEWAL://更新
+                case OperateLogMethod::RENEWAL://更新TRANSFER
                     $level = OperateLogLevel::MIDDLE;
                     $content = $this->renewal . $title;
+                    break;
+                case OperateLogMethod::TRANSFER://调岗
+                    $level = OperateLogLevel::MIDDLE;
+                    $content = $this->transfer . $title;
                     break;
             }
 

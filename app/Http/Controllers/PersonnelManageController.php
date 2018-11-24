@@ -3,20 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Http\Transformers\UserTransformer;
+use App\Http\Transformers\JobTransformer;
+
 use App\Events\OperateLogEvent;
 
 use App\Models\Department;
 use Carbon\Carbon;
 use App\User;
-use App\Models\Users;
 use App\Models\Record;
 use App\Models\Education;
 use App\Models\FamilyData;
+use App\Models\PersonalDetail;
+use App\Models\PersonalJob;
+use App\Models\PersonalSalary;
+use App\Models\PersonalSocialSecurity;
 use App\Models\PersonalSkills;
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -36,9 +40,6 @@ class PersonnelManageController extends Controller
                 //检测关键字
                 $query->where('position_type',1)->count();
 
-                //$result1 = $query->where('position_type',2)->count();
-
-                //dd($result1);
                 $status = addslashes($request->input('status'));//状态
                 $positionType = addslashes($request->input('position_type'));//在职状态
                 $entryTime = addslashes($request->input('entry_time'));//入职日期
@@ -61,39 +62,32 @@ class PersonnelManageController extends Controller
                 }
 
                 // 1 正式 2实习 3管培生 4外包
+                if(!empty($status)) {
+                   if($status == 1){
+                       $query->whereIn('status',[1,2,4]);
+                       $query->where('hire_shape','!=',4);
 
-//                if(!empty($status)) {
-//                   if($status == 1){
-//                       $query->where('status',User::USER_STATUS_ONE)->orWhere('status',User::USER_STATUS_TOW);
-//
-//                   }elseif($status == 2){
-//                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_INTERN);
-//
-//                   }elseif($status == 3){
-//                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_GUANPEI);
-//
-//                   }elseif($status == 4){
-//                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
-//
-//                   }
-//                }
+                   }elseif($status == 2){
+                       $query->where('status',1)->Where('hire_shape',2);
 
-                if($status == 5){
-                    $query->where('status',User::USER_TYPE_DEPARTUE);
+                   }elseif($status == 3){
+                       $query->where('status',4)->Where('hire_shape',3);
+
+                   }elseif($status == 4){
+                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
+                       $query->where('status',5)->Where('hire_shape',4);
+
+                   }
                 }
 
                 if(!empty($entryTime)) {
                     $query->whereDate('entry_time', '>=', $startDate.' 00:00:00')->whereDate('entry_time', '<=', $endDate.' 23:59:59');
                 }
-
                 if(!empty($ehireShape)) {
                     $query->where('ehire_shape',$ehireShape);
                 }
-
                 if(!empty($search)) {
-
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
-
                 }
                 //不显示存档信息
                 $query->where('status','!=',User::USER_ARCHIVE);
@@ -120,15 +114,17 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('邮箱已经注册！');
         }else{
             if($payload['status_type']==1){
-                $payload['status'] =  Users::USER_STATUS_ONE;
+                $payload['status'] =  User::USER_STATUS_TRIAL;
             }elseif($payload['status_type']==2){
-                $payload['status'] =  Users::USER_STATUS_TOW;
+                $payload['status'] =  User::USER_STATUS_POSITIVE;
             }elseif($payload['status_type']==3){
-                $payload['status'] =  Users::USER_STATUS_THREE;
+                $payload['status'] =  User::USER_STATUS_DEPARTUE;
             }elseif($payload['status_type']==4){
-                $payload['status'] =  Users::USER_STATUS_FOUR;
+                $payload['status'] =  User::USER_STATUS_INTERN;
+            }else{
+                $payload['status'] =  User::USER_STATUS_OUT;
             }
-            $payload['password'] = Users::USER_PSWORD;
+            $payload['password'] = User::USER_PSWORD;
 
             DB::beginTransaction();
 
@@ -231,7 +227,7 @@ class PersonnelManageController extends Controller
     }
 
 
-    public function statusEdit(Request $request,User $user)
+    public function statusEdit(Request $request, User $user)
     {
         $payload = $request->all();
         $status = $payload['status'];
@@ -240,50 +236,39 @@ class PersonnelManageController extends Controller
             return $this->response->noContent();
         $now = Carbon::now();
 
-
-//        const  HIRE_SHAPE_INTERN = 2;   //实习生
-//        const  HIRE_SHAPE_GUANPEI = 3;   //管培生
-//        const  HIRE_SHAPE_OUT = 4;      //外包
-        //离职
-//        if($status == 2){
-//            $array = [
-//                'archive_time' => User::USER_DEPARTUE,
-//            ];
-//         //归档
-//        }elseif($status == 4) {
-//
-//            $array = [
-//                'status' => User::USER_ARCHIVE,
-//            ];
-//
-//        }else{
-//            $array = [
-//                'status' => User::USER_POSITIVE,
-//            ];
-//        }
-
-
+        if($status == 1){
             $array = [
-                'status' => $payload['status'],
+                'status' => User::USER_STATUS_POSITIVE,
+                'hire_shape' => User::HIRE_SHAPE_OFFICIAL,
             ];
-            //归档
- //       }
+        }
+        //离职
+        if($status == 2){
+            $array = [
+                'status' => User::USER_STATUS_DEPARTUE,
+                'hire_shape' => User::HIRE_SHAPE_INTERN,
+            ];
+         //归档
+        }elseif($status == 6) {
+            $array = [
+                'status' => User::USER_ARCHIVE,
+                'archive_time' => date('Y-m-d h:i:s',time()),
+            ];
+        }
         DB::beginTransaction();
         try {
+
              if (!empty($array)) {
                  $operate = new OperateEntity([
-
                      'obj' => $user,
-                     'title' => '状态',
+                     'title' => null,
                      'start' => $user->status,
-                     //'end' => isset($array['status'])? $array['status'] : $array['archive_time'],
                      'end' => $array['status'],
-
-                     'method' => OperateLogMethod::UPDATE,
+                     'method' => OperateLogMethod::TRANSFER,
 
                  ]);
-                 $user->update($array);
 
+                $user->update($array);
                  event(new OperateLogEvent([
                      $operate,
                  ]));
@@ -312,5 +297,255 @@ class PersonnelManageController extends Controller
         return $this->response->paginator($user, new UserTransformer());
 
     }
+
+
+    public function detail(Request $request,User $user)
+    {
+        //$res = User::belongsTo('App\User');
+        //dd($user->skills());
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $user,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
+        return $this->response->item($user, new UserTransformer());
+
+    }
+
+    //增加个人信息
+    public function storePersonal(Request $request, User $user,PersonalDetail $personalDetail)
+    {
+
+        $payload = $request->all();
+
+        $userid = $user->id;
+
+        try {
+            $operate = new OperateEntity([
+                    'obj' => $personalDetail,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+
+            $payload['user_id'] = $userid;
+            $userArr = [
+                'hire_shape' => $payload['userarr']['hire_shape'],
+                'position' => $payload['userarr']['position'],
+                'department' => $payload['userarr']['department'],
+                'id_number' => $payload['id_number'],
+
+            ];
+
+
+            $user->update($userArr);
+            $personalDetail->create($payload);
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+    }
+
+
+        //修改个人信息
+    public function editPersonal(Request $request, User $user,PersonalDetail $personalDetail)
+    {
+
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+//            $operate = new OperateEntity([
+//                    'obj' => $user,
+//                    'title' => '个人',
+//                    'start' => '信息',
+//                    'end' => '档案',
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+
+            $personalDetail->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+    }
+
+    //增加职位信息
+    public function storeJobs(Request $request, User $user,PersonalJob $personalJob)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+
+        try {
+            $payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+                $personalJob->create($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+
+    }
+
+    //修改职位信息
+    public function editJobs(Request $request, User $user,PersonalJob $personalJob)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+
+        try {
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+                $personalJob->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+
+    }
+
+    //修改薪资信息
+    public function editSalary(Request $request, User $user,PersonalSalary $personalSalary)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+            //$payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalJob,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $personalSalary->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+    }
+
+    //增加薪资信息
+    public function storeSalary(Request $request, User $user,PersonalSalary $personalSalary)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+            $payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalSalary,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $personalSalary->create($payload);
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+
+    }
+
+    //增加薪资信息
+    public function storeSecurity(Request $request, User $user,PersonalSocialSecurity $personalSocialSecurity)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        try {
+            $payload['user_id'] = $userid;
+//                // 操作日志
+//                $operate = new OperateEntity([
+//                    'obj' => $personalSalary,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $personalSocialSecurity->create($payload);
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('增加失败');
+        }
+        return $this->response->accepted();
+    }
+
+    //增加薪资信息
+    public function securityDetail(Request $request, User $user,PersonalJob $personalJob)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+
+        $personalJobInfo = PersonalJob::where('user_id', $userid)->get();
+
+        return $this->response->item($personalJobInfo, new JobTransformer());
+    }
+
+
+
+
 
 }

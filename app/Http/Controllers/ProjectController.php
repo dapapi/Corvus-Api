@@ -279,7 +279,6 @@ class ProjectController extends Controller
             dd($project);
             $projectId = $project->id;
 
-
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
                     $fieldId = hashid_decode((int)$key);

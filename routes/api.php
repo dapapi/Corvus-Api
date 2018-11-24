@@ -176,8 +176,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/report', 'App\Http\Controllers\ReportController@delete');
         $api->get('/report/issues', 'App\Http\Controllers\ReportController@index_issues');
         $api->post('/report/issues', 'App\Http\Controllers\ReportController@store_issues');
-        $api->put('/report/issues/{report}', 'App\Http\Controllers\ReportController@edit_issues');
-        $api->put('/report/issues/order/{report}', 'App\Http\Controllers\ReportController@edit1_issues');
+        $api->put('/report/issues/{issues}', 'App\Http\Controllers\ReportController@edit_issues');
+        $api->put('/report/issues/order/template', 'App\Http\Controllers\ReportController@edit1_issues');
         $api->delete('/report/issues', 'App\Http\Controllers\ReportController@delete_issues');
 
         //  launch

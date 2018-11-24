@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class Issues extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'issues', // 问题
         'department_id',  //部门
@@ -18,7 +19,7 @@ class Issues extends Model
 
 
     ];
-
+    protected $dates = ['deleted_at'];
     public function scopeCreateDesc($query)
     {
 

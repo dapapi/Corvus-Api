@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class BulletinReview extends Model
 {
+    protected  $table = 'bulletin_review';
     protected $fillable = [
         'template_id', // 简报类型
         'member',  //成员
         'title',     //简报周期
-        'created_at', //提交时间
+      //  'created_at', //提交时间
         'status',    // 默认0      1  待审批   2 已审批
 
 

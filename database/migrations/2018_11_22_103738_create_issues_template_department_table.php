@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateReportTemplateDepartmentTable extends Migration
+class CreateIssuesTemplateDepartmentTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreateReportTemplateDepartmentTable extends Migration
      */
     public function up()
     {
-        Schema::create('report_template_department', function (Blueprint $table) {
+        Schema::create('issues_template_department', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('report_template_name_id');
+            $table->unsignedInteger('issues_template_name_id');
             $table->unsignedInteger('department_id');
-
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ class CreateReportTemplateDepartmentTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('report_template_department');
+        Schema::dropIfExists('issues_template_department');
     }
 }

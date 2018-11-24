@@ -53,6 +53,7 @@ class OperateLogEventListener
     protected $principal = '负责人';
     protected $cancel = '取消';
     protected $renewal = '更新';
+    protected $transfer = '调岗';
 
     /**
      * Handle the event.
@@ -206,9 +207,13 @@ class OperateLogEventListener
                     $level = OperateLogLevel::MIDDLE;
                     $content = sprintf($this->cancel_field, $title, $start);
                     break;
-                case OperateLogMethod::RENEWAL://更新
+                case OperateLogMethod::RENEWAL://更新TRANSFER
                     $level = OperateLogLevel::MIDDLE;
                     $content = $this->renewal . $title;
+                    break;
+                case OperateLogMethod::TRANSFER://调岗
+                    $level = OperateLogLevel::MIDDLE;
+                    $content = $this->transfer . $title;
                     break;
             }
 

@@ -10,7 +10,7 @@ class Issues extends Model
         'issues', // 问题
         'department_id',  //部门
         'member_id',  //成员
-        'bulletin_id', //bulletin
+        //'bulletin_id', //bulletin
         'task_id',  //   选择任务标识
         'type', //类型  1.文本  2.数字 3.日期  4.任务 5.附件
         'required',  //默认  1.必填   0.不填
@@ -22,7 +22,7 @@ class Issues extends Model
     public function scopeCreateDesc($query)
     {
 
-        return $query->orderBy('created_at');
+        return $query->orderBy('updated_at');
 
     }
 

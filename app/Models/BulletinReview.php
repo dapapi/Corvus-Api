@@ -4,22 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Answer extends Model
+class BulletinReview extends Model
 {
-    protected $table = 'answer';
     protected $fillable = [
-        'answer', // 答案
-        'issues_id',  //   问题id
-        'reviewer_id',  //评审人
-        'creator_id', //创建人id
-        'parent_id', //     暂时没用到
+        'template_id', // 简报类型
+        'member',  //成员
+        'title',     //简报周期
+        'created_at', //提交时间
+        'status',    // 默认0      1  待审批   2 已审批
+
+
 
     ];
 
     public function scopeCreateDesc($query)
     {
 
-        return $query->orderBy('created_at');
+        return $query->orderBy('updated_at');
 
     }
 

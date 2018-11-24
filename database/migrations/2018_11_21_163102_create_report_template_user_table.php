@@ -16,6 +16,7 @@ class CreateReportTemplateUserTable extends Migration
         Schema::create('report_template_user', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('report_template_name_id');
+            $table->unsignedInteger('user_id');
             $table->timestamps();
         });
     }

@@ -223,6 +223,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::bind('personalDetail', function ($value) {
             try {
                 $id = hashid_decode($value);
+
                 $entity = personalDetail::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);

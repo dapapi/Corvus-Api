@@ -170,13 +170,21 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
         //  report
         $api->get('/report', 'App\Http\Controllers\ReportController@index');
-        $api->post('report', 'App\Http\Controllers\ReportController@store');
-        $api->get('report/all', 'App\Http\Controllers\ReportController@all');
-        $api->delete('report', 'App\Http\Controllers\ReportController@delete');
+        $api->post('/report', 'App\Http\Controllers\ReportController@store');
+        $api->get('/report/all', 'App\Http\Controllers\ReportController@all');
+        $api->put('/report/{report}', 'App\Http\Controllers\ReportController@edit');
+        $api->delete('/report', 'App\Http\Controllers\ReportController@delete');
+        $api->get('/report/issues', 'App\Http\Controllers\ReportController@index_issues');
+        $api->post('/report/issues', 'App\Http\Controllers\ReportController@store_issues');
+        $api->put('/report/issues/{report}', 'App\Http\Controllers\ReportController@edit_issues');
+        $api->put('/report/issues/order/{report}', 'App\Http\Controllers\ReportController@edit1_issues');
+        $api->delete('/report/issues', 'App\Http\Controllers\ReportController@delete_issues');
+
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
-        $api->post('launch', 'App\Http\Controllers\LaunchController@store');
+        $api->post('/launch', 'App\Http\Controllers\LaunchController@store');
+       // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
         // trail
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
@@ -230,6 +238,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // personnel
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
+        $api->get('/archive', 'App\Http\Controllers\PersonnelManageController@archivelist');
         $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
         $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
         $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
@@ -239,6 +248,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
         $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
         $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
+        $api->get('/security/{user}', 'App\Http\Controllers\PersonnelManageController@securityDetail');
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');

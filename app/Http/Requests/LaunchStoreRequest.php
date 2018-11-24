@@ -2,12 +2,8 @@
 
 namespace App\Http\Requests;
 
-
-use App\CommunicationStatus;
-use App\Gender;
-use App\SignContractStatus;
 use Dingo\Api\Http\FormRequest;
-use Illuminate\Validation\Rule;
+
 
 class LaunchStoreRequest extends FormRequest
 {
@@ -32,7 +28,8 @@ class LaunchStoreRequest extends FormRequest
             'answer' => 'required|max:255',
             'issues_id' =>'',
             'parent_id' =>'',
-            'creator_id'=>''
+            'creator_id'=>'',
+            'reviewer_id'=>'',
 
         ];
     }

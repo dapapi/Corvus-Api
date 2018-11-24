@@ -26,13 +26,22 @@ class ReportTransformer extends TransformerAbstract
             'frequency' => $star->frequency,
             'department_id' => $star->department_id,
             'member' => $star->member,
+            'delete_at' => $star->delete_at,
+            'created_id' => $star->created_id,
             'created_at' => $star->created_at->toDatetimeString(),
             'updated_at' => $star->updated_at->toDatetimeString(),
             'issues_id' => $star->issues_id,
 
         ];
 
-        return $this->isAll ? $array : '';
+
+        $arraySimple = [
+            'id' => hashid_encode($star->id),
+            'name' => $star->name,
+            'avatar' => $star->avatar
+        ];
+
+        return $this->isAll ? $array :$arraySimple;
     }
 
     public function includeCreator(Report $star)

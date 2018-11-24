@@ -6,7 +6,7 @@ use App\Models\Affix;
 use App\Models\Department;
 use App\Models\PersonalSkills;
 use App\Models\PersonalDetail;
-
+use App\Models\PersonalJob;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
@@ -51,12 +51,17 @@ class User extends Authenticatable
         'entry_time',
         'blood_type',
         'status',
+        'hire_shape',
+        'archive_time',
+        'position',
+        'department',
     ];
 
-    const USER_STATUS_ONE = 1; //
-    const USER_STATUS_TOW = 2; //
-    const USER_STATUS_THREE = 3; //
-    const USER_STATUS_FOUR = 4; //
+    const USER_STATUS_TRIAL = 1; // 试用期
+    const USER_STATUS_POSITIVE = 2; //转正
+    const USER_STATUS_DEPARTUE = 3; //离职
+    const USER_STATUS_INTERN = 4; //实习
+    const USER_STATUS_OUT = 5;    //外包
 
     const  HIRE_SHAPE_OFFICIAL = 1;  //正式
     const  HIRE_SHAPE_INTERN = 2;   //实习生
@@ -65,9 +70,10 @@ class User extends Authenticatable
 
 
     const  USER_POSITIVE = 1;//转正
-    const  USER_ARCHIVE = 4; //存档
     const  USER_DEPARTUE = 2; //离职
     const  USER_DTRANSFER = 3; //调岗
+    const  USER_ARCHIVE = 6; //存档
+
 
     const  USER_TYPE_DEPARTUE = 5; //离职
 
@@ -155,7 +161,12 @@ class User extends Authenticatable
 
     public function personalDetail()
     {
-        return $this->hasMany(PersonalDetail::class, 'user_id', 'id');
+        return $this->hasOne(PersonalDetail::class, 'user_id', 'id');
+    }
+
+    public function personalJob()
+    {
+        return $this->hasOne(PersonalJob::class, 'user_id', 'id');
     }
 
     private function departmentToCompany(Department $department)

@@ -74,8 +74,10 @@ class PersonnelManageController extends Controller
                        $query->where('status',4)->Where('hire_shape',3);
 
                    }elseif($status == 4){
-                       $query->where('status',User::USER_STATUS_INTERN)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
-                       $query->where('status',5)->Where('hire_shape',4);
+                       //dd(11);
+                       //$query->where('hire_shape',User::HIRE_SHAPE_OUT)->orWhere('status',User::USER_STATUS_OUT);
+                     //  $query->where('status',5)->Where('hire_shape',4);
+                       $query->where('hire_shape',User::HIRE_SHAPE_OUT)->Where('status',User::USER_STATUS_OUT);
 
                    }
                 }

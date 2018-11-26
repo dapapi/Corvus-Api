@@ -79,7 +79,7 @@ class UserTransformer extends TransformerAbstract
     {
         $salary = $user->personalSalary;
 
-        return $this->item($salary, new salaryTransformer());
+        return $this->item($salary, new SalaryTransformer());
     }
 
 }

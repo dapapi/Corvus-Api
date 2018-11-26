@@ -177,8 +177,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
         $api->post('launch', 'App\Http\Controllers\LaunchController@store');
+
         // trail
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
+        $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
@@ -260,6 +262,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@edit');
         $api->delete('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@delete');
         $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
+
 
     });
 });

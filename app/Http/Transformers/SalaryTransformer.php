@@ -10,6 +10,7 @@ class SalaryTransformer extends TransformerAbstract
     public function transform(PersonalSalary $salary)
     {
         return [
+            
             'id' => hashid_encode($salary->id),
             'user_id' => $salary->id,
             'entry_time' => $salary->entry_time,

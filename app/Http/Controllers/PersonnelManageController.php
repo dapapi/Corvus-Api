@@ -59,7 +59,7 @@ class PersonnelManageController extends Controller
 
                 if($positionType !==2) {
                     //dd($positionType);
-                    $query->where('position_type',2);
+                    $query->where('position_type',$positionType);
                 }else {
 
                     // 1 正式 2实习 3管培生 4外包

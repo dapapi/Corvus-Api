@@ -21,6 +21,9 @@ class Client extends Model
     const SIZE_LISTED = 2;
     const SIZE_TOP500 = 3;
 
+    const GRADE_NORMAL = 1;
+    const GRADE_PROXY = 2;
+
     const STATUS_NORMAL = 1;
     const STATUS_FROZEN = 2;
 

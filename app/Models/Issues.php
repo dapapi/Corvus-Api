@@ -23,7 +23,7 @@ class Issues extends Model
     public function scopeCreateDesc($query)
     {
 
-        return $query->orderBy('updated_at');
+        return $query->orderBy('updated_at','DESC');
 
     }
 

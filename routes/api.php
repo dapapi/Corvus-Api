@@ -179,7 +179,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/report/issues/{issues}', 'App\Http\Controllers\ReportController@edit_issues');
         $api->put('/report/issues/order/template', 'App\Http\Controllers\ReportController@edit1_issues');
         $api->delete('/report/issues', 'App\Http\Controllers\ReportController@delete_issues');
-
+        // review
+        $api->get('/review', 'App\Http\Controllers\ReviewController@index');
+        $api->post('/review', 'App\Http\Controllers\ReviewController@store');
+        $api->get('/review/all', 'App\Http\Controllers\ReviewController@all');
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');

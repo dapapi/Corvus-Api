@@ -9,24 +9,21 @@ namespace App\Http\Controllers;
  */
 
 
-use App\CommunicationStatus;
-use App\Events\OperateLogEvent;
+
 use Ap\Gender;
 use App\Http\Requests\LaunchAllRequest;
 use App\Http\Requests\LaunchStoreRequest;
-use App\Http\Transformers\LaunchTransformer;
 use App\Http\Transformers\IssuesTransformer;
 use App\Http\Transformers\AnswerTransformer;
 Use App\Http\Transformers\ReportTransformer;
+use App\Models\BulletinReviewTitle;
 use App\Models\Report;
 use App\Models\BulletinReview;
 use App\Models\Issues;
 use App\Models\Answer;
 use App\Models\ReportTemplateUser;
-use App\OperateLogMethod;
+use App\Models\BulletinReviewTitleIssuesAnswer;
 use App\Repositories\AffixRepository;
-use App\User;
-use App\Whether;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -89,18 +86,18 @@ class LaunchController extends Controller
 
            $accessory = hashid_decode($payload['accessory']);
            unset($payload['accessory']);
-
-           foreach($payload['answer'] as $key => $value){
-               $payload['issues_id'] = hashid_decode($key);
-               $payload['answer'] = $value;
-               $star = Answer::create($payload);
-             }
+//
+//           foreach($payload['answer'] as $key => $value){
+//               $payload['issues_id'] = hashid_decode($key);
+//               $payload['answer'] = $value;
+//               $star = Answer::create($payload);
+//             }
            $template = Report::find($accessory);
            $paysload=new BulletinReview();
            $paysload->template_id=$template->id;
            $paysload->member = $user->id;
            if($template->frequency == 1){
-             $data = date("Y年m月d日",time());
+             $data = date("Y年m月d日",time()).','.date("Y年m月d日",time());
            }else if($template->frequency == 2){
                $timestr = time();
                $now_day = date('w',$timestr);
@@ -110,25 +107,65 @@ class LaunchController extends Controller
                //获取一周的最后一天，注意最后一天是星期六
                $strday_str = $timestr + (7-$now_day)*60*60*24;
                $strday = date('m月d日', $strday_str);
-               $data = date('Y',time()).'年第'.date('W',time()).'周'.'<br/>'.$sunday.'-'.$strday;
+               $data = date('Y',time()).'年第'.date('W',time()).'周'.','.$sunday.'-'.$strday;
 
            }else if($template->frequency == 3){
                $now_month_first_date = date('m月1日');
                $now_month_last_date  = date('m月d日',strtotime(date('Y-m-1',strtotime('next month')).'-1 day'));
-               $data = date('Y年m月',time()).'<br/>'.$now_month_first_date.'-'.$now_month_last_date;
+               $data = date('Y年m月',time()).','.$now_month_first_date.'-'.$now_month_last_date;
 
            }else if($template->frequency == 4){
                $season = ceil(date('n') /3);
-               $data = date('Y年第').$season.'季度'.'<br/>'.date('m月1日',mktime(0,0,0,($season - 1) *3 +1,1,date('Y'))).'-'.date('m月t日',mktime(0,0,0,$season * 3,1,date('Y')));
+               $data = date('Y年第').$season.'季度'.','.date('m月1日',mktime(0,0,0,($season - 1) *3 +1,1,date('Y'))).'-'.date('m月t日',mktime(0,0,0,$season * 3,1,date('Y')));
 
            }else if($template->frequency == 5){
-               $data = date('Y年').'<br/>'.date('1月1日').'-'.date('12月31日');
+               $data = date('Y年').','.date('1月1日').'-'.date('12月31日');
            }
            $paysload->title = $data;
            $paysload->status = $this->Approval;
            $bool = $paysload->save();
-          // dd($paysload);
+           $bulletionload=new BulletinReviewTitle();
+           $bulletionload->bulletin_review_id=$template->id;
+           $bulletionload->creator_id=$user->id;
+           if($template->frequency == 1) {
+               $data1 = $user->name.'的'.$template->template_name.'-'.date("Y年m月d日", time());
+           }else if($template->frequency == 2){
+               $timestr = time();
+               $now_day = date('w',$timestr);
+               //获取一周的第一天，注意第一天应该是星期天
+               $sunday_str = $timestr - ($now_day-1)*60*60*24;
+               $sunday = date('m月d日', $sunday_str);
+               //获取一周的最后一天，注意最后一天是星期六
+               $strday_str = $timestr + (7-$now_day)*60*60*24;
+               $strday = date('m月d日', $strday_str);
+               $data1 = $user->name.'的'.$template->template_name.'-第'.date('W',time()).'周'.','.$sunday.'-'.$strday;
 
+           }else if($template->frequency == 3){
+               $now_month_first_date = date('m月1日');
+               $now_month_last_date  = date('m月d日',strtotime(date('Y-m-1',strtotime('next month')).'-1 day'));
+               $data1 = $user->name.'的'.$template->template_name.'-'.date('m月',time()).','.$now_month_first_date.'-'.$now_month_last_date;
+
+           }else if($template->frequency == 4){
+               $season = ceil(date('n') /3);
+               $data1 = $user->name.'的'.$template->template_name.'-'.date('第').$season.'季度'.','.date('m月1日',mktime(0,0,0,($season - 1) *3 +1,1,date('Y'))).'-'.date('m月t日',mktime(0,0,0,$season * 3,1,date('Y')));
+
+           }else if($template->frequency == 5){
+               $data1 = $user->name.'的'.$template->template_name.'-'.date('Y年').','.date('1月1日').'-'.date('12月31日');
+           }
+           $bulletionload->title=$data1;
+           $bulletionload->status = $this->Approval;
+           $booll = $bulletionload->save();
+           $review_id = $bulletionload->id;
+           foreach($payload['answer'] as $key => $value){
+               $bulletionload=new BulletinReviewTitleIssuesAnswer();
+               $bulletionload->bulletin_review_title_id=$review_id;
+               $bulletionload->issues = Issues::find(hashid_decode($key))->issues;
+               $bulletionload->answer = $value;
+              $review = $bulletionload->save();
+               $payload['issues_id'] = hashid_decode($key);
+               $payload['answer'] = $value;
+               $star = Answer::create($payload);
+           }
            }catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

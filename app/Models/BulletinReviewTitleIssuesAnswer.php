@@ -4,15 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BulletinReview extends Model
+class BulletinReviewTitleIssuesAnswer extends Model
 {
-    protected  $table = 'bulletin_review';
+    protected  $table = 'bulletion_review_title_issues_answer';
     protected $fillable = [
-        'template_id', // 简报类型
-        'member',  //成员
-        'title',     //简报周期
-      //  'created_at', //提交时间
-        'status',    // 默认0      1  待审批   2 已审批
+        'bulletin_review_title_id', // 简报类型
+        'issues',  //成员
+        'answer',     //简报周期
+
 
 
 
@@ -20,13 +19,15 @@ class BulletinReview extends Model
 
     public function scopeCreateDesc($query)
     {
+
         return $query->orderBy('updated_at');
 
     }
+
     public function creator()
     {
 
-        return $this->belongsTo(User::class, 'creator_id', 'id');
+      //  return $this->belongsTo(User::class, 'creator_id', 'id');
     }
 
     public function affixes()
@@ -48,7 +49,7 @@ class BulletinReview extends Model
 
     public function broker()
     {
-        return $this->belongsTo(User::class, 'broker_id', 'id');
+       // return $this->belongsTo(User::class, 'broker_id', 'id');
 
     }
 

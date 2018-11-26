@@ -125,7 +125,9 @@ class ReportController extends Controller
         $payload = $request->all();
         $isAll = Report::where('template_name',$payload['template_name'])->first();
         if($isAll){
+            if($isAll->id != $report->id){
             return $this->response->errorBadRequest('修改失败');
+            }
         }
         if ($request->has('template_name')) {
             $array['template_name'] = $payload['template_name'];//姓名
@@ -146,7 +148,8 @@ class ReportController extends Controller
             if (count($array) == 0)
                 return $this->response->noContent();
 
-            $report->update($array);
+            $report->update($payload);
+
             // 操作日志
            // event(new OperateLogEvent($arrayOperateLog));
         } catch (\Exception $e) {
@@ -178,18 +181,21 @@ class ReportController extends Controller
     {
 
         $user = $request->get('id', false);
-//        $user = Auth::guard('api')->user();
+       // $user = Auth::guard('api')->user();
+        if($request->has('type')){
+            $pageSize = $request->get('page_size', config('app.page_size'));
+            $stars = Issues::where('accessory',hashid_decode($user))->where('type',$request->type)->createDesc()->paginate($pageSize);
+        }else{
         //$arr = DB::table('report_template_user')->where('user_id',$user->id)->get(['report_template_name_id']);
         $pageSize = $request->get('page_size', config('app.page_size'));
         $stars = Issues::where('accessory',hashid_decode($user))->createDesc()->paginate($pageSize);
+    }
         return $this->response->paginator($stars, new IssuesTransformer());
     }
     public function store_issues(Request $request)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-        unset($payload['status']);
-        unset($payload['type']);
         $payload['creator_id'] = $user->id;
         $accessory = hashid_decode($payload['accessory']);
         $payload['accessory'] = $accessory;
@@ -238,16 +244,18 @@ class ReportController extends Controller
         }
 
     }
-    public function edit_issues(IssuesRequest $request,issues $star)
+    public function edit_issues(IssuesRequest $request,Issues $Issues)
     {
         $payload = $request->all();
         $arr = Issues::where('issues',$payload['issues'])->first();
-        if(!empty($arr)){
+        if(!empty($arr)) {
+            if ($arr->id !=$Issues->id ) {
             return $this->response->errorInternal('修改失败');
+         }
         }
         if ($request->has('issues')) {
             $array['issues'] = $payload['issues'];//姓名
-            if ($array['issues'] != $star->issues) {
+            if ($array['issues'] != $Issues->issues) {
 //                $operateName = new OperateEntity([
 //                    'obj' => $star,
 //                    'title' => '名称',
@@ -264,7 +272,7 @@ class ReportController extends Controller
             if (count($array) == 0)
                 return $this->response->noContent();
 
-            $star->update($array);
+            $Issues->update($payload);
             // 操作日志
             // event(new OperateLogEvent($arrayOperateLog));
         } catch (Exception $e) {
@@ -277,7 +285,7 @@ class ReportController extends Controller
         return $this->response->accepted();
 
     }
-    public function edit1_issues(Request $request,issues $star)
+    public function edit1_issues(Request $request)
     {
         $payload = $request->all();
         if(!$request->has('id')){
@@ -285,23 +293,24 @@ class ReportController extends Controller
         }
         $id = hashid_decode($payload['id']);
         unset($payload['id']);
+
         if($payload['operation']=='bottom'){
             DB::beginTransaction();
-
             try {
-
            $othertime = Issues::find(hashid_decode($payload['other_id']))->updated_at->format('Y-m-d H:i:s');
            $ottime   =  Issues::find($id)->updated_at->format('Y-m-d H:i:s');
-           $temp = $othertime;
-             if( $othertime > $ottime){
-            Issues::where('id',hashid_decode($payload['other_id']))->update(['updated_at'=>$ottime]);
-            Issues::where('id',$id)->update(['updated_at'=>$temp]);
+           $temp = $ottime;
+             if( $othertime < $ottime){
+
+                 Issues::where('id',$id)->update(['updated_at'=>$othertime]);
+                 Issues::where('id',hashid_decode($payload['other_id']))->update(['updated_at'=>$temp]);
+
            unset($payload['other_id']);
              }
             }catch (Exception $e) {
                 DB::rollBack();
                 Log::error($e);
-                return $this->response->errorInternal('创建失败');
+                return $this->response->errorInternal('修改失败');
             }
             DB::commit();
         }else if($payload['operation']=='top'){
@@ -310,10 +319,11 @@ class ReportController extends Controller
             try {
             $othertime = Issues::find(hashid_decode($payload['other_id']))->updated_at->format('Y-m-d H:i:s');
             $ottime =  Issues::find($id)->updated_at->format('Y-m-d H:i:s');
-            $temp = $othertime ;
+            $temp = $ottime ;
                 if( $othertime > $ottime) {
-                    Issues::where('id', hashid_decode($payload['other_id']))->update(['updated_at' => $ottime]);
-                    Issues::where('id', $id)->update(['updated_at' => $temp]);
+                    Issues::where('id',$id)->update(['updated_at' => $othertime]);
+                    Issues::where('id',hashid_decode($payload['other_id']))->update(['updated_at' => $temp]);
+
                 }
 
                 unset($payload['other_id']);
@@ -347,12 +357,8 @@ class ReportController extends Controller
     public function delete_issues(Request $request)
     {
         $isAll = $request->get('all', false);
-//
         $payload = hashid_decode($isAll);
         $payload = issues::find($payload)->delete();
-//       // print_r($payload);
-//        $star = report::destroy($payload);
-        //  $post = report::find(2)->delete();
         if(!$payload){
             return $this->response->errorInternal('删除失败');
         }else{

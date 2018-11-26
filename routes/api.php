@@ -137,7 +137,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //我的考勤请假统计
         $api->get('/attendance/myselfleavelstatistics','App\Http\Controllers\AttendanceController@myselfLeavelStatistics');
         //根据条件统计考勤  成员考勤--考勤统计
-        $api->get('/attendance/statistics','App\Http\Controllers\AttendanceController@Statistics');
+        $api->get('/attendance/statistics','App\Http\Controllers\AttendanceController@statistics');
         //成员考勤--请假统计
        $api->get('/attendance/leavestatistics','App\Http\Controllers\AttendanceController@leaveStatistics');
        //考勤汇总 type 1:请假  2:加班 3:出差  4:外勤
@@ -255,6 +255,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        $api->post('/departments/{department}/user/{user}', 'App\Http\Controllers\DepartmentController@store');
+
         // user
         $api->get('/users', 'App\Http\Controllers\UserController@index');
 

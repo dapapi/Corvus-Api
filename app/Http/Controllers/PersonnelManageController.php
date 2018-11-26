@@ -74,7 +74,7 @@ class PersonnelManageController extends Controller
                        $query->where('status',4)->Where('hire_shape',3);
 
                    }elseif($status == 4){
-                       $query->where('status',User::USER_STATUS_FOUR)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
+                       $query->where('status',User::USER_STATUS_INTERN)->orWhere('hire_shape',User::HIRE_SHAPE_OUT);
                        $query->where('status',5)->Where('hire_shape',4);
 
                    }
@@ -303,17 +303,6 @@ class PersonnelManageController extends Controller
     {
         //$res = User::belongsTo('App\User');
         //dd($user->skills());
-        // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $user,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
         return $this->response->item($user, new UserTransformer());
 
     }
@@ -539,9 +528,9 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $userid = $user->id;
 
-        $personalJobInfo = PersonalJob::where('user_id', $userid)->get();
-
-        return $this->response->item($personalJobInfo, new JobTransformer());
+        $PersonalJobInfo = PersonalJob::where('user_id', $userid)->get();
+        //dd($depatments);
+        return $this->response->collection($depatments, new JobTransformer());
     }
 
 

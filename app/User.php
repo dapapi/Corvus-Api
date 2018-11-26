@@ -57,6 +57,7 @@ class User extends Authenticatable
         'archive_time',
         'position',
         'department',
+        'position_type',
     ];
 
     const USER_STATUS_TRIAL = 1; // 试用期

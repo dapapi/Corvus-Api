@@ -38,7 +38,7 @@ class PersonnelManageController extends Controller
         $user = User::orderBy('entry_time','asc')
             ->where(function($query) use($request){
                 //检测关键字
-                $query->where('position_type',1)->count();
+                //$query->where('position_type',1)->count();
 
                 $status = addslashes($request->input('status'));//状态
                 $positionType = addslashes($request->input('position_type'));//在职状态
@@ -53,33 +53,35 @@ class PersonnelManageController extends Controller
                 $endDate =  date('Y-m-d', strtotime("$startDate +1 month -1 day"));
 
 
-                if(!empty($username)) {
-                    $query->where('name','like','%'.$username.'%');
-                }
+//                if(!empty($username)) {
+//                    $query->where('name','like','%'.$username.'%');
+//                }
 
-                if(!empty($positionType)) {
-                    $query->where('position_type',$positionType);
-                }
+                if($positionType !==2) {
+                    //dd($positionType);
+                    $query->where('position_type',2);
+                }else {
 
-                // 1 正式 2实习 3管培生 4外包
-                if(!empty($status)) {
-                   if($status == 1){
-                       $query->whereIn('status',[1,2,4]);
-                       $query->where('hire_shape','!=',4);
+                    // 1 正式 2实习 3管培生 4外包
+                    if (!empty($status)) {
+                        if ($status == 1) {
+                            $query->whereIn('status', [1, 2, 4]);
+                            $query->where('hire_shape', '!=', 4);
 
-                   }elseif($status == 2){
-                       $query->where('status',1)->Where('hire_shape',2);
+                        } elseif ($status == 2) {
+                            $query->where('status', 1)->Where('hire_shape', 2);
 
-                   }elseif($status == 3){
-                       $query->where('status',4)->Where('hire_shape',3);
+                        } elseif ($status == 3) {
+                            $query->where('status', 4)->Where('hire_shape', 3);
 
-                   }elseif($status == 4){
-                       //dd(11);
-                       //$query->where('hire_shape',User::HIRE_SHAPE_OUT)->orWhere('status',User::USER_STATUS_OUT);
-                     //  $query->where('status',5)->Where('hire_shape',4);
-                       $query->where('hire_shape',User::HIRE_SHAPE_OUT)->Where('status',User::USER_STATUS_OUT);
+                        } elseif ($status == 4) {
+                            //dd(11);
+                            //$query->where('hire_shape',User::HIRE_SHAPE_OUT)->orWhere('status',User::USER_STATUS_OUT);
+                            //  $query->where('status',5)->Where('hire_shape',4);
+                            $query->where('hire_shape', User::HIRE_SHAPE_OUT)->Where('status', User::USER_STATUS_OUT);
 
-                   }
+                        }
+                    }
                 }
 
                 if(!empty($entryTime)) {
@@ -88,6 +90,7 @@ class PersonnelManageController extends Controller
                 if(!empty($ehireShape)) {
                     $query->where('ehire_shape',$ehireShape);
                 }
+
                 if(!empty($search)) {
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
                 }
@@ -261,14 +264,27 @@ class PersonnelManageController extends Controller
         try {
 
              if (!empty($array)) {
-                 $operate = new OperateEntity([
-                     'obj' => $user,
-                     'title' => null,
-                     'start' => $user->status,
-                     'end' => $array['status'],
-                     'method' => OperateLogMethod::TRANSFER,
+                 if($status == 3){
+                     $operate = new OperateEntity([
+                         'obj' => $user,
+                         'title' => null,
+                         'start' => $user->status,
+                         'end' => $array['status'],
+                         'method' => OperateLogMethod::TRANSFER,
 
-                 ]);
+                     ]);
+
+                 }else{
+                     $operate = new OperateEntity([
+                    'obj' => $user,
+                    'title' => null,
+                    'start' => $user->status,
+                    'end' => $array['status'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+
+                 }
+
 
                 $user->update($array);
                  event(new OperateLogEvent([

@@ -31,6 +31,7 @@ class UserTransformer extends TransformerAbstract
             'hire_shape' => $user->hire_shape,
             'entry_time' => $user->entry_time,
             'archive_time' => $user->entry_time,
+            'position_type' => $user->position_type,
 
 
         ];

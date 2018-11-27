@@ -52,13 +52,7 @@ class PersonnelManageController extends Controller
                 $startDate = date('Y-'.$entryTime.'-01');
                 $endDate =  date('Y-m-d', strtotime("$startDate +1 month -1 day"));
 
-
-//                if(!empty($username)) {
-//                    $query->where('name','like','%'.$username.'%');
-//                }
-
                 if($positionType !==2) {
-                    //dd($positionType);
                     $query->where('position_type',$positionType);
                 }else {
 
@@ -75,9 +69,7 @@ class PersonnelManageController extends Controller
                             $query->where('status', 4)->Where('hire_shape', 3);
 
                         } elseif ($status == 4) {
-                            //dd(11);
-                            //$query->where('hire_shape',User::HIRE_SHAPE_OUT)->orWhere('status',User::USER_STATUS_OUT);
-                            //  $query->where('status',5)->Where('hire_shape',4);
+
                             $query->where('hire_shape', User::HIRE_SHAPE_OUT)->Where('status', User::USER_STATUS_OUT);
 
                         }
@@ -90,7 +82,6 @@ class PersonnelManageController extends Controller
                 if(!empty($ehireShape)) {
                     $query->where('ehire_shape',$ehireShape);
                 }
-
                 if(!empty($search)) {
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
                 }
@@ -107,15 +98,12 @@ class PersonnelManageController extends Controller
 
     public function store(Request $request,User $user)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-
-        $userEmail = User::where('email', $payload['email'])->get()->keyBy('email')->toArray();
+        $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
         $pageSize = config('api.page_size');
 
-
-        if(!empty($userEmail)){
+        if(!empty($userPhone)){
             return $this->response->errorInternal('邮箱已经注册！');
         }else{
             if($payload['status_type']==1){
@@ -129,7 +117,7 @@ class PersonnelManageController extends Controller
             }else{
                 $payload['status'] =  User::USER_STATUS_OUT;
             }
-            $payload['password'] = User::USER_PSWORD;
+            $payload['password'] = '';
 
             DB::beginTransaction();
 
@@ -142,7 +130,6 @@ class PersonnelManageController extends Controller
                 'language_level' => $payload['language_level'],
                 'certificate' => $payload['certificate'],
                 'computer_level' => $payload['computer_level'],
-
                 'specialty' => $payload['specialty'],
                 'disease' => $payload['disease'],
                 'pregnancy' => $payload['pregnancy'],
@@ -183,7 +170,6 @@ class PersonnelManageController extends Controller
             }
 
             if(!empty($payload['family'])) {
-
                 // 家庭资料
                 foreach ($payload['family'] as $key => $value) {
                     $familyData = [
@@ -201,7 +187,6 @@ class PersonnelManageController extends Controller
             }
             //添加个人特长
             $skillsInfo = PersonalSkills::create($skills);
-
             if ($user) {
                 // 操作日志
                 $operate = new OperateEntity([
@@ -218,7 +203,6 @@ class PersonnelManageController extends Controller
                     return $this->response->noContent();
             }
 
-
          } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -230,7 +214,6 @@ class PersonnelManageController extends Controller
 
         }
     }
-
 
     public function statusEdit(Request $request, User $user)
     {
@@ -284,8 +267,6 @@ class PersonnelManageController extends Controller
                 ]);
 
                  }
-
-
                 $user->update($array);
                  event(new OperateLogEvent([
                      $operate,
@@ -319,20 +300,14 @@ class PersonnelManageController extends Controller
 
     public function detail(Request $request,User $user)
     {
-        //$res = User::belongsTo('App\User');
-        //dd($user->skills());
         return $this->response->item($user, new UserTransformer());
-
     }
 
     //增加个人信息
     public function storePersonal(Request $request, User $user,PersonalDetail $personalDetail)
     {
-
         $payload = $request->all();
-
         $userid = $user->id;
-
         try {
             $operate = new OperateEntity([
                     'obj' => $personalDetail,
@@ -354,7 +329,6 @@ class PersonnelManageController extends Controller
 
             ];
 
-
             $user->update($userArr);
             $personalDetail->create($payload);
 
@@ -369,7 +343,6 @@ class PersonnelManageController extends Controller
         //修改个人信息
     public function editPersonal(Request $request, User $user,PersonalDetail $personalDetail)
     {
-
         $payload = $request->all();
         $userid = $user->id;
         try {
@@ -422,8 +395,6 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         return $this->response->accepted();
-
-
     }
 
     //修改职位信息
@@ -431,7 +402,6 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
-
         try {
 //                // 操作日志
 //                $operate = new OperateEntity([
@@ -452,8 +422,6 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         return $this->response->accepted();
-
-
     }
 
     //修改薪资信息
@@ -540,15 +508,68 @@ class PersonnelManageController extends Controller
         return $this->response->accepted();
     }
 
-    //增加薪资信息
-    public function securityDetail(Request $request, User $user,PersonalJob $personalJob)
+//    //增加薪资信息
+//    public function securityDetail(Request $request, User $user,PersonalJob $personalJob)
+//    {
+//        $payload = $request->all();
+//        $userid = $user->id;
+//
+//        $PersonalJobInfo = PersonalJob::where('user_id', $userid)->get();
+//        //dd($depatments);
+//        return $this->response->collection($depatments, new JobTransformer());
+//    }
+
+
+    //获取未审核人员信息
+    public function entry(Request $request, User $user)
     {
         $payload = $request->all();
+        $userInfo = $user->where('entry_status',$payload['entry_status'])->get();
+
+        return $this->response->collection($userInfo, new UserTransformer());
+    }
+
+    //审核人员信息
+    public function audit(Request $request, User $user)
+    {
+
+        $payload = $request->all();
+        $status = $payload['entry_status'];
+
+        if ($user->entry_status == $status)
+            return $this->response->noContent();
+        $now = Carbon::now();
         $userid = $user->id;
 
-        $PersonalJobInfo = PersonalJob::where('user_id', $userid)->get();
-        //dd($depatments);
-        return $this->response->collection($depatments, new JobTransformer());
+        if($status == 3){
+
+            $array = [
+                'entry_status' => $payload['entry_status'],
+                'password' => User::USER_PSWORD,
+            ];
+        }else{
+            $array = [
+                'entry_status' => $payload['entry_status'],
+            ];
+        }
+        try {
+//                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $user,
+                    'title' => null,
+                    'start' => $user->entry_status,
+                    'end' => $payload['entry_status'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            $user->update($array);
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
     }
 
 

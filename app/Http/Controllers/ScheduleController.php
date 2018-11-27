@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Schedule\EditScheduleRequest;
 use App\Http\Requests\Schedule\IndexScheduleReuqest;
 use App\Http\Requests\Schedule\StoreScheduleRequest;
+use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
 use App\Models\Calendar;
 use App\Models\Material;
 use App\Models\Schedule;
+use App\Repositories\CalendarRepository;
+use App\Repositories\ScheduleRepository;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -118,5 +121,14 @@ class ScheduleController extends Controller
     {
         $schedule->restore();
         return $this->response->item($schedule, new ScheduleTransformer());
+    }
+
+    public function getCalendar(ScheduleRequest $request){
+        $starable_type = $request->get('starable_type',null);
+        $starable_id = $request->get('starable_id',null);
+        $starable_id = hashid_decode($starable_id);
+        $date = $request->get('date',null);
+        $calendar = ScheduleRepository::selectCalendar($starable_type,$starable_id,$date);
+        return $calendar;
     }
 }

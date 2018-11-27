@@ -213,6 +213,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
+        //获取明星写的项目
+        $api->get('/projects/starproject','App\Http\Controllers\ProjectController@getStarProject');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
         $api->put('/projects/{project}/status', 'App\Http\Controllers\ProjectController@changeStatus');
@@ -232,13 +234,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
         $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
 
+        //明星，博主日程
+        $api->get('/schedules/getcalendar','App\Http\Controllers\ScheduleController@getCalendar');
         // schedule
         $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
         $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
+
         $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@edit');
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
         $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
         $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
+
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');

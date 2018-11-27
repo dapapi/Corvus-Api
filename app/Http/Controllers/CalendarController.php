@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Calendar\EditCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarRequest;
+use App\Http\Requests\CalendarDateRequest;
 use App\Http\Transformers\CalendarTransformer;
 use App\Models\Calendar;
 use App\ModuleableType;
+use App\Repositories\CalendarRepository;
 use DemeterChain\C;
 use Exception;
 use Illuminate\Http\Request;
@@ -35,9 +37,9 @@ class CalendarController extends Controller
 
             //todo 暂时为硬编码
             if ($user->company->name != '泰洋川禾') {
-                $payload['starable_type'] = ModuleableType::BLOGGER;
+                $payload['starable_type'] = ModuleableType::BLOGGER;//博主
             } else {
-                $payload['starable_type'] = ModuleableType::STAR;
+                $payload['starable_type'] = ModuleableType::STAR;//艺人
             }
         }
 
@@ -90,7 +92,7 @@ class CalendarController extends Controller
 
     public function delete(Request $request, Calendar $calendar)
     {
-        $calendar->status = Calendar::STATUS_FROZEN;
+        $calendar->status = Calendar::STATUS_FROZEN;//关闭
         $calendar->save();
         $calendar->delete();
         return $this->response->noContent();

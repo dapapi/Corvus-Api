@@ -5,6 +5,7 @@ namespace App\Repositories;
 
 use App\Models\Attendance;
 use App\Models\Users;
+use App\Models\Department;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -225,13 +226,19 @@ class AttendanceRepository
             $where[] = ['start_at','<',$end_time];
         }
 //        DB::connection()->enableQueryLog();
+
+        //获取要查询部门的子级部门
+        $departments_list = (new Department())->getSubidByPid($department);
+        $department_id_list = array_column($departments_list,'id');
+        array_push($department_id_list,$department);
+
         $statistics = (new Attendance())
             ->setTable('a')
             ->from('attendances as a')
             ->leftJoin('department_user as d','a.creator_id','=','d.user_id')
             ->leftJoin('users as u','u.id','=','a.creator_id')
             ->where($where)
-            ->where('d.department_id','=',$department)
+            ->whereIn('d.department_id',$department_id_list)
             ->get(
                 [
                     'creator_id',
@@ -251,6 +258,7 @@ class AttendanceRepository
                     ),
                 ]
             );
+//        dd($statistics);
 //        $sql = DB::getQueryLog();
 //        dd($sql);
         $daynumber = [];
@@ -313,6 +321,10 @@ class AttendanceRepository
         $end_time = Carbon::parse($end_time);
 
 //        DB::connection()->enableQueryLog();
+        //获取要查询部门的子级部门
+        $departments_list = (new Department())->getSubidByPid($department);
+        $department_id_list = array_column($departments_list,'id');
+        array_push($department_id_list,$department);
         $leaveStatistics = (new Attendance())
             ->setTable('a')
             ->from('attendances as a')
@@ -320,7 +332,7 @@ class AttendanceRepository
             ->leftJoin('users as u','u.id','=','a.creator_id')
             ->where($where)
 
-            ->where('d.department_id','=',$department)
+            ->whereIn('d.department_id',$department_id_list)
             ->where('a.type',Attendance::LEAVE)//请假
             ->get(
                 [
@@ -451,7 +463,11 @@ class AttendanceRepository
                 else null end leave_type"
             );
         }
-        DB::connection()->enableQueryLog();
+//        DB::connection()->enableQueryLog();
+        //获取要查询部门的子级部门
+        $departments_list = (new Department())->getSubidByPid($department);
+        $department_id_list = array_column($departments_list,'id');
+        array_push($department_id_list,$department);
         $start_time = Carbon::parse($start_time);
         $end_time = Carbon::parse($end_time);
         $leavecollect = (new Attendance())
@@ -461,7 +477,7 @@ class AttendanceRepository
                         ->leftjoin('departments as d','d.id','=','du.department_id')
                         ->leftJoin('users as u','u.id','=','a.creator_id')
                         ->where($where)
-                        ->where('d.id','=',$department)
+                        ->whereIn('d.id',$department_id_list)
                         ->where('a.type',$type)
                         ->get(
                             $field
@@ -529,7 +545,7 @@ class AttendanceRepository
             ),
             //如果开始时间小于等于查询的开始时间，那么请假时间还剩 结束时间减去开始时间
             //如果开始时间大于查询开始时间，那么请假剩余时间是请假时长
-            DB::raw("CASE (start_at <= '2018-01-03 00:00:00')
+            DB::raw("CASE (start_at <= '{$start_time}')
                                 WHEN  1 THEN end_at - '{$start_time}'
                                 WHEN  0 THEN number
                                 ELSE

@@ -69,7 +69,7 @@ class ReportController extends Controller
         $user = Auth::guard('api')->user();
         unset($payload['status']);
         unset($payload['type']);
-        $payload['creator_id'] = $user->id;
+        $payload['creator_id'] = $user->id;//创建人
 
         if ($payload['creator_id']) {
             DB::beginTransaction();

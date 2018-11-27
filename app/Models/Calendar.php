@@ -11,12 +11,12 @@ class Calendar extends Model
     use SoftDeletes {
         restore as private restoreSoftDeletes;
     }
-
-    const OPEN = 0;
-    const SECRET = 1;
-
-    const STATUS_NORMAL = 1;
-    const STATUS_FROZEN = 2;
+    //type
+    const OPEN = 0;//公开
+    const SECRET = 1;//保密
+    //status
+    const STATUS_NORMAL = 1;//正常
+    const STATUS_FROZEN = 2;//冻结
 
     protected $fillable = [
         'title',

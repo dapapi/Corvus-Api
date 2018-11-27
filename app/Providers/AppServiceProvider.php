@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CLIENT => Client::class,
             ModuleableType::TRAIL => Trail::class,
             ModuleableType::BLOGGER => Blogger::class,
+
             //TODO
         ]);
     }

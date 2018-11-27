@@ -12,4 +12,8 @@ class Platform extends Model
     protected $fillable = [
         'name', 'logo', 'active_logo', 'url',
     ];
+    public function starPlatform()
+    {
+        return $this->hasMany(StarPlatform::class);
+    }
 }

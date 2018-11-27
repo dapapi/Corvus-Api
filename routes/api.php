@@ -284,6 +284,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@delete');
         $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
 
+        //获取粉丝数据
+        $api->get('/starreport/fensi','App\Http\Controllers\StarReportController@getStarFensi');
+
 
     });
 });

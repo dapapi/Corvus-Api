@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Trail\EditTrailRequest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Transformers\TrailTransformer;
+use App\Models\OperateEntity;
 use App\Models\Star;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Trail;
 use App\Models\TrailStar;
+use App\OperateLogMethod;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -88,6 +91,17 @@ class TrailController extends Controller
                     'principal_id' => $payload['principal_id'],
                     'creator_id' => $user->id,
                 ]);
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $client,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
             }
 
             if (!array_key_exists('id', $payload['contact'])) {
@@ -96,13 +110,23 @@ class TrailController extends Controller
                     'name' => $payload['contact']['name'],
                     'phone' => $payload['contact']['phone'],
                 ]);
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $contact,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
             }
 
             $payload['contact_id'] = $contact->id;
             $payload['client_id'] = $client->id;
 
             $trail = Trail::create($payload);
-
 
             if ($request->has('expectations')) {
                 TrailStar::where('trail_id', $trail->id)->delete();
@@ -130,6 +154,18 @@ class TrailController extends Controller
                         ]);
                 }
             }
+
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $trail,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -153,7 +189,7 @@ class TrailController extends Controller
                 $payload['lock_status'] = 1;
 
             if ($request->has('refuse') && $payload['refuse'])
-                $payload['status'] = Trail::STATUS_FROZEN;
+                $payload['progress_status'] = Trail::STATUS_REFUSE;
 
             $trail->update($payload);
 
@@ -210,7 +246,7 @@ class TrailController extends Controller
     public function delete(Request $request, Trail $trail)
     {
 
-        $trail->status = Trail::STATUS_DELETE;
+        $trail->progress_status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
 
@@ -220,7 +256,7 @@ class TrailController extends Controller
     public function recover(Request $request, Trail $trail)
     {
         $trail->restore();
-        $trail->status = Trail::STATUS_UNCONFIRMED;
+        $trail->progress_status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
 
         $this->response->item($trail, new TrailTransformer());
@@ -228,6 +264,17 @@ class TrailController extends Controller
 
     public function detail(Request $request, Trail $trail)
     {
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $trail,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $this->response->item($trail, new TrailTransformer());
     }
 

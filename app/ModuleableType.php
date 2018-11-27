@@ -15,4 +15,6 @@ abstract class ModuleableType
     const PERSONA_SALARY = 'personalSalary';
     const WORK = 'work';
     const ATTENDANCE = 'attendance';
+    const CALENDAR = 'calendar';
+    const SCHEDULE = 'schedule';
 }

@@ -14,65 +14,72 @@ class ReportTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report'];
 
-    public function transform(Report $star)
+    public function transform(Report $report)
     {
 
         $array = [
-            'id' => hashid_encode($star->id),
-            'template_name' => $star->template_name,
-            'colour' => $star->colour,
-            'frequency' => $star->frequency,
-            'department_id' => $star->department_id,
-            'member' => $star->member,
-            'delete_at' => $star->delete_at,
-            'created_id' => $star->created_id,
-            'created_at' => $star->created_at->toDatetimeString(),
-            'updated_at' => $star->updated_at->toDatetimeString(),
-            'issues_id' => $star->issues_id,
+            'id' => hashid_encode($report->id),
+            'template_name' => $report->template_name,
+            'colour' => $report->colour,
+            'frequency' => $report->frequency,
+            'department_id' => $report->department_id,
+            'member' => $report->member,
+            'delete_at' => $report->delete_at,
+            'created_id' => $report->created_id,
+            'created_at' => $report->created_at->toDatetimeString(),
+            'updated_at' => $report->updated_at->toDatetimeString(),
+            'issues_id' => $report->issues_id,
 
         ];
 
 
         $arraySimple = [
-            'id' => hashid_encode($star->id),
-            'name' => $star->name,
-            'avatar' => $star->avatar
+            'id' => hashid_encode($report->id),
+            'name' => $report->name,
+            'avatar' => $report->avatar
         ];
 
         return $this->isAll ? $array :$arraySimple;
     }
 
-    public function includeCreator(Report $star)
+    public function includeCreator(Report $report)
     {
 
-        $user = $star->creator;
+        $user = $report->creator;
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
     }
 
-    public function includeBroker(Report $star)
+    public function includeBroker(Report $report)
     {
 
-        $user = $star->broker;
+        $user = $report->broker;
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
     }
-
-    public function includeTasks(Report $star)
+    public function includeReport(Report $report)
     {
 
-        $tasks = $star->tasks()->createDesc()->get();
+        $user = $report->Report;
+        if (!$user)
+            return null;
+        return $this->item($user, new ReportTransformer());
+    }
+    public function includeTasks(Report $report)
+    {
+
+        $tasks = $report->tasks()->createDesc()->get();
         return $this->collection($tasks, new ReportTransformer());
     }
 
-    public function includeAffixes(Report $star)
+    public function includeAffixes(Report $report)
     {
 
-        $affixes = $star->affixes()->createDesc()->get();
+        $affixes = $report->affixes()->createDesc()->get();
         return $this->collection($affixes, new AffixTransformer());
     }
 }

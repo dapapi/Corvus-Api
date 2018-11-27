@@ -121,8 +121,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/{star}/broker','App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
+        // 分配制作人
+        $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producer_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        //获取类型
+        $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
+        $api->get('/bloggers/getcommunication', 'App\Http\Controllers\BloggerController@getcommunication');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');

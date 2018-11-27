@@ -27,7 +27,6 @@ class Report extends Model
         return $query->orderBy('id');
 
     }
-
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');

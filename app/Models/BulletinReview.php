@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 class BulletinReview extends Model
 {
     protected  $table = 'bulletin_review';
     protected $fillable = [
         'template_id', // 简报类型
+        'template',
         'member',  //成员
         'title',     //简报周期
       //  'created_at', //提交时间
@@ -17,7 +17,10 @@ class BulletinReview extends Model
 
 
     ];
-
+    public function report()
+    {
+        return $this->hasOne(Report::class,'id','id');
+    }
     public function scopeCreateDesc($query)
     {
         return $query->orderBy('updated_at');
@@ -45,7 +48,6 @@ class BulletinReview extends Model
 
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
-
     public function broker()
     {
         return $this->belongsTo(User::class, 'broker_id', 'id');

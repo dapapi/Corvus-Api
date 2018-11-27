@@ -14,7 +14,7 @@ class ReviewTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report'];
 
     public function transform(Review $review)
     {
@@ -22,6 +22,7 @@ class ReviewTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($review->id),
             'template_id' => $review->template_id,
+            'template' => $review->template,
             'member' => $review->member,
             'title' => $review->title,
             'status' => $review->status,
@@ -47,6 +48,14 @@ class ReviewTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
+    public function includeTemplate(Review $review)
+    {
+
+        $template = $review->template;
+        if (!$template)
+            return null;
+        return $this->item($template, new ReviewTransformer());
+    }
 
     public function includeBroker(Review $review)
     {
@@ -56,12 +65,18 @@ class ReviewTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
-
+    public function includeReport(Review $review)
+    {
+        $template = $review->template;
+        if (!$template)
+            return null;
+        return $this->item($template, new ReviewTransformer());
+    }
     public function includeTasks(Review $review)
     {
 
         $tasks = $review->tasks()->createDesc()->get();
-        return $this->collection($tasks, new ReportTransformer());
+        return $this->collection($tasks, new ReviewTransformer());
     }
 
     public function includeAffixes(Review $review)

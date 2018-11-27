@@ -31,6 +31,7 @@ class BloggerRequest extends FormRequest
     {
         return [
             'nickname' => 'required|max:255',
+            'platform_id'=> 'nullable', // 平台
             'type_id' => 'required|numeric',
             'communication_status' => Rule::in([
                 CommunicationStatus::ALREADY_SIGN_CONTRACT,
@@ -57,6 +58,7 @@ class BloggerRequest extends FormRequest
                 SignContractStatus::ALREADY_SIGN_CONTRACT,
                 SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
             ]),
+            'icon' => 'max:255', // 图片
             'desc' => 'nullable',//描述/备注
             'avatar' => 'max:500',
             'gender' => Rule::in([Gender::MAN, Gender::WOMAN]),

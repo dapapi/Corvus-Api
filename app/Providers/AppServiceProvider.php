@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Blogger;
+use App\Models\Calendar;
 use App\Models\Client;
 use App\Models\Project;
+use App\Models\Schedule;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
@@ -32,7 +34,8 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CLIENT => Client::class,
             ModuleableType::TRAIL => Trail::class,
             ModuleableType::BLOGGER => Blogger::class,
-
+            ModuleableType::CALENDAR => Calendar::class,
+            ModuleableType::SCHEDULE => Schedule::class,
             //TODO
         ]);
     }

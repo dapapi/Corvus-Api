@@ -8,6 +8,8 @@ use App\Models\PersonalSkills;
 use App\Models\PersonalDetail;
 use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
+use App\Models\OperateLog;
+
 
 use App\Models\Project;
 use App\Models\Role;
@@ -16,12 +18,14 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -58,6 +62,7 @@ class User extends Authenticatable
         'position',
         'department',
         'position_type',
+        'entry_status',
     ];
 
     const USER_STATUS_TRIAL = 1; // 试用期
@@ -176,6 +181,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(PersonalSalary::class, 'user_id', 'id');
     }
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable');
+    }
+
 
     private function departmentToCompany(Department $department)
     {

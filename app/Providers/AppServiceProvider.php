@@ -10,6 +10,8 @@ use App\Models\Schedule;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
+use App\User;
+
 use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Schema;
@@ -36,6 +38,8 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::BLOGGER => Blogger::class,
             ModuleableType::CALENDAR => Calendar::class,
             ModuleableType::SCHEDULE => Schedule::class,
+            ModuleableType::USER => User::class,
+
             //TODO
         ]);
     }

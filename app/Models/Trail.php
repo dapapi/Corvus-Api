@@ -113,4 +113,9 @@ class Trail extends Model
     {
         return $this->hasOne(Project::class, 'trail_id','id');
     }
+
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable');
+    }
 }

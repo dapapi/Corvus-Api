@@ -14,21 +14,21 @@ use App\User;
 
 class OperateLogRepository
 {
-    public function getObject(Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
+    public function getObject($model)
     {
         $obj = null;
-        if ($task && $task->id) {
-            $obj = $task;
-        } else if ($project && $project->id) {
-            $obj = $project;
-        } else if ($star && $star->id) {
-            $obj = $star;
-        } else if ($client && $client->id) {
-            $obj = $client;
-        } else if ($trail && $trail->id) {
-            $obj = $trail;
-        } else if ($blogger && $blogger->id) {
-            $obj = $blogger;
+        if ($model instanceof Task && $model->id) {
+            $obj = $model;
+        } else if ($model instanceof Project && $model->id) {
+            $obj = $model;
+        } else if ($model instanceof Star && $model->id) {
+            $obj = $model;
+        } else if ($model instanceof Client && $model->id) {
+            $obj = $model;
+        } else if ($model instanceof Trail && $model->id) {
+            $obj = $model;
+        } else if ($model instanceof Blogger && $model->id) {
+            $obj = $model;
         }
         //TODO class type
         return $obj;

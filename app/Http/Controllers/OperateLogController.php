@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Transformers\OperateLogTransformer;
+use App\Models\Interfaces\OperateLogInterface;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
@@ -66,7 +67,7 @@ class OperateLogController extends Controller
         return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
 
-    public function addFollowUp(OperateLogFollowUpRequest $request, Task $task, Project $project, Star $star)
+    public function addFollowUp(OperateLogFollowUpRequest $request, $model)
     {
         $payload = $request->all();
         $content = $payload['content'];
@@ -79,7 +80,7 @@ class OperateLogController extends Controller
                 'method' => OperateLogMethod::FOLLOW_UP,
             ];
 
-            $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
+            $array['obj'] = $this->operateLogRepository->getObject($model);
 
             $operate = new OperateEntity($array);
             event(new OperateLogEvent([

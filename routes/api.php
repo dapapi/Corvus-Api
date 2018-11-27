@@ -100,6 +100,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/trails/{trail}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/trails/{trail}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');

@@ -177,7 +177,7 @@ class TrailController extends Controller
         return $this->response->item($trail, new TrailTransformer());
     }
 
-    //todo 直接修改客户信息
+    //todo 操作日志怎么记
     public function edit(EditTrailRequest $request, Trail $trail)
     {
         $payload = $request->all();

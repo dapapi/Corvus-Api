@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Blogger;
 use App\Models\Calendar;
 use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Project;
 use App\Models\Schedule;
 use App\Models\Star;
@@ -32,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::PROJECT => Project::class,
             ModuleableType::STAR => Star::class,
             ModuleableType::CLIENT => Client::class,
+            ModuleableType::CONTACT => Contact::class,
             ModuleableType::TRAIL => Trail::class,
             ModuleableType::BLOGGER => Blogger::class,
             ModuleableType::CALENDAR => Calendar::class,

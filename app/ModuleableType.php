@@ -8,6 +8,7 @@ abstract class ModuleableType
     const TASK = 'task';
     const STAR = 'star';
     const CLIENT = 'client';
+    const CONTACT = 'contact';
     const TRAIL = 'trail';
     const BLOGGER = 'blogger';
     const USER = 'user';

@@ -112,8 +112,8 @@ class OperateLogEventListener
                 $type = ModuleableType::CLIENT;
                 $typeName = '客户';
             }else if($operate->obj instanceof Contact){
-                $type = ModuleableType::Con;
-                $typeName = '客户';
+                $type = ModuleableType::CONTACT;
+                $typeName = '联系人';
             }
             //TODO
 

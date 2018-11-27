@@ -15,6 +15,7 @@ use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
+use App\Repositories\ProjectRepository;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -436,5 +437,20 @@ class ProjectController extends Controller
         }
 
         return $this->response->paginator($projects, new ProjectTransformer());
+    }
+
+    /**
+     * 获取明星下的项目
+     * @param Request $request
+     * @return mixed
+     */
+    public function getStarProject(Request $request)
+    {
+        $star_id = $request->get('star_id',null);
+        $star_id = hashid_decode($star_id);
+        $result = ProjectRepository::getProjectBySatrId($star_id);
+        //todo 这里的返回值status没有返回数字，返回的是中文所以用不了transfromer
+//        return $this->response->collection($result, new ProjectTransformer());
+        return $result;
     }
 }

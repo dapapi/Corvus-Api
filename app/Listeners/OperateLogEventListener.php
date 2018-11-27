@@ -13,6 +13,7 @@ use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\Department;
 
+use App\Models\Trail;
 use App\Models\Work;
 use App\User;
 use App\ModuleableType;
@@ -102,6 +103,12 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Department){
                 $type = ModuleableType::ATTENDANCE;
                 $typeName = '部门';
+            }else if($operate->obj instanceof Trail){
+                $type = ModuleableType::TRAIL;
+                $typeName = '销售线索';
+            }else if($operate->obj instanceof Trail){
+                $type = ModuleableType::CLIENT;
+                $typeName = '客户';
             }
             //TODO
 

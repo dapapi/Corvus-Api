@@ -39,7 +39,7 @@ class StoreTrailRequest extends FormRequest
             'resource' => 'nullable',
             'resource_type' => 'required|numeric',
             'type' => 'required|numeric',
-            'cooperation_type' => 'nullable|numeric',
+            'cooperation_type' => 'nullable|numeric', // 合作类型
             'status' => 'nullable|numeric',
             'priority' => 'required|numeric',
             'recommendations' => 'nullable|array',
@@ -54,14 +54,24 @@ class StoreTrailRequest extends FormRequest
     public function messages()
     {
         return [
-            'title' => '线索名称',
-            'brand' => '品牌',
-            'principal_id' => '负责人',
-            'client_id' => '关联客户',
-            'contact_id' => '关联联系人',
-            'artist_id' => '关联艺人',
-            'recommendations' => '推荐艺人',
-            'desc' => '描述',
+            'title.required' => '线索名称必填',
+            'brand.reuqired' => '品牌必填',
+            'principal_id.required' => '负责人必填',
+            'principal_id.numeric' => '负责人必须为数值',
+            'client.id.numeric' => '关联客户id必须为数值',
+            'client.company.unique' => '关联客户公司名称已存在',
+            'client.grade.numeric' => '关联客户级别传数值',
+            'contact.id.numeric' => '关联联系人id必须为数值',
+            'contact.phone.digits' => '关联联系人手机号需满足11位',
+            'contact.phone.regex' => '关联联系人手机号格式不正确',
+            'resource_type.numeric' => '线索来源类型填数值',
+            'type.numeric' => '线索类型填数值',
+            'cooperation_type.numeric' => '合作类型填数值',
+            'status.numeric' => '线索状态填数值',
+            'recommendations.array' => '推荐艺人数组',
+            'expectations.array' => '目标艺人数组',
+            'fee.numeric' => '预计费用填数值',
+            'lock' => '是否锁价需布尔值',
         ];
     }
 }

@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Transformers\OperateLogTransformer;
+use App\Models\Interfaces\OperateLogInterface;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\OperateLogRepository;
 use Exception;
@@ -25,7 +27,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -37,6 +39,8 @@ class OperateLogController extends Controller
             $query = $project->operateLogs();
         } else if ($star && $star->id) {
             $query = $star->operateLogs();
+        } else if ($trail && $trail->id) {
+            $query = $trail->operateLogs();
         }
         //TODO 其他模块
 
@@ -63,7 +67,7 @@ class OperateLogController extends Controller
         return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
 
-    public function addFollowUp(OperateLogFollowUpRequest $request, Task $task, Project $project, Star $star)
+    public function addFollowUp(OperateLogFollowUpRequest $request, $model)
     {
         $payload = $request->all();
         $content = $payload['content'];
@@ -76,7 +80,7 @@ class OperateLogController extends Controller
                 'method' => OperateLogMethod::FOLLOW_UP,
             ];
 
-            $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star);
+            $array['obj'] = $this->operateLogRepository->getObject($model);
 
             $operate = new OperateEntity($array);
             event(new OperateLogEvent([

@@ -13,6 +13,7 @@ class AddStatusCloumAttendances extends Migration
      */
     public function up()
     {
+        // todo 处理这个字段
         Schema::table('attendances', function (Blueprint $table) {
             $table->integer('status')->comment("状态");
         });

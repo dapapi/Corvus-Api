@@ -924,7 +924,7 @@ class TaskController extends Controller
 
             //添加参与人
             if ($request->has('participant_ids')) {
-                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, null, null, ModuleUserType::PARTICIPANT);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
             dd($e);

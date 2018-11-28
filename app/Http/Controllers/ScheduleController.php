@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
 {
+
     public function index(IndexScheduleReuqest $request)
     {
         $payload = $request->all();

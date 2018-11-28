@@ -230,11 +230,11 @@ class User extends Authenticatable
 
     private function departmentToCompany(Department $department)
     {
-        $department = $department->pDepartment;
         if ($department->department_pid == 0) {
             return $department;
         } else {
-            $this->department($department);
+            $department = $department->pDepartment;
+            $this->departmentToCompany($department);
         }
     }
 

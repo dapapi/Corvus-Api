@@ -29,6 +29,7 @@ class UserTransformer extends TransformerAbstract
             'id' => hashid_encode($user->id),
             'user_id' => $user->id,
             'phone' => $user->phone,
+            'email' => $user->email,
             'birth_time' => $user->birth_time,
             'name' => $user->name,
             'current_address' => $user->current_address,
@@ -57,6 +58,8 @@ class UserTransformer extends TransformerAbstract
             'jobs'=> $user->jobs,//'岗位',
             'number'=> $user->number,//'工号',
             'work_email'=> $user->work_email,//'工作邮箱',
+            'department_id'=> $user->department_id,//'工作邮箱',
+
 
 
         ];

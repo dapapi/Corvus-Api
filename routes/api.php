@@ -64,6 +64,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/tasks/{task}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/tasks/{task}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        $api->get('/report/{report}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/report/{report}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/report/{report}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/report/{report}/affixes/{launch}/download', 'App\Http\Controllers\AffixController@download');
+      //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
+     //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');
         $api->get('/projects/{project}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
         $api->post('/projects/{project}/affix', 'App\Http\Controllers\AffixController@add');
@@ -95,8 +101,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/trails/{trail}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         //跟进
+        $api->get('/report/{report}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/report/{report}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/tasks/{task}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/tasks/{task}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/blogger/{blogger}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/blogger/{blogger}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
@@ -126,11 +136,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人
         $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producer_store');
-        $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
+      //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
-        //添加跟进
-        $api->post('/bloggers/{bloggers}/follow_up', 'App\Http\Controllers\BloggerController@addFollowUp');
         //获取类型
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
         //添加作品
@@ -197,8 +205,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/report/issues', 'App\Http\Controllers\ReportController@delete_issues');
         // review
         $api->get('/review', 'App\Http\Controllers\ReviewController@index');
+        $api->get('/review/{review}', 'App\Http\Controllers\ReviewController@show');
         $api->post('/review', 'App\Http\Controllers\ReviewController@store');
-        $api->get('/review/all', 'App\Http\Controllers\ReviewController@all');
+        $api->put('/review/{review}', 'App\Http\Controllers\ReviewController@edit');
+        $api->get('/review/my/template', 'App\Http\Controllers\ReviewController@my_template');
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');

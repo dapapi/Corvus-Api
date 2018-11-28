@@ -12,6 +12,7 @@ use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
+use App\Models\Report;
 use App\Models\Task;
 use App\Models\Trail;
 use App\OperateLogMethod;
@@ -33,8 +34,8 @@ class AffixController extends Controller
         $this->affixRepository = $affixRepository;
         $this->operateLogRepository = $operateLogRepository;
     }
-
     public function index(AffixQueryRequest $request, $model)
+
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -52,9 +53,9 @@ class AffixController extends Controller
             $query = $model->affixes();
         } else if ($model instanceof Blogger && $model->id) {
             $query = $model->affixes();
+
         }
         //TODO 其他模块
-
         if ($type)
             $query->where('type', $type);
 

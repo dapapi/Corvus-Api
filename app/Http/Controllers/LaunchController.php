@@ -125,7 +125,7 @@ class LaunchController extends Controller
            $paysload->status = $this->Approval;
            $bool = $paysload->save();
            $bulletionload=new BulletinReviewTitle();
-           $bulletionload->bulletin_review_id=$template->id;
+           $bulletionload->bulletin_review_id=$paysload->id;
            $bulletionload->creator_id=$user->id;
            if($template->frequency == 1) {
                $data1 = $user->name.'的'.$template->template_name.'-'.date("Y年m月d日", time());

@@ -9,13 +9,14 @@ use App\Models\Calendar;
 use App\Models\Material;
 use App\Models\Project;
 use App\Models\Report;
+use App\Models\Review;
 use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Schedule;
-use App\Models\personalJob;
+use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
-use App\Models\personalDetail;
+use App\Models\PersonalDetail;
 
 
 use App\Models\Star;
@@ -151,6 +152,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Report::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('review', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                //withTrashed()->
+                $entity = Review::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

@@ -2,30 +2,29 @@
 
 namespace App\Http\Transformers;
 
-use App\Models\BulletinReview as Review;
+use App\Models\BulletinReview;
 use League\Fractal\TransformerAbstract;
 
 class ReviewTransformer extends TransformerAbstract
 {
-
+    protected $availableIncludes = ['template','type'];
     private $isAll;
-
     public function __construct($isAll = true)
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report'];
 
-    public function transform(Review $review)
+
+    public function transform(BulletinReview $bulletinreview)
     {
 
         $array = [
-            'id' => hashid_encode($review->id),
-            'template_id' => $review->template_id,
-            'template' => $review->template,
-            'member' => $review->member,
-            'title' => $review->title,
-            'status' => $review->status,
+            'id' => hashid_encode($bulletinreview->id),
+            'template_id' => $bulletinreview->template_id,
+            'template' => $bulletinreview->template,
+            'member' => $bulletinreview->member,
+            'title' => $bulletinreview->title,
+            'status' => $bulletinreview->status,
 
 
         ];
@@ -40,49 +39,51 @@ class ReviewTransformer extends TransformerAbstract
         return $this->isAll ? $array :'';
     }
 
-    public function includeCreator(Review $review)
+    public function includeCreator(BulletinReview $bulletinreview)
     {
-
-        $user = $review->creator;
+        $user = $bulletinreview->creator;
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
     }
-    public function includeTemplate(Review $review)
+    public function includeBroker(BulletinReview $bulletinreview)
     {
 
-        $template = $review->template;
-        if (!$template)
-            return null;
-        return $this->item($template, new ReviewTransformer());
-    }
-
-    public function includeBroker(Review $review)
-    {
-
-        $user = $review->broker;
+        $user = $bulletinreview->broker;
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
     }
-    public function includeReport(Review $review)
+    public function includetTmplate(BulletinReview $bulletinreview)
     {
-        $template = $review->template;
+        $template = $bulletinreview->template;
         if (!$template)
             return null;
-        return $this->item($template, new ReviewTransformer());
+        return $this->item($template, new ReportTransformer());
     }
-    public function includeTasks(Review $review)
+//    public function includeType(BulletinReview $bulletinreview)
+//    {
+//        $type = $bulletinreview->type;
+//        if (!$type)
+//            return null;
+//        return $this->item($type, new BloggerTypeTransformer());
+//    }
+    public function includeTasks(BulletinReview $bulletinreview)
     {
 
-        $tasks = $review->tasks()->createDesc()->get();
+        $tasks = $bulletinreview->tasks()->createDesc()->get();
         return $this->collection($tasks, new ReviewTransformer());
     }
-
-    public function includeAffixes(Review $review)
+    public function includeBulleinrevViewTitle(BulletinReview $bulletinreview)
+    {
+        dd($bulletinreview);
+        $bulletin_review_title = $bulletinreview->bulletin_review_title()->createDesc()->get();
+        return $this->collection($bulletin_review_title, new ProjectTransformer());
+    }
+    public function includeAffixes(BulletinReview $bulletinreview)
     {
 
-        $affixes = $review->affixes()->createDesc()->get();
+        $affixes = $bulletinreview->affixes()->createDesc()->get();
         return $this->collection($affixes, new AffixTransformer());
     }
 }

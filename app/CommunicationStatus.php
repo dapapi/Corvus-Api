@@ -10,6 +10,8 @@ namespace App;
 
 abstract class CommunicationStatus
 {
+
+    // 沟通状态
     const ALREADY_SIGN_CONTRACT = 1;//已签约
     const HANDLER_COMMUNICATION = 2;//经理人沟通中
     const TALENT_COMMUNICATION = 3;//兼职星探沟通中

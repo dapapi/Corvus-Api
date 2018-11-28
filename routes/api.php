@@ -123,8 +123,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/{star}/broker','App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
+        // 分配制作人
+        $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producer_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        //获取类型
+        $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
+        $api->get('/bloggers/getcommunication', 'App\Http\Controllers\BloggerController@getcommunication');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
@@ -265,7 +270,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
+        $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
+
+        $api->post('/departments/{department}', 'App\Http\Controllers\DepartmentController@edit');
         $api->post('/departments/{department}/user/{user}', 'App\Http\Controllers\DepartmentController@store');
+        $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+
 
         // user
         $api->get('/users', 'App\Http\Controllers\UserController@index');
@@ -285,6 +296,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@edit');
         $api->delete('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@delete');
         $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
+
+        //获取粉丝数据
+        $api->get('/starreport/fensi','App\Http\Controllers\StarReportController@getStarFensi');
 
 
     });

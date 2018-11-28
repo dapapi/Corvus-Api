@@ -33,6 +33,7 @@ class StoreScheduleRequest extends FormRequest
             'privacy' => 'required|boolean',
             'participant_ids' => 'nullable|array',
             'material_id' => 'nullable',
+            'material_type' => 'nullable',
             'repeat' => 'nullable',
             'position' => 'nullable',
             'desc' => 'nullable',

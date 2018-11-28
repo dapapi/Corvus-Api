@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class BloggerTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','producer'];
 
     private $isAll;
 
@@ -21,6 +21,7 @@ class BloggerTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
+            'platform_id' => $blogger->platform_id,    //平台
             'avatar' => $blogger->avatar,
             'communication_status' => $blogger->communication_status,//沟通状态
             'intention' => boolval($blogger->intention),//与我司签约意向
@@ -29,7 +30,9 @@ class BloggerTransformer extends TransformerAbstract
             'level' => $blogger->level,//博主级别
             'hatch_star_at' => $blogger->hatch_star_at,//孵化期开始时间
             'hatch_end_at' => $blogger->hatch_star_at,//孵化期结束时间
+            'producer' => $blogger->producer,  //制作人
             'sign_contract_status' => $blogger->sign_contract_status,//签约状态
+            'icon' => $blogger->icon, // 头像
             'desc' => $blogger->desc,//描述/备注
             'type' => $blogger->type,
             'gender' => $blogger->gender,
@@ -70,7 +73,13 @@ class BloggerTransformer extends TransformerAbstract
             return null;
         return $this->item($type, new BloggerTypeTransformer());
     }
-
+//    public function includeProducer(Blogger $blogger)
+//    {
+//        $producer = $blogger->producer;
+//        if (!$producer)
+//            return null;
+//        return $this->item($producer, new BloggerProducerTransformer());
+//    }
     public function includeTasks(Blogger $blogger)
     {
         $tasks = $blogger->tasks()->createDesc()->get();

@@ -16,6 +16,7 @@ class UserTransformer extends TransformerAbstract
         'detail',
         'job',
         'salary',
+        'operateLogs',
     ];
    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
@@ -23,8 +24,10 @@ class UserTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($user->id),
             'user_id' => $user->id,
-            'name' => $user->name,
             'phone' => $user->phone,
+            'birth_time' => $user->birth_time,
+            'name' => $user->name,
+            'current_address' => $user->current_address,
             'status' => $user->status,
             'department' => $user->department,
             'position' => $user->position,
@@ -63,7 +66,8 @@ class UserTransformer extends TransformerAbstract
     public function includeDetail(User $user)
     {
         $detail = $user->personalDetail;
-
+        if(!$detail)
+            return null;
 
         return $this->item($detail, new DetailTransformer());
     }
@@ -71,6 +75,8 @@ class UserTransformer extends TransformerAbstract
     public function includeJob(User $user)
     {
         $job = $user->personalJob;
+        if(!$job)
+            return null;
 
         return $this->item($job, new JobTransformer());
     }
@@ -78,8 +84,17 @@ class UserTransformer extends TransformerAbstract
     public function includeSalary(User $user)
     {
         $salary = $user->personalSalary;
+        if(!$salary)
+            return null;
 
         return $this->item($salary, new SalaryTransformer());
+    }
+
+    public function includeOperateLogs(User $user)
+    {
+        $log = $user->operateLogs;
+
+        return $this->collection($log, new OperateLogTransformer());
     }
 
 }

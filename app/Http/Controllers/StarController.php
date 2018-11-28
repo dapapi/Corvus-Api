@@ -528,7 +528,7 @@ class StarController extends Controller
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
                     try {
-                        $this->affixRepository->addAffix($user, null, null, $star, null, null, null, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                        $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
                         // 操作日志 ...
                     } catch (Exception $e) {
                     }

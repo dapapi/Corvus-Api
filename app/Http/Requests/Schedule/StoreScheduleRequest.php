@@ -31,12 +31,17 @@ class StoreScheduleRequest extends FormRequest
             'start_at' => 'required|date|after_or_equal:today',
             'end_at' => 'required|date|after:start_at',
             'privacy' => 'required|boolean',
+            'participant_ids' => 'nullable|array',
             'material_id' => 'nullable',
             'material_type' => 'nullable',
             'repeat' => 'nullable',
             'position' => 'nullable',
             'desc' => 'nullable',
+
             'affix' => 'nullable|array',
+            'affix.*.title' => 'required_with:affix|max:255',
+            'affix.*.size' => 'required|numeric|min:0',
+            'affix.*.url' => 'required|max:500',
         ];
     }
 }

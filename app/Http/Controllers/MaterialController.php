@@ -12,9 +12,11 @@ use Illuminate\Support\Facades\Log;
 
 class MaterialController extends Controller
 {
+    // todo 跟前端确定是用一次返回还是用多次返回的方式
     public function all(Request $request)
     {
-        $materials = Material::all();
+        $type = $request->get('type', 1);
+        $materials = Material::where('type', $type)->get();
 
         return $this->response->collection($materials, new MaterialTransformer());
     }

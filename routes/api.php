@@ -30,7 +30,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
-        $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove')->middleware('can:delete,task');
+        $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove');
+//            ->middleware('can:delete,task');
         $api->put('/tasks/{task}/status', 'App\Http\Controllers\TaskController@toggleStatus');
         $api->put('/tasks/{task}/time_cancel', 'App\Http\Controllers\TaskController@cancelTime');
         $api->delete('/tasks/{task}/principal', 'App\Http\Controllers\TaskController@deletePrincipal');
@@ -177,7 +178,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // client
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
-        $api->post('/clients', 'App\Http\Controllers\ClientController@store')->middleware('can:create,App\Models\Client');
+        $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+//            ->middleware('can:create,App\Models\Client');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');

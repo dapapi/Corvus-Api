@@ -330,11 +330,12 @@ class PersonnelManageController extends Controller
 
                 'hire_shape' => $payload['hire_shape'],
                 'department' => $payload['department'],
+                'email' => $payload['email'],
                 'department_id' => $payload['department_id'],
                 'id_number' => $payload['id_number'],
 
             ];
-           
+
             $user->update($userArr);
             $personalDetail->create($payload);
 

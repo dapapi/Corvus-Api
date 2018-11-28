@@ -7,15 +7,22 @@ use App\CommunicationStatus;
 use App\Events\OperateLogEvent;
 use App\Gender;
 use App\Http\Requests\BloggerRequest;
+use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Requests\BloggerUpdateRequest;
+use App\Http\Requests\BloggerProductionRequest;
 use App\Http\Requests\BloggerProducerRequest;
 use App\Http\Transformers\BloggerTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\BloggerCommunicationTransformer;
+use App\Http\Transformers\ProductionTransformer;
+use App\Repositories\OperateLogRepository;
 use App\Models\Blogger;
+use App\Models\Production;
 use App\Models\BloggerType;
 use App\Models\BloggerCommunication;
 use App\Models\OperateEntity;
+use App\Http\Transformers\OperateLogTransformer;
+use App\Models\Interfaces\OperateLogInterface;
 use App\OperateLogMethod;
 use App\User;
 use App\Whether;
@@ -27,6 +34,14 @@ use Illuminate\Support\Facades\Log;
 //use Illuminate\Validation\Rule;
 class BloggerController extends Controller
 {
+
+//    protected $operateLogRepository;
+//
+//    public function __construct(OperateLogRepository $operateLogRepository)
+//    {
+//        $this->operateLogRepository = $operateLogRepository;
+//    }
+
     public function index(Request $request)
     {
         $payload = $request->all();
@@ -585,5 +600,69 @@ class BloggerController extends Controller
         }
         DB::commit();
         return $this->response->accepted();
+    }
+
+    public function addFollowUp(OperateLogFollowUpRequest $request, $model)
+    {
+        $payload = $request->all();
+        $content = $payload['content'];
+
+        try {
+            $array = [
+                'title' => null,
+                'start' => $content,
+                'end' => null,
+                'method' => OperateLogMethod::FOLLOW_UP,
+            ];
+
+            $array['obj'] = $this->operateLogRepository->getObject($model);
+            $operate = new OperateEntity($array);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            dd($e);
+            Log::error($e);
+            return $this->response->errorInternal('跟进失败');
+        }
+
+        return $this->response->created();
+    }
+    public function production_store(BloggerProductionRequest $request)
+    {
+        $payload = $request->all();
+
+//        DB::beginTransaction();
+//        try {
+            $production = Production::create($payload);
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $production,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+//        } catch (Exception $e) {
+//            dd($e);
+//            DB::rollBack();
+//            Log::error($e);
+//            return $this->response->errorInternal('创建失败');
+//        }
+//        DB::commit();
+        return $this->response->created();
+    }
+    public function production_index(Request $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $stars = Production::createDesc()->paginate($pageSize);
+
+        return $this->response->paginator($stars, new ProductionTransformer());
     }
 }

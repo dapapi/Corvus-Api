@@ -18,6 +18,7 @@ class StarReportController extends Controller
         $starable_type = $request->get('starable_type',null);
         $star_time = $request->get('start_time');
         $end_time = $request->get('end_time');
-        return StarReportRepository::getFensiByStarId($star_id,$starable_type,$star_time,$end_time);
+        $reports = StarReportRepository::getFensiByStarId($star_id,$starable_type,$star_time,$end_time);
+        return $reports;
     }
 }

@@ -16,4 +16,8 @@ class Platform extends Model
     {
         return $this->hasMany(StarPlatform::class);
     }
+    public function starReports()
+    {
+        return $this->hasMany(StarReport::class);
+    }
 }

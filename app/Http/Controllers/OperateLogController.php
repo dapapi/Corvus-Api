@@ -8,6 +8,7 @@ use App\Http\Transformers\OperateLogTransformer;
 use App\Models\Interfaces\OperateLogInterface;
 use App\Models\OperateEntity;
 use App\Models\Project;
+use App\Models\Blogger;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
@@ -27,7 +28,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail,Blogger $blogger)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -41,6 +42,8 @@ class OperateLogController extends Controller
             $query = $star->operateLogs();
         } else if ($trail && $trail->id) {
             $query = $trail->operateLogs();
+        }else if ($blogger && $blogger->id) {
+            $query = $blogger->operateLogs();
         }
         //TODO 其他模块
 

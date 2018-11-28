@@ -10,7 +10,9 @@ use App\Http\Transformers\ScheduleTransformer;
 use App\Models\Calendar;
 use App\Models\Material;
 use App\Models\Schedule;
+use App\Repositories\AffixRepository;
 use App\Repositories\CalendarRepository;
+use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScheduleRepository;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +20,14 @@ use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
 {
+    protected $moduleUserRepository;
+    protected $affixRepository;
+
+    public function __construct(ModuleUserRepository $moduleUserRepository, AffixRepository $affixRepository)
+    {
+        $this->moduleUserRepository = $moduleUserRepository;
+        $this->affixRepository = $affixRepository;
+    }
 
     public function index(IndexScheduleReuqest $request)
     {

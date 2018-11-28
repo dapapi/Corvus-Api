@@ -31,6 +31,7 @@ class StoreScheduleRequest extends FormRequest
             'start_at' => 'required|date|after_or_equal:today',
             'end_at' => 'required|date|after:start_at',
             'privacy' => 'required|boolean',
+            'participant_ids' => 'nullable|array',
             'material_id' => 'nullable',
             'repeat' => 'nullable',
             'position' => 'nullable',

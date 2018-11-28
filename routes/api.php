@@ -30,7 +30,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
-        $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove')->middleware('can:delete,task');
+        $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove');
+//            ->middleware('can:delete,task');
         $api->put('/tasks/{task}/status', 'App\Http\Controllers\TaskController@toggleStatus');
         $api->put('/tasks/{task}/time_cancel', 'App\Http\Controllers\TaskController@cancelTime');
         $api->delete('/tasks/{task}/principal', 'App\Http\Controllers\TaskController@deletePrincipal');
@@ -153,7 +154,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //考勤
         //提交申请
-        $api->post('/attendance','App\Http\Controllers\attendanceController@store');
+        $api->post('/attendance','App\Http\Controllers\AttendanceController@store');
         //我的考勤统计
         $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@myselfStatistics');
         //我的考勤请假统计
@@ -185,7 +186,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // client
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
-        $api->post('/clients', 'App\Http\Controllers\ClientController@store')->middleware('can:create,App\Models\Client');
+        $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+//            ->middleware('can:create,App\Models\Client');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
@@ -284,6 +286,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
         $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
         $api->get('/security/{user}', 'App\Http\Controllers\PersonnelManageController@securityDetail');
+        $api->put('/personal/edit/{user}', 'App\Http\Controllers\PersonnelManageController@editUser');
+        $api->get('/personnel/portal/{user}', 'App\Http\Controllers\PersonnelManageController@portal');//
+        $api->get('/personnel/entry/{user}', 'App\Http\Controllers\PersonnelManageController@entryDetail');//
+
+
+
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');

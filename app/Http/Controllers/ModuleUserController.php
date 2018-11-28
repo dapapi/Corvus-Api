@@ -34,7 +34,7 @@ class ModuleUserController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function add(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger, $type)
+    public function add(ModuleUserRequest $request, $model, $type)
     {
         $payload = $request->all();
 
@@ -46,7 +46,7 @@ class ModuleUserController extends Controller
 
         DB::beginTransaction();
         try {
-            $result = $this->moduleUserRepository->addModuleUser($participantIds, $participantDeleteIds, $task, $project, $star, $type);
+            $result = $this->moduleUserRepository->addModuleUser($participantIds, $participantDeleteIds, $model, $type);
             $participantIds = $result[0];
             $participantDeleteIds = $result[1];
 
@@ -69,7 +69,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::ADD_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star, $client, $trail, $blogger);
+                $array['obj'] = $this->operateLogRepository->getObject($model);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -93,7 +93,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::DEL_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star, $client, $trail, $blogger);
+                $array['obj'] = $this->operateLogRepository->getObject($model);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,
@@ -117,9 +117,9 @@ class ModuleUserController extends Controller
      * @param Star $star
      * @return \Dingo\Api\Http\Response|void
      */
-    public function addModuleUserParticipant(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
+    public function addModuleUserParticipant(ModuleUserRequest $request, $model)
     {
-        return $this->add($request, $task, $project, $star, $client, $trail, $blogger, ModuleUserType::PARTICIPANT);
+        return $this->add($request, $model, ModuleUserType::PARTICIPANT);
     }
 
     /**
@@ -131,9 +131,9 @@ class ModuleUserController extends Controller
      * @param Star $star
      * @return \Dingo\Api\Http\Response|void
      */
-    public function addModuleUserPublicity(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
+    public function addModuleUserPublicity(ModuleUserRequest $request, $model)
     {
-        return $this->add($request, $task, $project, $star, $client, $trail, $blogger, ModuleUserType::PUBLICITY);
+        return $this->add($request, $model, ModuleUserType::PUBLICITY);
     }
 
     /**
@@ -145,12 +145,12 @@ class ModuleUserController extends Controller
      * @param Star $star
      * @return \Dingo\Api\Http\Response|void
      */
-    public function addModuleUserBroker(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
+    public function addModuleUserBroker(ModuleUserRequest $request, $model)
     {
-        return $this->add($request, $task, $project, $star, $client, $trail, $blogger, ModuleUserType::BROKER);
+        return $this->add($request, $model, ModuleUserType::BROKER);
     }
 
-    public function remove(ModuleUserRequest $request, Task $task, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger)
+    public function remove(ModuleUserRequest $request, $model)
     {
         $payload = $request->all();
         $participantIds = $payload['person_ids'];
@@ -172,14 +172,14 @@ class ModuleUserController extends Controller
                     if ($participantUser) {
                         $moduleableId = 0;
                         $moduleableType = null;
-                        if ($task && $task->id) {
-                            $moduleableId = $task->id;
+                        if ($model instanceof Task && $model->id) {
+                            $moduleableId = $model->id;
                             $moduleableType = ModuleableType::TASK;
-                        } else if ($project && $project->id) {
-                            $moduleableId = $project->id;
+                        } else if ($model instanceof Project && $model->id) {
+                            $moduleableId = $model->id;
                             $moduleableType = ModuleableType::PROJECT;
-                        } else if ($star && $star->id) {
-                            $moduleableId = $star->id;
+                        } else if ($model instanceof Star && $model->id) {
+                            $moduleableId = $model->id;
                             $moduleableType = ModuleableType::STAR;
                         }
                         // TODO 还有其他类型
@@ -207,7 +207,7 @@ class ModuleUserController extends Controller
                     'end' => null,
                     'method' => OperateLogMethod::DEL_PERSON,
                 ];
-                $array['obj'] = $this->operateLogRepository->getObject($task, $project, $star, client, $trail, $blogger);
+                $array['obj'] = $this->operateLogRepository->getObject($model);
                 $operate = new OperateEntity($array);
                 event(new OperateLogEvent([
                     $operate,

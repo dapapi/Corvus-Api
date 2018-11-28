@@ -89,5 +89,9 @@ class Star extends Model
     {
         return $this->hasMany(StarPlatform::class);
     }
+    public function project()
+    {
+        return $this->morphToMany(Project::class, 'resourceable', 'project_resources');
+    }
 
 }

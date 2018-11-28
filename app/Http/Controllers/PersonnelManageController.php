@@ -18,6 +18,7 @@ use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\PersonalSocialSecurity;
 use App\Models\PersonalSkills;
+use App\Models\DepartmentUser;
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
@@ -340,11 +341,60 @@ class PersonnelManageController extends Controller
     }
 
 
-        //修改个人信息
-    public function editPersonal(Request $request, User $user,PersonalDetail $personalDetail)
+    //修改个人信息
+    public function editPersonal(Request $request, User $user,PersonalDetail $personalDetail,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
         $userid = $user->id;
+
+        $userid = $user->id;
+        $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
+
+        try {
+//            $operate = new OperateEntity([
+//                    'obj' => $user,
+//                    'title' => '个人',
+//                    'start' => '信息',
+//                    'end' => '档案',
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            $array = [
+                'department_id' => $payload['department_id'],
+                'user_id' => $userid,
+            ];
+
+            if($data == 0){
+                $departmentUser->create($array);
+            }else{
+                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
+                    ->where('user_id', $userid)
+                    ->first();
+                $departmentInfo->delete();
+                $departmentUser->create($array);
+
+            }
+            $personalDetail->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+    }
+
+    //修改user
+    public function editUser(Request $request, User $user,DepartmentUser $departmentUser)
+    {
+        $payload = $request->all();
+
+        $userid = $user->id;
+        $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
+
         try {
 //            $operate = new OperateEntity([
 //                    'obj' => $user,
@@ -357,9 +407,22 @@ class PersonnelManageController extends Controller
 //                    $operate,
 //                ]));
 
-            $personalDetail->update($payload);
+            $array = [
+                'department_id' => $payload['department_id'],
+                'user_id' => $userid,
+            ];
 
+            if($data == 0){
+                $departmentUser->create($array);
+            }else{
+                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
+                    ->where('user_id', $userid)
+                    ->first();
+                $departmentInfo->delete();
+                $departmentUser->create($array);
 
+            }
+            $user->update($payload);
         } catch (\Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('修改失败');
@@ -532,17 +595,13 @@ class PersonnelManageController extends Controller
     //审核人员信息
     public function audit(Request $request, User $user)
     {
-
         $payload = $request->all();
         $status = $payload['entry_status'];
-
         if ($user->entry_status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
         $userid = $user->id;
-
         if($status == 3){
-
             $array = [
                 'entry_status' => $payload['entry_status'],
                 'password' => User::USER_PSWORD,
@@ -572,7 +631,23 @@ class PersonnelManageController extends Controller
         return $this->response->accepted();
     }
 
+    //获取用户门户
+    public function portal(Request $request, User $user)
+    {
+        $payload = $request->all();
+        $user_id = $user->id;
 
+        $userInfo = $user->where('id',$user_id)->get();
+
+        return $this->response->collection($userInfo, new UserTransformer());
+    }
+
+    //获取用户门户
+    public function entryDetail(Request $request, User $user)
+    {
+        return $this->response->item($user, new UserTransformer());
+
+    }
 
 
 

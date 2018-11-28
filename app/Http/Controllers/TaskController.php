@@ -487,7 +487,7 @@ class TaskController extends Controller
      * @param Project $project
      * @param Task $task
      */
-    public function relevanceResource(Request $request, Project $project, Star $star, Client $client, Trail $trail, Blogger $blogger, Task $task)
+    public function relevanceResource(Request $request, $model)
     {
         $payload = $request->all();
         DB::beginTransaction();
@@ -498,36 +498,36 @@ class TaskController extends Controller
                 ];
 
                 $type = 0;
-                if ($project && $project->id) {
+                if ($model instanceof Project && $model->id) {
                     $type = ResourceType::PROJECT;
-                    $array['resourceable_id'] = $project->id;
+                    $array['resourceable_id'] = $model->id;
                     $array['resourceable_type'] = ModuleableType::PROJECT;
                     $title = '项目';
-                    $start = $project->title;
-                } else if ($star && $star->id) {
+                    $start = $model->title;
+                } else if ($model instanceof Star && $model->id) {
                     $type = ResourceType::STAR;
-                    $array['resourceable_id'] = $star->id;
+                    $array['resourceable_id'] = $model->id;
                     $array['resourceable_type'] = ModuleableType::STAR;
                     $title = '艺人';
-                    $start = $star->name;
-                } else if ($client && $client->id) {
+                    $start = $model->name;
+                } else if ($model instanceof Client && $model->id) {
                     $type = ResourceType::CLIENT;
-                    $array['resourceable_id'] = $client->id;
+                    $array['resourceable_id'] = $model->id;
                     $array['resourceable_type'] = ModuleableType::CLIENT;
                     $title = '客户';
-                    $start = $client->company;
-                } else if ($trail && $trail->id) {
+                    $start = $model->company;
+                } else if ($model instanceof Trail && $model->id) {
                     $type = ResourceType::TRAIL;
-                    $array['resourceable_id'] = $trail->id;
+                    $array['resourceable_id'] = $model->id;
                     $array['resourceable_type'] = ModuleableType::TRAIL;
                     $title = '销售线索';
-                    $start = $client->title;
-                } else if ($blogger && $blogger->id) {
+                    $start = $model->title;
+                } else if ($model instanceof Blogger && $model->id) {
                     $type = ResourceType::BLOGGER;
-                    $array['resourceable_id'] = $blogger->id;
+                    $array['resourceable_id'] = $model->id;
                     $array['resourceable_type'] = ModuleableType::BLOGGER;
                     $title = '博主';
-                    $start = $blogger->nickname;
+                    $start = $model->nickname;
                 } else {
                     //TODO 处理其他资源
                     $title = '其他';
@@ -915,7 +915,7 @@ class TaskController extends Controller
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
                     try {
-                        $this->affixRepository->addAffix($user, $task, null, null, null, null, null, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
+                        $this->affixRepository->addAffix($user, $task, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
                         // 操作日志 ...
                     } catch (Exception $e) {
                     }
@@ -924,7 +924,7 @@ class TaskController extends Controller
 
             //添加参与人
             if ($request->has('participant_ids')) {
-                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, null, null, ModuleUserType::PARTICIPANT);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
             dd($e);

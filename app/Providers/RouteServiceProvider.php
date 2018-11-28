@@ -14,9 +14,9 @@ use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Schedule;
-use App\Models\personalJob;
+use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
-use App\Models\personalDetail;
+use App\Models\PersonalDetail;
 
 
 use App\Models\Star;

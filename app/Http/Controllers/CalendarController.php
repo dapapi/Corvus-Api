@@ -8,7 +8,9 @@ use App\Http\Requests\CalendarDateRequest;
 use App\Http\Transformers\CalendarTransformer;
 use App\Models\Calendar;
 use App\ModuleableType;
+use App\ModuleUserType;
 use App\Repositories\CalendarRepository;
+use App\Repositories\ModuleUserRepository;
 use DemeterChain\C;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,6 +20,13 @@ use Illuminate\Support\Facades\Log;
 
 class CalendarController extends Controller
 {
+    protected $moduleUserRepository;
+
+    public function __construct(ModuleUserRepository $moduleUserRepository)
+    {
+        $this->moduleUserRepository = $moduleUserRepository;
+    }
+
     public function all(Request $request)
     {
         // todo 按权限筛选
@@ -56,6 +65,7 @@ class CalendarController extends Controller
                     $id = hashid_decode($id);
                 }
                 unset($id);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $calendar, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $exception) {
             Log::error($exception);

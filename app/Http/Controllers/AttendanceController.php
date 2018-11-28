@@ -126,7 +126,7 @@ class AttendanceController extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function collect(Request $request)
+    public function collect(AttendanceStatisticsRequest $request)
     {
         $start_time = $request->get('start_time',null);
         $end_time = $request->get('end_time',null);
@@ -150,6 +150,11 @@ class AttendanceController extends Controller
         return $this->response->collection($attendanceCalendar,new AttendanceTransformer());
     }
 
+    /**
+     * 我的申请
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function myApply(Request $request){
         $status = $request->get("status",null);
         $user = Auth::guard('api')->user();

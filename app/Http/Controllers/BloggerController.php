@@ -15,13 +15,15 @@ use App\Http\Transformers\BloggerTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\BloggerCommunicationTransformer;
 use App\Http\Transformers\ProductionTransformer;
+use App\Http\Transformers\OperateLogTransformer;
 use App\Repositories\OperateLogRepository;
 use App\Models\Blogger;
 use App\Models\Production;
 use App\Models\BloggerType;
 use App\Models\BloggerCommunication;
 use App\Models\OperateEntity;
-use App\Http\Transformers\OperateLogTransformer;
+use App\Models\BloggerProducer;
+
 use App\Models\Interfaces\OperateLogInterface;
 use App\OperateLogMethod;
 use App\User;
@@ -35,12 +37,12 @@ use Illuminate\Support\Facades\Log;
 class BloggerController extends Controller
 {
 
-//    protected $operateLogRepository;
-//
-//    public function __construct(OperateLogRepository $operateLogRepository)
-//    {
-//        $this->operateLogRepository = $operateLogRepository;
-//    }
+    protected $operateLogRepository;
+
+    public function __construct(OperateLogRepository $operateLogRepository)
+    {
+        $this->operateLogRepository = $operateLogRepository;
+    }
 
     public function index(Request $request)
     {
@@ -61,7 +63,6 @@ class BloggerController extends Controller
         }
         // sign_contract_status   签约状态
         $bloggers = Blogger::where($array)->createDesc()->paginate($pageSize);
-
         return $this->response->paginator($bloggers, new BloggerTransformer());
     }
     public function all(Request $request)
@@ -602,39 +603,18 @@ class BloggerController extends Controller
         return $this->response->accepted();
     }
 
-    public function addFollowUp(OperateLogFollowUpRequest $request, $model)
-    {
-        $payload = $request->all();
-        $content = $payload['content'];
-
-        try {
-            $array = [
-                'title' => null,
-                'start' => $content,
-                'end' => null,
-                'method' => OperateLogMethod::FOLLOW_UP,
-            ];
-
-            $array['obj'] = $this->operateLogRepository->getObject($model);
-            $operate = new OperateEntity($array);
-            event(new OperateLogEvent([
-                $operate,
-            ]));
-        } catch (Exception $e) {
-            dd($e);
-            Log::error($e);
-            return $this->response->errorInternal('跟进失败');
-        }
-
-        return $this->response->created();
-    }
     public function production_store(BloggerProductionRequest $request)
     {
         $payload = $request->all();
-
-//        DB::beginTransaction();
-//        try {
+        $blooger_id = $payload['blogger_id'];
+        unset($payload['blogger_id']);
+        DB::beginTransaction();
+        try {
             $production = Production::create($payload);
+            $model = new BloggerProducer;
+            $model->blogger_id =$blooger_id;
+            $model->producer_id =$production->id;
+            $m = $model->save();
 //            // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $production,
@@ -646,13 +626,12 @@ class BloggerController extends Controller
 //            event(new OperateLogEvent([
 //                $operate,
 //            ]));
-//        } catch (Exception $e) {
-//            dd($e);
-//            DB::rollBack();
-//            Log::error($e);
-//            return $this->response->errorInternal('创建失败');
-//        }
-//        DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
         return $this->response->created();
     }
     public function production_index(Request $request)

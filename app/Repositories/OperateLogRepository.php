@@ -9,7 +9,7 @@ use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
-use App\ModuleableType;
+use App\Models\Type;
 use App\User;
 
 class OperateLogRepository

@@ -57,6 +57,8 @@ class UserTransformer extends TransformerAbstract
             'jobs'=> $user->jobs,//'岗位',
             'number'=> $user->number,//'工号',
             'work_email'=> $user->work_email,//'工作邮箱',
+            'department_id'=> $user->department_id,//'工作邮箱',
+
 
 
         ];

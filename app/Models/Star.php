@@ -80,4 +80,14 @@ class Star extends Model
         return $this->belongsTo(User::class, 'broker_id', 'id');
     }
 
+    public function starReports()
+    {
+        return $this->morphMany(StarReport::class,'starable');
+    }
+
+    public function starPlatform()
+    {
+        return $this->hasMany(StarPlatform::class);
+    }
+
 }

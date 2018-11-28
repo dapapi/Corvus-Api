@@ -182,7 +182,9 @@ class TrailController extends Controller
     {
         $payload = $request->all();
 
-        $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
+        if ($request->has('principal_id') && !is_null($payload['principal_id']))
+            $payload['principal_id'] = hashid_decode($payload['principal_id']);
+
         DB::beginTransaction();
         try {
             if ($request->has('lock') && $payload['lock'])

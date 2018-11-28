@@ -2,7 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Models\Calendar;
 use App\Models\ModuleUser;
+use App\Models\Project;
+use App\Models\Schedule;
+use App\Models\Star;
+use App\Models\Task;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\User;
@@ -17,21 +22,28 @@ class ModuleUserRepository
      * @param $project
      * @param $type
      */
-    public function addModuleUser($participantIds, $participantDeleteIds, $task, $project, $star, $type)
+    public function addModuleUser($participantIds, $participantDeleteIds, $model, $type)
     {
 
         $array = [
             'type' => $type,
         ];
-        if ($task && $task->id) {
-            $array['moduleable_id'] = $task->id;
+
+        if ($model instanceof Task && $model->id) {
+            $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::TASK;
-        } else if ($project && $project->id) {
-            $array['moduleable_id'] = $project->id;
+        } else if ($model instanceof Project && $model->id) {
+            $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::PROJECT;
-        } else if ($star && $star->id) {
-            $array['moduleable_id'] = $star->id;
+        } else if ($model instanceof Star && $model->id) {
+            $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::STAR;
+        } else if ($model instanceof Calendar && $model->id) {
+            $array['moduleable_id'] = $model->id;
+            $array['moduleable_type'] = ModuleableType::CALENDAR;
+        } else if ($model instanceof Schedule && $model->id) {
+            $array['moduleable_id'] = $model->id;
+            $array['moduleable_type'] = ModuleableType::SCHEDULE;
         } else {
             throw new Exception('ModuleUserRepository@addModuleUser#1(没有处理这个类型)');
         }

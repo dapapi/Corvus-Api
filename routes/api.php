@@ -277,7 +277,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
+        $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
+
+        $api->post('/departments/{department}', 'App\Http\Controllers\DepartmentController@edit');
         $api->post('/departments/{department}/user/{user}', 'App\Http\Controllers\DepartmentController@store');
+        $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+
 
         // user
         $api->get('/users', 'App\Http\Controllers\UserController@index');
@@ -297,6 +303,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@edit');
         $api->delete('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@delete');
         $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
+
+        //获取粉丝数据
+        $api->get('/starreport/fensi','App\Http\Controllers\StarReportController@getStarFensi');
 
 
     });

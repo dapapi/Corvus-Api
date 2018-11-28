@@ -10,4 +10,8 @@ class StarReport extends Model
     {
         return $this->morphTo();
     }
+    public function platforms()
+    {
+        $this->belongsTo(Platform::class,'platform_id','id');
+    }
 }

@@ -573,5 +573,18 @@ class StarController extends Controller
         return $this->response->item(Star::find($star->id),new StarTransformer());
     }
 
-    //
+    /**
+     * 获取粉丝数据
+     * @param Request $request
+     */
+    public function getStarFensi(Request $request)
+    {
+        $star_id = $request->get('star_id','null');
+        $star_id = hashid_decode($star_id);
+        $starable_type = $request->get('starable_type',null);
+        $star_time = $request->get('start_time');
+        $end_time = $request->get('end_time');
+        $report =  StarReportRepository::getFensiByStarId($star_id,$starable_type,$star_time,$end_time);
+        return $report->platforms();
+    }
 }

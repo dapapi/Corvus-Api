@@ -146,7 +146,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //考勤
         //提交申请
-        $api->post('/attendance','App\Http\Controllers\attendanceController@store');
+        $api->post('/attendance','App\Http\Controllers\AttendanceController@store');
         //我的考勤统计
         $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@myselfStatistics');
         //我的考勤请假统计

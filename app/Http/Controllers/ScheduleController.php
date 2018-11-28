@@ -10,12 +10,14 @@ use App\Http\Transformers\ScheduleTransformer;
 use App\Models\Calendar;
 use App\Models\Material;
 use App\Models\Schedule;
+use App\ModuleUserType;
 use App\Repositories\AffixRepository;
 use App\Repositories\CalendarRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScheduleRepository;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
@@ -79,12 +81,22 @@ class ScheduleController extends Controller
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
 
+        DB::beginTransaction();
         try {
             $schedule = Schedule::create($payload);
+            if ($request->has('participant_ids')) {
+                foreach ($payload['participant_ids'] as &$id) {
+                    $id = hashid_decode($id);
+                }
+                unset($id);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $schedule, ModuleUserType::PARTICIPANT);
+            }
         } catch (\Exception $exception) {
             Log::error($exception);
+            DB::rollBack();
             return $this->response->errorInternal('创建日程失败');
         }
+        DB::commit();
 
         return $this->response->item($schedule, new ScheduleTransformer());
     }

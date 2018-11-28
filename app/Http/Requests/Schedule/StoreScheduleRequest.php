@@ -37,7 +37,11 @@ class StoreScheduleRequest extends FormRequest
             'repeat' => 'nullable',
             'position' => 'nullable',
             'desc' => 'nullable',
+
             'affix' => 'nullable|array',
+            'affix.*.title' => 'required_with:affix|max:255',
+            'affix.*.size' => 'required|numeric|min:0',
+            'affix.*.url' => 'required|max:500',
         ];
     }
 }

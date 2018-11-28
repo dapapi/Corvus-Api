@@ -604,6 +604,13 @@ class PersonnelManageController extends Controller
         return $this->response->collection($userInfo, new UserTransformer());
     }
 
+    //获取用户门户
+    public function entryDetail(Request $request, User $user)
+    {
+        return $this->response->item($user, new UserTransformer());
+
+    }
+
 
 
 }

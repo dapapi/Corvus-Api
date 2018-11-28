@@ -9,6 +9,14 @@ use App\Models\PersonalDetail;
 use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\OperateLog;
+use App\Models\Education;
+use App\Models\Training;
+use App\Models\Record;
+use App\Models\FamilyData;
+
+
+
+
 
 
 use App\Models\Project;
@@ -69,6 +77,11 @@ class User extends Authenticatable
         'number',
         'work_email',
         'department_id',
+        'high_school',
+        'age',
+        'jobs',
+        'number',
+        'work_email',
 
     ];
 
@@ -188,6 +201,27 @@ class User extends Authenticatable
     {
         return $this->hasOne(PersonalSalary::class, 'user_id', 'id');
     }
+
+    public function education()
+    {
+        return $this->hasMany(Education::class, 'user_id', 'id');
+    }
+
+    public function Training()
+    {
+        return $this->hasMany(Training::class, 'user_id', 'id');
+    }
+
+    public function Record()
+    {
+        return $this->hasMany(Record::class, 'user_id', 'id');
+    }
+
+    public function FamilyData()
+    {
+        return $this->hasMany(FamilyData::class, 'user_id', 'id');
+    }
+
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');

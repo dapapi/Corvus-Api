@@ -278,6 +278,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/security/{user}', 'App\Http\Controllers\PersonnelManageController@securityDetail');
         $api->put('/personal/edit/{user}', 'App\Http\Controllers\PersonnelManageController@editUser');
         $api->get('/personnel/portal/{user}', 'App\Http\Controllers\PersonnelManageController@portal');//
+        $api->get('/personnel/entry/{user}', 'App\Http\Controllers\PersonnelManageController@entryDetail');//
+
 
 
 

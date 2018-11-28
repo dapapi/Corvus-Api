@@ -11,6 +11,7 @@ use App\Http\Transformers\AttendanceTransformer;
 use App\Models\Attendance;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\Repositories\AffixRepository;
 use App\Repositories\AttendanceRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,12 @@ use Illuminate\Support\Facades\Log;
 //考勤
 class AttendanceController extends Controller
 {
+    protected $affixRepository;
+
+    public function __construct(AffixRepository $affixRepository)
+    {
+        $this->affixRepository = $affixRepository;
+    }
     public function index()
     {
 
@@ -62,6 +69,16 @@ class AttendanceController extends Controller
             DB::rollBack();
             Log::error($e);
             $this->response->errorInternal("申请创建失败");
+        }
+        if ($request->has('affix') && count($request->get('affix'))) {
+            $affixes = $request->get('affix');
+            foreach ($affixes as $affix) {
+                try {
+                    $this->affixRepository->addAffix($user, $attendance, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                    // 操作日志 ...
+                } catch (Exception $e) {
+                }
+            }
         }
         DB::commit();
         return $this->response->item(Attendance::find($attendance->id),new AttendanceTransformer());

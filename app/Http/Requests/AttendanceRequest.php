@@ -56,7 +56,12 @@ class AttendanceRequest extends FormRequest
                 Attendance::APPROVAL_PENFING,//待审批
                 Attendance::REFUSED,//已拒绝
                 Attendance::INVALID,//已作废
-            ])
+            ]),
+            'affix' => 'array',
+            'affix.*.title' => 'required|max:255',
+            'affix.*.size' => 'required|numeric|min:0',
+            'affix.*.url' => 'required|max:500',
+            'affix.*.type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO])],
 
         ];
     }

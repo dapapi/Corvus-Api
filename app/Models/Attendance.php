@@ -40,7 +40,6 @@ class Attendance extends Model
         'end_at',
         'number',
         'cause',
-        'affixes',
         'approval_flow',
         'notification_person',
         'creator_id',

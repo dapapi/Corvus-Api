@@ -93,6 +93,7 @@ class AttendanceController extends Controller
         $user = Auth::guard('api')->user();
         $year = $request->get('year',null);
         $daynumber = AttendanceRepository::myselfStatistics($user,$year);
+
         return $daynumber;
     }
 

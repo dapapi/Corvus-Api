@@ -178,7 +178,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // client
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
-        $api->post('/clients', 'App\Http\Controllers\ClientController@store')->middleware('can:create,App\Models\Client');
+        $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+//            ->middleware('can:create,App\Models\Client');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');

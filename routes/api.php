@@ -125,10 +125,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人
         $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producer_store');
+        $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        //添加跟进
+        $api->post('/bloggers/{bloggers}/follow_up', 'App\Http\Controllers\BloggerController@addFollowUp');
         //获取类型
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
+        //添加作品
+        $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@production_store');
+        // 查看作品
+        $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@production_index');
         $api->get('/bloggers/getcommunication', 'App\Http\Controllers\BloggerController@getcommunication');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
@@ -270,7 +277,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
+        $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
+
+        $api->post('/departments/{department}', 'App\Http\Controllers\DepartmentController@edit');
         $api->post('/departments/{department}/user/{user}', 'App\Http\Controllers\DepartmentController@store');
+        $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+
 
         // user
         $api->get('/users', 'App\Http\Controllers\UserController@index');

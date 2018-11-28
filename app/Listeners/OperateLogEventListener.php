@@ -5,6 +5,8 @@ namespace App\Listeners;
 use App\Events\OperateLogEvent;
 use App\Models\Attendance;
 use App\Models\Blogger;
+use App\Models\Client;
+use App\Models\Contact;
 use App\Models\OperateLog;
 use App\Models\Project;
 use App\Models\Star;
@@ -106,9 +108,12 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Trail){
                 $type = ModuleableType::TRAIL;
                 $typeName = '销售线索';
-            }else if($operate->obj instanceof Trail){
+            }else if($operate->obj instanceof Client){
                 $type = ModuleableType::CLIENT;
                 $typeName = '客户';
+            }else if($operate->obj instanceof Contact){
+                $type = ModuleableType::CONTACT;
+                $typeName = '联系人';
             }
             //TODO
 

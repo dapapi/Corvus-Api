@@ -29,8 +29,7 @@ class TrailTransformer extends TransformerAbstract
             'lock_status' => $trail->lock_status,
         ];
 
-        if ($trail->lock_status)
-            $array['fee'] = $trail->fee / 100;
+        $array['fee'] = $trail->fee / 100;
 
         if ($trail->resource_type == Trail::PERSONAL) {
             $resource = User::where('id', $trail->resource)->first();

@@ -8,6 +8,7 @@ abstract class ModuleableType
     const TASK = 'task';
     const STAR = 'star';
     const CLIENT = 'client';
+    const CONTACT = 'contact';
     const TRAIL = 'trail';
     const BLOGGER = 'blogger';
     const USER = 'user';
@@ -15,4 +16,6 @@ abstract class ModuleableType
     const PERSONA_SALARY = 'personalSalary';
     const WORK = 'work';
     const ATTENDANCE = 'attendance';
+    const CALENDAR = 'calendar';
+    const SCHEDULE = 'schedule';
 }

@@ -50,6 +50,13 @@ class CalendarController extends Controller
         //todo 加参与人
         try {
             $calendar = Calendar::create($payload);
+
+            if ($request->has('participant_ids')) {
+                foreach ($payload['participant_ids'] as &$id) {
+                    $id = hashid_decode($id);
+                }
+                unset($id);
+            }
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();

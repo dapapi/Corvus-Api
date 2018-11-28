@@ -63,6 +63,13 @@ class User extends Authenticatable
         'department',
         'position_type',
         'entry_status',
+        'high_school',
+        'age',
+        'jobs',
+        'number',
+        'work_email',
+        'department_id',
+
     ];
 
     const USER_STATUS_TRIAL = 1; // 试用期

@@ -18,6 +18,7 @@ use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\PersonalSocialSecurity;
 use App\Models\PersonalSkills;
+use App\Models\DepartmentUser;
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
@@ -341,10 +342,14 @@ class PersonnelManageController extends Controller
 
 
     //修改个人信息
-    public function editPersonal(Request $request, User $user,PersonalDetail $personalDetail)
+    public function editPersonal(Request $request, User $user,PersonalDetail $personalDetail,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
         $userid = $user->id;
+
+        $userid = $user->id;
+        $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
+
         try {
 //            $operate = new OperateEntity([
 //                    'obj' => $user,
@@ -356,7 +361,21 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
+            $array = [
+                'department_id' => $payload['department_id'],
+                'user_id' => $userid,
+            ];
 
+            if($data == 0){
+                $departmentUser->create($array);
+            }else{
+                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
+                    ->where('user_id', $userid)
+                    ->first();
+                $departmentInfo->delete();
+                $departmentUser->create($array);
+
+            }
             $personalDetail->update($payload);
 
 
@@ -369,10 +388,13 @@ class PersonnelManageController extends Controller
     }
 
     //修改user
-    public function editUser(Request $request, User $user)
+    public function editUser(Request $request, User $user,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
+
         $userid = $user->id;
+        $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
+
         try {
 //            $operate = new OperateEntity([
 //                    'obj' => $user,
@@ -384,6 +406,22 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
+
+            $array = [
+                'department_id' => $payload['department_id'],
+                'user_id' => $userid,
+            ];
+
+            if($data == 0){
+                $departmentUser->create($array);
+            }else{
+                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
+                    ->where('user_id', $userid)
+                    ->first();
+                $departmentInfo->delete();
+                $departmentUser->create($array);
+
+            }
             $user->update($payload);
         } catch (\Exception $exception) {
             Log::error($exception);

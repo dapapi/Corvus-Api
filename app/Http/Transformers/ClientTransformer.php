@@ -28,6 +28,8 @@ class ClientTransformer extends TransformerAbstract
                 'size' => $client->size,
                 'keyman' => $client->keyman,
                 'desc' => $client->desc,
+                'created_at' => $client->created_at,
+                'updated_at' => $client->updated_at,
             ];
         } else {
             $array = [

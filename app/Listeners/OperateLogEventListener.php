@@ -59,6 +59,7 @@ class OperateLogEventListener
     protected $cancel = '取消';
     protected $renewal = '更新';
     protected $transfer = '调岗';
+    protected $refuse = '拒绝';
 
     /**
      * Handle the event.
@@ -231,6 +232,10 @@ class OperateLogEventListener
                 case OperateLogMethod::TRANSFER://调岗
                     $level = OperateLogLevel::MIDDLE;
                     $content = $this->transfer . $title;
+                    break;
+                case OperateLogMethod::REFUSE://拒绝线索
+                    $level = OperateLogLevel::HIGH;
+                    $content = $this->refuse. $typeName;
                     break;
             }
 

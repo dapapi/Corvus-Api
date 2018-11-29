@@ -113,7 +113,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/trails/{trail}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/trails/{trail}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
-
+        $api->get('/clients/{trail}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/clients/{trail}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -223,6 +224,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
         $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
+        $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');

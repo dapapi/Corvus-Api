@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Http\Requests\Trail\EditTrailRequest;
+use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
@@ -190,9 +191,6 @@ class TrailController extends Controller
             if ($request->has('lock') && $payload['lock'])
                 $payload['lock_status'] = 1;
 
-            if ($request->has('refuse') && $payload['refuse'])
-                $payload['progress_status'] = Trail::STATUS_REFUSE;
-
             $trail->update($payload);
 
             if ($request->has('client')) {
@@ -248,7 +246,7 @@ class TrailController extends Controller
     public function delete(Request $request, Trail $trail)
     {
 
-        $trail->progress_status = Trail::STATUS_DELETE;
+        $trail->status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
 
@@ -258,7 +256,7 @@ class TrailController extends Controller
     public function recover(Request $request, Trail $trail)
     {
         $trail->restore();
-        $trail->progress_status = Trail::STATUS_UNCONFIRMED;
+        $trail->status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
 
         $this->response->item($trail, new TrailTransformer());
@@ -313,5 +311,37 @@ class TrailController extends Controller
         $trails = Trail::where('type', $type)->get();
 
         return $this->response->collection($trails, new TrailTransformer());
+    }
+
+    public function refuse(RefuseTrailReuqest $request, Trail $trail)
+    {
+        $type = $request->get('type');
+        $reason = $request->get('reason');
+
+        DB::beginTransaction();
+        try {
+            $operate = new OperateEntity([
+                'obj' => $trail,
+                'title' => null,
+                'start' => $type .'，' . $reason,
+                'end' => null,
+                'method' => OperateLogMethod::REFUSE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+
+            $trail->update([
+                'status' => Trail::STATUS_REFUSE
+            ]);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            Db::rollBack();
+        }
+        DB::commit();
+
+        return $this->response->accepted(null, '线索已拒绝');
     }
 }

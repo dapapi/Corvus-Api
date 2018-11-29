@@ -45,6 +45,18 @@ class AttendanceController extends Controller
         if(isset($payload['creator_id'])){
             unset($payload['creator_id']);
         }
+        if($payload['type'] == Attendance::BUSINESS_TRAVEL || $payload['type'] == Attendance::FIELD_OPERATION){
+           if(!isset($payload['place']) || empty($payload['place'])){
+               return $this->response->errorInternal('地点不能为空');
+           }
+        }else{
+            if(isset($payload['place'])){
+                unset($payload['place']);
+            }
+        }
+        if($payload['type'] != Attendance::LEAVE){
+            unset($payload['leave_type']);
+        }
 
         $payload['creator_id']  =   $user->id;
         //暂时存疑,应该判断审批流是否存在
@@ -93,7 +105,8 @@ class AttendanceController extends Controller
         $user = Auth::guard('api')->user();
         $year = $request->get('year',null);
         $daynumber = AttendanceRepository::myselfStatistics($user,$year);
-        return $daynumber;
+
+        return ["data"=>$daynumber];
     }
 
     /**

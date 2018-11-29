@@ -309,23 +309,29 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
+
         try {
-            $operate = new OperateEntity([
-                    'obj' => $personalDetail,
-                    'title' => null,
-                    'start' => null,
-                    'end' => null,
-                    'method' => OperateLogMethod::CREATE,
-                ]);
-                event(new OperateLogEvent([
-                    $operate,
-                ]));
+//            $operate = new OperateEntity([
+//                    'obj' => $personalDetail,
+//                    'title' => null,
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::CREATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
 
             $payload['user_id'] = $userid;
             $userArr = [
-                'hire_shape' => $payload['userarr']['hire_shape'],
-                'position' => $payload['userarr']['position'],
-                'department' => $payload['userarr']['department'],
+//                'hire_shape' => $payload['userarr']['hire_shape'],
+//                'position' => $payload['userarr']['position'],
+//                'department' => $payload['userarr']['department'],
+
+                'hire_shape' => $payload['hire_shape'],
+                'department' => $payload['department'],
+                'email' => $payload['email'],
+                'department_id' => $payload['department_id'],
                 'id_number' => $payload['id_number'],
 
             ];
@@ -376,6 +382,16 @@ class PersonnelManageController extends Controller
                 $departmentUser->create($array);
 
             }
+            $userArr = [
+                'hire_shape' => $payload['hire_shape'],
+                'department' => $payload['department'],
+                'email' => $payload['email'],
+                'department_id' => $payload['department_id'],
+                'id_number' => $payload['id_number'],
+
+            ];
+
+            $user->update($userArr);
             $personalDetail->update($payload);
 
 

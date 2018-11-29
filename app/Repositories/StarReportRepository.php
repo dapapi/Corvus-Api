@@ -52,7 +52,26 @@ class StarReportRepository
                     DB::raw('s.name as star_name'),
                     DB::raw('u.name as principal_name'),
                     'p.end_at',
+                    DB::raw(
+                        "case p.status
+                        when 1 then '进行中'
+                        when 2 then '完成'
+                        when 3 then '终止'
+                        when 4 then '删除'
+                        end status_name
+                        "),
                     'p.status',
+                    'p.title',
+                    DB::raw(
+                        "case p.type
+                        when 1 then '影视项目'
+                        when 2 then '综艺项目'
+                        when 3 then '商务代言'
+                        when 4 then 'papi项目'
+                        when 5 then '基础项目'
+                        end type_name"
+                    ),
+                    'p.type'
                 ]
             );
         $tasks = (new Star())->setTable('s')->from('stars as s')
@@ -70,6 +89,13 @@ class StarReportRepository
                     DB::raw('s.name as star_name'),
                     DB::raw('u.name as principal_name'),
                     't.end_at',
+                    DB::raw(
+                        "case t.status
+                        when 1 then '正常'
+                        when 2 then '完成'
+                        when 3 then '终止'
+                        end status_name"
+                    ),
                     't.status',
                 ]
             );

@@ -395,7 +395,7 @@ class ProjectController extends Controller
 
         $status = $request->get('status');
         switch ($status) {
-            case Project::STATUS_COMPLATE:
+            case Project::STATUS_COMPLETE:
                 $project->complete_at = now();
                 $project->status = $status;
                 break;

@@ -36,4 +36,5 @@ abstract class OperateLogMethod
     const CANCEL = 24;//取消
     const RENEWAL = 25;//更新
     const TRANSFER = 26;//调岗
+    const REFUSE = 27;//拒绝
 }

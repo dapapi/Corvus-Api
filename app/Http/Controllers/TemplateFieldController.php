@@ -25,6 +25,9 @@ class TemplateFieldController extends Controller
             case Project::TYPE_ENDORSEMENT :
                 $fieldsRes = TemplateField::where('module_type', Project::TYPE_ENDORSEMENT);
                 break;
+            case Project::TYPE_PAPI:
+                $fieldsRes = TemplateField::where('module_type', Project::TYPE_PAPI);
+                break;
             default:
                 $fieldsRes = null;
                 break;

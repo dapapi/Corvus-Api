@@ -283,7 +283,7 @@ class AttendanceRepository
             ->setTable('a')
             ->from('attendances as a')
             ->leftJoin('department_user as du','a.creator_id','=','du.user_id')
-            ->leftJoin('departmentsgi as d','d.id','=','du.department_id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->leftJoin('users as u','u.id','=','a.creator_id')
             ->where($where)
             ->whereIn('du.department_id',$department_id_list)

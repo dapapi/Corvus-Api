@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Project;
 
-use App\Models\Project;
 use Dingo\Api\Http\FormRequest;
 
 class EditProjectRequest extends FormRequest

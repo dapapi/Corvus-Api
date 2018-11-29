@@ -138,8 +138,8 @@ class ProjectController extends Controller
             case Project::STATUS_NORMAL://进行中
                 $query->where('status', Project::STATUS_NORMAL);
                 break;
-            case Project::STATUS_COMPLATE://完成
-                $query->where('status', Project::STATUS_COMPLATE);
+            case Project::STATUS_COMPLETE://完成
+                $query->where('status', Project::STATUS_COMPLETE);
                 break;
             case Project::STATUS_FROZEN://终止
                 $query->where('status', Project::STATUS_FROZEN);

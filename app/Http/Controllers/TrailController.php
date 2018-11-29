@@ -60,6 +60,11 @@ class TrailController extends Controller
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
         $payload['industry_id'] = hashid_decode($payload['industry_id']);
 
+        if ($request->has('status')) {
+            $payload['progress_status'] = $payload['status'];
+            unset($payload['status']);
+        }
+
         if (is_numeric($payload['resource'])) {
             $payload['resource'] = hashid_decode($payload['resource']);
         }
@@ -190,6 +195,12 @@ class TrailController extends Controller
 
         if ($request->has('industry_id') && !is_null($payload['industry_id']))
             $payload['industry_id'] = hashid_decode($payload['industry_id']);
+
+        if ($request->has('status')) {
+            $payload['progress_status'] = $payload['status'];
+            unset($payload['status']);
+        }
+
 
         DB::beginTransaction();
         try {

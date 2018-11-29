@@ -540,6 +540,11 @@ class AttendanceRepository
                 else null end leave_type"
             );
         }
+        if($type != 1){
+            $field[] = DB::raw(
+                "a.place"
+            );
+        }
 //        DB::connection()->enableQueryLog();
         //获取要查询部门的子级部门
         $departments_list = (new Department())->getSubidByPid($department);

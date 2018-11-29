@@ -17,22 +17,13 @@ class OperateLogTransformer extends TransformerAbstract
             'status' => $operateLog->status,
             'level' => $operateLog->level,
             'created_at' => $operateLog->created_at->toDatetimeString(),
-            'user' => $operateLog->user_id,
+            'user' => hashid_encode($operateLog->user_id),
         ];
 
         if ($operateLog->user_id) {
             $array['username'] = $operateLog->user->name;
         }
         return $array;
-    }
-
-    public function includeDepartment(User $user)
-    {
-        $department = $user->department()->first();
-        if (!$department) {
-            return null;
-        }
-        return $this->item($department, new DepartmentTransformer());
     }
 
     public function includeUser(OperateLog $operateLog)

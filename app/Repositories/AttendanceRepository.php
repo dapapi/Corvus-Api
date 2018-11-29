@@ -723,16 +723,23 @@ class AttendanceRepository
     /**
      * 查询用户申请
      */
-    public static function myApply($creator_id,$status)
+    public static function myApply($creator_id,$status,$search)
     {
         $myApplyList = (new Attendance())
-            ->where('creator_id',$creator_id)
-            ->where('status',$status)
+            ->setTable('a')
+            ->from('attendances as a')
+            ->leftJoin('users as u','u.id','=','a.creator_id')
+            ->where('a.creator_id',$creator_id)
+            ->whereIn('a.status',$status)
+            ->where(function ($query) use ($search){
+                $query->where('u.name','like','%'.$search.'%')
+                    ->orWhere('a.type','=',$search);//todo 还有个审批编号
+            })
             ->get([
-                'start_at',
-                'end_at',
-                'number',
-                DB::raw("case status
+                'a.start_at',
+                'a.end_at',
+                'a.number',
+                DB::raw("case a.status
                 when 1 then '待审批'
                 when 2 then '已同意'
                 when 3 then '已拒绝'

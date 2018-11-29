@@ -11,14 +11,16 @@ class TaskResourceTransformer extends TransformerAbstract
 {
 
     protected $availableIncludes = ['resourceable', 'resource'];
+    protected $defaultIncludes = ['resource'];
+
 
     public function transform(TaskResource $taskResource)
     {
         return [
-//            'task_id' => $taskResource->task_id,
-//            'resourceable_id',
-//            'resourceable_type',
-//            'resource_id',
+            'task_id' => $taskResource->task_id,
+            'resourceable_id' => $taskResource->resourceable_id,
+            'resourceable_type' => $taskResource->resourceable_type,
+            'resource_id' => $taskResource->resource_id,
         ];
     }
 

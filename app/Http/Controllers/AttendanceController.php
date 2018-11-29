@@ -186,7 +186,7 @@ class AttendanceController extends Controller
      * @return \Dingo\Api\Http\Response
      */
     public function myApply(Request $request){
-        $status = $request->get("status",null);
+        $status = $request->get("status",[1]);
         $search = $request->get('search',null);
         $user = Auth::guard('api')->user();
         $myapply = AttendanceRepository::myApply($user->id,$status,$search);

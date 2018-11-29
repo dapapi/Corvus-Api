@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\Types\Self_;
 
 class AttendanceRepository
 {
@@ -102,28 +103,10 @@ class AttendanceRepository
                 $minute = 0;
                 if($start_time->dayOfYear == $day){//第一天
                     $minute = Carbon::tomorrow()->diffInMinutes($start_time);//加班时长
-//                    $daynumber[$month]['month'] = $month;
-
-//                    if(!isset($daynumber[$month][$attendance['type']]['daynumber'])){
-//                        $daynumber[$month][$attendance['type']]['daynumber'] = self::computeDay($minute);
-//                    }else{
-//                        $daynumber[$month][$attendance['type']]['daynumber'] += self::computeDay($minute);
-//                    }
                 }elseif($end_time->dayOfYear == $day){//最后一天
                     $minute = $end_time->diffInMinutes(Carbon::create($end_time->year,$end_time->month,$end_time->day,0,0,0));
-//                    if(!isset($daynumber[$month][$attendance['type']]['daynumber'])){
-//                        $daynumber[$month][$attendance['type']]['daynumber'] = self::computeDay($minute);
-//                    }else{
-//                        $daynumber[$month][$attendance['type']]['daynumber'] += self::computeDay($minute);
-//                    }
                 }else{
-//                    if(!isset($daynumber[$month][$attendance['type']]['daynumber'])){
-//                        $daynumber[$month][$attendance['type']]['daynumber'] = 1;
-//                    }else{
-//                        $daynumber[$month][$attendance['type']]['daynumber'] += 1;
-//                    }
                     $minute = 8*60;
-
                 }
 
                 $month_arr = array_column($daynumber,'month');
@@ -151,6 +134,18 @@ class AttendanceRepository
                         ]
                     ];
                 }
+
+            }
+        }
+        //没有值得月份设置为空
+        $month_arr2 = array_column($daynumber,'month');
+        for($i = 1;$i<=12;$i++){
+            $month_key2 = array_search($i,$month_arr2);
+            if($month_key2 === false){
+                $daynumber[] = [
+                    'month' =>  $i,
+                    'daynumber' =>  null,
+                ];
             }
         }
        return $daynumber;
@@ -248,6 +243,17 @@ class AttendanceRepository
                 }
             }
         }
+        //没有值得月份设置为空
+        $month_arr2 = array_column($daynumber,'month');
+        for($i = 1;$i<=12;$i++){
+            $month_key2 = array_search($i,$month_arr2);
+            if($month_key2 === false){
+                $daynumber[] = [
+                    'month' =>  $i,
+                    'daynumber' =>  null,
+                ];
+            }
+        }
         return ["data"  =>  $daynumber];
     }
 
@@ -299,9 +305,6 @@ class AttendanceRepository
                     ),
                 ]
             );
-//        dd($statistics);
-//        $sql = DB::getQueryLog();
-//        dd($sql);
         $daynumber = [];
         foreach ($statistics as $statistic){
             $start_at = Carbon::parse($statistic['start_at']);
@@ -320,27 +323,11 @@ class AttendanceRepository
             for($day = $start_at->dayOfYear;$day<=$end_at->dayOfYear;$day++){
                 if($start_at->dayOfYear == $day){//第一天
                     $minute = Carbon::tomorrow()->diffInMinutes($start_at);//加班时长
-//                    if(!isset($statistic['daynumber'])){
-//                        $statistic['daynumber'] = self::computeDay($minute);
-//                    }else{
-//                        $statistic['daynumber'] += self::computeDay($minute);
-//                    }
                 }elseif($end_at->dayOfYear == $day){//最后一天
                     $minute = $end_at->diffInMinutes(Carbon::create($end_at->year,$end_at->month,$end_at->day,0,0,0));
-//                    if(!isset($statistic['daynumber'])){
-//                        $statistic['daynumber'] = self::computeDay($minute);
-//                    }else{
-//                        $statistic['daynumber'] += self::computeDay($minute);
-//                    }
                 }else{
                     $minute = 8*60;
-//                    if(!isset($statistic['daynumber'])){
-//                        $statistic['daynumber'] = 1;
-//                    }else{
-//                        $statistic['daynumber'] += 1;
-//                    }
                 }
-//                $daynumber[$statistic['creator_id']][$type] = $statistic;
 
                 $creator_id_arr = array_column($daynumber,'creator_id');
                 $creator_key = array_search($statistic['creator_id'],$creator_id_arr);
@@ -441,7 +428,6 @@ class AttendanceRepository
         $daynumber = [];
         foreach ($leaveStatistics as $leaveStatistic){
             $leave_type = $leaveStatistic['leave_type'];
-            $creator_id = $leaveStatistic['creator_id'];
             $start_at = Carbon::parse($leaveStatistic['start_at']);
             $end_at = Carbon::parse($leaveStatistic['end_at']);
             $leaveStatistic['creator_id'] = hashid_encode($leaveStatistic['creator_id']);
@@ -452,30 +438,41 @@ class AttendanceRepository
                 $end_at = $end_time;
             }
             for($day = $start_at->dayOfYear;$day<=$end_at->dayOfYear;$day++){
-                $date = $start_at->copy()->addDay($day - $start_at->dayOfYear);
                 if ($start_at->dayOfYear == $day) {//第一天
                     $minute = Carbon::tomorrow()->diffInMinutes($start_at);//加班时长
-                    if (!isset($leaveStatistic['daynumber'])) {
-                        $leaveStatistic['daynumber'] = self::computeDay($minute);
-                    } else {
-                        $leaveStatistic['daynumber'] += self::computeDay($minute);
-                    }
                 } elseif ($end_at->dayOfYear == $day) {//最后一天
                     $minute = $end_at->diffInMinutes(Carbon::create($end_at->year, $end_at->month, $end_at->day, 0, 0, 0));
-                    if (!isset($leaveStatistic['daynumber'])) {
-                        $leaveStatistic['daynumber'] = self::computeDay($minute);
-                    } else {
-                        $leaveStatistic['daynumber'] += self::computeDay($minute);
-                    }
                 } else {
-                    if (!isset($leaveStatistic['daynumber'])) {
-                        $leaveStatistic['daynumber'] = 1;
-                    } else {
-                        $leaveStatistic['daynumber'] += 1;
+                    $minute = 8*60;
+                }
+
+                $creator_id_arr = array_column($daynumber,'creator_id');
+                $creator_key = array_search($leaveStatistic['creator_id'],$creator_id_arr);
+                if($creator_key >= 0 && $creator_key !== false){
+                    $leave_type_arr = array_column($daynumber[$creator_key]['daynumber'],'leave_type');
+                    $leave_type_key = array_search($leave_type,$leave_type_arr);
+                    if($leave_type_key>=0 && $leave_type_key!==false){
+                        $daynumber[$creator_key]['daynumber'][$leave_type_key]['number'] += self::computeDay($minute);
+                    }else{
+                        $daynumber[$creator_key]['daynumber'][] = [
+                            'leave_type' => $leave_type,
+                            'number'    =>  self::computeDay($minute)
+                        ];
+
                     }
+                }else{
+                    $daynumber[]=[
+                        'creator_id'    =>  $leaveStatistic['creator_id'],
+                        'daynumber' =>  [
+                            [
+                                'leave_type'  =>  $leave_type,
+                                'number'    =>  self::computeDay($minute)
+                            ]
+                        ]
+                    ];
                 }
             }
-            $daynumber[$leaveStatistic['creator_id']][$leaveStatistic['leave_type']] = $leaveStatistic;
+//            $daynumber[$leaveStatistic['creator_id']][$leaveStatistic['leave_type']] = $leaveStatistic;
 
         }
         return $daynumber;
@@ -551,7 +548,6 @@ class AttendanceRepository
                         ->get(
                             $field
                         );
-        $sql = DB::getQueryLog();
         foreach ($leavecollect as &$value){
             $start_at = Carbon::parse($value['start_at']);
             $end_at = Carbon::parse($value['end_at']);
@@ -646,31 +642,78 @@ class AttendanceRepository
             for($day = $start_at->dayOfYear;$day<=$end_at->dayOfYear;$day++) {
                 $date = $start_at->copy()->addDay($day-$start_at->dayOfYear);
                 $date = $date->toDateString();
+                $minute = 0;
                 if ($start_at->dayOfYear == $day) {//第一天
                     $minute = Carbon::tomorrow()->diffInMinutes($start_at);//加班时长
-                    $value['now'] = self::computeDay($minute);//当天加班时长
-                    if ($value['daynumber']) {
-                        $value['daynumber'] = self::computeDay($minute);
-                    } else {
-                        $value['daynumber'] += self::computeDay($minute);
-                    }
+//                    $value['now'] = self::computeDay($minute);//当天加班时长
+//                    if ($value['daynumber']) {
+//                        $value['daynumber'] = self::computeDay($minute);
+//                    } else {
+//                        $value['daynumber'] += self::computeDay($minute);
+//                    }
                 } elseif ($end_at->dayOfYear == $day) {//最后一天
                     $minute = $end_at->diffInMinutes(Carbon::create($end_at->year, $end_at->month, $end_at->day, 0, 0, 0));
-                    $value['now'] = self::computeDay($minute);//当天加班时长
-                    if (!isset($value['daynumber'])) {
-                        $value['daynumber'] = self::computeDay($minute);
-                    } else {
-                        $value['daynumber'] += self::computeDay($minute);
-                    }
+//                    $value['now'] = self::computeDay($minute);//当天加班时长
+//                    if (!isset($value['daynumber'])) {
+//                        $value['daynumber'] = self::computeDay($minute);
+//                    } else {
+//                        $value['daynumber'] += self::computeDay($minute);
+//                    }
                 } else {
-                    $value['now'] = 1;//当天加班时长
-                    if (!isset($value['daynumber'])) {
-                        $value['daynumber'] = 1;
-                    } else {
-                        $value['daynumber'] += 1;
-                    }
+                    $minute = 8 * 60;
+//                    $value['now'] = 1;//当天加班时长
+//                    if (!isset($value['daynumber'])) {
+//                        $value['daynumber'] = 1;
+//                    } else {
+//                        $value['daynumber'] += 1;
+//                    }
                 }
-                $list[$date][$value['creator_id']][$value['type']] = $value;
+                $date_arr = array_column($list,'date');
+                $date_key = array_search($date,$date_arr);
+                if($date_key >= 0 && $date_key !== false){
+                    $creator_id_arr = array_column($list[$date_key]['creators'],'creator_id');
+                    $creator_id_key = array_search($value['creator_id'],$creator_id_arr);
+                    if($creator_id_key >= 0 && $creator_id_key !== false){
+                        $type_arr = array_column($list[$date_key]['creators'][$creator_id_key]['daynumber'],'type');
+                        $type_key = array_search($value['type'],$type_arr);
+                        if($type_key >=0 && $type_key !== false){
+                            $list[$date_key]['creators'][$creator_id_key]['daynumber'][$type_key]['number'] += self::computeDay($minute);
+                        }else{
+                            $list[$date_key]['creators'][$creator_id_key]['daynumber'][] = [
+                                'type'  =>  $value['type'],
+                                'number'    =>  self::computeDay($minute)
+                            ];
+                        }
+                    } else{
+                        $list[$date_key]['creators'][] = [
+                            'creator_id'    =>  $value['creator_id'],
+                            'daynumber' =>  [
+                                [
+                                    'type'    =>  $value['type'],
+                                    'number'  =>  self::computeDay($minute),
+                                ]
+
+                            ]
+                        ];
+                    }
+                }else{
+                    $list[] = [
+                        'date'  =>  $date,
+                        'creators'  =>  [
+                            [
+                                'creator_id'    =>  $value['creator_id'],
+                                'daynumber' =>  [
+                                    [
+                                        'type'  =>  $value['type'],
+                                        'number'    =>  self::computeDay($minute)
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ];
+                }
+
+//                $list[$date][$value['creator_id']][$value['type']] = $value;
             }
 
         }

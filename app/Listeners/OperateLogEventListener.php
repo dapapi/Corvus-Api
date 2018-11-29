@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Client;
@@ -115,6 +116,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Contact){
                 $type = ModuleableType::CONTACT;
                 $typeName = '联系人';
+            }else if($operate->obj instanceof Announcement){
+                $type = ModuleableType::CONTACT;
+                $typeName = '公告';
             }
             //TODO
 

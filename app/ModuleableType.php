@@ -18,4 +18,6 @@ abstract class ModuleableType
     const ATTENDANCE = 'attendance';
     const CALENDAR = 'calendar';
     const SCHEDULE = 'schedule';
+    const ANNOUNCEMENT = 'announcement';
+
 }

@@ -177,7 +177,7 @@ class ReportController extends Controller
             return $this->response->noContent();
         }
    }
-    public function index_issues(Request $request)
+    public function indexIssues(Request $request)
     {
 
         $user = $request->get('id', false);
@@ -192,7 +192,7 @@ class ReportController extends Controller
     }
         return $this->response->paginator($stars, new IssuesTransformer());
     }
-    public function store_issues(Request $request)
+    public function storeIssues(Request $request)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -244,7 +244,7 @@ class ReportController extends Controller
         }
 
     }
-    public function edit_issues(IssuesRequest $request,Issues $Issues)
+    public function editIssues(IssuesRequest $request,Issues $Issues)
     {
         $payload = $request->all();
         $arr = Issues::where('issues',$payload['issues'])->first();
@@ -285,7 +285,7 @@ class ReportController extends Controller
         return $this->response->accepted();
 
     }
-    public function edit1_issues(Request $request)
+    public function edit1Issues(Request $request)
     {
         $payload = $request->all();
         if(!$request->has('id')){
@@ -354,7 +354,7 @@ class ReportController extends Controller
         return $this->response->accepted();
 
     }
-    public function delete_issues(Request $request)
+    public function deleteIssues(Request $request)
     {
         $isAll = $request->get('all', false);
         $payload = hashid_decode($isAll);

@@ -58,16 +58,18 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\ModuleUserController@addModuleUserParticipant');
         $api->put('/tasks/{task}/participant_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //附件
+        $api->get('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->post('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/tasks/{task}/affix', 'App\Http\Controllers\AffixController@index');
         $api->get('/tasks/{task}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
         $api->post('/tasks/{task}/affix', 'App\Http\Controllers\AffixController@add');
         $api->post('/tasks/{task}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/tasks/{task}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/tasks/{task}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
-        $api->get('/report/{report}/affix', 'App\Http\Controllers\AffixController@index');
-        $api->get('/report/{report}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
-        $api->post('/report/{report}/affix', 'App\Http\Controllers\AffixController@add');
-        $api->post('/report/{report}/affixes/{launch}/download', 'App\Http\Controllers\AffixController@download');
+        $api->get('/reports/{review}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->get('/reports/{review}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
+        $api->post('/reports/{review}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->post('/reports/{review}/affixes/{launch}/download', 'App\Http\Controllers\AffixController@download');
       //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
      //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');
@@ -135,16 +137,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人
-        $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producer_store');
+        $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producerStore');
       //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
         //获取类型
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
         //添加作品
-        $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@production_store');
+        $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
         // 查看作品
-        $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@production_index');
+        $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
         $api->get('/bloggers/getcommunication', 'App\Http\Controllers\BloggerController@getcommunication');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
@@ -192,23 +194,27 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
+        //announcement
+        $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
+        $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');
+        $api->post('/announcements', 'App\Http\Controllers\AnnouncementController@store');
         //  report
         $api->get('/report', 'App\Http\Controllers\ReportController@index');
         $api->post('/report', 'App\Http\Controllers\ReportController@store');
         $api->get('/report/all', 'App\Http\Controllers\ReportController@all');
         $api->put('/report/{report}', 'App\Http\Controllers\ReportController@edit');
         $api->delete('/report', 'App\Http\Controllers\ReportController@delete');
-        $api->get('/report/issues', 'App\Http\Controllers\ReportController@index_issues');
-        $api->post('/report/issues', 'App\Http\Controllers\ReportController@store_issues');
-        $api->put('/report/issues/{issues}', 'App\Http\Controllers\ReportController@edit_issues');
-        $api->put('/report/issues/order/template', 'App\Http\Controllers\ReportController@edit1_issues');
-        $api->delete('/report/issues', 'App\Http\Controllers\ReportController@delete_issues');
+        $api->get('/report/issues', 'App\Http\Controllers\ReportController@indexIssues');
+        $api->post('/report/issues', 'App\Http\Controllers\ReportController@storeIssues');
+        $api->put('/report/issues/{issues}', 'App\Http\Controllers\ReportController@editIssues');
+        $api->put('/report/issues/order/template', 'App\Http\Controllers\ReportController@edit1Issues');
+        $api->delete('/report/issues', 'App\Http\Controllers\ReportController@deleteIssues');
         // review
         $api->get('/review', 'App\Http\Controllers\ReviewController@index');
         $api->get('/review/{review}', 'App\Http\Controllers\ReviewController@show');
         $api->post('/review', 'App\Http\Controllers\ReviewController@store');
         $api->put('/review/{review}', 'App\Http\Controllers\ReviewController@edit');
-        $api->get('/review/my/template', 'App\Http\Controllers\ReviewController@my_template');
+        $api->get('/review/my/template', 'App\Http\Controllers\ReviewController@myTemplate');
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');

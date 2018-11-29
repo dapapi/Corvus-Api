@@ -567,7 +567,7 @@ class BloggerController extends Controller
 
         return $this->response->item(Blogger::find($blogger->id), new BloggerTransformer());
     }
-    public function producer_store(BloggerProducerRequest $request,Blogger $blogger)
+    public function producerStore(BloggerProducerRequest $request,Blogger $blogger)
     {
         $payload = $request->all();
         if ($request->has('producer_id')) {
@@ -603,7 +603,7 @@ class BloggerController extends Controller
         return $this->response->accepted();
     }
 
-    public function production_store(BloggerProductionRequest $request)
+    public function productionStore(BloggerProductionRequest $request)
     {
         $payload = $request->all();
         $blooger_id = $payload['blogger_id'];
@@ -634,7 +634,7 @@ class BloggerController extends Controller
         DB::commit();
         return $this->response->created();
     }
-    public function production_index(Request $request)
+    public function productionIndex(Request $request)
     {
         $payload = $request->all();
 

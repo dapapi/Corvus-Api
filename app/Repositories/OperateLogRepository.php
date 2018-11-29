@@ -4,6 +4,8 @@ namespace App\Repositories;
 
 use App\Models\Affix;
 use App\Models\Blogger;
+use App\Models\Report;
+use App\Models\Announcement;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\Star;
@@ -28,6 +30,10 @@ class OperateLogRepository
         } else if ($model instanceof Trail && $model->id) {
             $obj = $model;
         } else if ($model instanceof Blogger && $model->id) {
+            $obj = $model;
+        }else if ($model instanceof Report && $model->id) {
+            $obj = $model;
+        }else if ($model instanceof Announcement && $model->id) {
             $obj = $model;
         }
         //TODO class type

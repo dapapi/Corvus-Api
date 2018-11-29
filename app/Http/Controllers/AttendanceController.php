@@ -106,7 +106,7 @@ class AttendanceController extends Controller
         $year = $request->get('year',null);
         $daynumber = AttendanceRepository::myselfStatistics($user,$year);
 
-        return $daynumber;
+        return ["data"=>$daynumber];
     }
 
     /**

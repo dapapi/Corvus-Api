@@ -342,20 +342,18 @@ class AttendanceRepository
                         $daynumber[$creator_key]['daynumber'][] = [
                             'type' => $type,
                             'number'    =>  self::computeDay($minute),
-                            'department_name'  =>  $statistic['department_name'],
-                            'name'  =>  'name',
                         ];
 
                     }
                 }else{
                     $daynumber[]=[
                         'creator_id'    =>  $statistic['creator_id'],
+                        'department_name'  =>  $statistic['department_name'],
+                        'name'  =>  $statistic['name'],
                         'daynumber' =>  [
                             [
                                 'type'  =>  $type,
-                                'number'    =>  self::computeDay($minute),
-                                'department_name'  =>  $statistic['department_name'],
-                                'name'  =>  'name',
+                                'number'    =>  self::computeDay($minute)
                             ]
                         ]
                     ];

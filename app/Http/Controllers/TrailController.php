@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Http\Requests\Trail\EditTrailRequest;
+use App\Http\Requests\Trail\FilterTrailRequest;
 use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
@@ -17,6 +18,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\OperateLogMethod;
 use App\User;
+use function foo\func;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,9 +30,9 @@ class TrailController extends Controller
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $clients = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
 
-        return $this->response->paginator($clients, new TrailTransformer());
+        return $this->response->paginator($trails , new TrailTransformer());
     }
 
     public function all(Request $request)
@@ -343,5 +345,23 @@ class TrailController extends Controller
         DB::commit();
 
         return $this->response->accepted(null, '线索已拒绝');
+    }
+
+    public function filter(FilterTrailRequest $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $trails = Trail::where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('status'))
+                $query->where('status', $payload['status']);
+            if ($request->has('principal_id'))
+                $query->where('principal_id', hashid_decode($payload['principal_id']));
+        })->paginate($pageSize);
+
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 }

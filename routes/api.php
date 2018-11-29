@@ -223,6 +223,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
        // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail
+        $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');

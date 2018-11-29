@@ -61,7 +61,7 @@ class StarRequest extends FormRequest
                 CommunicationStatus::NO_ANSWER,
             ]),
             'intention' => 'boolean',
-            'intention_desc' => 'max:500',
+            'intention_desc' => 'max:255',
             'sign_contract_other' => 'boolean',
             'sign_contract_other_name' => 'max:255',
             'sign_contract_at' => 'date',

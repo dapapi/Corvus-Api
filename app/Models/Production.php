@@ -4,16 +4,20 @@ namespace App\Models;
 
 use App\User;
 use Illuminate\Database\Eloquent\Model;
-//use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class BloggerProducer extends Model
+class Production extends Model
 {
-   // use SoftDeletes;
-    protected $table = 'blogger_producer';
+    use SoftDeletes;
+    protected $table = 'production';
     protected $fillable = [
-        'bloogger_id',
-        'producer_id',//沟通状态
-
+        'nickname',  //昵称
+        'videoname',//视屏名称
+        'release_time',//视屏发布时间
+        'read_proportion',//阅读比
+        'link',//link  链接
+        'advertising',// 是否有广告
+        'deleted_at'
     ];
 //隐藏字段
 //'contract_type',//合同类型
@@ -43,17 +47,5 @@ class BloggerProducer extends Model
     {
         return $this->morphToMany(Task::class, 'resourceable', 'task_resources');
     }
-    public function project()
-    {
-        return $this->morphToMany(Project::class, 'resourceable', 'project_resources');
-    }
-    public function producer()
-    {
-        return $this->belongsTo(User::class, 'producer_id', 'id');
-    }
 
-    public function type()
-    {
-        return $this->belongsTo(BloggerType::class, 'type_id', 'id');
-    }
 }

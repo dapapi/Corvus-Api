@@ -4,7 +4,8 @@ namespace App\Http\Requests;
 
 use Dingo\Api\Http\FormRequest;
 
-class AttendanceYearRequest extends FormRequest
+
+class BloggerProductionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,14 +25,12 @@ class AttendanceYearRequest extends FormRequest
     public function rules()
     {
         return [
-            'year'  =>  'required|Integer'
-        ];
-    }
-    public function messages()
-    {
-        return [
-            'year.required' =>  '请选择查询考勤年份',
-            'year.Integer'  =>  '查询年份必须为整数'
+            'nickname' => 'required|max:255', // 昵称
+            'videoname'=> 'required|max:255', // 视屏名称
+            'release_time' => 'date',//发布时间
+            'read_proportion' => 'max:255', // 装换率
+            'link' => 'max:500',//链接
+            'advertising' => 'boolean',//是否有广告
         ];
     }
 }

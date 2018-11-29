@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Affix;
+use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Project;
@@ -42,6 +43,9 @@ class AffixRepository
         } else if ($model instanceof Blogger && $model->id) {
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::BLOGGER;
+        }else if($model instanceof Attendance == ModuleableType::ATTENDANCE){
+            $array['affixable_id'] = $model->id;
+            $array['affixable_type'] = ModuleableType::ATTENDANCE;
         }
         //TODO 还有其他类型
 

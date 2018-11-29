@@ -17,6 +17,10 @@ class UserTransformer extends TransformerAbstract
         'job',
         'salary',
         'operateLogs',
+        'education',
+        'training',
+        'record',
+        'familyData',
     ];
    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
@@ -25,6 +29,7 @@ class UserTransformer extends TransformerAbstract
             'id' => hashid_encode($user->id),
             'user_id' => $user->id,
             'phone' => $user->phone,
+            'email' => $user->email,
             'birth_time' => $user->birth_time,
             'name' => $user->name,
             'current_address' => $user->current_address,
@@ -35,6 +40,26 @@ class UserTransformer extends TransformerAbstract
             'entry_time' => $user->entry_time,
             'archive_time' => $user->entry_time,
             'position_type' => $user->position_type,
+            'en_name'=> $user->en_name, // '英文',
+            'gender'=> $user->gender,//性别',
+            'id_number'=> $user->id_number,//'身份证号',
+            'political'=> $user->political,//'政治面貌',
+            'marriage'=> $user->marriage,//'婚姻状态',
+            'cadastral_address'=> $user->cadastral_address,//'户籍地址',
+            'current_address'=> $user->current_address,//'现居住地址',
+            'national'=> $user->national,// '民族',
+            'entry_time'=> $user->entry_time,//'入职时间',
+            'birth_time'=> $user->birth_time,//'出生日期',
+            'blood_type'=> $user->blood_type,// '血型',
+            'icon_url'=> $user->icon_url,//'用户头像',
+            'archive_time'=> $user->archive_time,//归档日期',
+            'high_school'=> $user->high_school,// '最高学历',
+            'age'=> $user->age,//'年龄',
+            'jobs'=> $user->jobs,//'岗位',
+            'number'=> $user->number,//'工号',
+            'work_email'=> $user->work_email,//'工作邮箱',
+            'department_id'=> $user->department_id,//'工作邮箱',
+
 
 
         ];
@@ -95,6 +120,34 @@ class UserTransformer extends TransformerAbstract
         $log = $user->operateLogs;
 
         return $this->collection($log, new OperateLogTransformer());
+    }
+
+    public function includeEducation(User $user)
+    {
+        $education = $user->education;
+
+        return $this->collection($education, new EducationTransformer());
+    }
+
+    public function includeTraining(User $user)
+    {
+        $training = $user->training;
+
+        return $this->collection($training, new TrainingTransformer());
+    }
+
+    public function includeRecord(User $user)
+    {
+        $record = $user->record;
+
+        return $this->collection($record, new RecordTransformer());
+    }
+
+    public function includeFamilyData(User $user)
+    {
+        $familyData = $user->familyData;
+
+        return $this->collection($familyData, new FamilyDataTransformer());
     }
 
 }

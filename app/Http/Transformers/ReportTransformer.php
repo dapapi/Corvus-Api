@@ -61,14 +61,6 @@ class ReportTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
-    public function includeReport(Report $report)
-    {
-
-        $user = $report->Report;
-        if (!$user)
-            return null;
-        return $this->item($user, new ReportTransformer());
-    }
     public function includeTasks(Report $report)
     {
 

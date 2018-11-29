@@ -15,6 +15,7 @@ class JobTransformer extends TransformerAbstract
             'user_id' => $job->id,
             'rank' => $job->rank,
             'eport' => $job->eport,
+            'positive_time' => $job->positive_time,
             'management' => $job->management,
             'siling' => $job->siling,
             'first_work_time' => $job->first_work_time,

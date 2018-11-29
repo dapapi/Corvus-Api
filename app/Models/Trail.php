@@ -45,7 +45,7 @@ class Trail extends Model
     const TYPE_PAPI = 4; // papi项目
     const TYPE_BASE = 5; // 基础项目
 
-    // priority
+    // priority 优先级
     const PRIORITY_C = 1;
     const PRIORITY_B = 2;
     const PRIORITY_A = 3;

@@ -8,7 +8,9 @@ use App\Http\Transformers\OperateLogTransformer;
 use App\Models\Interfaces\OperateLogInterface;
 use App\Models\OperateEntity;
 use App\Models\Project;
+use App\Models\Blogger;
 use App\Models\Star;
+use App\Models\Report;
 use App\Models\Task;
 use App\Models\Trail;
 use App\OperateLogMethod;
@@ -27,7 +29,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -41,6 +43,10 @@ class OperateLogController extends Controller
             $query = $star->operateLogs();
         } else if ($trail && $trail->id) {
             $query = $trail->operateLogs();
+        }else if ($blogger && $blogger->id) {
+            $query = $blogger->operateLogs();
+        }else if ($report && $report->id) {
+            $query = $report->operateLogs();
         }
         //TODO 其他模块
 
@@ -55,15 +61,14 @@ class OperateLogController extends Controller
             default:
                 break;
         }
-        $operateLogs = $query->createDesc()->paginate($pageSize);
 
+        $operateLogs = $query->createDesc()->paginate($pageSize);
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
                 $operateLog->content = '!!!!!!!';
                 //TODO 隐私字段裁切处理
             }
         }
-
         return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
 
@@ -79,14 +84,13 @@ class OperateLogController extends Controller
                 'end' => null,
                 'method' => OperateLogMethod::FOLLOW_UP,
             ];
-
             $array['obj'] = $this->operateLogRepository->getObject($model);
-
             $operate = new OperateEntity($array);
             event(new OperateLogEvent([
                 $operate,
             ]));
         } catch (Exception $e) {
+            dd($e);
             Log::error($e);
             return $this->response->errorInternal('跟进失败');
         }

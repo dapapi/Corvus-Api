@@ -11,6 +11,7 @@ use App\Http\Transformers\AttendanceTransformer;
 use App\Models\Attendance;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\Repositories\AffixRepository;
 use App\Repositories\AttendanceRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,12 @@ use Illuminate\Support\Facades\Log;
 //考勤
 class AttendanceController extends Controller
 {
+    protected $affixRepository;
+
+    public function __construct(AffixRepository $affixRepository)
+    {
+        $this->affixRepository = $affixRepository;
+    }
     public function index()
     {
 
@@ -37,6 +44,18 @@ class AttendanceController extends Controller
         $user = Auth::guard('api')->user();
         if(isset($payload['creator_id'])){
             unset($payload['creator_id']);
+        }
+        if($payload['type'] == Attendance::BUSINESS_TRAVEL || $payload['type'] == Attendance::FIELD_OPERATION){
+           if(!isset($payload['place']) || empty($payload['place'])){
+               return $this->response->errorInternal('地点不能为空');
+           }
+        }else{
+            if(isset($payload['place'])){
+                unset($payload['place']);
+            }
+        }
+        if($payload['type'] != Attendance::LEAVE){
+            unset($payload['leave_type']);
         }
 
         $payload['creator_id']  =   $user->id;
@@ -63,6 +82,16 @@ class AttendanceController extends Controller
             Log::error($e);
             $this->response->errorInternal("申请创建失败");
         }
+        if ($request->has('affix') && count($request->get('affix'))) {
+            $affixes = $request->get('affix');
+            foreach ($affixes as $affix) {
+                try {
+                    $this->affixRepository->addAffix($user, $attendance, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                    // 操作日志 ...
+                } catch (Exception $e) {
+                }
+            }
+        }
         DB::commit();
         return $this->response->item(Attendance::find($attendance->id),new AttendanceTransformer());
     }
@@ -76,6 +105,7 @@ class AttendanceController extends Controller
         $user = Auth::guard('api')->user();
         $year = $request->get('year',null);
         $daynumber = AttendanceRepository::myselfStatistics($user,$year);
+
         return $daynumber;
     }
 
@@ -126,7 +156,7 @@ class AttendanceController extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function collect(Request $request)
+    public function collect(AttendanceStatisticsRequest $request)
     {
         $start_time = $request->get('start_time',null);
         $end_time = $request->get('end_time',null);
@@ -150,6 +180,11 @@ class AttendanceController extends Controller
         return $this->response->collection($attendanceCalendar,new AttendanceTransformer());
     }
 
+    /**
+     * 我的申请
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function myApply(Request $request){
         $status = $request->get("status",null);
         $user = Auth::guard('api')->user();

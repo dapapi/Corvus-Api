@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests;
 
+
+
 use Dingo\Api\Http\FormRequest;
 
-class AttendanceYearRequest extends FormRequest
+
+class ReviewUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,14 +27,8 @@ class AttendanceYearRequest extends FormRequest
     public function rules()
     {
         return [
-            'year'  =>  'required|Integer'
-        ];
-    }
-    public function messages()
-    {
-        return [
-            'year.required' =>  '请选择查询考勤年份',
-            'year.Integer'  =>  '查询年份必须为整数'
-        ];
+
+          'status' => 'required|max:1',
+    ];
     }
 }

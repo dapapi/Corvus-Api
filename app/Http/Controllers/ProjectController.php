@@ -277,7 +277,6 @@ class ProjectController extends Controller
             }
 
             $project->save();
-            dd($project);
             $projectId = $project->id;
 
             if ($request->has('fields')) {

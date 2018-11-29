@@ -282,10 +282,11 @@ class AttendanceRepository
         $statistics = (new Attendance())
             ->setTable('a')
             ->from('attendances as a')
-            ->leftJoin('department_user as d','a.creator_id','=','d.user_id')
+            ->leftJoin('department_user as du','a.creator_id','=','du.user_id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->leftJoin('users as u','u.id','=','a.creator_id')
             ->where($where)
-            ->whereIn('d.department_id',$department_id_list)
+            ->whereIn('du.department_id',$department_id_list)
             ->get(
                 [
                     'creator_id',
@@ -294,6 +295,7 @@ class AttendanceRepository
                     'a.type',
                     'start_at',
                     'end_at',
+                    DB::raw('d.name as department_name'),
                     DB::raw(//申请类型 1:请假 2:加班 3:出差 4:外勤
                         "case a.type
                 when 1 then '请假'
@@ -339,13 +341,15 @@ class AttendanceRepository
                     }else{
                         $daynumber[$creator_key]['daynumber'][] = [
                             'type' => $type,
-                            'number'    =>  self::computeDay($minute)
+                            'number'    =>  self::computeDay($minute),
                         ];
 
                     }
                 }else{
                     $daynumber[]=[
                         'creator_id'    =>  $statistic['creator_id'],
+                        'department_name'  =>  $statistic['department_name'],
+                        'name'  =>  $statistic['name'],
                         'daynumber' =>  [
                             [
                                 'type'  =>  $type,

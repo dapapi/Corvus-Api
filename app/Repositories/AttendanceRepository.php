@@ -331,6 +331,7 @@ class AttendanceRepository
                     $minute = 8*60;
                 }
 
+                //对数句进行统计格式化
                 $creator_id_arr = array_column($daynumber,'creator_id');
                 $creator_key = array_search($statistic['creator_id'],$creator_id_arr);
                 if($creator_key >= 0 && $creator_key !== false){
@@ -462,7 +463,8 @@ class AttendanceRepository
                     }else{
                         $daynumber[$creator_key]['daynumber'][] = [
                             'leave_type' => $leave_type,
-                            'number'    =>  self::computeDay($minute)
+                            'number'    =>  self::computeDay($minute),
+                            'leave_type_name'   =>  $leaveStatistic['leave_type_name']
                         ];
 
                     }
@@ -655,28 +657,10 @@ class AttendanceRepository
                 $minute = 0;
                 if ($start_at->dayOfYear == $day) {//第一天
                     $minute = Carbon::tomorrow()->diffInMinutes($start_at);//加班时长
-//                    $value['now'] = self::computeDay($minute);//当天加班时长
-//                    if ($value['daynumber']) {
-//                        $value['daynumber'] = self::computeDay($minute);
-//                    } else {
-//                        $value['daynumber'] += self::computeDay($minute);
-//                    }
                 } elseif ($end_at->dayOfYear == $day) {//最后一天
                     $minute = $end_at->diffInMinutes(Carbon::create($end_at->year, $end_at->month, $end_at->day, 0, 0, 0));
-//                    $value['now'] = self::computeDay($minute);//当天加班时长
-//                    if (!isset($value['daynumber'])) {
-//                        $value['daynumber'] = self::computeDay($minute);
-//                    } else {
-//                        $value['daynumber'] += self::computeDay($minute);
-//                    }
                 } else {
                     $minute = 8 * 60;
-//                    $value['now'] = 1;//当天加班时长
-//                    if (!isset($value['daynumber'])) {
-//                        $value['daynumber'] = 1;
-//                    } else {
-//                        $value['daynumber'] += 1;
-//                    }
                 }
                 $date_arr = array_column($list,'date');
                 $date_key = array_search($date,$date_arr);
@@ -723,7 +707,6 @@ class AttendanceRepository
                     ];
                 }
 
-//                $list[$date][$value['creator_id']][$value['type']] = $value;
             }
 
         }

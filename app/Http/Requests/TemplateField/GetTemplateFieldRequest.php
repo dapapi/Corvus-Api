@@ -25,7 +25,15 @@ class GetTemplateFieldRequest extends FormRequest
     public function rules()
     {
         return [
-            'type' => 'required|numeric'
+            'type' => 'required|numeric',
+            'status' => 'required|numeric'
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'type.required' => '123',
         ];
     }
 }

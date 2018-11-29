@@ -203,7 +203,7 @@ class TrailController extends Controller
 
             if ($request->has('contact')) {
                 $contact = $trail->contact;
-                $contact->update($payload['client']);
+                $contact->update($payload['contact']);
             }
 
             if ($request->has('expectations')) {

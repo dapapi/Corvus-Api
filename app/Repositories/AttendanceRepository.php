@@ -388,11 +388,12 @@ class AttendanceRepository
         $leaveStatistics = (new Attendance())
             ->setTable('a')
             ->from('attendances as a')
-            ->leftJoin('department_user as d','a.creator_id','=','d.user_id')
+            ->leftJoin('department_user as du','a.creator_id','=','du.user_id')
             ->leftJoin('users as u','u.id','=','a.creator_id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($where)
 
-            ->whereIn('d.department_id',$department_id_list)
+            ->whereIn('du.department_id',$department_id_list)
             ->where('a.type',Attendance::LEAVE)//请假
             ->get(
                 [
@@ -403,6 +404,7 @@ class AttendanceRepository
                     'start_at',
                     'end_at',
                     'a.leave_type',
+                    DB::raw("d.name as department_name"),
                     DB::raw(//申请类型 1:请假 2:加班 3:出差 4:外勤
                         "case a.type
                         when 1 then '请假'
@@ -423,8 +425,8 @@ class AttendanceRepository
                         when 7 then '陪产假'
                         when 8 then '丧假'
                         when 9 then '其他'
-                        else null end leave_type"
-                    )
+                        else null end leave_type_name"
+                    ),
                 ]
             );
 //        $log = DB::getQueryLog();
@@ -467,10 +469,13 @@ class AttendanceRepository
                 }else{
                     $daynumber[]=[
                         'creator_id'    =>  $leaveStatistic['creator_id'],
+                        'department_name'   =>  $leaveStatistic['department_name'],
+                        'name'  =>  $leaveStatistic['name'],
                         'daynumber' =>  [
                             [
                                 'leave_type'  =>  $leave_type,
-                                'number'    =>  self::computeDay($minute)
+                                'number'    =>  self::computeDay($minute),
+                                'leave_type_name'   =>  $leaveStatistic['leave_type_name']
                             ]
                         ]
                     ];
@@ -502,7 +507,7 @@ class AttendanceRepository
             'a.creator_id',//用户ID
             'u.name',//姓名
             'u.icon_url',//头像
-            'd.name',//所属部门名称
+            DB::raw('d.name as department_name'),//所属部门名称
             'a.number',
             'a.start_at',
             'a.end_at',
@@ -555,6 +560,7 @@ class AttendanceRepository
         foreach ($leavecollect as &$value){
             $start_at = Carbon::parse($value['start_at']);
             $end_at = Carbon::parse($value['end_at']);
+            $value['creator_id'] =  hashid_encode($value['creator_id']);
             if($start_at->timestamp < $start_time->timestamp){
                 $start_at = $start_time;
             }

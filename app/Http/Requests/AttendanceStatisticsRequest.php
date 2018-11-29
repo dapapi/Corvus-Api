@@ -39,4 +39,13 @@ class AttendanceStatisticsRequest extends FormRequest
                         )
         ];
     }
+    public function messages()
+    {
+        return [
+            'start_time.date'   =>  '开始时间必须为时间类型',
+            'end_time.date' =>  '结束时间必须为时间类型',
+            'department.Integer'    =>  '部门选择错误',
+            'type.in'   =>  '考勤类型不正确'
+        ];
+    }
 }

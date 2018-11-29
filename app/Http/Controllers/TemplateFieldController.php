@@ -14,7 +14,7 @@ class TemplateFieldController extends Controller
     {
         $type = $request->get('type');
         // 用来区分创建还是展示
-        $status = $request->get('status', 1);
+        $status = $request->get('status', 0);
         switch ($type) {
             case Project::TYPE_MOVIE :
                 $fieldsRes = TemplateField::where('module_type', Project::TYPE_MOVIE);

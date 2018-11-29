@@ -22,6 +22,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
 
         //task
+        $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
@@ -188,6 +189,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@detail');
 
         // client
+        $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
@@ -225,6 +227,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // trail
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
+        $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
@@ -235,7 +238,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
-        $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

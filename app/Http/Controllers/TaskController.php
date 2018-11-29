@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AffixType;
 use App\Events\OperateLogEvent;
+use App\Http\Requests\Task\FilterTaskRequest;
 use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
@@ -115,7 +116,6 @@ class TaskController extends Controller
 
         return $this->response->paginator($result, new TaskTransformer());
     }
-
 
     public function recycleBin(Request $request)
     {
@@ -937,4 +937,21 @@ class TaskController extends Controller
 //        return $this->response->created();
     }
 
+    public function filter(FilterTaskRequest $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $trails = Task::where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('type_id'))
+                $query->where('type_id', hashid_decode($payload['type_id']));
+            if ($request->has('status'))
+                $query->where('status', $payload['status']);
+        })->paginate($pageSize);
+
+        return $this->response->paginator($trails, new TaskTransformer());
+    }
 }

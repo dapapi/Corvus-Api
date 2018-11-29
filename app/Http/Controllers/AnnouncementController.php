@@ -70,4 +70,5 @@ class AnnouncementController extends Controller
         }
 
     }
+
 }

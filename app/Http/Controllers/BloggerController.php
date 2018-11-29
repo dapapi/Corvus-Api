@@ -7,7 +7,6 @@ use App\CommunicationStatus;
 use App\Events\OperateLogEvent;
 use App\Gender;
 use App\Http\Requests\BloggerRequest;
-use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Requests\BloggerUpdateRequest;
 use App\Http\Requests\BloggerProductionRequest;
 use App\Http\Requests\BloggerProducerRequest;
@@ -15,7 +14,6 @@ use App\Http\Transformers\BloggerTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\BloggerCommunicationTransformer;
 use App\Http\Transformers\ProductionTransformer;
-use App\Http\Transformers\OperateLogTransformer;
 use App\Repositories\OperateLogRepository;
 use App\Models\Blogger;
 use App\Models\Production;
@@ -23,7 +21,6 @@ use App\Models\BloggerType;
 use App\Models\BloggerCommunication;
 use App\Models\OperateEntity;
 use App\Models\BloggerProducer;
-
 use App\Models\Interfaces\OperateLogInterface;
 use App\OperateLogMethod;
 use App\User;
@@ -33,7 +30,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-//use Illuminate\Validation\Rule;
 class BloggerController extends Controller
 {
 

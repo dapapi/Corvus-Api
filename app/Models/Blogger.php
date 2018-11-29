@@ -58,11 +58,11 @@ class Blogger extends Model
 
     public function tasks()
     {
-        return $this->morphToMany(Task::class, 'resourceable', 'task_resources');
+        return $this->morphToMany(Task::class, 'resourceable', 'task_resources')->orderBy('priority', 'status')->limit(5);
     }
     public function project()
     {
-        return $this->morphToMany(Project::class, 'resourceable', 'project_resources');
+        return $this->morphToMany(Project::class, 'resourceable', 'project_resources')->orderBy('priority', 'status')->limit(5);
     }
     public function producer()
     {

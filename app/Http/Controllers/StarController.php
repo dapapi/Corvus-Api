@@ -12,10 +12,12 @@ use App\Models\OperateEntity;
 use App\Models\Star;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
+use App\Repositories\StarReportRepository;
 use App\SignContractStatus;
 use App\StarSource;
 use App\User;
 use App\Whether;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -586,5 +588,17 @@ class StarController extends Controller
         $end_time = $request->get('end_time');
         $report =  StarReportRepository::getFensiByStarId($star_id,$starable_type,$star_time,$end_time);
         return $report->platforms();
+    }
+    /**
+     * 获取截止在当前日期之前的5个完成中的项目和任务
+     */
+    public function getFiveTaskAndProjejct(Request $request,Star $star)
+    {
+//        $projects = $star->project()
+//            ->where('end_at','<',Carbon::now()->toDateString())
+//            ->limit(5)->orderBy('created_at','desc')
+//            ->get();
+//        $tasks = $star->tasks()->where('end_at','<',Carbon::now()->toDateString())->limit(5)->orderBy('created_at','desc')->get();
+        return StarReportRepository::getFiveProjectAndTask($star->id);
     }
 }

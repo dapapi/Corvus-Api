@@ -737,6 +737,7 @@ class AttendanceRepository
                 'a.start_at',
                 'a.end_at',
                 'a.number',
+                'a.type',
                 DB::raw("case a.status
                 when 1 then '待审批'
                 when 2 then '已同意'

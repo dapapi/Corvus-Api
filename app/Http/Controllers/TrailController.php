@@ -60,6 +60,11 @@ class TrailController extends Controller
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
         $payload['industry_id'] = hashid_decode($payload['industry_id']);
 
+        if ($request->has('status')) {
+            $payload['progress_status'] = $payload['status'];
+            unset($payload['status']);
+        }
+
         if (is_numeric($payload['resource'])) {
             $payload['resource'] = hashid_decode($payload['resource']);
         }
@@ -191,6 +196,12 @@ class TrailController extends Controller
         if ($request->has('industry_id') && !is_null($payload['industry_id']))
             $payload['industry_id'] = hashid_decode($payload['industry_id']);
 
+        if ($request->has('status')) {
+            $payload['progress_status'] = $payload['status'];
+            unset($payload['status']);
+        }
+
+
         DB::beginTransaction();
         try {
             if ($request->has('lock') && $payload['lock'])
@@ -251,7 +262,7 @@ class TrailController extends Controller
     public function delete(Request $request, Trail $trail)
     {
 
-        $trail->status = Trail::STATUS_DELETE;
+        $trail->progress_status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
 
@@ -261,7 +272,7 @@ class TrailController extends Controller
     public function recover(Request $request, Trail $trail)
     {
         $trail->restore();
-        $trail->status = Trail::STATUS_UNCONFIRMED;
+        $trail->progress_status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
 
         $this->response->item($trail, new TrailTransformer());
@@ -337,7 +348,7 @@ class TrailController extends Controller
             ]));
 
             $trail->update([
-                'status' => Trail::STATUS_REFUSE
+                'progress_status' => Trail::STATUS_REFUSE,
             ]);
 
 

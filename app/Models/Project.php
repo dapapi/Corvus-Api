@@ -34,7 +34,10 @@ class Project extends Model
         'type',
         'desc',
         'start_at',
-        'end_at'
+        'end_at',
+        'complete_at',
+        'stop_at',
+        'delete_at'
     ];
 
     public function principal()

@@ -4,8 +4,10 @@ namespace App;
 
 abstract class Priority
 {
-    const PRIORITY_S = 1;// s
-    const PRIORITY_A = 2;// a
-    const PRIORITY_B = 3;// b
-    const PRIORITY_C = 0;// c
+
+    // priority 优先级
+    const PRIORITY_C = 1;
+    const PRIORITY_B = 2;
+    const PRIORITY_A = 3;
+    const PRIORITY_S = 4;
 }

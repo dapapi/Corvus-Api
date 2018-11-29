@@ -24,7 +24,14 @@ class AttendanceYearRequest extends FormRequest
     public function rules()
     {
         return [
-            'year'  =>  'required|integer'
+            'year'  =>  'required|Integer'
+        ];
+    }
+    public function messages()
+    {
+        return [
+            'year.required' =>  '请选择查询考勤年份',
+            'year.Integer'  =>  '查询年份必须为整数'
         ];
     }
 }

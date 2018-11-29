@@ -33,6 +33,8 @@ class Project extends Model
         'status',
         'type',
         'desc',
+        'start_at',
+        'end_at'
     ];
 
     public function principal()

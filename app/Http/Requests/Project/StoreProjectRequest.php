@@ -40,6 +40,8 @@ class StoreProjectRequest extends FormRequest
             'trail.recommendations' => 'nullable|array',
             'trail.expectations' => 'nullable|array',
             'fields' => 'required_unless:type,'. Project::TYPE_BASE .'|array',
+            'start_at' => 'nullable|date',
+            'end_at' => 'nullable|date|after:start_at',
             'desc' => 'nullable'
         ];
     }

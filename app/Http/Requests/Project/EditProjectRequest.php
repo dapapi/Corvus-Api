@@ -37,6 +37,8 @@ class EditProjectRequest extends FormRequest
             'trail.recommendations' => 'nullable|array',
             'trail.expectations' => 'nullable|array',
             'fields' => 'nullable|array',
+            'start_at' => 'nullable|date',
+            'end_at' => 'nullable|date',
             'desc' => 'nullable',
         ];
     }

@@ -124,6 +124,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
+        $api->get('/stars/{star}/gettaskandprojejct','App\Http\Controllers\StarController@getFiveTaskAndProjejct');
         //获取明星作品列表
         $api->get('/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
         //创建明星作品

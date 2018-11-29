@@ -103,28 +103,10 @@ class AttendanceRepository
                 $minute = 0;
                 if($start_time->dayOfYear == $day){//第一天
                     $minute = Carbon::tomorrow()->diffInMinutes($start_time);//加班时长
-//                    $daynumber[$month]['month'] = $month;
-
-//                    if(!isset($daynumber[$month][$attendance['type']]['daynumber'])){
-//                        $daynumber[$month][$attendance['type']]['daynumber'] = self::computeDay($minute);
-//                    }else{
-//                        $daynumber[$month][$attendance['type']]['daynumber'] += self::computeDay($minute);
-//                    }
                 }elseif($end_time->dayOfYear == $day){//最后一天
                     $minute = $end_time->diffInMinutes(Carbon::create($end_time->year,$end_time->month,$end_time->day,0,0,0));
-//                    if(!isset($daynumber[$month][$attendance['type']]['daynumber'])){
-//                        $daynumber[$month][$attendance['type']]['daynumber'] = self::computeDay($minute);
-//                    }else{
-//                        $daynumber[$month][$attendance['type']]['daynumber'] += self::computeDay($minute);
-//                    }
                 }else{
-//                    if(!isset($daynumber[$month][$attendance['type']]['daynumber'])){
-//                        $daynumber[$month][$attendance['type']]['daynumber'] = 1;
-//                    }else{
-//                        $daynumber[$month][$attendance['type']]['daynumber'] += 1;
-//                    }
                     $minute = 8*60;
-
                 }
 
                 $month_arr = array_column($daynumber,'month');
@@ -152,6 +134,18 @@ class AttendanceRepository
                         ]
                     ];
                 }
+
+            }
+        }
+        //没有值得月份设置为空
+        $month_arr2 = array_column($daynumber,'month');
+        for($i = 1;$i<=12;$i++){
+            $month_key2 = array_search($i,$month_arr2);
+            if($month_key2 === false){
+                $daynumber[] = [
+                    'month' =>  $i,
+                    'daynumber' =>  null,
+                ];
             }
         }
        return $daynumber;
@@ -247,6 +241,17 @@ class AttendanceRepository
                         ]
                     ];
                 }
+            }
+        }
+        //没有值得月份设置为空
+        $month_arr2 = array_column($daynumber,'month');
+        for($i = 1;$i<=12;$i++){
+            $month_key2 = array_search($i,$month_arr2);
+            if($month_key2 === false){
+                $daynumber[] = [
+                    'month' =>  $i,
+                    'daynumber' =>  null,
+                ];
             }
         }
         return ["data"  =>  $daynumber];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Http\Requests\Trail\EditTrailRequest;
+use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
@@ -312,14 +313,17 @@ class TrailController extends Controller
         return $this->response->collection($trails, new TrailTransformer());
     }
 
-    public function refuse(Request $request, Trail $trail)
+    public function refuse(RefuseTrailReuqest $request, Trail $trail)
     {
+        $type = $request->get('type');
+        $reason = $request->get('reason');
+
         DB::beginTransaction();
         try {
             $operate = new OperateEntity([
                 'obj' => $trail,
                 'title' => null,
-                'start' => null,
+                'start' => $type .'，' . $reason,
                 'end' => null,
                 'method' => OperateLogMethod::REFUSE,
             ]);

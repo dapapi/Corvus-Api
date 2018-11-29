@@ -187,8 +187,9 @@ class AttendanceController extends Controller
      */
     public function myApply(Request $request){
         $status = $request->get("status",null);
+        $search = $request->get('search',null);
         $user = Auth::guard('api')->user();
-        $myapply = AttendanceRepository::myApply($user->id,$status);
+        $myapply = AttendanceRepository::myApply($user->id,$status,$search);
         return $this->response->collection($myapply,new AttendanceTransformer());
     }
 

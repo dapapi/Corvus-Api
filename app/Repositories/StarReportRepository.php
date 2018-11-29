@@ -46,6 +46,7 @@ class StarReportRepository
             ->where('end_at','<=',Carbon::now()->toDateTimeString())
             ->where('p.status',Project::STATUS_NORMAL)//进行中
             ->limit(5)
+            ->orderBy('p.created_at','desc')
             ->get(
                 [
                     DB::raw('s.name as star_name'),
@@ -62,6 +63,7 @@ class StarReportRepository
             ->where('s.id',$star_id)
             ->where('t.end_at','<=',Carbon::now()->toDateTimeString())
             ->where('t.status',TaskStatus::NORMAL)
+            ->orderBy('t.created_at','desc')
             ->limit(5)
             ->get(
                 [

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\TemplateField;
+namespace App\Http\Requests;
 
 
 use Dingo\Api\Http\FormRequest;
 
-class GetTemplateFieldRequest extends FormRequest
+class AccessoryStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,15 +25,9 @@ class GetTemplateFieldRequest extends FormRequest
     public function rules()
     {
         return [
-            'type' => 'required|numeric',
-            'status' => 'required|numeric'
-        ];
-    }
 
-    public function messages()
-    {
-        return [
-            'type.required' => '123',
-        ];
+             'title' => 'required|max:255'
+
+    ];
     }
 }

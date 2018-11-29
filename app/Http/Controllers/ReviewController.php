@@ -54,7 +54,7 @@ class ReviewController extends Controller
           }
         return $this->response->paginator($stars, new ReviewTransformer());
     }
-    public function my_template(ReviewAllRequest $request)
+    public function myTemplate(ReviewAllRequest $request)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();

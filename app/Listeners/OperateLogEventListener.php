@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Client;
@@ -59,7 +60,7 @@ class OperateLogEventListener
     protected $cancel = '取消';
     protected $renewal = '更新';
     protected $transfer = '调岗';
-    protected $refuse = '拒绝';
+    protected $refuse = '拒绝了';
 
     /**
      * Handle the event.
@@ -115,6 +116,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Contact){
                 $type = ModuleableType::CONTACT;
                 $typeName = '联系人';
+            }else if($operate->obj instanceof Announcement){
+                $type = ModuleableType::CONTACT;
+                $typeName = '公告';
             }
             //TODO
 
@@ -235,7 +239,7 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::REFUSE://拒绝线索
                     $level = OperateLogLevel::HIGH;
-                    $content = $this->refuse. $typeName;
+                    $content = $this->refuse. $typeName . '，' . $start;
                     break;
             }
 

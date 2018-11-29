@@ -13,6 +13,8 @@ class TemplateFieldController extends Controller
     public function getFields(GetTemplateFieldRequest $request)
     {
         $type = $request->get('type');
+        // 用来区分创建还是展示
+        $status = $request->get('status', 0);
         switch ($type) {
             case Project::TYPE_MOVIE :
                 $fieldsRes = TemplateField::where('module_type', Project::TYPE_MOVIE);
@@ -23,13 +25,20 @@ class TemplateFieldController extends Controller
             case Project::TYPE_ENDORSEMENT :
                 $fieldsRes = TemplateField::where('module_type', Project::TYPE_ENDORSEMENT);
                 break;
+            case Project::TYPE_PAPI:
+                $fieldsRes = TemplateField::where('module_type', Project::TYPE_PAPI);
+                break;
             default:
                 $fieldsRes = null;
                 break;
         }
 
         if ($fieldsRes) {
-            $fields = $fieldsRes->get();
+            if ($status == 1) {
+                $fields = $fieldsRes->where('status', 1)->get();
+            } else {
+                $fields = $fieldsRes->get();
+            }
             return $this->response->collection($fields, new TemplateFieldTransformer());
         } else {
             return $this->response->noContent();

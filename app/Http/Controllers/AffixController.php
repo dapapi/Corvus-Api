@@ -8,6 +8,7 @@ use App\Http\Requests\AffixRequest;
 use App\Http\Transformers\AffixTransformer;
 use App\Models\Affix;
 use App\Models\Blogger;
+use App\Models\Announcement;
 use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
@@ -34,8 +35,8 @@ class AffixController extends Controller
         $this->affixRepository = $affixRepository;
         $this->operateLogRepository = $operateLogRepository;
     }
-    public function index(AffixQueryRequest $request, $model)
 
+    public function index(AffixQueryRequest $request, $model)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -51,9 +52,12 @@ class AffixController extends Controller
             $query = $model->affixes();
         } else if ($model instanceof Trail && $model->id) {
             $query = $model->affixes();
+        }else if ($model instanceof Report && $model->id) {
+            $query = $model->affixes();
+        }else if ($model instanceof Announcement && $model->id) {
+            $query = $model->affixes();
         } else if ($model instanceof Blogger && $model->id) {
             $query = $model->affixes();
-
         }
         //TODO 其他模块
         if ($type)
@@ -80,6 +84,10 @@ class AffixController extends Controller
         } else if ($model instanceof Client && $model->id) {
             $query = $model->affixes();
         } else if ($model instanceof Trail && $model->id) {
+            $query = $model->affixes();
+        }else if ($model instanceof Report && $model->id) {
+            $query = $model->affixes();
+        }else if ($model instanceof Announcement && $model->id) {
             $query = $model->affixes();
         } else if ($model instanceof Blogger && $model->id) {
             $query = $model->affixes();

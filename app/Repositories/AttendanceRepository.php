@@ -507,7 +507,7 @@ class AttendanceRepository
             'a.creator_id',//用户ID
             'u.name',//姓名
             'u.icon_url',//头像
-            'd.name',//所属部门名称
+            DB::raw('d.name as department_name'),//所属部门名称
             'a.number',
             'a.start_at',
             'a.end_at',
@@ -560,6 +560,7 @@ class AttendanceRepository
         foreach ($leavecollect as &$value){
             $start_at = Carbon::parse($value['start_at']);
             $end_at = Carbon::parse($value['end_at']);
+            $value['creator_id'] =  hashid_encode($value['creator_id']);
             if($start_at->timestamp < $start_time->timestamp){
                 $start_at = $start_time;
             }

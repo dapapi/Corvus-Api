@@ -269,14 +269,7 @@ class ProjectController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($payload as $key => $value) {
-                if (!$project[$key])
-                    continue;
-
-                $project[$key] = $value;
-            }
-
-            $project->save();
+            $project->update($payload);
             $projectId = $project->id;
 
             if ($request->has('fields')) {
@@ -298,9 +291,15 @@ class ProjectController extends Controller
             }
 
             if ($request->has('trail')) {
+                if (array_key_exists('id',$payload['trail']))
+                    $payload['trail']['id'] = hashid_decode($payload['trail']['id']);
+
                 foreach ($payload['trail'] as $key => $val) {
                     if ($key == 'id') {
-                        $trail = Trail::find(hashid_decode($val));
+                        $trail = Trail::find($val);
+                        if (!$trail)
+                            throw new Exception('线索不存在或已删除');
+
                         $project->trail_id = $trail->id;
                     } else {
                         break;
@@ -352,7 +351,7 @@ class ProjectController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
-            return $this->response->errorInternal('修改失败');
+            return $this->response->errorInternal('修改失败,'. $exception->getMessage());
         }
 
         return $this->response->accepted();
@@ -424,10 +423,9 @@ class ProjectController extends Controller
 
         switch ($type) {
             case 'clients':
-                $projects = Project::select('projects.*')->rightJoin('trails', function($join) {
+                $projects = Project::select('projects.*')->join('trails', function($join) {
                     $join->on('projects.trail_id', '=', 'trails.id');
                 })->where('trails.client_id', '=', $id)
-                    ->whereNotNull('projects.id')
                     ->paginate($pageSize);
                 break;
             default:

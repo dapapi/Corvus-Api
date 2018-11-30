@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\Issues;
 use App\Models\Trail;
 use App\Models\Type;
 use App\User;
@@ -32,6 +33,8 @@ class OperateLogRepository
         } else if ($model instanceof Blogger && $model->id) {
             $obj = $model;
         }else if ($model instanceof Report && $model->id) {
+            $obj = $model;
+        }else if ($model instanceof Issues && $model->id) {
             $obj = $model;
         }else if ($model instanceof Announcement && $model->id) {
             $obj = $model;

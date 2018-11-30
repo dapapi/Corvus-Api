@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'operate_log'];
 
     private  $isAll = true;
 
@@ -27,6 +27,8 @@ class ProjectTransformer extends TransformerAbstract
                 'status' => $project->status,
                 'start_at' => $project->start_at,
                 'end_at' => $project->end_at,
+                'created_at' => $project->created_at->toDateTimeString(),
+                'updated_at' => $project->updated_at->toDateTimeString(),
             ];
         } else {
             $array = [
@@ -69,5 +71,10 @@ class ProjectTransformer extends TransformerAbstract
         if (!$trail)
             return null;
         return $this->item($trail, new TrailTransformer());
+    }
+
+    public function includeOperateLog(Project $project)
+    {
+
     }
 }

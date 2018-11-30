@@ -49,9 +49,6 @@ class TrailController extends Controller
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
 
-        //金额化整
-        $payload['fee'] = 100 * $payload['fee'];
-
         if ($request->has('lock') && $payload['lock'])
             $payload['lock_status'] = 1;
 

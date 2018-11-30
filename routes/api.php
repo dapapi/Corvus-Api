@@ -202,6 +202,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
+        $api->get('/clients/{client}/projects', 'App\Http\Controllers\ProjectController@getClientProject');
         //announcement
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
         $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');
@@ -251,7 +252,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
-        $api->get('/projects/search', 'App\Http\Controllers\ProjectController@search');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');

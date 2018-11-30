@@ -358,7 +358,7 @@ class ProjectController extends Controller
                     }
 
                     if ($key == 'expectations') {
-                        TrailStar::where('trail_id', $trail->id)->delete();
+                        TrailStar::where('trail_id', $trail->id)->where('type', TrailStar::EXPECTATION)->delete();
                         foreach ($payload['expectations'] as $expectation) {
                             $starId = hashid_decode($expectation);
 
@@ -373,7 +373,7 @@ class ProjectController extends Controller
                     }
 
                     if ($key == 'recommendations') {
-                        TrailStar::where('trail_id', $trail->id)->delete();
+                        TrailStar::where('trail_id', $trail->id)->where('type', TrailStar::RECOMMENDATION)->delete();
                         foreach ($payload['recommendations'] as $recommendation) {
                             $starId = hashid_decode($recommendation);
                             if (Star::find($starId))

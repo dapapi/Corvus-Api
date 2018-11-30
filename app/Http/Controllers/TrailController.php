@@ -338,22 +338,22 @@ class TrailController extends Controller
                 $operate,
             ]));
 
-            if ($type == '主动拒绝') {
+            if ($type == '我方拒绝') {
                 $status = 2;
             } elseif ($type == '客户拒绝') {
                 $status = 3;
             } else {
-                return $this->response->errorBadRequest('拒绝类型错误');
+                throw new \Exception('拒绝类型错误');
             }
             $trail->update([
                 'progress_status' => Trail::STATUS_REFUSE,
                 'status' => $status
             ]);
 
-
         } catch (\Exception $exception) {
             Log::error($exception);
             Db::rollBack();
+            return $this->response->errorInternal($exception->getMessage());
         }
         DB::commit();
 
@@ -371,8 +371,8 @@ class TrailController extends Controller
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-            if ($request->has('principal_id'))
-                $query->where('principal_id', hashid_decode($payload['principal_id']));
+            if ($request->has('principal_id') && $payload['principal_id'])
+                $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
         })->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());

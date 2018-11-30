@@ -472,6 +472,18 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
+    public function filter(Request $request)
+    {
+        $payload = $request->all();
+        $projects = Project::where(function ($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%'. $payload['keyword'] . '%');
+            if ($request->has('principal_id') && $payload['principal_id'])
+                $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
+            if ($request->has('status'))
+                $query->where('status', $payload['status']);
+        });
+    }
     /**
      * 获取明星下的项目
      * @param Request $request

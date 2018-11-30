@@ -76,6 +76,8 @@ class TrailController extends Controller
             $client = Client::find(hashid_decode($payload['client']['id']));
             if (!$client)
                 return $this->response->errorBadRequest('客户不存在');
+        } elseif(array_key_exists('id', $payload['contact'])) {
+            return $this->response->errorBadRequest('新建客户不应选现有联系人');
         } else {
             $client = null;
         }

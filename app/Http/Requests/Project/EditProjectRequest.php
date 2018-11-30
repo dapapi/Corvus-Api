@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Project;
 
-use App\Models\Project;
 use Dingo\Api\Http\FormRequest;
 
 class EditProjectRequest extends FormRequest
@@ -37,7 +36,13 @@ class EditProjectRequest extends FormRequest
             'trail.recommendations' => 'nullable|array',
             'trail.expectations' => 'nullable|array',
             'fields' => 'nullable|array',
+            'start_at' => 'nullable|date',
+            'end_at' => 'nullable|date',
             'desc' => 'nullable',
+
+            'participant_ids' => 'nullable|array',
+            'participant_del_ids' => 'nullable|array',
+
         ];
     }
 }

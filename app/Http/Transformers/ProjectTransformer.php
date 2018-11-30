@@ -25,6 +25,8 @@ class ProjectTransformer extends TransformerAbstract
                 'privacy' => $project->privacy,
                 'priority' => $project->priority,
                 'status' => $project->status,
+                'start_at' => $project->start_at,
+                'end_at' => $project->end_at,
             ];
         } else {
             $array = [

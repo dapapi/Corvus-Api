@@ -15,6 +15,8 @@ use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
+use App\ModuleUserType;
+use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
 use Exception;
 use Illuminate\Http\Request;
@@ -24,6 +26,12 @@ use Illuminate\Support\Facades\Log;
 
 class ProjectController extends Controller
 {
+    protected $moduleUserRepository;
+    public function __construct(ModuleUserRepository $moduleUserRepository)
+    {
+        $this->moduleUserRepository = $moduleUserRepository;
+    }
+
     // 项目列表
     public function index(Request $request)
     {
@@ -31,7 +39,7 @@ class ProjectController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $projects = Project::paginate($pageSize);
+        $projects = Project::orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
     }
@@ -66,8 +74,8 @@ class ProjectController extends Controller
             case Project::STATUS_NORMAL:
                 $projects->where('status', Project::STATUS_NORMAL);
                 break;
-            case Project::STATUS_COMPLATE:
-                $projects->where('status', Project::STATUS_COMPLATE);
+            case Project::STATUS_COMPLETE:
+                $projects->where('status', Project::STATUS_COMPLETE);
                 break;
             case Project::STATUS_FROZEN:
                 $projects->where('status', Project::STATUS_FROZEN);
@@ -90,8 +98,8 @@ class ProjectController extends Controller
             case Project::STATUS_NORMAL:
                 $query->where('status', Project::STATUS_NORMAL);
                 break;
-            case Project::STATUS_COMPLATE:
-                $query->where('status', Project::STATUS_COMPLATE);
+            case Project::STATUS_COMPLETE:
+                $query->where('status', Project::STATUS_COMPLETE);
                 break;
             case Project::STATUS_FROZEN:
                 $query->where('status', Project::STATUS_FROZEN);
@@ -138,8 +146,8 @@ class ProjectController extends Controller
             case Project::STATUS_NORMAL://进行中
                 $query->where('status', Project::STATUS_NORMAL);
                 break;
-            case Project::STATUS_COMPLATE://完成
-                $query->where('status', Project::STATUS_COMPLATE);
+            case Project::STATUS_COMPLETE://完成
+                $query->where('status', Project::STATUS_COMPLETE);
                 break;
             case Project::STATUS_FROZEN://终止
                 $query->where('status', Project::STATUS_FROZEN);
@@ -239,6 +247,14 @@ class ProjectController extends Controller
                 $trail->save();
             }
 
+            if ($request->has('participant_ids')) {
+                foreach ($payload['participant_ids'] as &$id) {
+                    $id = hashid_decode($id);
+                }
+                unset($id);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $project, ModuleUserType::PARTICIPANT);
+            }
+
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -267,18 +283,30 @@ class ProjectController extends Controller
             }
         }
 
+        if ($request->has('participant_ids')) {
+            foreach ($payload['participant_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+        } else {
+            $payload['participant_ids'] = [];
+        }
+
+        if ($request->has('participant__del_ids')) {
+            foreach ($payload['participant_del_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+        } else {
+            $payload['participant_del_ids'] = [];
+        }
+
         DB::beginTransaction();
         try {
-            foreach ($payload as $key => $value) {
-                if (!$project[$key])
-                    continue;
-
-                $project[$key] = $value;
-            }
-
-            $project->save();
-            dd($project);
+            $project->update($payload);
             $projectId = $project->id;
+
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'] ,$project, ModuleUserType::PARTICIPANT);
 
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
@@ -299,9 +327,15 @@ class ProjectController extends Controller
             }
 
             if ($request->has('trail')) {
+                if (array_key_exists('id',$payload['trail']))
+                    $payload['trail']['id'] = hashid_decode($payload['trail']['id']);
+
                 foreach ($payload['trail'] as $key => $val) {
                     if ($key == 'id') {
-                        $trail = Trail::find(hashid_decode($val));
+                        $trail = Trail::find($val);
+                        if (!$trail)
+                            throw new Exception('线索不存在或已删除');
+
                         $project->trail_id = $trail->id;
                     } else {
                         break;
@@ -353,7 +387,7 @@ class ProjectController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
-            return $this->response->errorInternal('修改失败');
+            return $this->response->errorInternal('修改失败,'. $exception->getMessage());
         }
 
         return $this->response->accepted();
@@ -395,7 +429,7 @@ class ProjectController extends Controller
 
         $status = $request->get('status');
         switch ($status) {
-            case Project::STATUS_COMPLATE:
+            case Project::STATUS_COMPLETE:
                 $project->complete_at = now();
                 $project->status = $status;
                 break;
@@ -425,10 +459,9 @@ class ProjectController extends Controller
 
         switch ($type) {
             case 'clients':
-                $projects = Project::select('projects.*')->rightJoin('trails', function($join) {
+                $projects = Project::select('projects.*')->join('trails', function($join) {
                     $join->on('projects.trail_id', '=', 'trails.id');
                 })->where('trails.client_id', '=', $id)
-                    ->whereNotNull('projects.id')
                     ->paginate($pageSize);
                 break;
             default:
@@ -439,6 +472,24 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
+    public function filter(Request $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $projects = Project::where(function ($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%'. $payload['keyword'] . '%');
+            if ($request->has('principal_id') && $payload['principal_id'])
+                $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
+            if ($request->has('status'))
+                $query->where('status', $payload['status']);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
+
+        return $this->response->paginator($projects, new ProjectTransformer());
+
+    }
     /**
      * 获取明星下的项目
      * @param Request $request

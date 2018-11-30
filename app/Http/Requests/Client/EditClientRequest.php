@@ -25,7 +25,7 @@ class EditClientRequest extends FormRequest
     public function rules()
     {
         return [
-            'company' => 'nullable|unique',
+            'company' => 'nullable|unique:clients,company',
             'grade' => 'nullable|numeric',
             'type' => 'nullable|numeric',
             'region_id' => 'nullable',
@@ -39,8 +39,8 @@ class EditClientRequest extends FormRequest
 
     public function messages() {
         return [
-            'company' => '公司',
-            'grade' => '客户类型',
+            'company.unique' => '公司名称已存在',
+            'grade.numeric' => '客户类型应传数字',
             'region_id' => '地区id',
             'address' => '地址',
             'principal_id' => '负责人',

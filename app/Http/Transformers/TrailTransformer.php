@@ -25,6 +25,7 @@ class TrailTransformer extends TransformerAbstract
             'priority' => $trail->priority,
             'status' => $trail->status,
             'progress_status' => $trail->progress_status,
+            'cooperation_type' => $trail->cooperation_type,
             'desc' => $trail->desc,
             'lock_status' => $trail->lock_status,
         ];

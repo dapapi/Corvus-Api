@@ -19,7 +19,7 @@ class Project extends Model
     const TYPE_BASE = 5; // 基础项目
 
     const STATUS_NORMAL = 1; // 进行中
-    const STATUS_COMPLATE = 2; // 完成
+    const STATUS_COMPLETE = 2; // 完成
     const STATUS_FROZEN = 3; // 终止
     const STATUS_DEL = 4; // 删除
 
@@ -33,6 +33,11 @@ class Project extends Model
         'status',
         'type',
         'desc',
+        'start_at',
+        'end_at',
+        'complete_at',
+        'stop_at',
+        'delete_at'
     ];
 
     public function principal()

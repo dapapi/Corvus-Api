@@ -17,13 +17,13 @@ class Trail extends Model
     const MAIL = 2;
     const SENIOR = 3;
 
-    // 销售进展 用status字段
+    // 销售进展 用progress_status字段
     const STATUS_UNCONFIRMED = 1;
     const STATUS_CONFIRMED = 2;
     const STATUS_DELETE = 3;
     const STATUS_REFUSE = 0;
 
-    // 线索状态 用progress_status字段
+    // 线索状态 用status字段
     const PROGRESS_BEGIN= 1;
     const PROGRESS_REFUSE = 2;
     const PROGRESS_CANCEL= 3;
@@ -36,7 +36,6 @@ class Trail extends Model
     const PROGRESS_EXECUTED = 10;
     const PROGRESS_PAYBACK = 11;
     const PROGRESS_FEEDBACK = 12;
-    const PROGRESS_ANALYSIS = 13;
 
     //
     const TYPE_MOVIE = 1; // 影视项目

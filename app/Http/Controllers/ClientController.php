@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Cilent\FilterClientRequest;
 use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
+use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Transformers\ClientTransformer;
 use App\Models\Client;
 use App\Models\Contact;
@@ -67,6 +69,9 @@ class ClientController extends Controller
     {
         $payload = $request->all();
 
+        if ($request->has('principal_id'))
+            $payload['principal_id'] = hashid_decode($payload['principal_id']);
+
         try {
             $client->update($payload);
         } catch (\Exception $exception) {
@@ -102,5 +107,23 @@ class ClientController extends Controller
     public function detail(Request $request, Client $client)
     {
         return $this->response->item($client, new ClientTransformer());
+    }
+
+    public function filter(FilterClientRequest $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $trails = Client::where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('grade'))
+                $query->where('grade', $payload['grade']);
+            if ($request->has('principal_id'))
+                $query->where('principal_id', hashid_decode($payload['principal_id']));
+        })->paginate($pageSize);
+
+        return $this->response->paginator($trails, new ClientTransformer());
     }
 }

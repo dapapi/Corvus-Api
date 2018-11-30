@@ -67,4 +67,9 @@ class Client extends Model
     {
         return $this->morphMany(Affix::class, 'affixable');
     }
+
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable');
+    }
 }

@@ -282,10 +282,11 @@ class AttendanceRepository
         $statistics = (new Attendance())
             ->setTable('a')
             ->from('attendances as a')
-            ->leftJoin('department_user as d','a.creator_id','=','d.user_id')
+            ->leftJoin('department_user as du','a.creator_id','=','du.user_id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->leftJoin('users as u','u.id','=','a.creator_id')
             ->where($where)
-            ->whereIn('d.department_id',$department_id_list)
+            ->whereIn('du.department_id',$department_id_list)
             ->get(
                 [
                     'creator_id',
@@ -294,6 +295,7 @@ class AttendanceRepository
                     'a.type',
                     'start_at',
                     'end_at',
+                    DB::raw('d.name as department_name'),
                     DB::raw(//申请类型 1:请假 2:加班 3:出差 4:外勤
                         "case a.type
                 when 1 then '请假'
@@ -329,6 +331,7 @@ class AttendanceRepository
                     $minute = 8*60;
                 }
 
+                //对数句进行统计格式化
                 $creator_id_arr = array_column($daynumber,'creator_id');
                 $creator_key = array_search($statistic['creator_id'],$creator_id_arr);
                 if($creator_key >= 0 && $creator_key !== false){
@@ -339,13 +342,15 @@ class AttendanceRepository
                     }else{
                         $daynumber[$creator_key]['daynumber'][] = [
                             'type' => $type,
-                            'number'    =>  self::computeDay($minute)
+                            'number'    =>  self::computeDay($minute),
                         ];
 
                     }
                 }else{
                     $daynumber[]=[
                         'creator_id'    =>  $statistic['creator_id'],
+                        'department_name'  =>  $statistic['department_name'],
+                        'name'  =>  $statistic['name'],
                         'daynumber' =>  [
                             [
                                 'type'  =>  $type,
@@ -384,11 +389,12 @@ class AttendanceRepository
         $leaveStatistics = (new Attendance())
             ->setTable('a')
             ->from('attendances as a')
-            ->leftJoin('department_user as d','a.creator_id','=','d.user_id')
+            ->leftJoin('department_user as du','a.creator_id','=','du.user_id')
             ->leftJoin('users as u','u.id','=','a.creator_id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($where)
 
-            ->whereIn('d.department_id',$department_id_list)
+            ->whereIn('du.department_id',$department_id_list)
             ->where('a.type',Attendance::LEAVE)//请假
             ->get(
                 [
@@ -399,6 +405,7 @@ class AttendanceRepository
                     'start_at',
                     'end_at',
                     'a.leave_type',
+                    DB::raw("d.name as department_name"),
                     DB::raw(//申请类型 1:请假 2:加班 3:出差 4:外勤
                         "case a.type
                         when 1 then '请假'
@@ -419,8 +426,8 @@ class AttendanceRepository
                         when 7 then '陪产假'
                         when 8 then '丧假'
                         when 9 then '其他'
-                        else null end leave_type"
-                    )
+                        else null end leave_type_name"
+                    ),
                 ]
             );
 //        $log = DB::getQueryLog();
@@ -456,17 +463,21 @@ class AttendanceRepository
                     }else{
                         $daynumber[$creator_key]['daynumber'][] = [
                             'leave_type' => $leave_type,
-                            'number'    =>  self::computeDay($minute)
+                            'number'    =>  self::computeDay($minute),
+                            'leave_type_name'   =>  $leaveStatistic['leave_type_name']
                         ];
 
                     }
                 }else{
                     $daynumber[]=[
                         'creator_id'    =>  $leaveStatistic['creator_id'],
+                        'department_name'   =>  $leaveStatistic['department_name'],
+                        'name'  =>  $leaveStatistic['name'],
                         'daynumber' =>  [
                             [
                                 'leave_type'  =>  $leave_type,
-                                'number'    =>  self::computeDay($minute)
+                                'number'    =>  self::computeDay($minute),
+                                'leave_type_name'   =>  $leaveStatistic['leave_type_name']
                             ]
                         ]
                     ];
@@ -498,7 +509,7 @@ class AttendanceRepository
             'a.creator_id',//用户ID
             'u.name',//姓名
             'u.icon_url',//头像
-            'd.name',//所属部门名称
+            DB::raw('d.name as department_name'),//所属部门名称
             'a.number',
             'a.start_at',
             'a.end_at',
@@ -529,6 +540,11 @@ class AttendanceRepository
                 else null end leave_type"
             );
         }
+        if($type != 1){
+            $field[] = DB::raw(
+                "a.place"
+            );
+        }
 //        DB::connection()->enableQueryLog();
         //获取要查询部门的子级部门
         $departments_list = (new Department())->getSubidByPid($department);
@@ -551,6 +567,7 @@ class AttendanceRepository
         foreach ($leavecollect as &$value){
             $start_at = Carbon::parse($value['start_at']);
             $end_at = Carbon::parse($value['end_at']);
+            $value['creator_id'] =  hashid_encode($value['creator_id']);
             if($start_at->timestamp < $start_time->timestamp){
                 $start_at = $start_time;
             }
@@ -645,28 +662,10 @@ class AttendanceRepository
                 $minute = 0;
                 if ($start_at->dayOfYear == $day) {//第一天
                     $minute = Carbon::tomorrow()->diffInMinutes($start_at);//加班时长
-//                    $value['now'] = self::computeDay($minute);//当天加班时长
-//                    if ($value['daynumber']) {
-//                        $value['daynumber'] = self::computeDay($minute);
-//                    } else {
-//                        $value['daynumber'] += self::computeDay($minute);
-//                    }
                 } elseif ($end_at->dayOfYear == $day) {//最后一天
                     $minute = $end_at->diffInMinutes(Carbon::create($end_at->year, $end_at->month, $end_at->day, 0, 0, 0));
-//                    $value['now'] = self::computeDay($minute);//当天加班时长
-//                    if (!isset($value['daynumber'])) {
-//                        $value['daynumber'] = self::computeDay($minute);
-//                    } else {
-//                        $value['daynumber'] += self::computeDay($minute);
-//                    }
                 } else {
                     $minute = 8 * 60;
-//                    $value['now'] = 1;//当天加班时长
-//                    if (!isset($value['daynumber'])) {
-//                        $value['daynumber'] = 1;
-//                    } else {
-//                        $value['daynumber'] += 1;
-//                    }
                 }
                 $date_arr = array_column($list,'date');
                 $date_key = array_search($date,$date_arr);
@@ -713,7 +712,6 @@ class AttendanceRepository
                     ];
                 }
 
-//                $list[$date][$value['creator_id']][$value['type']] = $value;
             }
 
         }
@@ -723,16 +721,24 @@ class AttendanceRepository
     /**
      * 查询用户申请
      */
-    public static function myApply($creator_id,$status)
+    public static function myApply($creator_id,$status,$search)
     {
         $myApplyList = (new Attendance())
-            ->where('creator_id',$creator_id)
-            ->where('status',$status)
+            ->setTable('a')
+            ->from('attendances as a')
+            ->leftJoin('users as u','u.id','=','a.creator_id')
+            ->where('a.creator_id',$creator_id)
+            ->whereIn('a.status',$status)
+            ->where(function ($query) use ($search){
+                $query->where('u.name','like','%'.$search.'%')
+                    ->orWhere('a.type','=',$search);//todo 还有个审批编号
+            })
             ->get([
-                'start_at',
-                'end_at',
-                'number',
-                DB::raw("case status
+                'a.start_at',
+                'a.end_at',
+                'a.number',
+                'a.type',
+                DB::raw("case a.status
                 when 1 then '待审批'
                 when 2 then '已同意'
                 when 3 then '已拒绝'

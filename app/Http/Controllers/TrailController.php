@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Http\Requests\Trail\EditTrailRequest;
+use App\Http\Requests\Trail\FilterTrailRequest;
 use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
@@ -17,6 +18,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\OperateLogMethod;
 use App\User;
+use function foo\func;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,9 +30,9 @@ class TrailController extends Controller
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $clients = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
 
-        return $this->response->paginator($clients, new TrailTransformer());
+        return $this->response->paginator($trails , new TrailTransformer());
     }
 
     public function all(Request $request)
@@ -74,6 +76,8 @@ class TrailController extends Controller
             $client = Client::find(hashid_decode($payload['client']['id']));
             if (!$client)
                 return $this->response->errorBadRequest('客户不存在');
+        } elseif(array_key_exists('id', $payload['contact'])) {
+            return $this->response->errorBadRequest('新建客户不应选现有联系人');
         } else {
             $client = null;
         }
@@ -186,6 +190,9 @@ class TrailController extends Controller
         if ($request->has('principal_id') && !is_null($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
+        if ($request->has('industry_id') && !is_null($payload['industry_id']))
+            $payload['industry_id'] = hashid_decode($payload['industry_id']);
+
         DB::beginTransaction();
         try {
             if ($request->has('lock') && $payload['lock'])
@@ -201,11 +208,11 @@ class TrailController extends Controller
 
             if ($request->has('contact')) {
                 $contact = $trail->contact;
-                $contact->update($payload['client']);
+                $contact->update($payload['contact']);
             }
 
             if ($request->has('expectations')) {
-                TrailStar::where('trail_id', $trail->id)->delete();
+                TrailStar::where('trail_id', $trail->id)->where('type', TrailStar::EXPECTATION)->delete();
                 foreach ($payload['expectations'] as $expectation) {
                     $starId = hashid_decode($expectation);
 
@@ -219,7 +226,7 @@ class TrailController extends Controller
             }
 
             if ($request->has('recommendations')) {
-                TrailStar::where('trail_id', $trail->id)->delete();
+                TrailStar::where('trail_id', $trail->id)->where('type', TrailStar::RECOMMENDATION)->delete();
                 foreach ($payload['recommendations'] as $recommendation) {
                     $starId = hashid_decode($recommendation);
 
@@ -246,7 +253,7 @@ class TrailController extends Controller
     public function delete(Request $request, Trail $trail)
     {
 
-        $trail->status = Trail::STATUS_DELETE;
+        $trail->progress_status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
 
@@ -256,7 +263,7 @@ class TrailController extends Controller
     public function recover(Request $request, Trail $trail)
     {
         $trail->restore();
-        $trail->status = Trail::STATUS_UNCONFIRMED;
+        $trail->progress_status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
 
         $this->response->item($trail, new TrailTransformer());
@@ -331,17 +338,43 @@ class TrailController extends Controller
                 $operate,
             ]));
 
+            if ($type == '我方拒绝') {
+                $status = 2;
+            } elseif ($type == '客户拒绝') {
+                $status = 3;
+            } else {
+                throw new \Exception('拒绝类型错误');
+            }
             $trail->update([
-                'status' => Trail::STATUS_REFUSE
+                'progress_status' => Trail::STATUS_REFUSE,
+                'status' => $status
             ]);
-
 
         } catch (\Exception $exception) {
             Log::error($exception);
             Db::rollBack();
+            return $this->response->errorInternal($exception->getMessage());
         }
         DB::commit();
 
         return $this->response->accepted(null, '线索已拒绝');
+    }
+
+    public function filter(FilterTrailRequest $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $trails = Trail::where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('status'))
+                $query->where('progress_status', $payload['status']);
+            if ($request->has('principal_id') && $payload['principal_id'])
+                $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
+
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 }

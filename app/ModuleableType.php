@@ -20,5 +20,6 @@ abstract class ModuleableType
     const SCHEDULE = 'schedule';
     const ANNOUNCEMENT = 'announcement';
     const ISSUES = 'issues';
+    const DEPARTMENT = 'department';
 
 }

@@ -462,32 +462,6 @@ class ProjectController extends Controller
         return $this->response->item($project, new ProjectTransformer());
     }
 
-    public function search(SearchProjectRequest $request)
-    {
-        $type = $request->get('type');
-        $id = hashid_decode($request->get('id'));
-
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('app.page_size');
-        }
-
-        switch ($type) {
-            case 'clients':
-                $projects = Project::select('projects.*')->join('trails', function ($join) {
-                    $join->on('projects.trail_id', '=', 'trails.id');
-                })->where('trails.client_id', '=', $id)
-                    ->paginate($pageSize);
-                break;
-            default:
-                return $this->response->noContent();
-                break;
-        }
-
-        return $this->response->paginator($projects, new ProjectTransformer());
-    }
-
     public function filter(Request $request)
     {
         $payload = $request->all();

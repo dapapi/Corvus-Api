@@ -6,6 +6,7 @@ use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\SearchProjectRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Transformers\ProjectTransformer;
+use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\ModuleUser;
@@ -23,6 +24,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use League\Fractal;
+use League\Fractal\Manager;
+use League\Fractal\Serializer\DataArraySerializer;
 
 class ProjectController extends Controller
 {
@@ -395,7 +399,17 @@ class ProjectController extends Controller
 
     public function detail(Request $request, Project $project)
     {
-        return $this->response->item($project, new ProjectTransformer());
+        $type = $project->type;
+        $result = $this->response->item($project, new ProjectTransformer());
+
+        $data = TemplateField::where('module_type', $type)->get();
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer());
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+
+        return $result;
     }
 
 

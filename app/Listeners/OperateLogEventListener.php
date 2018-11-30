@@ -105,7 +105,7 @@ class OperateLogEventListener
                 $type = ModuleableType::ATTENDANCE;
                 $typeName = '考勤';
             }else if($operate->obj instanceof Department){
-                $type = ModuleableType::ATTENDANCE;
+                $type = ModuleableType::DEPARTMENT;
                 $typeName = '部门';
             }else if($operate->obj instanceof Trail){
                 $type = ModuleableType::TRAIL;
@@ -117,7 +117,7 @@ class OperateLogEventListener
                 $type = ModuleableType::CONTACT;
                 $typeName = '联系人';
             }else if($operate->obj instanceof Announcement){
-                $type = ModuleableType::CONTACT;
+                $type = ModuleableType::ANNOUNCEMENT;
                 $typeName = '公告';
             }
             //TODO

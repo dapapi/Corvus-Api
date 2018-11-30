@@ -25,7 +25,7 @@ class EditClientRequest extends FormRequest
     public function rules()
     {
         return [
-            'company' => 'nullable|unique',
+            'company' => 'nullable|unique:clients,company',
             'grade' => 'nullable|numeric',
             'type' => 'nullable|numeric',
             'region_id' => 'nullable',

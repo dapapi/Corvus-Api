@@ -56,12 +56,13 @@ class ApprovalGroupController extends Controller
 
     public function detail(Request $request, ApprovalGroup $group)
     {
-
+        return $this->response->item($group, new ApprovalGroupTransformer());
     }
 
-    public function delete(Request $request)
+    public function delete(Request $request, ApprovalGroup $group)
     {
-
+        $group->delete();
+        return $this->response->noContent();
     }
 
     public function changeSort(Request $request)

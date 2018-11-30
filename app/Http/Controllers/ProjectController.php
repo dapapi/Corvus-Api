@@ -11,6 +11,7 @@ use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\ModuleUser;
 use App\Models\Project;
+use App\Models\Resource;
 use App\Models\Star;
 use App\Models\TemplateField;
 use App\Models\Trail;
@@ -31,6 +32,7 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
+
     public function __construct(ModuleUserRepository $moduleUserRepository)
     {
         $this->moduleUserRepository = $moduleUserRepository;
@@ -88,7 +90,7 @@ class ProjectController extends Controller
                 break;
         }
 
-        $projects->where(function($query) use ($userId) {
+        $projects->where(function ($query) use ($userId) {
             $query->where('creator_id', $userId)->orWhere('principal_id', $userId);
         });
 
@@ -214,7 +216,7 @@ class ProjectController extends Controller
                     }
 
                     if ($key == 'fee') {
-                        $trail->fee = 100 * $val;
+                        $trail->fee = $val;
                         continue;
                     }
 
@@ -310,7 +312,7 @@ class ProjectController extends Controller
             $project->update($payload);
             $projectId = $project->id;
 
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'] ,$project, ModuleUserType::PARTICIPANT);
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
 
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
@@ -331,7 +333,7 @@ class ProjectController extends Controller
             }
 
             if ($request->has('trail')) {
-                if (array_key_exists('id',$payload['trail']))
+                if (array_key_exists('id', $payload['trail']))
                     $payload['trail']['id'] = hashid_decode($payload['trail']['id']);
 
                 foreach ($payload['trail'] as $key => $val) {
@@ -351,7 +353,7 @@ class ProjectController extends Controller
                     }
 
                     if ($key == 'fee') {
-                        $trail->fee = 100 * $val;
+                        $trail->fee = $val;
                         continue;
                     }
 
@@ -391,7 +393,7 @@ class ProjectController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
-            return $this->response->errorInternal('修改失败,'. $exception->getMessage());
+            return $this->response->errorInternal('修改失败,' . $exception->getMessage());
         }
 
         return $this->response->accepted();
@@ -473,7 +475,7 @@ class ProjectController extends Controller
 
         switch ($type) {
             case 'clients':
-                $projects = Project::select('projects.*')->join('trails', function($join) {
+                $projects = Project::select('projects.*')->join('trails', function ($join) {
                     $join->on('projects.trail_id', '=', 'trails.id');
                 })->where('trails.client_id', '=', $id)
                     ->paginate($pageSize);
@@ -494,7 +496,7 @@ class ProjectController extends Controller
 
         $projects = Project::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
-                $query->where('title', 'LIKE', '%'. $payload['keyword'] . '%');
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('principal_id') && $payload['principal_id'])
                 $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
             if ($request->has('status'))
@@ -504,6 +506,7 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
 
     }
+
     /**
      * 获取明星下的项目
      * @param Request $request
@@ -511,11 +514,26 @@ class ProjectController extends Controller
      */
     public function getStarProject(Request $request)
     {
-        $star_id = $request->get('star_id',null);
+        $star_id = $request->get('star_id', null);
         $star_id = hashid_decode($star_id);
         $result = ProjectRepository::getProjectBySatrId($star_id);
         //todo 这里的返回值status没有返回数字，返回的是中文所以用不了transfromer
 //        return $this->response->collection($result, new ProjectTransformer());
         return $result;
+    }
+
+    public function getClientProject(Request $request, Client $client)
+    {
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        } else {
+            $pageSize = config('app.page_size');
+        }
+        $projects = Project::select('projects.*')->join('trails', function ($join) {
+            $join->on('projects.trail_id', '=', 'trails.id');
+        })->where('trails.client_id', '=', $client->id)
+            ->paginate($pageSize);
+
+        return $this->response->paginator($projects, new ProjectTransformer());
     }
 }

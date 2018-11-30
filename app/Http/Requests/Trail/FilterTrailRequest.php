@@ -27,7 +27,7 @@ class FilterTrailRequest extends FormRequest
         return [
             'keyword' => 'nullable',
             'status' => 'nullable',
-            'principal_id' => 'nullable|numeric',
+            'principal_ids' => 'nullable|numeric',
         ];
     }
 }

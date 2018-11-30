@@ -120,8 +120,13 @@ class ClientController extends Controller
                 $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('grade'))
                 $query->where('grade', $payload['grade']);
-            if ($request->has('principal_id'))
-                $query->where('principal_id', hashid_decode($payload['principal_id']));
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
         })->paginate($pageSize);
 
         return $this->response->paginator($trails, new ClientTransformer());

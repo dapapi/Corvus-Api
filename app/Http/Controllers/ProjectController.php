@@ -472,8 +472,15 @@ class ProjectController extends Controller
         $projects = Project::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('principal_id') && $payload['principal_id'])
-                $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
+
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
+
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
         })->orderBy('created_at', 'desc')->paginate($pageSize);

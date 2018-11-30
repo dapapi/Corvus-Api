@@ -45,12 +45,15 @@ class ReviewController extends Controller
         $search = $request->get('search');   //搜索框
         $user = Auth::guard('api')->user();
         $arr = ReportTemplateUser::where('user_id',$user->id)->get(['report_template_name_id']);
-        $arr1 = Report::wherein('id',$arr)->where('template_name','like','%'.'日报'.'%')->get(['id','template_name']);
+        if(!empty($search)){
+            $arr1 = Report::wherein('id',$arr)->where('template_name','like','%'.$search.'%')->get(['id']);
+         }else{
+            $arr1 = Report::wherein('id',$arr)->get(['id']);
+        }
         if(!empty($arr1)){
-            $stars = BulletinReview::where('status',$status)->createDesc()->paginate($pageSize);
-
+            $stars = BulletinReview::wherein('template_id',$arr1->toarray())->where('status',$status)->createDesc()->paginate($pageSize);
         }else{
-            $stars = BulletinReview::where('status',$status)->createDesc()->paginate($pageSize);
+            $stars = BulletinReview::where('template_id','99')->where('status',$status)->createDesc()->paginate($pageSize);
           }
         return $this->response->paginator($stars, new ReviewTransformer());
     }

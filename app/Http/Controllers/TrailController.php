@@ -253,7 +253,7 @@ class TrailController extends Controller
     public function delete(Request $request, Trail $trail)
     {
 
-        $trail->progress_status = Trail::STATUS_DELETE;
+        $trail->status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
 
@@ -263,7 +263,7 @@ class TrailController extends Controller
     public function recover(Request $request, Trail $trail)
     {
         $trail->restore();
-        $trail->progress_status = Trail::STATUS_UNCONFIRMED;
+        $trail->status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
 
         $this->response->item($trail, new TrailTransformer());
@@ -339,7 +339,7 @@ class TrailController extends Controller
             ]));
 
             $trail->update([
-                'progress_status' => Trail::STATUS_REFUSE,
+                'status' => Trail::STATUS_REFUSE,
             ]);
 
 

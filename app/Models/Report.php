@@ -54,5 +54,16 @@ class Report extends Model
 
     }
 
+    public function BulletinReview()
+    {
+        return $this->hasMany();
+    }
+
+
+    public function getStatusAttribute()
+    {
+        $this->BulletinReview()->status;
+    }
+
 
 }

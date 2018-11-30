@@ -370,7 +370,7 @@ class TrailController extends Controller
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status'))
-                $query->where('status', $payload['status']);
+                $query->where('progress_status', $payload['status']);
             if ($request->has('principal_id') && $payload['principal_id'])
                 $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
         })->paginate($pageSize);

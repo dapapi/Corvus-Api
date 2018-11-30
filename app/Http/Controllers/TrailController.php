@@ -338,8 +338,16 @@ class TrailController extends Controller
                 $operate,
             ]));
 
+            if ($type == '主动拒绝') {
+                $status = 2;
+            } elseif ($type == '客户拒绝') {
+                $status = 3;
+            } else {
+                return $this->response->errorBadRequest('拒绝类型错误');
+            }
             $trail->update([
                 'progress_status' => Trail::STATUS_REFUSE,
+                'status' => $status
             ]);
 
 

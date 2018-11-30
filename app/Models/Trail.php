@@ -36,7 +36,6 @@ class Trail extends Model
     const PROGRESS_EXECUTED = 10;
     const PROGRESS_PAYBACK = 11;
     const PROGRESS_FEEDBACK = 12;
-    const PROGRESS_ANALYSIS = 13;
 
     //
     const TYPE_MOVIE = 1; // 影视项目

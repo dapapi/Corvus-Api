@@ -7,6 +7,14 @@ use League\Fractal\TransformerAbstract;
 
 class TemplateFieldTransformer extends TransformerAbstract
 {
+    protected $projectId = null;
+    public function __construct($projectId = null)
+    {
+        $this->projectId = $projectId;
+    }
+
+    protected $defaultIncludes= ['values'];
+
     public function transform(TemplateField $field)
     {
         $array = [
@@ -19,5 +27,14 @@ class TemplateFieldTransformer extends TransformerAbstract
         }
 
         return $array;
+    }
+
+    public function includeValues(TemplateField $field)
+    {
+        $value = $field->values()->where('project_id', $this->projectId)->first();
+        if (!$value)
+            return null;
+
+        return $this->item($value, new FieldValueTransformer(false));
     }
 }

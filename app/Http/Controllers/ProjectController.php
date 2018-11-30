@@ -403,7 +403,7 @@ class ProjectController extends Controller
         $result = $this->response->item($project, new ProjectTransformer());
 
         $data = TemplateField::where('module_type', $type)->get();
-        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer());
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
 

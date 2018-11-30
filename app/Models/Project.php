@@ -86,7 +86,7 @@ class Project extends Model
         $lastFollow = $this->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
 
         if ($lastFollow)
-            return $lastFollow->created_at;
+            return $lastFollow->created_at->toDateTimeString();
         else
             return null;
     }

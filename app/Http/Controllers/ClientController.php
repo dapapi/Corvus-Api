@@ -69,6 +69,9 @@ class ClientController extends Controller
     {
         $payload = $request->all();
 
+        if ($request->has('principal_id'))
+            $payload['principal_id'] = hashid_decode($payload['principal_id']);
+
         try {
             $client->update($payload);
         } catch (\Exception $exception) {

@@ -279,6 +279,9 @@ class ProjectController extends Controller
         if ($request->has('principal_id'))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
+        if (!$request->has('type'))
+            $payload['type'] = $project->type;
+
         if ($request->has('fields')) {
             foreach ($payload['fields'] as $key => $val) {
                 $fieldId = hashid_decode((int)$key);

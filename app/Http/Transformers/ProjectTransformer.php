@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'operate_log'];
 
     private  $isAll = true;
 
@@ -71,5 +71,10 @@ class ProjectTransformer extends TransformerAbstract
         if (!$trail)
             return null;
         return $this->item($trail, new TrailTransformer());
+    }
+
+    public function includeOperateLog(Project $project)
+    {
+
     }
 }

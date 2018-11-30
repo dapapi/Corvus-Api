@@ -395,6 +395,7 @@ class ProjectController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());
         }
+        DB::commit();
 
         return $this->response->accepted();
     }

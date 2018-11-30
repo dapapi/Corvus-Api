@@ -369,6 +369,7 @@ class TrailController extends Controller
             if ($request->has('status'))
                 $query->where('progress_status', $payload['status']);
             if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
                     $id = hashid_decode((int)$id);
                 }

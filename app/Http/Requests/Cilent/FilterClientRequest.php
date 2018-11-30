@@ -26,7 +26,7 @@ class FilterClientRequest extends FormRequest
     {
         return [
             'keyword' => 'nullable',
-            'principal_ids' => 'nullable|array',
+            'principal_ids' => 'nullable',
             'grade' => 'nullable|numeric',
         ];
     }

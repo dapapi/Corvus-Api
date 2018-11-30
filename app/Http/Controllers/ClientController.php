@@ -121,6 +121,7 @@ class ClientController extends Controller
             if ($request->has('grade'))
                 $query->where('grade', $payload['grade']);
             if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
                     $id = hashid_decode((int)$id);
                 }

@@ -474,6 +474,7 @@ class ProjectController extends Controller
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
             if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
                     $id = hashid_decode((int)$id);
                 }

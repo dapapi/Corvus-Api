@@ -39,7 +39,7 @@ class ProjectController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $projects = Project::paginate($pageSize);
+        $projects = Project::orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
     }
@@ -485,7 +485,7 @@ class ProjectController extends Controller
                 $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-        })->paginate($pageSize);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
 

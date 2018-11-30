@@ -373,7 +373,7 @@ class TrailController extends Controller
                 $query->where('progress_status', $payload['status']);
             if ($request->has('principal_id') && $payload['principal_id'])
                 $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
-        })->paginate($pageSize);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }

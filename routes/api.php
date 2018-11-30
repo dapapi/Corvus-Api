@@ -245,6 +245,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
 
         // project
+        $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/search', 'App\Http\Controllers\ProjectController@search');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');

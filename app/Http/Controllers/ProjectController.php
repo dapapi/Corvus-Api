@@ -475,6 +475,9 @@ class ProjectController extends Controller
     public function filter(Request $request)
     {
         $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
         $projects = Project::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%'. $payload['keyword'] . '%');
@@ -482,7 +485,10 @@ class ProjectController extends Controller
                 $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-        });
+        })->paginate($pageSize);
+
+        return $this->response->paginator($projects, new ProjectTransformer());
+
     }
     /**
      * 获取明星下的项目

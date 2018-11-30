@@ -103,6 +103,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/trails/{trail}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/trails/{trail}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/trails/{trail}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+
         //跟进
         $api->get('/report/{report}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/report/{report}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');

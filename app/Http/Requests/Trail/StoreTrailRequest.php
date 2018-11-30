@@ -40,7 +40,7 @@ class StoreTrailRequest extends FormRequest
             'resource_type' => 'required|numeric',
             'type' => 'required|numeric',
             'cooperation_type' => 'nullable|numeric', // 合作类型
-            'progress_status' => 'nullable|numeric',
+            'status' => 'nullable|numeric',
             'priority' => 'required|numeric',
             'recommendations' => 'nullable|array',
             'expectations' => 'nullable|array',

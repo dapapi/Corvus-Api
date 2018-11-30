@@ -36,7 +36,7 @@ class EditTrailRequest extends FormRequest
             'resource' => 'nullable',
             'resource_type' => 'nullable|numeric',
             'type' => 'nullable|numeric',
-            'progress_status' => 'nullable|numeric',
+            'status' => 'nullable|numeric',
             'cooperation_type' => 'nullable|numeric', // 合作类型
             'priority' => 'nullable|numeric',
             'recommendations' => 'nullable|array',

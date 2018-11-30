@@ -27,6 +27,8 @@ class ProjectTransformer extends TransformerAbstract
                 'status' => $project->status,
                 'start_at' => $project->start_at,
                 'end_at' => $project->end_at,
+                'created_at' => $project->created_at->toDateTimeString(),
+                'updated_at' => $project->updated_at->toDateTimeString(),
             ];
         } else {
             $array = [

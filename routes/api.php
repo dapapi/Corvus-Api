@@ -103,6 +103,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/trails/{trail}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         //跟进
+        // 简报 问题跟进
+        $api->get('/issues/{issues}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/issues/{issues}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/report/{report}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/report/{report}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/tasks/{task}/operate_log', 'App\Http\Controllers\OperateLogController@index');
@@ -199,6 +202,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //announcement
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
         $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');
+        $api->put('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@edit');
         $api->post('/announcements', 'App\Http\Controllers\AnnouncementController@store');
         //  report
         $api->get('/report', 'App\Http\Controllers\ReportController@index');

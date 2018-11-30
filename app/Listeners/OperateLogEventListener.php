@@ -15,7 +15,7 @@ use App\Models\Task;
 use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\Department;
-
+use App\Models\Issues;
 use App\Models\Trail;
 use App\Models\Work;
 use App\User;
@@ -117,8 +117,11 @@ class OperateLogEventListener
                 $type = ModuleableType::CONTACT;
                 $typeName = '联系人';
             }else if($operate->obj instanceof Announcement){
-                $type = ModuleableType::CONTACT;
+                $type = ModuleableType::ANNOUNCEMENT;
                 $typeName = '公告';
+            }else if($operate->obj instanceof Issues){
+                $type = ModuleableType::ISSUES;
+                $typeName = '问题';
             }
             //TODO
 

@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Blogger;
 use App\Models\Star;
 use App\Models\Report;
+use App\Models\Issues;
 use App\Models\Task;
 use App\Models\Trail;
 use App\OperateLogMethod;
@@ -29,7 +30,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Issues $issues)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -47,6 +48,8 @@ class OperateLogController extends Controller
             $query = $blogger->operateLogs();
         }else if ($report && $report->id) {
             $query = $report->operateLogs();
+        }else if ($issues && $issues->id) {
+            $query = $issues->operateLogs();
         }
         //TODO 其他模块
 
@@ -90,7 +93,6 @@ class OperateLogController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
-            dd($e);
             Log::error($e);
             return $this->response->errorInternal('跟进失败');
         }

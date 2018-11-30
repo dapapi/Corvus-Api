@@ -32,8 +32,8 @@ class EditScheduleRequest extends FormRequest
             'end_at' => 'nullable|date|after:start_at',
             'privacy' => 'nullable|boolean',
             'material_id' => 'nullable',
-            'principal_ids' => 'nullable|array',
-            'principal_del_ids' => 'nullable|array',
+            'participant_ids' => 'nullable|array',
+            'participant_del_ids' => 'nullable|array',
 
             'project_ids' => 'nullable|array',
             'project_del_ids' => 'nullable|array',

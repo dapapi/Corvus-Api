@@ -165,7 +165,7 @@ class ScheduleController extends Controller
             $payload['participant_ids'] = [];
         }
 
-        if ($request->has('participant__del_ids')) {
+        if ($request->has('participant_del_ids')) {
             foreach ($payload['participant_del_ids'] as &$id) {
                 $id = hashid_decode($id);
             }

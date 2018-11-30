@@ -15,6 +15,8 @@ use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
+use App\ModuleUserType;
+use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
 use Exception;
 use Illuminate\Http\Request;
@@ -24,6 +26,12 @@ use Illuminate\Support\Facades\Log;
 
 class ProjectController extends Controller
 {
+    protected $moduleUserRepository;
+    public function __construct(ModuleUserRepository $moduleUserRepository)
+    {
+        $this->moduleUserRepository = $moduleUserRepository;
+    }
+
     // 项目列表
     public function index(Request $request)
     {
@@ -66,8 +74,8 @@ class ProjectController extends Controller
             case Project::STATUS_NORMAL:
                 $projects->where('status', Project::STATUS_NORMAL);
                 break;
-            case Project::STATUS_COMPLATE:
-                $projects->where('status', Project::STATUS_COMPLATE);
+            case Project::STATUS_COMPLETE:
+                $projects->where('status', Project::STATUS_COMPLETE);
                 break;
             case Project::STATUS_FROZEN:
                 $projects->where('status', Project::STATUS_FROZEN);
@@ -90,8 +98,8 @@ class ProjectController extends Controller
             case Project::STATUS_NORMAL:
                 $query->where('status', Project::STATUS_NORMAL);
                 break;
-            case Project::STATUS_COMPLATE:
-                $query->where('status', Project::STATUS_COMPLATE);
+            case Project::STATUS_COMPLETE:
+                $query->where('status', Project::STATUS_COMPLETE);
                 break;
             case Project::STATUS_FROZEN:
                 $query->where('status', Project::STATUS_FROZEN);
@@ -239,6 +247,14 @@ class ProjectController extends Controller
                 $trail->save();
             }
 
+            if ($request->has('participant_ids')) {
+                foreach ($payload['participant_ids'] as &$id) {
+                    $id = hashid_decode($id);
+                }
+                unset($id);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $project, ModuleUserType::PARTICIPANT);
+            }
+
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -267,10 +283,30 @@ class ProjectController extends Controller
             }
         }
 
+        if ($request->has('participant_ids')) {
+            foreach ($payload['participant_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+        } else {
+            $payload['participant_ids'] = [];
+        }
+
+        if ($request->has('participant__del_ids')) {
+            foreach ($payload['participant_del_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+        } else {
+            $payload['participant_del_ids'] = [];
+        }
+
         DB::beginTransaction();
         try {
             $project->update($payload);
             $projectId = $project->id;
+
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'] ,$project, ModuleUserType::PARTICIPANT);
 
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {

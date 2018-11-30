@@ -39,6 +39,10 @@ class EditProjectRequest extends FormRequest
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|date',
             'desc' => 'nullable',
+
+            'participant_ids' => 'nullable|array',
+            'participant_del_ids' => 'nullable|array',
+
         ];
     }
 }

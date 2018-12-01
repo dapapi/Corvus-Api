@@ -88,14 +88,24 @@ class Trail extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function expectations()
+    public function starExpectations()
     {
-        return $this->belongsToMany(Star::class, 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
+        return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
 
-    public function recommendations()
+    public function bloggerExpectations()
     {
-        return $this->belongsToMany(Star::class, 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
+        return $this->morphedByMany(Blogger::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
+    }
+
+    public function starRecommendations()
+    {
+        return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
+    }
+
+    public function bloggerRecommendations()
+    {
+        return $this->morphedByMany(Blogger::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
     }
 
     public function industry()

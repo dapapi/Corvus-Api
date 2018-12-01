@@ -60,10 +60,7 @@ class Blogger extends Model
     {
         return $this->morphToMany(Task::class, 'resourceable', 'task_resources')->orderBy('priority', 'status')->limit(5);
     }
-    public function project()
-    {
-        return $this->morphToMany(Project::class, 'resourceable', 'project_resources')->orderBy('priority', 'status')->limit(5);
-    }
+
     public function producer()
     {
         return $this->belongsTo(User::class, 'producer_id', 'id');
@@ -72,5 +69,10 @@ class Blogger extends Model
     public function type()
     {
         return $this->belongsTo(BloggerType::class, 'type_id', 'id');
+    }
+
+    public function trail()
+    {
+        return $this->morphToMany(Trail::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
 }

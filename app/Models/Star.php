@@ -89,9 +89,10 @@ class Star extends Model
     {
         return $this->hasMany(StarPlatform::class);
     }
-    public function project()
+
+    public function trail()
     {
-        return $this->morphToMany(Project::class, 'resourceable', 'project_resources');
+        return $this->morphToMany(Trail::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
 
 }

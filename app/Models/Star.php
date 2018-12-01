@@ -94,5 +94,8 @@ class Star extends Model
     {
         return $this->morphToMany(Trail::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
+    public function works(){
+        return $this->hasOne(Work::class,"star_id","id");
+    }
 
 }

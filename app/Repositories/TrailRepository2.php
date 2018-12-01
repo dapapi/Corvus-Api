@@ -68,10 +68,10 @@ class TrailRepository2
         $prev_year_confrim_resource_type_trail_number = $this->getEverySourceTrailNumber($prev_year_start,$prev_year_end,Trail::STATUS_CONFIRMED);
         $resource_type_data = $this->computeDate(
             $current_resource_type_trail_number,
-            $current_confrim_resource_type_trail_number,
-            $prev_resource_type_trail_number,
-            $prev_confrim_resource_type_trail_number,
             $prev_year_resource_type_trail_number,
+            $prev_resource_type_trail_number,
+            $current_confrim_resource_type_trail_number,
+            $prev_confrim_resource_type_trail_number,
             $prev_year_confrim_resource_type_trail_number
         );
         //根据优先级
@@ -83,12 +83,17 @@ class TrailRepository2
         $prev_year_confrim_priority_trail_number = $this->getEveryPriorityTrailNumber($prev_year_start,$prev_year_end,Trail::STATUS_CONFIRMED);
         $priority_data = $this->computeDate(
             $current_priority_trail_number,
-            $current_confrim_priority_trail_number
+            $prev_priority_trail_number,
+            $prev_year_priority_trail_number,
+            $current_confrim_priority_trail_number,
+            $prev_confrim_priority_trail_number,
+            $prev_year_confrim_priority_trail_number
         );
         return [
             "industry"  =>  $industry_data,
             "cooperation"   =>  $cooperation_data,
             "resource"  =>  $resource_type_data,
+            'priority'  =>  $priority_data
         ];
     }
 
@@ -153,10 +158,15 @@ class TrailRepository2
         }
         $subquery = DB::table(DB::raw("data_dictionaries as dd"))->where('parent_id',49)->select('val as id','name');
         $sub_query2 = DB::table("trails as t")->select("t.priority",DB::raw("count(t.id) as number"))->where($arr)->groupBy("t.priority");
-        return DB::table(DB::raw("({$sub_query2->toSql()}) as t1"))->rightJoin(DB::raw("({$subquery->toSql()}) as t2"),"t2.id","=","t1.priority")
+//        DB::connection()->enableQueryLog();
+        $result = DB::table(DB::raw("({$sub_query2->toSql()}) as t1"))->rightJoin(DB::raw("({$subquery->toSql()}) as t2"),"t2.id","=","t1.priority")
             ->mergeBindings($subquery)
             ->mergeBindings($sub_query2)
             ->get();
+//        $sql = DB::getQueryLog();
+//        dd($sql);
+//        dd($result->toArray());
+        return $result;
     }
     //销售线索来源维度来获取数据
     public function getEverySourceTrailNumber($start_time,$end_time,$status=null)

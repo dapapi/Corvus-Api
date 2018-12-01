@@ -88,7 +88,9 @@ class Trail extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function starExpectations()
+
+
+    public function expectations()
     {
         return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
@@ -98,7 +100,7 @@ class Trail extends Model
         return $this->morphedByMany(Blogger::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
 
-    public function starRecommendations()
+    public function recommendations()
     {
         return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
     }

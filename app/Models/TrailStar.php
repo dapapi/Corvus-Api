@@ -13,7 +13,13 @@ class TrailStar extends Model
 
     protected $fillable = [
         'trail_id',
-        'star_id',
+        'starable_id',
+        'starable_type',
         'type'
     ];
+
+    public function starable()
+    {
+        return $this->morphto();
+    }
 }

@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'operate_log'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'operate_log', 'participants'];
 
     private  $isAll = true;
 
@@ -22,6 +22,7 @@ class ProjectTransformer extends TransformerAbstract
             $array = [
                 'id' => hashid_encode($project->id),
                 'title' => $project->title,
+                'type' => $project->type,
                 'privacy' => $project->privacy,
                 'priority' => $project->priority,
                 'status' => $project->status,
@@ -30,6 +31,7 @@ class ProjectTransformer extends TransformerAbstract
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
                 'last_follow_up_at' => $project->lastFollowUpAt,
+                'desc' => $project->desc,
             ];
         } else {
             $array = [
@@ -72,5 +74,12 @@ class ProjectTransformer extends TransformerAbstract
         if (!$trail)
             return null;
         return $this->item($trail, new TrailTransformer());
+    }
+
+    public function includeParticipants(Project $project)
+    {
+        $participants = $project->participants;
+
+        return $this->collection($participants, new UserTransformer());
     }
 }

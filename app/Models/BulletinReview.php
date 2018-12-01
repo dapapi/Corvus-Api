@@ -49,23 +49,14 @@ class BulletinReview extends Model
 
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
-//    public function bulleinrevViewTitle()
-//    {
-//
-//        return $this->morphToMany(Report::class, 'template_name','report');
-//    }
+    public function template()
+    {
+
+        return $this->belongsTo(Report::class, 'template_id','id');
+    }
     public function broker()
     {
         return $this->belongsTo(User::class, 'broker_id', 'id');
 
-    }
-//    public function type()
-//    {
-//        return $this->belongsTo(BloggerType::class, 'status', 'id');
-//    }
-    public function template()
-    {
-
-        return $this->belongsTo(report::class, 'template_id', 'id');
     }
 }

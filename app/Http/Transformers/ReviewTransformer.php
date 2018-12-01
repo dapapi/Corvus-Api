@@ -25,8 +25,6 @@ class ReviewTransformer extends TransformerAbstract
             'member' => $bulletinreview->member,
             'title' => $bulletinreview->title,
             'status' => $bulletinreview->status,
-
-
         ];
 
 
@@ -54,31 +52,18 @@ class ReviewTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
-    public function includetTmplate(BulletinReview $bulletinreview)
+    public function includeTmplate(BulletinReview $bulletinreview)
     {
         $template = $bulletinreview->template;
         if (!$template)
             return null;
         return $this->item($template, new ReportTransformer());
     }
-//    public function includeType(BulletinReview $bulletinreview)
-//    {
-//        $type = $bulletinreview->type;
-//        if (!$type)
-//            return null;
-//        return $this->item($type, new BloggerTypeTransformer());
-//    }
     public function includeTasks(BulletinReview $bulletinreview)
     {
 
         $tasks = $bulletinreview->tasks()->createDesc()->get();
         return $this->collection($tasks, new ReviewTransformer());
-    }
-    public function includeBulleinrevViewTitle(BulletinReview $bulletinreview)
-    {
-        dd($bulletinreview);
-        $bulletin_review_title = $bulletinreview->bulletin_review_title()->createDesc()->get();
-        return $this->collection($bulletin_review_title, new ProjectTransformer());
     }
     public function includeAffixes(BulletinReview $bulletinreview)
     {

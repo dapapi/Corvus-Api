@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Report extends Model
 {
@@ -53,17 +55,49 @@ class Report extends Model
         return $this->belongsTo(User::class, 'broker_id', 'id');
 
     }
-
-    public function BulletinReview()
+//    public function template()
+//    {
+//
+//        return $this->belongsTo(Report::class, 'template_id','id');
+//    }
+// 一对多 - Post::comments()
+    public function bulletinReview()
     {
-        return $this->hasMany();
+        return $this->hasMany(BulletinReview::class,'template_id','id' );
+//        return $this->belongsTo(BulletinReview::class, 'template_id', 'id');
     }
-
 
     public function getStatusAttribute()
     {
-        $this->BulletinReview()->status;
-    }
 
+        //
+        $user = Auth::guard('api')->user();
+        $query = $this->BulletinReview()->where('member', $user->id);
+
+        switch ($this->frequency) {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            default:
+                $query->where('created_at', '>=', Carbon::today()->toDateTimeString())->where('created_at', '<=',Carbon::tomorrow()->toDateTimeString());
+                break;
+        }
+
+        $review = $query->first();
+
+        if ($review)
+            return $review->status;
+        else
+            return null;
+    }
+    public function setStateAttribute($value)
+    {
+        $this->attributes['state'] = strtolower($value);
+    }
 
 }

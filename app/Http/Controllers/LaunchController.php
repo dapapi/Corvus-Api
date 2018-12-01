@@ -44,9 +44,20 @@ class LaunchController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+
         $arr = ReportTemplateUser::where('user_id',$user->id)->get(['report_template_name_id']);
         //$arr = DB::table('report_template_user')->where('user_id',$user->id)->get(['report_template_name_id']);
         $pageSize = $request->get('page_size', config('app.page_size'));
+        foreach($arr->toarray() as $key => $value) {
+            $num = $value['report_template_name_id'];
+            $user = Report::find($num);
+            if ($user) {
+                $sally = $user->Status;
+            } else {
+                $sally = '';
+            }
+//            Report::find($num)->state = $sally;
+        }
         $stars = Report::wherein('id',$arr)->createDesc()->paginate($pageSize);
 
         return $this->response->paginator($stars, new ReportTransformer());

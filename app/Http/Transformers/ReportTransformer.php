@@ -14,7 +14,7 @@ class ReportTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report','bulletinreview'];
 
     public function transform(Report $report)
     {
@@ -26,11 +26,12 @@ class ReportTransformer extends TransformerAbstract
             'frequency' => $report->frequency,
             'department_id' => $report->department_id,
             'member' => $report->member,
+            'status' => $report->status,
             'delete_at' => $report->delete_at,
             'created_id' => $report->created_id,
             'created_at' => $report->created_at->toDatetimeString(),
             'updated_at' => $report->updated_at->toDatetimeString(),
-            'issues_id' => $report->issues_id,
+            //'issues_id' => $report->issues_id,
 
         ];
 
@@ -67,7 +68,12 @@ class ReportTransformer extends TransformerAbstract
         $tasks = $report->tasks()->createDesc()->get();
         return $this->collection($tasks, new ReportTransformer());
     }
+    public function includeBulletinReview(BulletinReview $bulletinreview)
+    {
 
+        $tasks = $bulletinreview->bulletinreview()->createDesc()->get();
+        return $this->collection($tasks, new ReviewTransformer());
+    }
     public function includeAffixes(Report $report)
     {
 

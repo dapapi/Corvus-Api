@@ -32,6 +32,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove');
+        $api->get('/tasksAll', 'App\Http\Controllers\TaskController@tasksAll');
+
 //            ->middleware('can:delete,task');
         $api->put('/tasks/{task}/status', 'App\Http\Controllers\TaskController@toggleStatus');
         $api->put('/tasks/{task}/time_cancel', 'App\Http\Controllers\TaskController@cancelTime');

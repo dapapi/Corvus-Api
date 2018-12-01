@@ -177,7 +177,7 @@ class AttendanceController extends Controller
         $end_time = $request->get('end_time',null);
         $attendanceCalendar = AttendanceRepository::attendanceCalendar($start_time,$end_time);
         return $attendanceCalendar;
-        return $this->response->collection($attendanceCalendar,new AttendanceTransformer());
+//        return $this->response->collection($attendanceCalendar,new AttendanceTransformer());
     }
 
     /**

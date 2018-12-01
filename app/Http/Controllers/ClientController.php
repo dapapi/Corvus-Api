@@ -21,14 +21,14 @@ class ClientController extends Controller
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $clients = Client::orderBy('company', 'asc')->paginate($pageSize);
+        $clients = Client::orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-        $clients = Client::orderBy('company', 'asc')->get();
+        $clients = Client::orderBy('created_at', 'desc')->get();
 
         return $this->response->collection($clients, new ClientTransformer($isAll));
     }
@@ -115,7 +115,7 @@ class ClientController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $trails = Client::where(function($query) use ($request, $payload) {
+        $clients = Client::where(function($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('grade'))
@@ -128,8 +128,8 @@ class ClientController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->paginate($pageSize);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
-        return $this->response->paginator($trails, new ClientTransformer());
+        return $this->response->paginator($clients, new ClientTransformer());
     }
 }

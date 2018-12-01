@@ -71,6 +71,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/reports/{review}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
         $api->post('/reports/{review}/affix', 'App\Http\Controllers\AffixController@add');
         $api->post('/reports/{review}/affixes/{launch}/download', 'App\Http\Controllers\AffixController@download');
+
+        $api->post("/attendance/{attendance}/affix","App\Http\Controllers\AffixController@add");
+        $api->get('/attendance/{attendance}/affix', 'App\Http\Controllers\AffixController@index');
+
       //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
      //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');
@@ -342,6 +346,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //获取粉丝数据
         $api->get('/starreport/fensi','App\Http\Controllers\StarReportController@getStarFensi');
+
+        //报表
+        $api->get("/reportfrom/commercialfunnel","App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
 
 
     });

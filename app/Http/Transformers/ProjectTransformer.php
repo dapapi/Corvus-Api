@@ -29,6 +29,7 @@ class ProjectTransformer extends TransformerAbstract
                 'end_at' => $project->end_at,
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
+                'last_follow_up_at' => $project->lastFollowUpAt,
             ];
         } else {
             $array = [
@@ -71,10 +72,5 @@ class ProjectTransformer extends TransformerAbstract
         if (!$trail)
             return null;
         return $this->item($trail, new TrailTransformer());
-    }
-
-    public function includeOperateLog(Project $project)
-    {
-
     }
 }

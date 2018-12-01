@@ -368,8 +368,14 @@ class TrailController extends Controller
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status'))
                 $query->where('progress_status', $payload['status']);
-            if ($request->has('principal_id') && $payload['principal_id'])
-                $query->where('principal_id', hashid_decode((int)$payload['principal_id']));
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
         })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());

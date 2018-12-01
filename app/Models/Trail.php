@@ -88,8 +88,7 @@ class Trail extends Model
         return $this->belongsTo(Client::class);
     }
 
-
-
+    // todo 优化
     public function expectations()
     {
         return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);

@@ -90,20 +90,17 @@ class User extends Authenticatable
     const USER_STATUS_DEPARTUE = 3; //离职
     const USER_STATUS_INTERN = 4; //实习
     const USER_STATUS_OUT = 5;    //外包
-
     const  HIRE_SHAPE_OFFICIAL = 1;  //正式
     const  HIRE_SHAPE_INTERN = 2;   //实习生
     const  HIRE_SHAPE_GUANPEI = 3;   //管培生
     const  HIRE_SHAPE_OUT = 4;      //外包
-
-
     const  USER_POSITIVE = 1;//转正
     const  USER_DEPARTUE = 2; //离职
     const  USER_DTRANSFER = 3; //调岗
     const  USER_ARCHIVE = 6; //存档
-
-
     const  USER_TYPE_DEPARTUE = 5; //离职
+    const  USER_ENTRY_STATUS = 3; //hr审核状态已同意
+
 
 
     const USER_PSWORD = '$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy';

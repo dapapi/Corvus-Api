@@ -255,6 +255,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
+        $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
@@ -312,6 +313,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/personnel/portal/{user}', 'App\Http\Controllers\PersonnelManageController@portal');//
         $api->get('/personnel/entry/{user}', 'App\Http\Controllers\PersonnelManageController@entryDetail');//
         $api->get('/entry', 'App\Http\Controllers\PersonnelManageController@entry');//
+        $api->put('/audit/{user}', 'App\Http\Controllers\PersonnelManageController@audit');//
+
 
 
 

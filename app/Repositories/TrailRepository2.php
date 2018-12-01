@@ -51,7 +51,7 @@ class TrailRepository2
         $prev_year_confirm_cooperation_trail_number = $this->getEveryCooperationTypeTrailNumber($prev_year_start,$prev_range_start,Trail::STATUS_CONFIRMED);
 
 
-        $cooperation_date =  $this->computeDate(
+        $cooperation_data =  $this->computeDate(
             $current_cooperation_type_trail_numer,
             $prev_cooperation_trail_numer,
             $prev_year_cooperation_trail_number,
@@ -59,6 +59,37 @@ class TrailRepository2
             $prev_confirm_cooperation_trail_numer,
             $prev_year_confirm_cooperation_trail_number
         );
+        //根据线索来源统计
+        $current_resource_type_trail_number = $this->getEverySourceTrailNumber($start_time,$end_time);
+        $current_confrim_resource_type_trail_number = $this->getEverySourceTrailNumber($start_time,$end_time,Trail::STATUS_CONFIRMED);
+        $prev_resource_type_trail_number = $this->getEverySourceTrailNumber($prev_range_start,$prev_range_end);
+        $prev_confrim_resource_type_trail_number = $this->getEverySourceTrailNumber($prev_range_start,$prev_range_end,Trail::STATUS_CONFIRMED);
+        $prev_year_resource_type_trail_number = $this->getEverySourceTrailNumber($prev_year_start,$prev_year_end);
+        $prev_year_confrim_resource_type_trail_number = $this->getEverySourceTrailNumber($prev_year_start,$prev_year_end,Trail::STATUS_CONFIRMED);
+        $resource_type_data = $this->computeDate(
+            $current_resource_type_trail_number,
+            $current_confrim_resource_type_trail_number,
+            $prev_resource_type_trail_number,
+            $prev_confrim_resource_type_trail_number,
+            $prev_year_resource_type_trail_number,
+            $prev_year_confrim_resource_type_trail_number
+        );
+        //根据优先级
+        $current_priority_trail_number = $this->getEveryPriorityTrailNumber($start_time,$end_time);
+        $current_confrim_priority_trail_number = $this->getEveryPriorityTrailNumber($start_time,$end_time,Trail::STATUS_CONFIRMED);
+        $prev_priority_trail_number = $this->getEveryPriorityTrailNumber($prev_range_start,$prev_range_end);
+        $prev_confrim_priority_trail_number = $this->getEveryPriorityTrailNumber($prev_range_start,$prev_range_end,Trail::STATUS_CONFIRMED);
+        $prev_year_priority_trail_number = $this->getEveryPriorityTrailNumber($prev_year_start,$prev_year_end);
+        $prev_year_confrim_priority_trail_number = $this->getEveryPriorityTrailNumber($prev_year_start,$prev_year_end,Trail::STATUS_CONFIRMED);
+        $priority_data = $this->computeDate(
+            $current_priority_trail_number,
+            $current_confrim_priority_trail_number
+        );
+        return [
+            "industry"  =>  $industry_data,
+            "cooperation"   =>  $cooperation_data,
+            "resource"  =>  $resource_type_data,
+        ];
     }
 
     /**
@@ -112,6 +143,39 @@ class TrailRepository2
         },$curr->toArray());
         return $curr;
     }
+    //根据优先级
+    public function getEveryPriorityTrailNumber($start_time,$end_time,$status=null){
+        $arr = [];
+        $arr[] = ['t.created_at','>=',$start_time];
+        $arr[] = ['t.created_at','<=',$end_time];
+        if($status != null){
+            $arr[] = ['status',$status];
+        }
+        $subquery = DB::table(DB::raw("data_dictionaries as dd"))->where('parent_id',49)->select('val as id','name');
+        $sub_query2 = DB::table("trails as t")->select("t.priority",DB::raw("count(t.id) as number"))->where($arr)->groupBy("t.priority");
+        return DB::table(DB::raw("({$sub_query2->toSql()}) as t1"))->rightJoin(DB::raw("({$subquery->toSql()}) as t2"),"t2.id","=","t1.priority")
+            ->mergeBindings($subquery)
+            ->mergeBindings($sub_query2)
+            ->get();
+    }
+    //销售线索来源维度来获取数据
+    public function getEverySourceTrailNumber($start_time,$end_time,$status=null)
+    {
+        $arr = [];
+        $arr[] = ['t.created_at','>=',$start_time];
+        $arr[] = ['t.created_at','<=',$end_time];
+        if($status != null){
+            $arr[] = ['status',$status];
+        }
+        $subquery = DB::table(DB::raw("data_dictionaries as dd"))->where('parent_id',37)->select('val as id','name');
+        $sub_query2 = DB::table("trails as t")->select("t.resource_type",DB::raw("count(t.id) as number"))->where($arr)->groupBy("t.resource_type");
+        return DB::table(DB::raw("({$sub_query2->toSql()}) as t1"))->rightJoin(DB::raw("({$subquery->toSql()}) as t2"),"t2.id","=","t1.resource_type")
+            ->mergeBindings($subquery)
+            ->mergeBindings($sub_query2)
+            ->get();
+
+    }
+
     //获取合作类型的达成数量
     private function getEveryCooperationTypeTrailNumber($start_time,$end_time,$status=null)
     {

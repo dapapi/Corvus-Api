@@ -680,16 +680,19 @@ class AttendanceRepository
                         }else{
                             $list[$date_key]['creators'][$creator_id_key]['daynumber'][] = [
                                 'type'  =>  $value['type'],
-                                'number'    =>  self::computeDay($minute)
+                                'number'    =>  self::computeDay($minute),
+                                'all_number'    =>  $value['remaining_time']
                             ];
                         }
                     } else{
                         $list[$date_key]['creators'][] = [
                             'creator_id'    =>  $value['creator_id'],
+                            'name'  =>  $value['name'],
                             'daynumber' =>  [
                                 [
                                     'type'    =>  $value['type'],
                                     'number'  =>  self::computeDay($minute),
+                                    'all_number'    =>  $value['remaining_time']
                                 ]
 
                             ]
@@ -701,10 +704,12 @@ class AttendanceRepository
                         'creators'  =>  [
                             [
                                 'creator_id'    =>  $value['creator_id'],
+                                'name'  =>  $value['name'],
                                 'daynumber' =>  [
                                     [
                                         'type'  =>  $value['type'],
-                                        'number'    =>  self::computeDay($minute)
+                                        'number'    =>  self::computeDay($minute),
+                                        'all_number'    =>  $value['remaining_time']
                                     ]
                                 ]
                             ]

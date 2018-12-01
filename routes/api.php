@@ -232,7 +232,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
+        $api->get('/launch/all/draft', 'App\Http\Controllers\LaunchController@allDraft');
         $api->post('/launch', 'App\Http\Controllers\LaunchController@store');
+        //简报存草稿
+        $api->post('/launch/{draft}/draft', 'App\Http\Controllers\LaunchController@storeDraft');
+        $api->get('/launch/draft', 'App\Http\Controllers\LaunchController@indexDraft');
+        $api->delete('/launch/draft', 'App\Http\Controllers\LaunchController@deleteDraft');
        // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail

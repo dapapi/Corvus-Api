@@ -49,7 +49,16 @@ class Issues extends Model
 
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
+    public function issues()
+    {
 
+        return $this->belongsTo(DraftIssuesAnswer::class, 'id', 'issues_id');
+        //  return $this->morphToMany(BulletinReviewTitleIssuesAnswer::class, 'resourceable','bulletion_review_title');
+    }
+    public function getDraftAttribute()
+    {
+        return $this->issues()->get();
+    }
     public function broker()
     {
         return $this->belongsTo(User::class, 'broker_id', 'id');

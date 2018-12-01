@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Dingo\Api\Http\FormRequest;
 
 
-class LaunchStoreRequest extends FormRequest
+class DraftStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,7 +28,7 @@ class LaunchStoreRequest extends FormRequest
             'answer' => 'required|max:255',
             'issues_id' =>'max:255',
             'reviewer_id' =>'max:255',
-            'accessory'=>'required',
+
 
         ];
     }

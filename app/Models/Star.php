@@ -93,5 +93,8 @@ class Star extends Model
     {
         return $this->morphToMany(Project::class, 'resourceable', 'project_resources');
     }
+    public function works(){
+        return $this->hasOne(Work::class,"star_id","id");
+    }
 
 }

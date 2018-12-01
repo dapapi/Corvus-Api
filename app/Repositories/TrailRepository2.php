@@ -158,14 +158,10 @@ class TrailRepository2
         }
         $subquery = DB::table(DB::raw("data_dictionaries as dd"))->where('parent_id',49)->select('val as id','name');
         $sub_query2 = DB::table("trails as t")->select("t.priority",DB::raw("count(t.id) as number"))->where($arr)->groupBy("t.priority");
-//        DB::connection()->enableQueryLog();
         $result = DB::table(DB::raw("({$sub_query2->toSql()}) as t1"))->rightJoin(DB::raw("({$subquery->toSql()}) as t2"),"t2.id","=","t1.priority")
-            ->mergeBindings($subquery)
             ->mergeBindings($sub_query2)
+            ->mergeBindings($subquery)
             ->get();
-//        $sql = DB::getQueryLog();
-//        dd($sql);
-//        dd($result->toArray());
         return $result;
     }
     //销售线索来源维度来获取数据
@@ -180,8 +176,8 @@ class TrailRepository2
         $subquery = DB::table(DB::raw("data_dictionaries as dd"))->where('parent_id',37)->select('val as id','name');
         $sub_query2 = DB::table("trails as t")->select("t.resource_type",DB::raw("count(t.id) as number"))->where($arr)->groupBy("t.resource_type");
         return DB::table(DB::raw("({$sub_query2->toSql()}) as t1"))->rightJoin(DB::raw("({$subquery->toSql()}) as t2"),"t2.id","=","t1.resource_type")
-            ->mergeBindings($subquery)
             ->mergeBindings($sub_query2)
+            ->mergeBindings($subquery)
             ->get();
 
     }

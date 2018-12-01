@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'operate_log'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'operate_log', 'participants'];
 
     private  $isAll = true;
 

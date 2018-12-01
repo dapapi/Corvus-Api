@@ -13,6 +13,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
 
+    # 微信开放平台
+    $api->any('/wechat_open', 'App\Http\Controllers\Wechat\OpenPlatformController@serve');
+    $api->get('/wechat_open/oauth', 'App\Http\Controllers\Wechat\OpenPlatformController@getLoginUrl');
+    $api->get('/wechat_open/oauth/callback', 'App\Http\Controllers\Wechat\OpenPlatformController@oauthCallback');
+
+
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');

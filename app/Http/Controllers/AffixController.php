@@ -7,6 +7,7 @@ use App\Http\Requests\AffixQueryRequest;
 use App\Http\Requests\AffixRequest;
 use App\Http\Transformers\AffixTransformer;
 use App\Models\Affix;
+use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Announcement;
 use App\Models\Client;
@@ -58,6 +59,8 @@ class AffixController extends Controller
             $query = $model->affixes();
         } else if ($model instanceof Blogger && $model->id) {
             $query = $model->affixes();
+        }else if ($model instanceof Attendance && $model->id) {
+            $query = $model->affixes();
         }
         //TODO 其他模块
         if ($type)
@@ -90,6 +93,8 @@ class AffixController extends Controller
         }else if ($model instanceof Announcement && $model->id) {
             $query = $model->affixes();
         } else if ($model instanceof Blogger && $model->id) {
+            $query = $model->affixes();
+        }else if ($model instanceof Attendance && $model->id) {
             $query = $model->affixes();
         }
         //TODO 其他模块

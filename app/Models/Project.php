@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
@@ -53,7 +54,7 @@ class Project extends Model
 
     public function participants()
     {
-        return $this->morphMany(ModuleUser::class, 'moduleable');
+        return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PARTICIPANT);
     }
 
     public function affixes()

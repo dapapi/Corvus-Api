@@ -59,6 +59,15 @@ class TaskController extends Controller
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
+    public function tasksAll(Request $request,Task $task)
+    {
+        $payload = $request->all();
+        $tasks = $task->get();
+
+        return $this->response->item($tasks, new TaskTransformer());
+
+    }
+
     public function myAll(Request $request)
     {
         $payload = $request->all();
@@ -927,7 +936,6 @@ class TaskController extends Controller
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

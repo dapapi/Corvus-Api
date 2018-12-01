@@ -40,13 +40,13 @@ class StarController extends Controller
         if($request->has('name')){//姓名
           $array[] = ['name','like','%'.$payload['name'].'%'];
         }
-        if($request->has('sign_contract_status')){//签约状态
+        if($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])){//签约状态
           $array[] = ['sign_contract_status',$payload['sign_contract_status']];
         }
-        if($request->has('communication_status')){//沟通状态
+        if($request->has('communication_status') && !empty($payload['communication_status'])){//沟通状态
           $array[] = ['communication_status',$payload['communication_status']];
         }
-        if($request->has('source')){//艺人来源
+        if($request->has('source') && !empty($payload['source'])){//艺人来源
           $array[] = ['source',$payload['source']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));

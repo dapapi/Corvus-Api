@@ -32,6 +32,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove');
+        $api->get('/tasksAll', 'App\Http\Controllers\TaskController@tasksAll');
+
 //            ->middleware('can:delete,task');
         $api->put('/tasks/{task}/status', 'App\Http\Controllers\TaskController@toggleStatus');
         $api->put('/tasks/{task}/time_cancel', 'App\Http\Controllers\TaskController@cancelTime');
@@ -260,6 +262,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
+        $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
@@ -316,6 +319,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/personal/edit/{user}', 'App\Http\Controllers\PersonnelManageController@editUser');
         $api->get('/personnel/portal/{user}', 'App\Http\Controllers\PersonnelManageController@portal');//
         $api->get('/personnel/entry/{user}', 'App\Http\Controllers\PersonnelManageController@entryDetail');//
+        $api->get('/entry', 'App\Http\Controllers\PersonnelManageController@entry');//
+        $api->put('/audit/{user}', 'App\Http\Controllers\PersonnelManageController@audit');//
+
+
 
 
 

@@ -79,17 +79,25 @@ class TrailTransformer extends TransformerAbstract
 
     public function includeRecommendations(Trail $trail)
     {
-        $recommendations = $trail->recommendations;
+        $recommendations = $trail->bloggerRecommendations;
+        if (count($recommendations) <=0) {
+            $recommendations = $trail->recommendations;
+            return $this->collection($recommendations, new StarTransformer());
+        } else {
+            return $this->collection($recommendations, new BloggerTransformer());
+        }
 
-        return $this->collection($recommendations, new StarTransformer());
     }
-
 
     public function includeExpectations(Trail $trail)
     {
-        $expectations = $trail->expectations;
-
-        return $this->collection($expectations, new StarTransformer());
+        $expectations = $trail->bloggerExpectations;
+        if (count($expectations) <=0) {
+            $expectations= $trail->expectations;
+            return $this->collection($expectations, new StarTransformer());
+        } else {
+            return $this->collection($expectations, new BloggerTransformer());
+        }
     }
 
     public function includeProject(Trail $trail)

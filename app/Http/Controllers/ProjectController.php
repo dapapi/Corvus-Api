@@ -502,7 +502,10 @@ class ProjectController extends Controller
     {
         $star_id = $request->get('star_id', null);
         $star_id = hashid_decode($star_id);
+        DB::connection()->enableQueryLog();
         $result = ProjectRepository::getProjectBySatrId($star_id);
+        $sql = DB::getQueryLog();
+        dd($sql);
         //todo 这里的返回值status没有返回数字，返回的是中文所以用不了transfromer
 //        return $this->response->collection($result, new ProjectTransformer());
         return $result;

@@ -32,9 +32,10 @@ class PersonnelManageController extends Controller
     {
 
         $payload = $request->all();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->count();
-        $data['departure'] = $user->where('position_type',2)->count();
+        $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS)->count();
+        $data['departure'] = $user->where('position_type',2)->where('entry_status',User::USER_ENTRY_STATUS)->count();
 
         $user = User::orderBy('entry_time','asc')
             ->where(function($query) use($request){
@@ -53,8 +54,12 @@ class PersonnelManageController extends Controller
                 $startDate = date('Y-'.$entryTime.'-01');
                 $endDate =  date('Y-m-d', strtotime("$startDate +1 month -1 day"));
 
-                if($positionType !==2) {
-                    $query->where('position_type',$positionType);
+                if(!empty($positionType)) {
+                    if($positionType ==2){
+                        //dd(11);
+                        $query->where('position_type',$positionType);
+                    }
+
                 }else {
 
                     // 1 正式 2实习 3管培生 4外包
@@ -87,7 +92,7 @@ class PersonnelManageController extends Controller
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
                 }
                 //不显示存档信息
-                $query->where('status','!=',User::USER_ARCHIVE);
+                $query->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS);
 
              })->paginate($pageSize);
 
@@ -105,7 +110,7 @@ class PersonnelManageController extends Controller
         $pageSize = config('api.page_size');
 
         if(!empty($userPhone)){
-            return $this->response->errorInternal('邮箱已经注册！');
+            return $this->response->errorInternal('手机号已经注册！');
         }else{
             if($payload['status_type']==1){
                 $payload['status'] =  User::USER_STATUS_TRIAL;
@@ -125,6 +130,7 @@ class PersonnelManageController extends Controller
         try {
             $user = User::create($payload);
             $userid = DB::getPdo()->lastInsertId();
+
             // 添加个人技能
             $skills = [
                 'user_id' => $userid,

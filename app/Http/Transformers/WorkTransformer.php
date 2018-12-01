@@ -18,7 +18,7 @@ class WorkTransformer extends TransformerAbstract
             'release_time' => $work->release_time,
             'works_type' => $work->works_type,
             'role' => $work->role,
-            'co-star' => $work->co_star,
+            'co_star' => $work->co_star,
             'created_at' => $work->created_at->toDatetimeString(),
             'updated_at' => $work->updated_at->toDatetimeString(),
             // 'deleted_at' => $star->deleted_at,

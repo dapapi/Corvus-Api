@@ -13,6 +13,7 @@ use App\Models\Announcement;
 use App\Models\Review;
 use App\Models\Issues;
 use App\Models\Client;
+use App\Models\Draft;
 use App\Models\Contact;
 use App\Models\Schedule;
 use App\Models\PersonalJob;
@@ -150,6 +151,15 @@ class RouteServiceProvider extends ServiceProvider
             return $entity;
         });
         Route::bind('report', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Report::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('draft', function ($value) {
             try {
                 $id = hashid_decode($value);
                 $entity = Report::withTrashed()->findOrFail($id);

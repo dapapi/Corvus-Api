@@ -30,12 +30,10 @@ class BloggerTransformer extends TransformerAbstract
             'level' => $blogger->level,//博主级别
             'hatch_star_at' => $blogger->hatch_star_at,//孵化期开始时间
             'hatch_end_at' => $blogger->hatch_star_at,//孵化期结束时间
-            'producer' => $blogger->producer,  //制作人
             'sign_contract_status' => $blogger->sign_contract_status,//签约状态
             'icon' => $blogger->icon, // 头像
             'desc' => $blogger->desc,//描述/备注
             'type' => $blogger->type,
-            'project'=> $blogger->project,
             'gender' => $blogger->gender,
             'cooperation_demand' => $blogger->cooperation_demand,//合作需求
             'terminate_agreement_at' => $blogger->terminate_agreement_at,//解约日期

@@ -59,6 +59,15 @@ class TaskController extends Controller
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
+    public function tasksAll(Request $request,Task $task)
+    {
+        $payload = $request->all();
+        $tasks = $task->get();
+
+        return $this->response->item($tasks, new TaskTransformer());
+
+    }
+
     public function myAll(Request $request)
     {
         $payload = $request->all();

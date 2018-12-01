@@ -33,8 +33,25 @@ class IssuesTransformer extends TransformerAbstract
 
 
         ];
+        $arrayanswer = [
 
-        return $this->isAll ? $array : '';
+            'id' => hashid_encode($Issues->id),
+            'issues' => $Issues->issues,
+            //'department_id' => $Issues->department_id,
+            'member_id' => $Issues->member_id,
+            'task_id' => $Issues->task_id,
+
+            'answer' => $Issues->answer,
+            'accessory' => $Issues->accessory,
+            'type' =>$Issues->type,
+            'required' =>$Issues->required,
+            'created_at' => $Issues->created_at->toDatetimeString(),
+            'updated_at' => $Issues->updated_at->toDatetimeString()
+
+
+        ];
+
+        return $this->isAll ?$arrayanswer : $array ;
     }
 
     public function includeCreator(Issues $Issues)

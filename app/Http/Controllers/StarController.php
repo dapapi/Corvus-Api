@@ -145,7 +145,6 @@ class StarController extends Controller
     public function edit(StarUpdateRequest $request, Star $star)
     {
         $payload = $request->all();
-
         $array = [];
         $arrayOperateLog = [];
 
@@ -200,7 +199,7 @@ class StarController extends Controller
             try {
                 $start = null;
                 if ($star->broker_id) {
-                    $currentBroker = User::find($star->broker_id);
+                    $currentBroker = User::find($star->broker_id);//现在的经纪人
                     if ($currentBroker)
                         $start = $currentBroker->name;
                 }
@@ -209,7 +208,7 @@ class StarController extends Controller
                 $brokerUser = User::findOrFail($brokerId);
                 $array['broker_id'] = $brokerId;
 
-                if ($brokerUser->id != $array['broker_id']) {
+                if ($brokerUser->id != $currentBroker->id) {
                     $operateBroker = new OperateEntity([
                         'obj' => $star,
                         'title' => '经纪人',
@@ -470,7 +469,149 @@ class StarController extends Controller
                 unset($array['terminate_agreement_at']);
             }
         }
-
+        //社交平台
+        if($request->has('platform') && !empty($payload['platform'])){
+            $array['platform'] = $payload['platform'];
+            if($array['platform'] != $star->platform){
+                $operatePlatform = new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '社交平台',
+                        'start' => $star->platform,
+                        'end' => $array['terminate_agreement_at'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operatePlatform;
+            }
+        }
+        //微博url
+        if($request->has('weibo_url')){
+            $array['weibo_url'] = $payload['weibo_url'];
+            if($array['weibo_url'] != $star->weibo_url){
+                $operateWeiboUrl = new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '微博主页地址',
+                        'start' => $star->weibo_url,
+                        'end' => $array['weibo_url'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateWeiboUrl;
+            }
+        }
+        //微博粉丝数
+        if($request->has('weibo_fans_num')){
+            $array['weibo_fans_num'] = $payload['weibo_fans_num'];
+            if($array['weibo_fans_num'] != $star->weibo_fans_num){
+                $operateWeiboFansNum = new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '微博粉丝数',
+                        'start' => $star->weibo_fans_num,
+                        'end' => $array['weibo_fans_num'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateWeiboFansNum;
+            }
+        }
+        //抖音id
+        if($request->has('douyin_id')){
+            $array['douyin_id'] = $payload['douyin_id'];
+            if($array['douyin_id'] != $star->douyin_id){
+                $operateDouyinId = new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '抖音id',
+                        'start' => $star->douyin_id,
+                        'end' => $array['douyin_id'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateDouyinId;
+            }
+        }
+        //抖音粉丝数
+        if($request->has('douyin_fans_num')){
+            $array['douyin_fans_num'] = $payload['douyin_fans_num'];
+            if($array['douyin_fans_num'] != $star->douyin_fans_num){
+                $operateDouyinFansNum = new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '抖音粉丝数',
+                        'start' => $star->douyin_fans_num,
+                        'end' => $array['douyin_fans_num'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateDouyinFansNum;
+            }
+        }
+        //其他url
+        if($request->has('qita_url')){
+            $array['qita_url'] = $payload['qita_url'];
+            if($array['qita_url'] != $star->qita_url){
+                $operateQitaUrl= new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '其他url',
+                        'start' => $star->qita_url,
+                        'end' => $array['qita_url'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateQitaUrl;
+            }
+        }
+        //其他粉丝数
+        if($request->has('qita_fans_num')){
+            $array['qita_fans_num'] = $payload['qita_fans_num'];
+            if($array['qita_fans_num'] != $star->qita_fans_num){
+                $operateQitaFansNum= new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '其他粉丝数',
+                        'start' => $star->qita_fans_num,
+                        'end' => $array['qita_fans_num'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateQitaFansNum;
+            }
+        }
+        //星探
+        if($request->has('artist_scout_name')){
+            $array['artist_scout_name'] = $payload['artist_scout_name'];
+            if($array['artist_scout_name'] != $star->artist_scout_name){
+                $operateArtistScoutName= new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '星探',
+                        'start' => $star->artist_scout_name,
+                        'end' => $array['artist_scout_name'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateArtistScoutName;
+            }
+        }
+        if($request->has('star_location')){
+            $array['star_location'] = $payload['star_location'];
+            if($array['star_location'] != $star->star_location){
+                $operateStarLocation= new OperateEntity(
+                    [
+                        'obj' => $star,
+                        'title' => '星探地区',
+                        'start' => $star->star_location,
+                        'end' => $array['star_location'],
+                        'method' => OperateLogMethod::UPDATE,
+                    ]
+                );
+                $arrayOperateLog[] = $operateStarLocation;
+            }
+        }
         DB::beginTransaction();
         try {
             if (count($array) == 0)

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\ModuleUserType;
 use App\OperateLogMethod;
+use App\Traits\OperateLogTrait;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,6 +14,7 @@ class Project extends Model
     use SoftDeletes {
         restore as private restoreSoftDeletes;
     }
+    use OperateLogTrait;
 
     const TYPE_MOVIE = 1; // 影视项目
     const TYPE_VARIETY = 2; // 综艺项目
@@ -62,10 +64,6 @@ class Project extends Model
         return $this->morphMany(Affix::class, 'affixable');
     }
 
-    public function operateLogs()
-    {
-        return $this->morphMany(OperateLog::class, 'logable');
-    }
 
     public function fields()
     {
@@ -80,16 +78,6 @@ class Project extends Model
     public function trail()
     {
         return $this->belongsTo(Trail::class);
-    }
-
-    public function getLastFollowUpAtAttribute()
-    {
-        $lastFollow = $this->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
-
-        if ($lastFollow)
-            return $lastFollow->created_at->toDateTimeString();
-        else
-            return null;
     }
 
     public function relateProjects()

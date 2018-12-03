@@ -29,7 +29,12 @@ class TrailTransformer extends TransformerAbstract
             'cooperation_type' => $trail->cooperation_type,
             'desc' => $trail->desc,
             'lock_status' => $trail->lock_status,
+            // 日志内容
             'last_follow_up_at' => $trail->last_follow_up_at,
+            'last_updated_user' => $trail->last_updated_user,
+            'last_updated_at' => $trail->last_updated_at,
+            'refused_at' => $trail->refused_at,
+            'refused_user' => $trail->refused_user,
         ];
 
         $array['fee'] = $trail->fee;

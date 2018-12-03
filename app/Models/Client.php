@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\OperateLogMethod;
+use App\Traits\OperateLogTrait;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,6 +13,8 @@ class Client extends Model
     use SoftDeletes {
         restore as private restoreSoftDeletes;
     }
+
+    use OperateLogTrait;
 
     const TYPE_MOVIE = 1; // 影视项目
     const TYPE_VARIETY = 2; // 综艺项目
@@ -67,20 +70,5 @@ class Client extends Model
     public function affixes()
     {
         return $this->morphMany(Affix::class, 'affixable');
-    }
-
-    public function operateLogs()
-    {
-        return $this->morphMany(OperateLog::class, 'logable');
-    }
-
-    public function getLastFollowUpAtAttribue()
-    {
-        $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
-
-        if ($lastFollowUp)
-            return $lastFollowUp->created_at->toDateTimeString();
-        else
-            return null;
     }
 }

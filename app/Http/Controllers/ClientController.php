@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class ClientController extends Controller
 {
+    // todo 加日志
     public function index(Request $request)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));

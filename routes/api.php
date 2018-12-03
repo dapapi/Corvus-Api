@@ -13,6 +13,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
 
+    # 微信开放平台
+    $api->any('/wechat_open', 'App\Http\Controllers\Wechat\OpenPlatformController@serve');
+    $api->get('/wechat_open/oauth', 'App\Http\Controllers\Wechat\OpenPlatformController@getLoginUrl');
+    $api->get('/wechat_open/oauth/callback', 'App\Http\Controllers\Wechat\OpenPlatformController@oauthCallback');
+
+
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
@@ -55,6 +61,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/clients/{client}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         $api->post('/stars/{star}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/stars/{star}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
+        $api->post('/blogger/{blogger}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
+        $api->delete('/blogger/{blogger}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         $api->post('/trails/{trail}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/trails/{trail}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         //模型用户(参与人)
@@ -162,7 +170,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
         // 查看作品
         $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
-        $api->get('/bloggers/getcommunication', 'App\Http\Controllers\BloggerController@getcommunication');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');

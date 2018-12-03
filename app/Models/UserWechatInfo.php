@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,8 +13,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property mixed avatar
  * @property int $id
  * @property string|null $union_id
- * @property string $nickname
- * @property string $avatar
  * @property string|null $province
  * @property string|null $language
  * @property string|null $privilege
@@ -26,20 +24,19 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Carbon\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\UserWechatOpenId[] $openIds
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\RegistToken[] $registTokens
- * @property-read \App\User|null $user
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereAvatar($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereCity($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereCountry($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereGender($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereLanguage($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereNickname($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo wherePrivilege($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereProvince($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereUnionId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\UserWechatInfo whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserWechatInfo whereAvatar($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserWechatInfo whereCity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserWechatInfo whereCountry($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserWechatInfo whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserWechatInfo whereGender($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo whereLanguage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo whereNickname($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo wherePrivilege($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo whereProvince($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo whereUnionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules/UserWechatInfo whereUserId($value)
  * @mixin \Eloquent
  */
 class UserWechatInfo extends Model {

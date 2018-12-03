@@ -12,8 +12,10 @@ use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\ModuleUser;
 use App\Models\Project;
+use App\Models\ProjectRelate;
 use App\Models\Resource;
 use App\Models\Star;
+use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
@@ -526,8 +528,45 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
-    public function addRelate(AddRelateProjectRequest $request, Project $project)
+    public function addRelates(AddRelateProjectRequest $request, Project $project)
     {
-        $project->relates();
+        DB::beginTransaction();
+        try {
+
+            if ($request->has('tasks')) {
+                ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::TASK)->delete();
+                $tasks = $request->get('tasks');
+                foreach ($tasks as $value) {
+                    $id = hashid_decode($value);
+                    if (Task::find($id))
+                        ProjectRelate::create([
+                            'project_id' => $project->id,
+                            'moduleable_id' => $id,
+                            'moduleable_type' => ModuleableType::TASK,
+                        ]);
+                }
+            }
+
+            if ($request->has('projects')) {
+                ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::PROJECT)->delete();
+                $projects = $request->get('projects');
+                foreach ($projects as $value) {
+                    $id = hashid_decode($value);
+                    if (Project::find($id))
+                        ProjectRelate::create([
+                            'project_id' => $project->id,
+                            'moduleable_id' => $id,
+                            'moduleable_type' => ModuleableType::PROJECT,
+                        ]);
+                }
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('创建关联失败');
+        }
+        DB::commit();
+        return $this->response->accepted();
     }
 }

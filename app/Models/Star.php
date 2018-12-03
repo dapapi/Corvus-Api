@@ -43,7 +43,7 @@ class Star extends Model
         'qita_url',//其他平台地址
         'qita_fans_num',//其他平台粉丝数
         'artist_scout_name',//星探
-        'artist_location',//地区
+        'star_location',//地区
     ];
 
 //隐藏字段

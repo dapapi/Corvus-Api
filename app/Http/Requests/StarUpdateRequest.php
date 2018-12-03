@@ -30,7 +30,7 @@ class StarUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|max:255',
+            'name' => 'max:255',//去掉了必填
             'gender' => Rule::in([Gender::MAN, Gender::WOMAN]),
             'avatar' => 'max:500',
             'birthday' => 'date',

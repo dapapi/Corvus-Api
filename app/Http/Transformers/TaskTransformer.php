@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class TaskTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type','operateLogs'];
+    protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type','operateLogs',  'relate_tasks', 'relate_projects'];
 
     protected $defaultIncludes = ['principal','type','resource'];
 
@@ -104,6 +104,18 @@ class TaskTransformer extends TransformerAbstract
         if (!$type)
             return null;
         return $this->item($type, new OperateLogTransformer());
+    }
+
+    public function includeRelateTasks(Task $task)
+    {
+        $tasks = $task->relateTasks;
+        return $this->collection($tasks, new TaskTransformer());
+    }
+
+    public function includeRelateProjects(Task $task)
+    {
+        $projects = $task->relateProjects;
+        return $this->collection($projects, new TaskTransformer());
     }
 
 }

@@ -54,7 +54,7 @@ class StarTransformer extends TransformerAbstract
             'qita_url'  =>  $star->qita_url,
             'qita_fans_num' =>  $star->qita_fans_num,
             'artist_scout_name' =>  $star->artist_scout_name,
-            'artist_location' =>  $star->artist_location,
+            'star_location' =>  $star->star_location,
 
         ];
 

@@ -97,5 +97,9 @@ class Star extends Model
     public function works(){
         return $this->hasMany(Work::class);
     }
+    public function publicity()
+    {
+        return $this->belongsToMany(User::class,"module_users","moduleable_id");
+    }
 
 }

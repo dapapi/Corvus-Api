@@ -132,7 +132,6 @@ class TrailController extends Controller
 
             $trail = Trail::create($payload);
 
-            // todo 艺人博主多肽
             if ($request->has('expectations')) {
                 if ($trail->type == Trail::TYPE_PAPI) {
                     $starableType = ModuleableType::BLOGGER;

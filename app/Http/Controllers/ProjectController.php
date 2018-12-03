@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Project\AddRelateProjectRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\SearchProjectRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
@@ -418,7 +419,6 @@ class ProjectController extends Controller
         return $result;
     }
 
-
     public function delete(Request $request, Project $project)
     {
         try {
@@ -524,5 +524,10 @@ class ProjectController extends Controller
             ->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
+    }
+
+    public function addRelate(AddRelateProjectRequest $request, Project $project)
+    {
+        $project->relates();
     }
 }

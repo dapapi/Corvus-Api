@@ -10,20 +10,21 @@ class TrailRepository2
 {
     public function CommercialFunnelReportFrom($start_time,$end_time)
     {
+        $start_time = Carbon::parse($start_time)->toDateString();
+        $end_time = Carbon::parse($end_time)->toDateString();
         $current_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($start_time,$end_time);
         $current_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($start_time,$end_time,Trail::STATUS_CONFIRMED);
 
         //获取查询周期
         $rang = Carbon::parse($start_time)->diffInDays($end_time);
-        $prev_range_end = $start_time;
-        $prev_range_start = Carbon::parse($start_time)->addDay(-$rang)->toDateTimeString();
+        $prev_range_end = Carbon::parse($end_time)->addDay(-($rang+1))->toDateString();
+        $prev_range_start = Carbon::parse($start_time)->addDay(-($rang+1))->toDateString();
 
         $prev_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($prev_range_start,$prev_range_end);
         $prev_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($prev_range_start,$prev_range_end,Trail::STATUS_CONFIRMED);
 
-        $prev_year_start = Carbon::parse($start_time)->addYear(-1)->toDateTimeString();
-        $prev_year_end = Carbon::parse($end_time)->addYear(-1)->toDateTimeString();
-
+        $prev_year_start = Carbon::parse($start_time)->addYear(-1)->toDateString();
+        $prev_year_end = Carbon::parse($end_time)->addYear(-1)->toDateString();
         $prev_year_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($prev_year_start,$prev_year_end);
         $prev_year_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($prev_year_start,$prev_year_end,Trail::STATUS_CONFIRMED);
 
@@ -32,7 +33,7 @@ class TrailRepository2
             $prev_industry_trail_number,
             $prev_year_industry_trail_number,
             $current_industry_trail_confirm_number,
-            $prev_year_industry_trail_number,
+            $prev_industry_trail_confirm_number,
             $prev_year_industry_trail_confirm_number
         );
 
@@ -108,7 +109,7 @@ class TrailRepository2
 //        dd($current_industry_trail_number);
         //计算数量占比,计算同比
         array_map(function ($v) use ($sum,$prev,$prev_year){
-            $v->ratio = ($v->number)/$sum; //数量占比
+            $v->ratio = $sum == 0 ? 0 : ($v->number)/$sum; //数量占比
 
             //获取行业上一周期对应的接触数量
             $prev_arr = $prev->toArray();
@@ -222,6 +223,26 @@ class TrailRepository2
             ->get([
                 DB::raw("count(tt.id) as number"),"i.id","i.name"
             ]);
+
+    }
+
+    //商务漏斗，分析留存率
+    public function salesFunnel($start_time,$end_time)
+    {
+        //计算接触总量
+        $sum = Trail::select(DB::raw("count(id) as total"))->get();
+        //根据状态分组统计销售线索个状态下
+        $stausTrailNumber = Trail::select("status",DB::raw("count(id) as total"))->groupBy("status")->get();
+        $status_number = [];
+        foreach ($stausTrailNumber as $value){
+            $status_number[$value['status']] = $value['total'];
+        }
+        //主动拒绝后线索留存率
+        $refuseNumber = $status_number[Trail::PROGRESS_REFUSE];
+        $refuseNumber = $sum == 0 ? 0 : $sum / $refuseNumber;
+        //
+
+
 
     }
 }

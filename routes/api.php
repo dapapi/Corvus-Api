@@ -55,6 +55,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/clients/{client}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         $api->post('/stars/{star}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/stars/{star}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
+        $api->post('/blogger/{blogger}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
+        $api->delete('/blogger/{blogger}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         $api->post('/trails/{trail}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/trails/{trail}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         //模型用户(参与人)
@@ -160,7 +162,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
         // 查看作品
         $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
-        $api->get('/bloggers/getcommunication', 'App\Http\Controllers\BloggerController@getcommunication');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');

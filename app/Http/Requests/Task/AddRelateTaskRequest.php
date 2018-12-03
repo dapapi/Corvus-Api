@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Task;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Dingo\Api\Http\FormRequest;
 
 class AddRelateTaskRequest extends FormRequest
 {

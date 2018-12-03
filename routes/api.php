@@ -74,11 +74,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/reports/{review}/affix', 'App\Http\Controllers\AffixController@add');
         $api->post('/reports/{review}/affixes/{launch}/download', 'App\Http\Controllers\AffixController@download');
 
-        $api->post("/attendance/{attendance}/affix","App\Http\Controllers\AffixController@add");
+        $api->post("/attendance/{attendance}/affix", "App\Http\Controllers\AffixController@add");
         $api->get('/attendance/{attendance}/affix', 'App\Http\Controllers\AffixController@index');
 
-      //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
-     //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
+        //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
+        //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');
         $api->get('/projects/{project}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
         $api->post('/projects/{project}/affix', 'App\Http\Controllers\AffixController@add');
@@ -137,21 +137,21 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
-        $api->get('/stars/{star}/gettaskandprojejct','App\Http\Controllers\StarController@getFiveTaskAndProjejct');
+        $api->get('/stars/{star}/gettaskandprojejct', 'App\Http\Controllers\StarController@getFiveTaskAndProjejct');
         //获取明星作品列表
         $api->get('/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
         //创建明星作品
-        $api->post('/stars/{star}/works','App\Http\Controllers\WorkController@store');
+        $api->post('/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //分配经纪人
-        $api->post('/stars/{star}/broker','App\Http\Controllers\ModuleUserController@addModuleUserBroker');
+        $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人
         $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producerStore');
-      //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
+        //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
         //获取类型
@@ -169,21 +169,21 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //考勤
         //提交申请
-        $api->post('/attendance','App\Http\Controllers\AttendanceController@store');
+        $api->post('/attendance', 'App\Http\Controllers\AttendanceController@store');
         //我的考勤统计
-        $api->get('/attendance/myselfstatistics','App\Http\Controllers\AttendanceController@myselfStatistics');
+        $api->get('/attendance/myselfstatistics', 'App\Http\Controllers\AttendanceController@myselfStatistics');
         //我的考勤请假统计
-        $api->get('/attendance/myselfleavelstatistics','App\Http\Controllers\AttendanceController@myselfLeavelStatistics');
+        $api->get('/attendance/myselfleavelstatistics', 'App\Http\Controllers\AttendanceController@myselfLeavelStatistics');
         //根据条件统计考勤  成员考勤--考勤统计
-        $api->get('/attendance/statistics','App\Http\Controllers\AttendanceController@statistics');
+        $api->get('/attendance/statistics', 'App\Http\Controllers\AttendanceController@statistics');
         //成员考勤--请假统计
-       $api->get('/attendance/leavestatistics','App\Http\Controllers\AttendanceController@leaveStatistics');
-       //考勤汇总 type 1:请假  2:加班 3:出差  4:外勤
-        $api->get('/attendance/collect','App\Http\Controllers\AttendanceController@collect');
+        $api->get('/attendance/leavestatistics', 'App\Http\Controllers\AttendanceController@leaveStatistics');
+        //考勤汇总 type 1:请假  2:加班 3:出差  4:外勤
+        $api->get('/attendance/collect', 'App\Http\Controllers\AttendanceController@collect');
         //考勤日历
-        $api->get('/attendance/calendar','App\Http\Controllers\AttendanceController@attendanceCalendar');
+        $api->get('/attendance/calendar', 'App\Http\Controllers\AttendanceController@attendanceCalendar');
         //我申请的
-        $api->get('/attendance/myapply','App\Http\Controllers\AttendanceController@myApply');
+        $api->get('/attendance/myapply', 'App\Http\Controllers\AttendanceController@myApply');
         //service
         $api->get('/services/request_qiniu_token', 'App\Http\Controllers\ServiceController@cloudStorageToken');
 
@@ -240,7 +240,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/launch/{draft}/draft', 'App\Http\Controllers\LaunchController@storeDraft');
         $api->get('/launch/draft', 'App\Http\Controllers\LaunchController@indexDraft');
         $api->delete('/launch/draft', 'App\Http\Controllers\LaunchController@deleteDraft');
-       // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
+        // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
@@ -267,8 +267,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
+        $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
         //获取明星写的项目
-        $api->get('/projects/starproject','App\Http\Controllers\ProjectController@getStarProject');
+        $api->get('/projects/starproject', 'App\Http\Controllers\ProjectController@getStarProject');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
         $api->put('/projects/{project}/status', 'App\Http\Controllers\ProjectController@changeStatus');
@@ -289,7 +290,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
 
         //明星，博主日程
-        $api->get('/schedules/getcalendar','App\Http\Controllers\ScheduleController@getCalendar');
+        $api->get('/schedules/getcalendar', 'App\Http\Controllers\ScheduleController@getCalendar');
         // schedule
         $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
         $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
@@ -323,10 +324,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/audit/{user}', 'App\Http\Controllers\PersonnelManageController@audit');//
 
 
-
-
-
-
         // department
         $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
         $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
@@ -357,13 +354,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approval_groups/{approval_group}', 'App\Http\Controllers\ApprovalGroupController@detail');
 
         //获取粉丝数据
-        $api->get('/starreport/fensi','App\Http\Controllers\StarReportController@getStarFensi');
+        $api->get('/starreport/fensi', 'App\Http\Controllers\StarReportController@getStarFensi');
 
         //报表
         //商务报表
-        $api->get("/reportfrom/commercialfunnel","App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
+        $api->get("/reportfrom/commercialfunnel", "App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
         //销售漏斗
-        $api->get("/reportfrom/salesFunnel","App\Http\Controllers\ReportFormController@salesFunnel");
+        $api->get("/reportfrom/salesFunnel", "App\Http\Controllers\ReportFormController@salesFunnel");
 
     });
 });

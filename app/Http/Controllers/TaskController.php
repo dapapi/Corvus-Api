@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AffixType;
 use App\Events\OperateLogEvent;
+use App\Http\Requests\Task\AddRelateTaskRequest;
 use App\Http\Requests\Task\FilterTaskRequest;
 use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskRequest;
@@ -17,6 +18,7 @@ use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\TaskRelate;
 use App\Models\TaskResource;
 use App\Models\TaskType;
 use App\Models\Trail;
@@ -971,5 +973,47 @@ class TaskController extends Controller
         })->paginate($pageSize);
 
         return $this->response->paginator($trails, new TaskTransformer());
+    }
+
+    public function addRelates(AddRelateTaskRequest $request, Task $task)
+    {
+        DB::beginTransaction();
+        try {
+
+            if ($request->has('tasks')) {
+                TaskRelate::where('task_id', $task->id)->where('moduleable_type', ModuleableType::TASK)->delete();
+                $tasks = $request->get('tasks');
+                foreach ($tasks as $value) {
+                    $id = hashid_decode($value);
+                    if (Task::find($id))
+                        TaskRelate::create([
+                            'task_id' => $task->id,
+                            'moduleable_id' => $id,
+                            'moduleable_type' => ModuleableType::TASK,
+                        ]);
+                }
+            }
+
+            if ($request->has('projects')) {
+                TaskRelate::where('task_id', $task->id)->where('moduleable_type', ModuleableType::PROJECT)->delete();
+                $projects = $request->get('projects');
+                foreach ($projects as $value) {
+                    $id = hashid_decode($value);
+                    if (Project::find($id))
+                        TaskRelate::create([
+                            'task_id' => $task->id,
+                            'moduleable_id' => $id,
+                            'moduleable_type' => ModuleableType::PROJECT,
+                        ]);
+                }
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('创建关联失败');
+        }
+        DB::commit();
+        return $this->response->accepted();
     }
 }

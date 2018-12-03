@@ -64,11 +64,16 @@ class TaskController extends Controller
         $payload = $request->all();
         $data = $task->get()->toArray();
         $dataArr = array();
-        foreach ($data as $k=>$value){
-            $dataArr['id'] = $value['id'];
-            $dataArr['title'] = $value['title'];
-            $Arr['data'][] = $dataArr;
+        if(!empty($data)){
+            foreach ($data as $k=>$value){
+                $dataArr['id'] = hashid_encode($value['id']);
+                $dataArr['title'] = $value['title'];
+                $Arr['data'][] = $dataArr;
+            }
+        }else{
+            $Arr['data'][]=$dataArr;
         }
+
         return $Arr;
 
     }

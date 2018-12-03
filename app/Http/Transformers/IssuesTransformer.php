@@ -15,7 +15,7 @@ class IssuesTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','answer'];
 
     public function transform(Issues $Issues)
     {
@@ -40,7 +40,6 @@ class IssuesTransformer extends TransformerAbstract
             //'department_id' => $Issues->department_id,
             'member_id' => $Issues->member_id,
             'task_id' => $Issues->task_id,
-
             'answer' => $Issues->answer,
             'accessory' => $Issues->accessory,
             'type' =>$Issues->type,

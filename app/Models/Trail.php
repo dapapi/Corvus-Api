@@ -87,6 +87,11 @@ class Trail extends Model
         return $this->belongsTo(User::class, 'principal_id', 'id');
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id', 'id');
+    }
+
     public function contact()
     {
         return $this->belongsTo(Contact::class);

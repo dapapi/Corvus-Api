@@ -14,6 +14,7 @@ use App\Models\ModuleUser;
 use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Star;
+use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
@@ -528,6 +529,39 @@ class ProjectController extends Controller
 
     public function addRelate(AddRelateProjectRequest $request, Project $project)
     {
-        $project->relates();
+        DB::beginTransaction();
+        try {
+
+            if ($request->has('tasks')) {
+                $tasks = $request->get('tasks');
+                foreach ($tasks as $task) {
+                    $id = hashid_decode($task);
+                    if (Task::find($id))
+                        $project->relateTasks()->create([
+                            'moduleable_id' => $id,
+                            'moduleable_type' => ModuleableType::TASK,
+                        ]);
+                }
+            }
+
+            if ($request->has('projects')) {
+                $projects = $request->get('projects');
+                foreach ($projects as $project) {
+                    $id = hashid_decode($project);
+                    if (Project::find($id))
+                        $project->relateProjects()->create([
+                            'moduleable_id' => $id,
+                            'moduleable_type' => ModuleableType::PROJECT,
+                        ]);
+                }
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('创建关联失败');
+        }
+        DB::commit();
+        return $this->response->accepted();
     }
 }

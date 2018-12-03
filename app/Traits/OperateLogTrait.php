@@ -66,4 +66,14 @@ trait OperateLogTrait
         else
             return null;
     }
+
+    public function getRefusedDetailAttribute()
+    {
+        $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::REFUSE)->orderBy('created_at', 'desc')->first();
+
+        if ($lastFollowUp)
+            return $lastFollowUp->content;
+        else
+            return null;
+    }
 }

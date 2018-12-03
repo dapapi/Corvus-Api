@@ -35,6 +35,8 @@ class TrailTransformer extends TransformerAbstract
             'last_updated_at' => $trail->last_updated_at,
             'refused_at' => $trail->refused_at,
             'refused_user' => $trail->refused_user,
+            'created_at' => $trail->created_at->toDateTimeString(),
+            'creator' => $trail->creator->name,
         ];
 
         $array['fee'] = $trail->fee;

@@ -11,12 +11,13 @@ use App\Http\Requests\BloggerProductionRequest;
 use App\Http\Requests\BloggerProducerRequest;
 use App\Http\Transformers\BloggerTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
-use App\Http\Transformers\BloggerCommunicationTransformer;
 use App\Http\Transformers\ProductionTransformer;
 use App\Models\Blogger;
 use App\Models\Production;
 use App\Models\BloggerType;
-use App\Models\BloggerCommunication;
+use App\Models\StarWeiboshuInfo;
+use App\Models\StarXiaohongshuInfo;
+use App\Models\StarDouyinInfo;
 use App\Models\BloggerProducer;
 use App\Events\OperateLogEvent;
 use App\Repositories\OperateLogRepository;
@@ -73,22 +74,6 @@ class BloggerController extends Controller
 
         $bloggers = BloggerType::get();
         return $this->response->collection($bloggers, new BloggerTypeTransformer());
-    }
-    public function getcommunication(Request $request)
-    {
-        $payload = $request->all();
-//        $bloggers = Rule::in([
-//            CommunicationStatus::ALREADY_SIGN_CONTRACT,
-//            CommunicationStatus::HANDLER_COMMUNICATION,
-//            CommunicationStatus::TALENT_COMMUNICATION,
-//            CommunicationStatus::UNDETERMINED,
-//            CommunicationStatus::WEED_OUT,
-//            CommunicationStatus::CONTRACT,
-//            CommunicationStatus::NO_ANSWER,
-//        ]);
-//        CommunicationStatus::getStr();
-        $bloggers = BloggerCommunication::get();
-        return $this->response->collection($bloggers, new BloggerCommunicationTransformer());
     }
 
 
@@ -541,7 +526,18 @@ class BloggerController extends Controller
         }
         DB::beginTransaction();
         try {
+
             $blogger = Blogger::create($payload);
+            if(!empty($payload['star_douyin_infos'])){
+                $stardouyininfo = StarDouyinInfo::create($payload['star_douyin_infos']);
+            }
+            if(!empty($payload['star_weibo_infos'])){
+                $starweiboinfos = StarWeiboshuInfo::create($payload['star_weibo_infos']);
+            }
+            if(!empty($payload['star_xiaohongshu_infos'])){
+                $starxiaohongshuinfos = StarXiaohongshuInfo::create($payload['star_xiaohongshu_infos']);
+            }
+
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $blogger,

@@ -108,4 +108,13 @@ class TrailTransformer extends TransformerAbstract
 
         return $this->item($project, new ProjectTransformer());
     }
+    public function includeCompletedProject(Trail $trail)
+    {
+        $project = $trail->completed()->project;
+        if (!$project)
+            return null;
+
+        return $this->item($project, new ProjectTransformer());
+    }
+
 }

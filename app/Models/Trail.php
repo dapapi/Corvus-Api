@@ -73,6 +73,11 @@ class Trail extends Model
 
     protected $dates = ['deleted_at'];
 
+    public function scopeCompleted($query)
+    {
+        $query->where('status',Project::STATUS_COMPLETE);
+    }
+
     public function principal()
     {
         return $this->belongsTo(User::class, 'principal_id', 'id');

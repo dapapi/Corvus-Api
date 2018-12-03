@@ -93,6 +93,7 @@ class TrailController extends Controller
                     'company' => $payload['client']['company'],
                     'grade' => $payload['client']['grade'],
                     'principal_id' => $payload['principal_id'],
+                    'type' => $payload['type'],
                     'creator_id' => $user->id,
                 ]);
                 // 操作日志
@@ -233,7 +234,6 @@ class TrailController extends Controller
                 $client = $trail->client;
                 $client->update($payload['client']);
             }
-
 
             if ($request->has('contact')) {
                 $contact = $trail->contact;

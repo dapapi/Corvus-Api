@@ -149,7 +149,7 @@ class StarController extends Controller
         $array = [];
         $arrayOperateLog = [];
 
-        if ($request->has('name')) {
+        if ($request->has('name') && !empty($payload['name'])) {
             $array['name'] = $payload['name'];//姓名
             if ($array['name'] != $star->name) {
                 $operateName = new OperateEntity([

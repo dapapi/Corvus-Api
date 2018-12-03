@@ -478,7 +478,7 @@ class StarController extends Controller
                         'obj' => $star,
                         'title' => '社交平台',
                         'start' => $star->platform,
-                        'end' => $array['terminate_agreement_at'],
+                        'end' => $array['platform'],
                         'method' => OperateLogMethod::UPDATE,
                     ]
                 );

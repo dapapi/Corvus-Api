@@ -33,7 +33,7 @@ class StarTransformer extends TransformerAbstract
             'communication_status' => $star->communication_status,
             'intention' => $star->intention,
             'intention_desc' => $star->intention_desc,
-            'sign_contract_other' => boolval($star->sign_contract_other),
+            'sign_contract_other' => $star->sign_contract_other,
             'sign_contract_other_name' => $star->sign_contract_other_name,
             'sign_contract_at' => $star->sign_contract_at,
             'sign_contract_status' => $star->sign_contract_status,

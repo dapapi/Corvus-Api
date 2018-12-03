@@ -424,7 +424,6 @@ class TrailController extends Controller
     public function filter(FilterTrailRequest $request)
     {
         $payload = $request->all();
-        dd($payload);
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 

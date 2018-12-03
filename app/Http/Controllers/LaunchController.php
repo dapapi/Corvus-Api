@@ -15,11 +15,15 @@ use App\Http\Requests\LaunchAllRequest;
 use App\Http\Requests\LaunchStoreRequest;
 use App\Http\Transformers\IssuesTransformer;
 use App\Http\Transformers\AnswerTransformer;
+use App\Http\Requests\DraftStoreRequest;
 Use App\Http\Transformers\ReportTransformer;
+Use App\Http\Transformers\DraftTransformer;
 use App\Models\BulletinReviewTitle;
 use App\Models\Report;
 use App\Models\BulletinReview;
+use App\Models\DraftIssuesAnswer;
 use App\Models\Issues;
+use App\Models\Draft;
 use App\Models\Answer;
 use App\Models\ReportTemplateUser;
 use App\Models\BulletinReviewTitleIssuesAnswer;
@@ -65,9 +69,8 @@ class LaunchController extends Controller
     public function all(LaunchAllRequest $request)
     {
         $isAll = $request->get('accessory',false);
-//        $bloggers = Launch::createDesc()->get();
-//        return $this->response->collection($bloggers, new LaunchTransformer($isAll));
-//
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
 
         if(empty($isAll)){
             return $this->response->errorInternal('参数不正确');
@@ -77,10 +80,33 @@ class LaunchController extends Controller
             return $this->response->errorInternal('参数不能为零');
         }
 
+            $array[] = ['member',$user->id];
+            $array[] = ['template_id',hashid_decode($isAll)];
+
+        $arr = draft::where($array)->first()->Answer->toarray();
         $getbulletinlist = issues::where('accessory',hashid_decode($isAll))->createDesc()->get();
 
 
         return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
+
+    }
+    public function allDraft(LaunchAllRequest $request)
+    {
+        $isAll = $request->get('accessory',false);
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        if(empty($isAll)){
+            return $this->response->errorInternal('参数不正确');
+        }
+        if($isAll == '0')
+        {
+            return $this->response->errorInternal('参数不能为零');
+        }
+        $array[] = ['member',$user->id];
+        $array[] = ['template_id',hashid_decode($isAll)];
+        $arr = draft::where($array)->first()->Answer->toarray();
+        return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
+
     }
     public function store(LaunchStoreRequest $request)
     {
@@ -217,7 +243,61 @@ class LaunchController extends Controller
 
         return $this->response->noContent();
     }
+    public function storeDraft(DraftStoreRequest $request,draft $draft,report $report)
+    {
 
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $payload['member'] = $user->id;
+        $payload['template_id'] = $report->id;
+
+            DB::beginTransaction();
+            try {
+            $draftload  =  draft::create($payload);
+            $payloadissues['draft_id'] = $draftload->id;
+            foreach($payload['answer'] as $key => $value){
+                $payloadissues['issues_id'] = hashid_decode($key);
+                $payloadissues['answer'] = $value;
+                $draftissuesanswer = DraftIssuesAnswer::create($payloadissues);
+             }
+
+
+            } catch (Exception $e) {
+                DB::rollBack();
+                Log::error($e);
+                return $this->response->errorInternal('创建失败');
+            }
+            DB::commit();
+        }
+    public function indexDraft(Request $request)
+    {
+
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $stars = Draft::createDesc()->paginate($pageSize);
+
+        return $this->response->paginator($stars, new DraftTransformer());
+
+
+    }
+    public function deleteDraft(Request $request,draft $draft)
+    {
+
+
+        $status = $request->get('delete_id');
+        DB::beginTransaction();
+        try {
+             if($status){
+              draft::where('id',hashid_decode($status))->delete();
+             }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
+        }
+        DB::commit();
+    }
 
 
 }

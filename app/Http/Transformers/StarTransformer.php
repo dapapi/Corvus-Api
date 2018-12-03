@@ -15,7 +15,7 @@ class StarTransformer extends TransformerAbstract
         $this->isAll = $isAll;
     }
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','project','works'];
+    protected $availableIncludes = ['creator', 'tasks', 'trails','affixes', 'broker','project','works'];
 
     public function transform(Star $star)
     {
@@ -103,5 +103,10 @@ class StarTransformer extends TransformerAbstract
     {
      $works = $star->works()->get();
      return $this->collection($works,new WorkTransformer());
+    }
+    public function includeTrails(Star $star)
+    {
+        $trails = $star->trail()->get();
+        return $this->collection($trails,new TrailTransformer());
     }
 }

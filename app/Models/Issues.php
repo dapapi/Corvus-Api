@@ -55,9 +55,20 @@ class Issues extends Model
         return $this->belongsTo(DraftIssuesAnswer::class, 'id', 'issues_id');
         //  return $this->morphToMany(BulletinReviewTitleIssuesAnswer::class, 'resourceable','bulletion_review_title');
     }
+
     public function getDraftAttribute()
     {
         return $this->issues()->get();
+    }
+    public function draft()
+    {
+
+        return $this->belongsTo(DraftIssuesAnswer::class, 'id', 'issues_id');
+        //  return $this->morphToMany(BulletinReviewTitleIssuesAnswer::class, 'resourceable','bulletion_review_title');
+    }
+    public function getAnswerAttribute()
+    {
+        return $this->draft()->get(['answer']);
     }
     public function broker()
     {

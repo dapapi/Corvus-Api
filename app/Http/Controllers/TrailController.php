@@ -428,9 +428,9 @@ class TrailController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $trails = Trail::where(function($query) use ($request, $payload) {
-            if ($request->has('keyword'))
+            if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status'))
+            if ($request->has('status') && $payload['status'])
                 $query->where('progress_status', $payload['status']);
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);

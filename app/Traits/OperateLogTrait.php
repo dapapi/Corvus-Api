@@ -32,7 +32,7 @@ trait OperateLogTrait
         $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('created_at', 'desc')->first();
 
         if ($lastFollowUp)
-            return $lastFollowUp->user()->name;
+            return $lastFollowUp->user->name;
         else
             return null;
     }
@@ -62,7 +62,7 @@ trait OperateLogTrait
         $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::REFUSE)->orderBy('created_at', 'desc')->first();
 
         if ($lastFollowUp)
-            return $lastFollowUp->user()->name;
+            return $lastFollowUp->user->name;
         else
             return null;
     }

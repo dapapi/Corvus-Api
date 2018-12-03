@@ -360,8 +360,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/starreport/fensi','App\Http\Controllers\StarReportController@getStarFensi');
 
         //报表
+        //商务报表
         $api->get("/reportfrom/commercialfunnel","App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
-
+        //销售漏斗
+        $api->get("/reportfrom/salesFunnel","App\Http\Controllers\ReportFormController@salesFunnel");
 
     });
 });

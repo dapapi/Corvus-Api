@@ -30,6 +30,7 @@ class ClientTransformer extends TransformerAbstract
                 'desc' => $client->desc,
                 'created_at' => $client->created_at,
                 'updated_at' => $client->updated_at,
+                'last_follow_up_at' => $client->last_follow_up_at
             ];
         } else {
             $array = [

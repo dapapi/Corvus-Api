@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\OperateLogMethod;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -132,5 +133,15 @@ class Trail extends Model
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');
+    }
+
+    public function getLastFollowUpAtAttribue()
+    {
+        $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
+
+        if ($lastFollowUp)
+            return $lastFollowUp->created_at->toDateTimeString();
+        else
+            return null;
     }
 }

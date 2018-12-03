@@ -5,6 +5,7 @@ namespace App\Http\Transformers;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\User;
+use League\Fractal\ParamBag;
 use League\Fractal\TransformerAbstract;
 
 class TrailTransformer extends TransformerAbstract
@@ -28,6 +29,7 @@ class TrailTransformer extends TransformerAbstract
             'cooperation_type' => $trail->cooperation_type,
             'desc' => $trail->desc,
             'lock_status' => $trail->lock_status,
+            'last_follow_up_at' => $trail->last_follow_up_at,
         ];
 
         $array['fee'] = $trail->fee;
@@ -108,6 +110,7 @@ class TrailTransformer extends TransformerAbstract
 
         return $this->item($project, new ProjectTransformer());
     }
+
     public function includeCompletedProject(Trail $trail)
     {
         $project = $trail->completed()->project;

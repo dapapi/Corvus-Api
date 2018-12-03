@@ -91,4 +91,14 @@ class Project extends Model
         else
             return null;
     }
+
+    public function relateProjects()
+    {
+        return $this->morphedByMany(Project::class, 'moduleable', 'project_relates');
+    }
+
+    public function relateTasks()
+    {
+        return $this->morphedByMany(Task::class, 'moduleable', 'project_relates');
+    }
 }

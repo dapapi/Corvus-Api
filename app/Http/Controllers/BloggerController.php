@@ -608,7 +608,7 @@ class BloggerController extends Controller
         try {
             $production = Production::create($payload);
             $model = new BloggerProducer;
-            $model->blogger_id =$blooger_id;
+            $model->blogger_id =hashid_decode($blooger_id);
             $model->producer_id =$production->id;
             $m = $model->save();
 //            // 操作日志
@@ -633,11 +633,14 @@ class BloggerController extends Controller
     public function productionIndex(Request $request)
     {
         $payload = $request->all();
-
+        $blogger_id = $request->get('blogger_id');
+        $array = array();
+        if($request->has('blogger_id')){//姓名
+            $array[] = ['blogger_id',hashid_decode($blogger_id)];
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $stars = Production::createDesc()->paginate($pageSize);
-
+        $producer_id = BloggerProducer::where($array)->get(['producer_id']);
+        $stars = Production::wherein('id',$producer_id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($stars, new ProductionTransformer());
     }
 }

@@ -364,6 +364,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get("/reportfrom/commercialfunnel","App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
         //销售漏斗
         $api->get("/reportfrom/salesFunnel","App\Http\Controllers\ReportFormController@salesFunnel");
-
+        //销售线索报表--线索报表
+        $api->get("/reportfrom/trail","App\Http\Controllers\ReportFormController@trailReportFrom");
+        //销售线索报表--线索新增
+        $api->get("/reportfrom/newtrail","App\Http\Controllers\ReportFormController@newTrail");
+        //销售线索报表--线索占比perTrail
+        $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
     });
 });

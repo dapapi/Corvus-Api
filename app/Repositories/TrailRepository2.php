@@ -2,8 +2,13 @@
 
 namespace App\Repositories;
 
+use App\Models\Star;
 use App\Models\Trail;
+use App\Models\TrailStar;
+use App\Models\User;
+use App\ModuleableType;
 use Carbon\Carbon;
+use DemeterChain\C;
 use Illuminate\Support\Facades\DB;
 
 class TrailRepository2
@@ -229,20 +234,201 @@ class TrailRepository2
     //商务漏斗，分析留存率
     public function salesFunnel($start_time,$end_time)
     {
-        //计算接触总量
-        $sum = Trail::select(DB::raw("count(id) as total"))->get();
         //根据状态分组统计销售线索个状态下
-        $stausTrailNumber = Trail::select("status",DB::raw("count(id) as total"))->groupBy("status")->get();
+        $staus_trail_number = Trail::select("status",DB::raw("count(id) as total"))
+            ->where('created_at','>',Carbon::parse($start_time)->toDateString())
+            ->where('created_at','<',Carbon::parse($end_time)->toDateString())
+            ->groupBy("status")->get();
         $status_number = [];
-        foreach ($stausTrailNumber as $value){
+        foreach ($staus_trail_number as $value){
             $status_number[$value['status']] = $value['total'];
         }
+        $sum = array_sum($status_number); //接触总量
         //主动拒绝后线索留存率
-        $refuseNumber = $status_number[Trail::PROGRESS_REFUSE];
-        $refuseNumber = $sum == 0 ? 0 : $sum / $refuseNumber;
-        //
+        $retention_trail_number = $sum-(
+            isset($status_number[Trail::PROGRESS_REFUSE]) ? + $status_number[Trail::PROGRESS_REFUSE] : 0
+            );
+        $refuse_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+        //客户拒绝后的留存率
+        $retention_trail_number = $sum - (
+            (isset($status_number[Trail::PROGRESS_REFUSE]) ? + $status_number[Trail::PROGRESS_REFUSE] : 0) +
+            (isset($status_number[Trail::PROGRESS_CANCEL])?$status_number[Trail::PROGRESS_CANCEL] : 0)
+            );
+        $client_refuse_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+
+        //进入谈判留存率
+        $retention_trail_number = $sum - (
+                (isset($status_number[Trail::PROGRESS_REFUSE]) ? + $status_number[Trail::PROGRESS_REFUSE] : 0) +
+                (isset($status_number[Trail::PROGRESS_CANCEL])?$status_number[Trail::PROGRESS_CANCEL] : 0) +
+                (isset($status_number[Trail::PROGRESS_TALK])?$status_number[Trail::PROGRESS_TALK] : 0)
+            );
+        $talk_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+
+        //意向签约留存率 intention
+        $retention_trail_number = $sum - (
+                (isset($status_number[Trail::PROGRESS_REFUSE]) ? + $status_number[Trail::PROGRESS_REFUSE] : 0) +
+                (isset($status_number[Trail::PROGRESS_CANCEL])?$status_number[Trail::PROGRESS_CANCEL] : 0) +
+                (isset($status_number[Trail::PROGRESS_TALK])?$status_number[Trail::PROGRESS_TALK] : 0)+
+                (isset($status_number[Trail::PROGRESS_INTENTION])?$status_number[Trail::PROGRESS_INTENTION]:0)
+            );
+        $intention_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+
+        //签约完成留存率
+        $retention_trail_number = $sum - (
+                (isset($status_number[Trail::PROGRESS_REFUSE]) ? + $status_number[Trail::PROGRESS_REFUSE] : 0) +
+                (isset($status_number[Trail::PROGRESS_CANCEL])?$status_number[Trail::PROGRESS_CANCEL] : 0) +
+                (isset($status_number[Trail::PROGRESS_TALK])?$status_number[Trail::PROGRESS_TALK] : 0)+
+                (isset($status_number[Trail::PROGRESS_INTENTION])?$status_number[Trail::PROGRESS_INTENTION]:0)+
+                (isset($status_number[Trail::PROGRESS_SIGNING]) ? $status_number[Trail::PROGRESS_SIGNING] : 0)+
+                (isset($status_number[Trail::PROGRESS_SIGNED]) ? $status_number[Trail::PROGRESS_SIGNED] : 0)
+            );
+        $signed_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+        //项目结算留存率
+        return [
+            "touch_total"   =>  $sum,//接触总量
+            'refuse_retention'  =>  $refuse_retention,//主动拒绝
+            'client_refuse_retention'   =>  $client_refuse_retention,//客户拒绝
+            'talk_retention'    =>  $talk_retention,//谈判留存
+            'intention_retention'   =>  $intention_retention,//意向签约
+            //项目结算
+            //归档
+        ];
 
 
 
+    }
+
+    /**
+     * @param $start_time 开始时间
+     * @param $end_time 结束时间
+     * @param $type 线索类型
+     * @param $resource_type 线索来源
+     */
+    public function trailReportFrom($start_time,$end_time,$type=null,$resource_type=null)
+    {
+        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($type != null){
+            $arr[]  = ['t.type',$type];
+        }
+        if($resource_type != null){
+            $arr[] = ['t.resource_type',$resource_type];
+        }
+        $trails = (new Trail())->setTable('t')->from('trails as t')
+            ->select('t.id',"t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',DB::raw('u.name as principal_user'))
+            ->leftJoin('users as u','u.id','=','t.principal_id')//负责人
+            ->where($arr)->get();
+
+        $trail_list = [];
+        foreach ($trails as $key => $trail){
+            $trail['id']    =   hashid_encode($trail['id']);
+            //线索来源，如果是员工查询员工
+            if(is_numeric($trail['resource'])){//是否还需要确定一下线索来源类型
+                $resource = User::select("name")->find($trail['resource']);
+                $trail['resource'] = $resource;
+            }
+            //目标艺人
+            $starlist = (new TrailStar())->setTable('ts')->from('trail_star as ts')
+                ->leftJoin('stars as s','s.id','=','ts.starable_id')
+                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                ->where('ts.type',TrailStar::EXPECTATION)//目标艺人
+                    ->where('ts.trail_id','=',$trail['id'])
+                ->select("s.name")
+                ->get();
+            $stars = "";
+            if(count($starlist) >= 1){
+                foreach ($starlist as $star){
+                    $stars .= ",".$star['name'];
+                }
+            }
+
+            $trail['star_name'] = trim($stars,",");
+            $trail_list[$trail['id']] = $trail;
+        }
+        return [
+            'trail_total'   =>  count($trail_list),
+            'fee_total' =>  array_sum(array_column($trail_list,'fee')),
+            'trail_list'    =>  $trail_list,
+        ];
+    }
+
+    /**
+     * 线索新增
+     * @param $start_time
+     * @param $end_time
+     * @param null $resource_type
+     * @param null $target_star
+     * @return array
+     */
+    public function newTrail($start_time,$end_time,$resource_type=null,$target_star=null)
+    {
+        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($resource_type != null){
+            $arr[] = ['t.resource_type',$resource_type];
+        }
+        $trails = [];
+        if($target_star == null){
+            $trails = (new Trail())->setTable("t")->from('trails as t')
+                ->where($arr)->select('created_at','type')
+                ->select('t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+                ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
+                ->get();
+        }else{
+            $trails = (new Star())->setTable("s")->from("stars as s")
+                ->leftJoin('trail_star as ts','ts.starable_id','=','s.id')
+                ->leftJoin('trails as t','t.id','=','ts.trail_id')
+                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                ->where('ts.type',TrailStar::EXPECTATION)//目标艺人
+                    ->where('s.id',$target_star)
+                ->where($arr)
+                ->select('t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+                ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
+                ->get();
+        }
+        return $trails;
+
+    }
+
+    /**
+     * 销售线索占比
+     * @param $start_time
+     * @param $end_time
+     * @param null $resource_type
+     * @param null $target_star
+     */
+    public function percentageOfSalesLeads($start_time,$end_time,$resource_type=null,$target_star=null)
+    {
+        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($resource_type != null){
+            $arr[] = ['t.resource_type',$resource_type];
+        }
+        $trails = [];
+        if($target_star == null){
+            $trails = (new Trail())->setTable("t")->from('trails as t')
+                ->leftJoin('industries as i',"i.id",'=','t.industry_id')
+                ->where($arr)->select('created_at','type')
+                ->select("i.name as industry_name",'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+                ->groupBy(DB::raw("type,t.industry_id"))
+                ->get();
+        }else{
+            $trails = (new Star())->setTable("s")->from("stars as s")
+                ->leftJoin('trail_star as ts','ts.starable_id','=','s.id')
+                ->leftJoin('trails as t','t.id','=','ts.trail_id')
+                ->leftJoin('industries as i',"i.id",'=','t.industry_id')
+                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                ->where('ts.type',TrailStar::EXPECTATION)//目标艺人
+                ->where('s.id',$target_star)
+                ->where($arr)
+                ->select('t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+                ->groupBy(DB::raw("i.name as industry_name,type,DATE_FORMAT(t.created_at,'%Y-%m')"))
+                ->get();
+        }
+        $sum = array_sum(array_column($trails->toArray(),'total'));
+        foreach ($trails as &$trail){
+            $trail['per'] = $sum == 0? 0 : $trail['total'] / $sum;
+        }
+        return $trails;
     }
 }

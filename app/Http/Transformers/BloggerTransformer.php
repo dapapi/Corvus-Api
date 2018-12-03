@@ -40,8 +40,8 @@ class BloggerTransformer extends TransformerAbstract
             'sign_contract_other' => $blogger->sign_contract_other,//是否签约其他公司
             'sign_contract_other_name' => $blogger->sign_contract_other_name,//签约公司名称
             'status' => $blogger->status,
-            'created_at'=> $blogger->created_at,
-            'updated_at' => $blogger->updated_at
+            'created_at'=> $blogger->created_at->toDateTimeString(),
+            'updated_at' => $blogger->updated_at->toDateTimeString()
 
         ];
         $arraySimple = [

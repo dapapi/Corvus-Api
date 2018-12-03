@@ -68,46 +68,71 @@ class LaunchController extends Controller
     }
     public function all(LaunchAllRequest $request)
     {
-        $isAll = $request->get('accessory',false);
+        $All = $request->get('accessory',false);
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
-        if(empty($isAll)){
+        if(empty($All)){
             return $this->response->errorInternal('参数不正确');
         }
-        if($isAll == '0')
+        if($All == '0')
         {
             return $this->response->errorInternal('参数不能为零');
         }
 
             $array[] = ['member',$user->id];
-            $array[] = ['template_id',hashid_decode($isAll)];
-
+            $array[] = ['template_id',hashid_decode($All)];
         $arr = draft::where($array)->first()->Answer->toarray();
-        $getbulletinlist = issues::where('accessory',hashid_decode($isAll))->createDesc()->get();
+
+        $data = issues::where('accessory',hashid_decode($All))->get(['id']);
+        foreach($data->toarray() as $key => $value) {
+            $num = $value['id'];
+
+            $user =  draft::where($array)->first()->Answer;
+            if ($user) {
+                $isAll = $user;
+
+
+            } else {
+                $isAll = '';
+            }
+
+        }
+        $arr = Issues::where('accessory',hashid_decode($All))->get();
+        foreach($arr->toarray() as $key => $value) {
+            $num = $value['id'];
+            $user = Issues::find($num);
+            if ($user) {
+                $sally = $user->Status;
+            } else {
+                $sally = '';
+            }
+//            Report::find($num)->state = $sally;
+        }
+        $getbulletinlist = issues::where('accessory',hashid_decode($All))->createDesc()->get();
 
 
         return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
 
     }
-    public function allDraft(LaunchAllRequest $request)
-    {
-        $isAll = $request->get('accessory',false);
-        $payload = $request->all();
-        $user = Auth::guard('api')->user();
-        if(empty($isAll)){
-            return $this->response->errorInternal('参数不正确');
-        }
-        if($isAll == '0')
-        {
-            return $this->response->errorInternal('参数不能为零');
-        }
-        $array[] = ['member',$user->id];
-        $array[] = ['template_id',hashid_decode($isAll)];
-        $arr = draft::where($array)->first()->Answer->toarray();
-        return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
-
-    }
+//    public function allDraft(LaunchAllRequest $request)
+//    {
+//        $isAll = $request->get('accessory',false);
+//        $payload = $request->all();
+//        $user = Auth::guard('api')->user();
+//        if(empty($isAll)){
+//            return $this->response->errorInternal('参数不正确');
+//        }
+//        if($isAll == '0')
+//        {
+//            return $this->response->errorInternal('参数不能为零');
+//        }
+//        $array[] = ['member',$user->id];
+//        $array[] = ['template_id',hashid_decode($isAll)];
+//        $arr = draft::where($array)->first()->Answer->toarray();
+//        return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
+//
+//    }
     public function store(LaunchStoreRequest $request)
     {
 

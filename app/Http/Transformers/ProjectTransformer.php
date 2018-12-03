@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'operate_log', 'participants'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants'];
 
     private  $isAll = true;
 
@@ -30,8 +30,12 @@ class ProjectTransformer extends TransformerAbstract
                 'end_at' => $project->end_at,
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
-                'last_follow_up_at' => $project->lastFollowUpAt,
                 'desc' => $project->desc,
+                // 日志内容
+                'last_follow_up_at' => $project->last_follow_up_at,
+                'last_updated_user' => $project->last_updated_user,
+                'last_updated_at' => $project->last_updated_at,
+
             ];
         } else {
             $array = [

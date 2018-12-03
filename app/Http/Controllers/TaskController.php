@@ -62,9 +62,19 @@ class TaskController extends Controller
     public function tasksAll(Request $request,Task $task)
     {
         $payload = $request->all();
-        $tasks = $task->get();
+        $data = $task->get()->toArray();
+        $dataArr = array();
+        if(!empty($data)){
+            foreach ($data as $k=>$value){
+                $dataArr['id'] = hashid_encode($value['id']);
+                $dataArr['title'] = $value['title'];
+                $Arr['data'][] = $dataArr;
+            }
+        }else{
+            $Arr['data'][]=$dataArr;
+        }
 
-        return $this->response->item($tasks, new TaskTransformer());
+        return $Arr;
 
     }
 

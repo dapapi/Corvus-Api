@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\OperateLogMethod;
+use App\Traits\OperateLogTrait;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,6 +13,8 @@ class Trail extends Model
     use SoftDeletes {
         restore as private restoreSoftDeletes;
     }
+
+    use OperateLogTrait;
 
     // 线索来源类型
     const PERSONAL = 1;
@@ -127,10 +131,5 @@ class Trail extends Model
     public function project()
     {
         return $this->hasOne(Project::class, 'trail_id','id');
-    }
-
-    public function operateLogs()
-    {
-        return $this->morphMany(OperateLog::class, 'logable');
     }
 }

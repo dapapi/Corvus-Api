@@ -12,6 +12,7 @@ use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\ModuleUser;
 use App\Models\Project;
+use App\Models\ProjectRelate;
 use App\Models\Resource;
 use App\Models\Star;
 use App\Models\Task;
@@ -527,17 +528,19 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
-    public function addRelate(AddRelateProjectRequest $request, Project $project)
+    public function addRelates(AddRelateProjectRequest $request, Project $project)
     {
         DB::beginTransaction();
         try {
 
             if ($request->has('tasks')) {
+                ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::TASK)->delete();
                 $tasks = $request->get('tasks');
-                foreach ($tasks as $task) {
-                    $id = hashid_decode($task);
+                foreach ($tasks as $value) {
+                    $id = hashid_decode($value);
                     if (Task::find($id))
-                        $project->relateTasks()->create([
+                        ProjectRelate::create([
+                            'project_id' => $project->id,
                             'moduleable_id' => $id,
                             'moduleable_type' => ModuleableType::TASK,
                         ]);
@@ -545,11 +548,13 @@ class ProjectController extends Controller
             }
 
             if ($request->has('projects')) {
+                ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::PROJECT)->delete();
                 $projects = $request->get('projects');
-                foreach ($projects as $project) {
-                    $id = hashid_decode($project);
+                foreach ($projects as $value) {
+                    $id = hashid_decode($value);
                     if (Project::find($id))
-                        $project->relateProjects()->create([
+                        ProjectRelate::create([
+                            'project_id' => $project->id,
                             'moduleable_id' => $id,
                             'moduleable_type' => ModuleableType::PROJECT,
                         ]);

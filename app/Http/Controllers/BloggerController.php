@@ -506,15 +506,16 @@ class BloggerController extends Controller
         $user = Auth::guard('api')->user();
         unset($payload['status']);
         $payload['creator_id'] = $user->id;
-        if ($request->has('producer_id')) {
-            try {
-                $producerId = hashid_decode($payload['producer_id']);
-                Blogger::findOrFail($producerId);
-                $payload['producer_id'] = $producerId;
-            } catch (Exception $e) {
-                return $this->response->errorBadRequest('制作人错误');
-            }
-        }
+        $payload['producer_id'] = hashid_decode($payload['producer_id']);
+//        if ($request->has('producer_id')) {
+//            try {
+//                $producerId = hashid_decode($payload['producer_id']);
+//                Blogger::findOrFail($producerId);
+//
+//            } catch (Exception $e) {
+//                return $this->response->errorBadRequest('制作人错误');
+//            }
+//        }
         if ($request->has('type_id')) {
             try {
                 $typeId = hashid_decode($payload['type_id']);
@@ -532,10 +533,22 @@ class BloggerController extends Controller
                 $stardouyininfo = StarDouyinInfo::create($payload['star_douyin_infos']);
             }
             if(!empty($payload['star_weibo_infos'])){
-                $starweiboinfos = StarWeiboshuInfo::create($payload['star_weibo_infos']);
+                $StarWeiboshuInfo= new StarWeiboshuInfo;
+                $StarWeiboshuInfo ->  open_id = $payload['star_douyin_infos']['open_id'];
+                $StarWeiboshuInfo ->  url = $payload['star_douyin_infos']['url'];
+                $StarWeiboshuInfo ->  nickname = $payload['star_douyin_infos']['nickname'];
+                $StarWeiboshuInfo ->  avatar = $payload['star_douyin_infos']['avatar'];
+                $StarWeiboshuInfo ->  save();
             }
             if(!empty($payload['star_xiaohongshu_infos'])){
-                $starxiaohongshuinfos = StarXiaohongshuInfo::create($payload['star_xiaohongshu_infos']);
+
+                $starxiaohongshuinfos = new StarXiaohongshuInfo;
+                $starxiaohongshuinfos['open_id'] = $payload['star_xiaohongshu_infos']['open_id'];
+                $starxiaohongshuinfos['url'] = $payload['star_xiaohongshu_infos']['url'];
+                $starxiaohongshuinfos['nickname'] = $payload['star_xiaohongshu_infos']['nickname'];
+                $starxiaohongshuinfos['avatar'] = $payload['star_xiaohongshu_infos']['avatar'];
+                $starxiaohongshuinfos ->  save();
+
             }
 
             // 操作日志

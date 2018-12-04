@@ -394,8 +394,8 @@ class TrailRepository2
      * 销售线索占比
      * @param $start_time
      * @param $end_time
-     * @param null $resource_type
-     * @param null $target_star
+     * @param null $resource_type  来源
+     * @param null $target_star  目标艺人
      */
     public function percentageOfSalesLeads($start_time,$end_time,$resource_type=null,$target_star=null)
     {

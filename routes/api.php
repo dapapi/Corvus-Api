@@ -155,6 +155,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //分配经纪人
         $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
+        //为多个博主艺人分配多个经纪人宣传人制作人
+        $api->post('/distribution/person', 'App\Http\Controllers\ModuleUserController@addMore');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人

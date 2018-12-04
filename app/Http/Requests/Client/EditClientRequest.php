@@ -38,18 +38,4 @@ class EditClientRequest extends FormRequest
             'desc' => 'nullable',
         ];
     }
-
-    public function messages() {
-        return [
-            'company.unique' => '公司名称已存在',
-            'grade.numeric' => '客户类型应传数字',
-            'region_id' => '地区id',
-            'address' => '地址',
-            'principal_id' => '负责人',
-            'industry_id' => '行业id',
-            'size' => '规模',
-            'keyman' => '关键人',
-            'desc' => '描述',
-        ];
-    }
 }

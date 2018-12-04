@@ -108,7 +108,7 @@ class StarTransformer extends TransformerAbstract
         return $this->collection($trails,new TrailTransformer());
     }
     public function includePublicity(Star $star){
-        $users = $star->publicity();
+        $users = $star->publicity()->get();
         return $this->collection($users,new UsersTransformer());
     }
 }

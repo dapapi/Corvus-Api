@@ -6,7 +6,6 @@ use App\Events\OperateLogEvent;
 use App\Http\Requests\Cilent\FilterClientRequest;
 use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
-use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Transformers\ClientTransformer;
 use App\Models\Client;
 use App\Models\Contact;
@@ -94,22 +93,15 @@ class ClientController extends Controller
     {
         $payload = $request->all();
 
+        $columns = DB::getDoctrineSchemaManager()->listTableDetails('clients');
         if ($request->has('principal_id'))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         try {
             foreach ($payload as $key => $value) {
                 $lastValue = $client[$key];
-                $operate = new OperateEntity([
-                    'obj' => $client,
-                    'title' => '该用户',
-                    'start' => '联系人',
-                    'end' => null,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                event(new OperateLogEvent([
-                    $operate,
-                ]));
+                $comment = $columns->getColumn($key)->getComment();
+                $this->editLog($client, $comment, $lastValue, $value);
             }
             $client->update($payload);
         } catch (\Exception $exception) {
@@ -153,7 +145,7 @@ class ClientController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $clients = Client::where(function($query) use ($request, $payload) {
+        $clients = Client::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('grade'))
@@ -169,5 +161,19 @@ class ClientController extends Controller
         })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($clients, new ClientTransformer());
+    }
+
+    private function editLog($client, $field, $old, $new)
+    {
+        $operate = new OperateEntity([
+            'obj' => $client,
+            'title' => $field,
+            'start' => $old,
+            'end' => $new,
+            'method' => OperateLogMethod::UPDATE,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
     }
 }

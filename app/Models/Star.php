@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\ModuleUserType;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -77,7 +78,7 @@ class Star extends Model
 
     public function broker()
     {
-        return $this->belongsToMany(User::class,'module_users','moduleable_id');
+        return $this->belongsToMany(User::class,'module_users','moduleable_id')->where('type',ModuleUserType::BROKER);
     }
 
     public function starReports()
@@ -99,7 +100,7 @@ class Star extends Model
     }
     public function publicity()
     {
-        return $this->belongsToMany(User::class,"module_users","moduleable_id");
+        return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PARTICIPANT);
     }
 
 }

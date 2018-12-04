@@ -93,6 +93,9 @@ class ClientController extends Controller
     {
         $payload = $request->all();
 
+        if (array_key_exists('_url', $payload))
+            unset($payload['_url']);
+
         $columns = DB::getDoctrineSchemaManager()->listTableDetails('clients');
         if ($request->has('principal_id'))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);

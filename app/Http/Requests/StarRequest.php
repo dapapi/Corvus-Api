@@ -60,9 +60,9 @@ class StarRequest extends FormRequest
                 CommunicationStatus::CONTRACT,
                 CommunicationStatus::NO_ANSWER,
             ]),
-            'intention' => Rule::in([0,1]),
+            'intention' => Rule::in([1,2]),
             'intention_desc' => 'max:255',
-            'sign_contract_other' => Rule::in([0,1]),
+            'sign_contract_other' => Rule::in([1,2]),
             'sign_contract_other_name' => 'max:255',
             'sign_contract_at' => 'date',
             'sign_contract_status' => Rule::in([

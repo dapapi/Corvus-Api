@@ -321,12 +321,12 @@ class TrailRepository2
             ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
             ->where('ts.starable_type',ModuleableType::STAR)//艺人
             ->where('ts.type',TrailStar::EXPECTATION)//目标
-            ->leftJoin('stars as s','s.id','=','ts.starable_id')
-            ->leftJoin('module_users as mu','mu.moduleable_id','=','s.id')
+//            ->leftJoin('stars as s','s.id','=','ts.starable_id')
+            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
             ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
             ->where('mu.type',ModuleUserType::BROKER)//经纪人
             ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
-            ->leftjoin('departments as d','d.id','=','department_id')
+//            ->leftjoin('departments as d','d.id','=','department_id')
             ->leftJoin('users as u','u.id','=','t.principal_id')
             ->where($arr)->get();
         dd($trails->toArray());

@@ -27,7 +27,6 @@ class UserTransformer extends TransformerAbstract
     {
         $array = [
             'id' => hashid_encode($user->id),
-            'user_id' => $user->id,
             'phone' => $user->phone,
             'email' => $user->email,
             'birth_time' => $user->birth_time,

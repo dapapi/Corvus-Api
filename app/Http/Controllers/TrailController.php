@@ -34,7 +34,7 @@ class TrailController extends Controller
 
         $trails = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
 
-        return $this->response->paginator($trails , new TrailTransformer());
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 
     public function all(Request $request)
@@ -75,7 +75,7 @@ class TrailController extends Controller
             $client = Client::find(hashid_decode($payload['client']['id']));
             if (!$client)
                 return $this->response->errorBadRequest('客户不存在');
-        } elseif(array_key_exists('id', $payload['contact'])) {
+        } elseif (array_key_exists('id', $payload['contact'])) {
             return $this->response->errorBadRequest('新建客户不应选现有联系人');
         } else {
             $client = null;
@@ -133,7 +133,7 @@ class TrailController extends Controller
 
             $trail = Trail::create($payload);
 
-            if ($request->has('expectations')) {
+            if ($request->has('expectations') && is_array($payload['expectations'])) {
                 if ($trail->type == Trail::TYPE_PAPI) {
                     $starableType = ModuleableType::BLOGGER;
                 } else {
@@ -148,7 +148,7 @@ class TrailController extends Controller
                                 'trail_id' => $trail->id,
                                 'starable_id' => $starId,
                                 'starable_type' => $starableType,
-                                'type' => TrailStar::RECOMMENDATION,
+                                'type' => TrailStar::EXPECTATION,
                             ]);
                     } else {
                         if (Star::find($starId))
@@ -162,7 +162,7 @@ class TrailController extends Controller
                 }
             }
 
-            if ($request->has('recommendations')) {
+            if ($request->has('recommendations') && is_array($payload['recommendations'])) {
                 if ($trail->type == Trail::TYPE_PAPI) {
                     $starableType = ModuleableType::BLOGGER;
                 } else {
@@ -240,7 +240,7 @@ class TrailController extends Controller
                 $contact->update($payload['contact']);
             }
 
-            if ($request->has('expectations')) {
+            if ($request->has('expectations') && is_array($payload['expectations'])) {
                 if ($trail->type == Trail::TYPE_PAPI) {
                     $starableType = ModuleableType::BLOGGER;
                 } else {
@@ -255,7 +255,7 @@ class TrailController extends Controller
                                 'trail_id' => $trail->id,
                                 'starable_id' => $starId,
                                 'starable_type' => $starableType,
-                                'type' => TrailStar::RECOMMENDATION,
+                                'type' => TrailStar::EXPECTATION,
                             ]);
                     } else {
                         if (Star::find($starId))
@@ -269,7 +269,7 @@ class TrailController extends Controller
                 }
             }
 
-            if ($request->has('recommendations')) {
+            if ($request->has('recommendations') && is_array($payload['recommendations'])) {
 
                 if ($trail->type == Trail::TYPE_PAPI) {
                     $starableType = ModuleableType::BLOGGER;
@@ -391,7 +391,7 @@ class TrailController extends Controller
             $operate = new OperateEntity([
                 'obj' => $trail,
                 'title' => null,
-                'start' => $type .'，' . $reason,
+                'start' => $type . '，' . $reason,
                 'end' => null,
                 'method' => OperateLogMethod::REFUSE,
             ]);
@@ -427,7 +427,7 @@ class TrailController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $trails = Trail::where(function($query) use ($request, $payload) {
+        $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status') && !is_null($payload['status']))

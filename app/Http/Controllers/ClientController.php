@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Cilent\FilterClientRequest;
 use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
@@ -9,6 +10,8 @@ use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Transformers\ClientTransformer;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\OperateEntity;
+use App\OperateLogMethod;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +50,17 @@ class ClientController extends Controller
         try {
 
             $client = Client::create($payload);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $client,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
 
             if ($request->has('contact')) {
                 $contact = Contact::create([
@@ -55,6 +69,16 @@ class ClientController extends Controller
                     'position' => $payload['contact']['position'],
                     'client_id' => $client->id
                 ]);
+                $operate = new OperateEntity([
+                    'obj' => $client,
+                    'title' => '该用户',
+                    'start' => '联系人',
+                    'end' => null,
+                    'method' => OperateLogMethod::ADD_PERSON,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
             }
         } catch (\Exception $exception) {
             Log::error($exception);
@@ -74,6 +98,19 @@ class ClientController extends Controller
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         try {
+            foreach ($payload as $key => $value) {
+                $lastValue = $client[$key];
+                $operate = new OperateEntity([
+                    'obj' => $client,
+                    'title' => '该用户',
+                    'start' => '联系人',
+                    'end' => null,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
             $client->update($payload);
         } catch (\Exception $exception) {
             Log::error($exception);

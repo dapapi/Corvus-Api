@@ -31,6 +31,15 @@ class Blogger extends Model
         'terminate_agreement_at',//解约日期
         'sign_contract_other',//是否签约其他公司
         'sign_contract_other_name',//签约公司名称
+        'platform',//平台
+
+        'douyin_id',//微博url
+        'douyin_fans_num',//微博粉丝数
+        'weibo_url',//微博url
+        'weibo_fans_num',//微博粉丝数
+        'xiaohongshu_url',//微博url
+        'xiaohongshu_num',//微博粉丝数
+
     ];
 //隐藏字段
 //'contract_type',//合同类型

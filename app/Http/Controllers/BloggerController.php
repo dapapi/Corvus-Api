@@ -47,6 +47,7 @@ class BloggerController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
         $array = [];//查询条件
+        //合同
         $status = empty($status)?$array[] = ['sign_contract_status',1]:$array[] = ['sign_contract_status',$status];
         if($request->has('name')){//姓名
             $array[] = ['nickname','like','%'.$payload['name'].'%'];
@@ -516,6 +517,19 @@ class BloggerController extends Controller
 //                return $this->response->errorBadRequest('制作人错误');
 //            }
 //        }
+
+        if(!empty($payload['star_douyin_infos'])){
+            $payload['douyin_id']  = $payload['star_douyin_infos']['url'];
+            $payload['douyin_fans_num']  = $payload['star_douyin_infos']['avatar'];
+        }
+        if(!empty($payload['star_weibo_infos'])){
+            $payload['weibo_url']  = $payload['star_weibo_infos']['url'];
+            $payload['weibo_fans_num']  = $payload['star_weibo_infos']['avatar'];
+        }
+        if(!empty($payload['star_xiaohongshu_infos'])){
+            $payload['xiaohongshu_url']  = $payload['star_xiaohongshu_infos']['url'];
+            $payload['xiaohongshu_fans_num']  = $payload['star_xiaohongshu_infos']['avatar'];
+        }
         if ($request->has('type_id')) {
             try {
                 $typeId = hashid_decode($payload['type_id']);
@@ -529,6 +543,7 @@ class BloggerController extends Controller
         try {
 
             $blogger = Blogger::create($payload);
+
             if(!empty($payload['star_douyin_infos'])){
                 $stardouyininfo = StarDouyinInfo::create($payload['star_douyin_infos']);
             }

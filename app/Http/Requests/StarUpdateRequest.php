@@ -59,9 +59,9 @@ class StarUpdateRequest extends FormRequest
                 CommunicationStatus::CONTRACT,
                 CommunicationStatus::NO_ANSWER,
             ]),
-            'intention' => 'boolean',
+            'intention' => Rule::in([0,1]),
             'intention_desc' => 'max:500',
-            'sign_contract_other' => 'boolean',
+            'sign_contract_other' => Rule::in([0,1]),
             'sign_contract_other_name' => 'max:255',
             'sign_contract_at' => 'date',
             'sign_contract_status' => Rule::in([

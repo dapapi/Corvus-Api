@@ -317,7 +317,9 @@ class TrailRepository2
         }
         $trails = (new Trail())->setTable('t')->from('trails as t')
             ->select('t.id',"t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',DB::raw('u.name as principal_user'))
-            ->leftJoin('module_user as mu','mu.')
+            ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
+            ->leftJoin('stars as s','d.id','=','ts.')
+            ->leftJoin('module_user as mu','mu.moduleable_id','=')
             ->where($arr)
             ->where($arr)->get();
 

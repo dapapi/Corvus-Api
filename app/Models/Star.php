@@ -77,7 +77,7 @@ class Star extends Model
 
     public function broker()
     {
-        return $this->belongsTo(User::class, 'broker_id', 'id');
+        return $this->belongsToMany(User::class,'module_users','moduleable_id');
     }
 
     public function starReports()

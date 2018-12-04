@@ -299,24 +299,26 @@ class TrailRepository2
     }
 
     /**
+     * 线索报表
      * @param $start_time 开始时间
      * @param $end_time 结束时间
      * @param $type 线索类型
-     * @param $resource_type 线索来源
+     * @param $department 经纪人所在部门
      */
-    public function trailReportFrom($start_time,$end_time,$type=null,$resource_type=null)
+    public function trailReportFrom($start_time,$end_time,$type=null,$department=null)
     {
         $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
         if($type != null){
             $arr[]  = ['t.type',$type];
         }
-        if($resource_type != null){
-            $arr[] = ['t.resource_type',$resource_type];
+        if($department != null){
+            $arr[] = ['du.resource_type',$department];
         }
         $trails = (new Trail())->setTable('t')->from('trails as t')
             ->select('t.id',"t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',DB::raw('u.name as principal_user'))
-            ->leftJoin('users as u','u.id','=','t.principal_id')//负责人
+            ->leftJoin('module_user as mu','mu.')
+            ->where($arr)
             ->where($arr)->get();
 
         $trail_list = [];

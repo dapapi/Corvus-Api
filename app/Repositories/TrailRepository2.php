@@ -7,6 +7,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\Models\User;
 use App\ModuleableType;
+use App\ModuleUserType;
 use Carbon\Carbon;
 use DemeterChain\C;
 use Illuminate\Support\Facades\DB;
@@ -313,16 +314,22 @@ class TrailRepository2
             $arr[]  = ['t.type',$type];
         }
         if($department != null){
-            $arr[] = ['du.resource_type',$department];
+            $arr[] = ['d.id',$department];
         }
         $trails = (new Trail())->setTable('t')->from('trails as t')
             ->select('t.id',"t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',DB::raw('u.name as principal_user'))
             ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
-            ->leftJoin('stars as s','d.id','=','ts.')
-            ->leftJoin('module_user as mu','mu.moduleable_id','=')
-            ->where($arr)
+            ->where('ts.starable_type',ModuleableType::STAR)//艺人
+            ->where('ts.type',TrailStar::EXPECTATION)//目标
+            ->leftJoin('stars as s','s.id','=','ts.starable_id')
+            ->leftJoin('module_users as mu','mu.moduleable_id','=','s.id')
+            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+            ->where('mu.type',ModuleUserType::BROKER)//经纪人
+            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->leftjoin('departments as d','d.id','=','department_id')
+            ->leftJoin('users as u','u.id','=','t.principal_id')
             ->where($arr)->get();
-
+        dd($trails->toArray());
         $trail_list = [];
         foreach ($trails as $key => $trail){
             $trail['id']    =   hashid_encode($trail['id']);

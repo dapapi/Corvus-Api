@@ -19,6 +19,7 @@ use App\Repositories\ModuleUserRepository;
 use App\Repositories\OperateLogRepository;
 use App\User;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -56,7 +57,7 @@ class ModuleUserController extends Controller
                 $start = '';
                 foreach ($participantIds as $key => $participantId) {
                     try {
-                        $participantUser = User::findOrFail($participantId);
+                        $participantUser = User::findOrFail($participantId);//查询出所有经纪人或者宣传人
                         $start .= $participantUser->name . ' ';
                     } catch (Exception $e) {
                     }
@@ -220,5 +221,79 @@ class ModuleUserController extends Controller
         }
         DB::commit();
         return $this->response->accepted();
+    }
+    //为多个多个博主或艺人添加多个经纪人或宣传人或制作人
+    public function addMore(Request $request)
+    {
+//        $person_ids, $del_person_ids, $moduleable_ids,$moduleable_type, $type
+        $person_ids = $request->get("person_ids",[]);
+        $del_person_ids = $request->get('del_person_ids',[]);
+        $moduleable_ids = $moduleable_ids = $request->get('moduleable_ids',[]);
+        $moduleable_type = $request->get('moduleable_type',null);
+        $type = $request->get('type',null);
+        DB::beginTransaction();
+        try{
+            // 操作日志 $type类型参与人或者宣传人
+            $title = $this->moduleUserRepository->getTypeName($type);
+            $result = $this->moduleUserRepository->addModuleUsers($person_ids,$del_person_ids,$moduleable_ids,$moduleable_type,$type);
+            $add_persons = $result[0];
+            $del_persons = $result[1];
+            foreach ($add_persons as $module_id=>$person_ids){
+                $model = $this->moduleUserRepository->getModule($module_id,$moduleable_type);
+                $start = "";
+                foreach ($person_ids as $person_id){
+                    try {
+                        $person = User::findOrFail($person_id);
+                        $start .= $person->name . ' ';
+                    } catch (Exception $e) {
+                    }
+                }
+                $start = substr($start, 0, strlen($start) - 1);
+
+                $array = [
+                    'title' => $title,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::ADD_PERSON,
+                ];
+                $array['obj'] = $this->operateLogRepository->getObject($model);
+                $operate = new OperateEntity($array);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+
+            }
+            foreach ($del_persons as $module_id=>$del_person_ids){
+                $model = $this->moduleUserRepository->getModule($module_id,$moduleable_type);
+                // 操作日志
+                $start = '';
+                foreach ($del_person_ids as $moduleable_id => $del_person_id) {
+                    try {
+                        $del_person  = User::findOrFail($del_person_id);
+                        $start .= $del_person->name . ' ';
+                    } catch (Exception $e) {
+                    }
+                }
+                $start = substr($start, 0, strlen($start) - 1);
+                $array = [
+                    'title' => $title,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::DEL_PERSON,
+                ];
+                $array['obj'] = $this->operateLogRepository->getObject($model);
+                $operate = new OperateEntity($array);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+        }catch (Exception $e){
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
+        DB::commit();
+        return $this->response->accepted();
+
     }
 }

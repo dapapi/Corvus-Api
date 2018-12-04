@@ -34,7 +34,9 @@ class Client extends Model
     protected $fillable = [
         'company',
         'grade',             // 级别
-//        'region_id',        // 地区三级，存最下级id
+        'province',
+        'city',
+        'district',
         'address',
         'principal_id',
         'creator_id',

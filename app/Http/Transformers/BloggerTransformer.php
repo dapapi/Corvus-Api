@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class BloggerTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity'];
 
     private $isAll;
 
@@ -39,6 +39,7 @@ class BloggerTransformer extends TransformerAbstract
             'sign_contract_other' => $blogger->sign_contract_other,//是否签约其他公司
             'sign_contract_other_name' => $blogger->sign_contract_other_name,//签约公司名称
             'status' => $blogger->status,
+            'platform'=> $blogger->platform,
             'douyin_id' => $blogger->douyin_id,//微博url
             'douyin_fans_num' => $blogger->douyin_fans_num,//微博粉丝数
             'weibo_url'=> $blogger->weibo_url,//微博url
@@ -71,7 +72,6 @@ class BloggerTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
-
     public function includeType(Blogger $blogger)
     {
         $type = $blogger->type;
@@ -102,6 +102,11 @@ class BloggerTransformer extends TransformerAbstract
     {
         $affixes = $blogger->affixes()->createDesc()->get();
         return $this->collection($affixes, new AffixTransformer());
+    }
+    public function includePublicity(Blogger $blogger){
+        $users = $blogger->publicity()->get();
+
+        return $this->collection($users,new UsersTransformer());
     }
 
 }

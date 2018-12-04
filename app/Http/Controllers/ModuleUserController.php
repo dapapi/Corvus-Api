@@ -19,7 +19,7 @@ use App\Repositories\ModuleUserRepository;
 use App\Repositories\OperateLogRepository;
 use App\User;
 use Exception;
-use http\Env\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -226,18 +226,18 @@ class ModuleUserController extends Controller
     public function addMore(Request $request)
     {
 //        $person_ids, $del_person_ids, $moduleable_ids,$moduleable_type, $type
-        $person_ids = $request->get("person_ids",'null');
-        $del_person_ids = $request->get('del_person_ids',null);
-        $moduleable_ids = $moduleable_ids = $request->get('moduleable_ids',null);
+        $person_ids = $request->get("person_ids",[]);
+        $del_person_ids = $request->get('del_person_ids',[]);
+        $moduleable_ids = $moduleable_ids = $request->get('moduleable_ids',[]);
         $moduleable_type = $request->get('moduleable_type',null);
         $type = $request->get('type',null);
-        $result = $this->moduleUserRepository->addModuleUsers($person_ids,$del_person_ids,$moduleable_ids,$moduleable_type,$type);
-        $add_persons = $result[0];
-        $del_persons = $result[1];
-        // 操作日志 $type类型参与人或者宣传人
-        $title = $this->moduleUserRepository->getTypeName($type);
         DB::beginTransaction();
         try{
+            // 操作日志 $type类型参与人或者宣传人
+            $title = $this->moduleUserRepository->getTypeName($type);
+            $result = $this->moduleUserRepository->addModuleUsers($person_ids,$del_person_ids,$moduleable_ids,$moduleable_type,$type);
+            $add_persons = $result[0];
+            $del_persons = $result[1];
             foreach ($add_persons as $module_id=>$person_ids){
                 $model = $this->moduleUserRepository->getModule($module_id,$moduleable_type);
                 $start = "";

@@ -94,58 +94,68 @@ class ModuleUserRepository
     }
     public function addModuleUsers($person_ids, $del_person_ids, $moduleable_ids,$moduleable_type, $type)
     {
-        $del_person_ids = array_unique($del_person_ids);//去除数组中的重复值
+        $del_module_person = [];
+        $module_person = [];
         foreach ($moduleable_ids as $moduleable_id){
+            $moduleable_id = hashid_decode($moduleable_id);
+            $person_ids_copy = $person_ids;
+            $del_person_ids_copy = $del_person_ids;
             $array = [
                 'type' => $type,
                 'moduleable_id' =>   $moduleable_id,
                 'moduleable_type' =>    $moduleable_type,
             ];
-            $del_module_person = "";
-            foreach ($del_person_ids as $key => &$del_person_id) {
-                try {
-                    $del_person_id = hashid_decode($del_person_id);//解码
-                    $personDeleteUser = User::findOrFail($del_person_id);//从用户标中查找
-                    $array['user_id'] = $personDeleteUser->id;
-                    //查找moduleUser表中
-                    $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])
-                        ->where('moduleable_id', $array['moduleable_id'])
-                        ->where('user_id', $personDeleteUser->id)
-                        ->where('type', $array['type'])->first();
-                    if ($moduleUser) {//数据存在则从数据库中删除
-                        $moduleUser->delete();
-                    } else {//不存在则将ID从要删除的参与人或者宣传人列表中删除
-                        array_splice($del_person_ids, $key, 1);
+            if(count($del_person_ids_copy)){
+                $del_person_ids_copy = array_unique($del_person_ids_copy);//去除数组中的重复值
+                foreach ($del_person_ids_copy as $key => &$del_person_id) {
+                    try {
+                        $del_person_id = hashid_decode($del_person_id);//解码
+                        $personDeleteUser = User::findOrFail($del_person_id);//从用户标中查找
+                        $array['user_id'] = $personDeleteUser->id;
+                        //查找moduleUser表中
+                        $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])
+                            ->where('moduleable_id', $array['moduleable_id'])
+                            ->where('user_id', $personDeleteUser->id)
+                            ->where('type', $array['type'])->first();
+                        if ($moduleUser) {//数据存在则从数据库中删除
+                            $moduleUser->delete();
+                        } else {//不存在则将ID从要删除的参与人或者宣传人列表中删除
+                            array_splice($del_person_ids_copy, $key, 1);
+                        }
+                    } catch (Exception $e) {
+                        array_splice($del_person_ids_copy, $key, 1);
                     }
-                } catch (Exception $e) {
-                    array_splice($del_person_ids, $key, 1);
                 }
             }
+            if(count($person_ids_copy)){
+                $person_ids_copy = array_unique($person_ids_copy);//去除参与人或者宣传人列表的重复值
+                foreach ($person_ids_copy as $key => &$person_id) {
+                    try {
+                        $person_id = hashid_decode($person_id);
+                        $person = User::findOrFail($person_id);
+                        $array['user_id'] = $person->id;
 
-            $person_ids = array_unique($person_ids);//去除参与人或者宣传人列表的重复值
-            foreach ($person_ids as $key => &$person_id) {
-                try {
-                    $person_id = hashid_decode($person_id);
-                    $person = User::findOrFail($person_id);
-                    $array['user_id'] = $person->id;
-
-                    $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])
-                        ->where('moduleable_id', $array['moduleable_id'])
-                        ->where('user_id', $array['user_id'])->where('type', $array['type'])->first();
-                    if (!$moduleUser) {//不存在则添加
-                        ModuleUser::create($array);
-                    } else {//存在则从列表中删除
-                        array_splice($person_ids, $key, 1);
+                        $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])
+                            ->where('moduleable_id', $array['moduleable_id'])
+                            ->where('user_id', $array['user_id'])->where('type', $array['type'])->first();
+                        if (!$moduleUser) {//不存在则添加
+                            ModuleUser::create($array);
+                        } else {//存在则从列表中删除
+                            array_splice($person_ids_copy, $key, 1);
 //                    $participantDeleteIds[] = $participantId;
 //                    //要求一个接口可以完成添加人和删除人,已经存在的删除
 //                    $moduleUser->delete();
+                        }
+                    } catch (Exception $e) {
+                        array_splice($person_ids_copy, $key, 1);
                     }
-                } catch (Exception $e) {
-                    array_splice($person_ids, $key, 1);
                 }
             }
-            $del_module_person[$moduleable_id] = $del_person_ids;
-            $module_person[$moduleable_id] = $person_ids;
+            if(count($del_person_ids_copy))
+                $del_module_person[$moduleable_id] = $del_person_ids_copy;
+            if(count($person_ids_copy))
+                $module_person[$moduleable_id] = $person_ids_copy;
+
         }
         //返回添加成功或者删除成功的参与人和宣传人
         return [$module_person, $del_module_person];
@@ -170,7 +180,7 @@ class ModuleUserRepository
 
     public function getModule($moduleable_id,$module_type)
     {
-        $model = '';
+        $model = null;
         if($module_type == ModuleableType::STAR){
             $model = Star::findOrFail($moduleable_id);
         }elseif ($module_type == ModuleableType::BLOGGER){
@@ -184,5 +194,6 @@ class ModuleUserRepository
         }else{
             throw new Exception('ModuleUserRepository@addModuleUser#1(没有处理这个类型)');
         }
+        return $model;
     }
 }

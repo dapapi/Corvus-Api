@@ -396,35 +396,68 @@ class ProjectController extends Controller
                     }
 
                     if ($key == 'expectations') {
-                        TrailStar::where('trail_id', $trail->id)->where('type', TrailStar::EXPECTATION)->delete();
-                        foreach ($payload['expectations'] as $expectation) {
+                        if ($trail->type == Trail::TYPE_PAPI) {
+                            $starableType = ModuleableType::BLOGGER;
+                        } else {
+                            $starableType = ModuleableType::STAR;
+                        }
+                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
+                        foreach ($val as $expectation) {
                             $starId = hashid_decode($expectation);
-
-                            if (Star::find($starId))
-                                TrailStar::create([
-                                    'trail_id' => $trail->id,
-                                    'star_id' => $starId,
-                                    'type' => TrailStar::EXPECTATION,
-                                ]);
+                            if ($starableType == ModuleableType::BLOGGER) {
+                                if (Blogger::find($starId)) {
+                                    TrailStar::create([
+                                        'trail_id' => $trail->id,
+                                        'starable_id' => $starId,
+                                        'starable_type' => $starableType,
+                                        'type' => TrailStar::EXPECTATION,
+                                    ]);
+                                }
+                            } else {
+                                if (Star::find($starId)) {
+                                    TrailStar::create([
+                                        'trail_id' => $trail->id,
+                                        'starable_id' => $starId,
+                                        'starable_type' => $starableType,
+                                        'type' => TrailStar::EXPECTATION,
+                                    ]);
+                                }
+                            }
                         }
                         continue;
                     }
 
                     if ($key == 'recommendations') {
-                        TrailStar::where('trail_id', $trail->id)->where('type', TrailStar::RECOMMENDATION)->delete();
-                        foreach ($payload['recommendations'] as $recommendation) {
-                            $starId = hashid_decode($recommendation);
-                            if (Star::find($starId))
-                                TrailStar::create([
-                                    'trail_id' => $trail->id,
-                                    'star_id' => $starId,
-                                    'type' => TrailStar::RECOMMENDATION,
-                                ]);
+                        if ($trail->type == Trail::TYPE_PAPI) {
+                            $starableType = ModuleableType::BLOGGER;
+                        } else {
+                            $starableType = ModuleableType::STAR;
                         }
-                        continue;
+                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
+                        foreach ($val as $recommendation) {
+                            $starId = hashid_decode($recommendation);
+
+                            if ($starableType == ModuleableType::BLOGGER) {
+                                if (Blogger::find($starId))
+                                    TrailStar::create([
+                                        'trail_id' => $trail->id,
+                                        'starable_id' => $starId,
+                                        'starable_type' => $starableType,
+                                        'type' => TrailStar::RECOMMENDATION,
+                                    ]);
+                            } else {
+                                if (Star::find($starId))
+                                    TrailStar::create([
+                                        'trail_id' => $trail->id,
+                                        'starable_id' => $starId,
+                                        'starable_type' => $starableType,
+                                        'type' => TrailStar::RECOMMENDATION,
+                                    ]);
+                            }
+                        }
+
                     }
-                    $trail[$key] = $val;
-                    $trail->save();
+                    $trail->update($payload['trail']);
                 }
             }
 

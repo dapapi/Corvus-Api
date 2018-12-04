@@ -38,7 +38,7 @@ class Blogger extends Model
         'weibo_url',//微博url
         'weibo_fans_num',//微博粉丝数
         'xiaohongshu_url',//微博url
-        'xiaohongshu_num',//微博粉丝数
+        'xiaohongshu_fans_num',//微博粉丝数
 
     ];
 //隐藏字段

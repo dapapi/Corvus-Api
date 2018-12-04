@@ -506,6 +506,7 @@ class BloggerController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         unset($payload['status']);
+
         $payload['creator_id'] = $user->id;
         $payload['producer_id'] = hashid_decode($payload['producer_id']);
 //        if ($request->has('producer_id')) {
@@ -522,10 +523,12 @@ class BloggerController extends Controller
             $payload['douyin_id']  = $payload['star_douyin_infos']['url'];
             $payload['douyin_fans_num']  = $payload['star_douyin_infos']['avatar'];
         }
+
         if(!empty($payload['star_weibo_infos'])){
             $payload['weibo_url']  = $payload['star_weibo_infos']['url'];
             $payload['weibo_fans_num']  = $payload['star_weibo_infos']['avatar'];
         }
+
         if(!empty($payload['star_xiaohongshu_infos'])){
             $payload['xiaohongshu_url']  = $payload['star_xiaohongshu_infos']['url'];
             $payload['xiaohongshu_fans_num']  = $payload['star_xiaohongshu_infos']['avatar'];
@@ -544,27 +547,27 @@ class BloggerController extends Controller
 
             $blogger = Blogger::create($payload);
 
-            if(!empty($payload['star_douyin_infos'])){
-                $stardouyininfo = StarDouyinInfo::create($payload['star_douyin_infos']);
-            }
-            if(!empty($payload['star_weibo_infos'])){
-                $StarWeiboshuInfo= new StarWeiboshuInfo;
-                $StarWeiboshuInfo ->  open_id = $payload['star_douyin_infos']['open_id'];
-                $StarWeiboshuInfo ->  url = $payload['star_douyin_infos']['url'];
-                $StarWeiboshuInfo ->  nickname = $payload['star_douyin_infos']['nickname'];
-                $StarWeiboshuInfo ->  avatar = $payload['star_douyin_infos']['avatar'];
-                $StarWeiboshuInfo ->  save();
-            }
-            if(!empty($payload['star_xiaohongshu_infos'])){
-
-                $starxiaohongshuinfos = new StarXiaohongshuInfo;
-                $starxiaohongshuinfos['open_id'] = $payload['star_xiaohongshu_infos']['open_id'];
-                $starxiaohongshuinfos['url'] = $payload['star_xiaohongshu_infos']['url'];
-                $starxiaohongshuinfos['nickname'] = $payload['star_xiaohongshu_infos']['nickname'];
-                $starxiaohongshuinfos['avatar'] = $payload['star_xiaohongshu_infos']['avatar'];
-                $starxiaohongshuinfos ->  save();
-
-            }
+//            if(!empty($payload['star_douyin_infos'])){
+//                $stardouyininfo = StarDouyinInfo::create($payload['star_douyin_infos']);
+//            }
+//            if(!empty($payload['star_weibo_infos'])){
+//                $StarWeiboshuInfo= new StarWeiboshuInfo;
+//                $StarWeiboshuInfo ->  open_id = $payload['star_douyin_infos']['open_id'];
+//                $StarWeiboshuInfo ->  url = $payload['star_douyin_infos']['url'];
+//                $StarWeiboshuInfo ->  nickname = $payload['star_douyin_infos']['nickname'];
+//                $StarWeiboshuInfo ->  avatar = $payload['star_douyin_infos']['avatar'];
+//                $StarWeiboshuInfo ->  save();
+//            }
+//            if(!empty($payload['star_xiaohongshu_infos'])){
+//
+//                $starxiaohongshuinfos = new StarXiaohongshuInfo;
+//                $starxiaohongshuinfos['open_id'] = $payload['star_xiaohongshu_infos']['open_id'];
+//                $starxiaohongshuinfos['url'] = $payload['star_xiaohongshu_infos']['url'];
+//                $starxiaohongshuinfos['nickname'] = $payload['star_xiaohongshu_infos']['nickname'];
+//                $starxiaohongshuinfos['avatar'] = $payload['star_xiaohongshu_infos']['avatar'];
+//                $starxiaohongshuinfos ->  save();
+//
+//            }
 
             // 操作日志
             $operate = new OperateEntity([
@@ -578,7 +581,6 @@ class BloggerController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
-
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

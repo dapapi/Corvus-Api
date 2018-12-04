@@ -508,16 +508,17 @@ class BloggerController extends Controller
         unset($payload['status']);
 
         $payload['creator_id'] = $user->id;
-        $payload['producer_id'] = hashid_decode($payload['producer_id']);
-//        if ($request->has('producer_id')) {
-//            try {
+
+        if ($request->has('producer_id')) {
+            try {
 //                $producerId = hashid_decode($payload['producer_id']);
 //                Blogger::findOrFail($producerId);
-//
-//            } catch (Exception $e) {
-//                return $this->response->errorBadRequest('制作人错误');
-//            }
-//        }
+                $payload['producer_id'] = hashid_decode($payload['producer_id']);
+
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest('制作人错误');
+            }
+        }
 
         if(!empty($payload['star_douyin_infos'])){
             $payload['douyin_id']  = $payload['star_douyin_infos']['url'];

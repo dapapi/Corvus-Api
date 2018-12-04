@@ -42,20 +42,4 @@ class StoreClientRequest extends FormRequest
         ];
     }
 
-    public function messages() {
-        return [
-            'company' => '公司',
-            'grade' => '客户类型',
-            'region_id' => '地区id',
-            'address' => '地址',
-            'principal_id' => '负责人',
-            'industry_id' => '行业id',
-            'size' => '规模',
-            'contact.name' => '联系人姓名',
-            'contact.phone' => '联系人电话',
-            'contact.position' => '联系人职位',
-            'keyman' => '关键人',
-            'desc' => '描述',
-        ];
-    }
 }

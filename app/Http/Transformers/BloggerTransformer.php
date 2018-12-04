@@ -39,14 +39,14 @@ class BloggerTransformer extends TransformerAbstract
             'sign_contract_other' => $blogger->sign_contract_other,//是否签约其他公司
             'sign_contract_other_name' => $blogger->sign_contract_other_name,//签约公司名称
             'status' => $blogger->status,
-            'created_at'=> $blogger->created_at->toDateTimeString(),
-            'updated_at' => $blogger->updated_at->toDateTimeString(),
             'douyin_id' => $blogger->douyin_id,//微博url
             'douyin_fans_num' => $blogger->douyin_fans_num,//微博粉丝数
             'weibo_url'=> $blogger->weibo_url,//微博url
             'weibo_fans_num'=> $blogger->weibo_fans_num,//微博粉丝数
             'xiaohongshu_url'=> $blogger->xiaohongshu_url,//微博url
-            'xiaohongshu_num'=> $blogger->xiaohongshu_num,//微博粉丝数
+            'xiaohongshu_fans_num'=> $blogger->xiaohongshu_fans_num,//微博粉丝数
+            'created_at'=> $blogger->created_at->toDateTimeString(),
+            'updated_at' => $blogger->updated_at->toDateTimeString()
         ];
         $arraySimple = [
             'id' => hashid_encode($blogger->id),

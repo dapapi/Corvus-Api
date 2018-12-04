@@ -148,7 +148,7 @@ class TrailController extends Controller
                                 'trail_id' => $trail->id,
                                 'starable_id' => $starId,
                                 'starable_type' => $starableType,
-                                'type' => TrailStar::RECOMMENDATION,
+                                'type' => TrailStar::EXPECTATION,
                             ]);
                     } else {
                         if (Star::find($starId))
@@ -255,7 +255,7 @@ class TrailController extends Controller
                                 'trail_id' => $trail->id,
                                 'starable_id' => $starId,
                                 'starable_type' => $starableType,
-                                'type' => TrailStar::RECOMMENDATION,
+                                'type' => TrailStar::EXPECTATION,
                             ]);
                     } else {
                         if (Star::find($starId))

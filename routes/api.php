@@ -81,10 +81,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/tasks/{task}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/tasks/{task}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
-        $api->get('/reports/{review}/affix', 'App\Http\Controllers\AffixController@index');
-        $api->get('/reports/{review}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
-        $api->post('/reports/{review}/affix', 'App\Http\Controllers\AffixController@add');
-        $api->post('/reports/{review}/affixes/{launch}/download', 'App\Http\Controllers\AffixController@download');
+        $api->get('/reports/{report}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->post('/reports/{report}/affix', 'App\Http\Controllers\AffixController@add');
+
 
         $api->post("/attendance/{attendance}/affix", "App\Http\Controllers\AffixController@add");
         $api->get('/attendance/{attendance}/affix', 'App\Http\Controllers\AffixController@index');
@@ -227,6 +226,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
         $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');
         $api->put('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@edit');
+        $api->delete('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@remove');
         $api->post('/announcements', 'App\Http\Controllers\AnnouncementController@store');
         //  report
         $api->get('/report', 'App\Http\Controllers\ReportController@index');

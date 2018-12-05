@@ -76,7 +76,7 @@ class ReportController extends Controller
 
         try {
 
-              $arr = report::where('template_name',$payload['template_name'])->get();
+              $arr = Report::where('template_name',$payload['template_name'])->get();
 
                if(!empty($arr[0])){
                    return $this->response->errorInternal('用户名已存在');

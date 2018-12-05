@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Blogger;
+use App\Models\Announcement;
 use App\Models\Star;
 use App\Models\Report;
 use App\Models\Issues;
@@ -30,7 +31,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Issues $issues)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Issues $issues,Announcement $announcement)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));

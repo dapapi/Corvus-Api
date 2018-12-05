@@ -8,9 +8,11 @@ use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Project;
 use App\Models\Schedule;
+use App\Models\Announcement;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
+use App\Models\Report;
 use App\User;
 
 use App\ModuleableType;
@@ -41,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CALENDAR => Calendar::class,
             ModuleableType::SCHEDULE => Schedule::class,
             ModuleableType::USER => User::class,
+            ModuleableType::REPORT => Report::class,
+            ModuleableType::ANNOUNCEMENT => Announcement::class,
 
             //TODO
         ]);

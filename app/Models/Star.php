@@ -102,7 +102,7 @@ class Star extends Model
     }
     public function publicity()
     {
-        return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PARTICIPANT);
+        return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PUBLICITY);
     }
 
 }

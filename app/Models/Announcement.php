@@ -57,5 +57,4 @@ class Announcement extends Model
 
     }
 
-
 }

@@ -13,6 +13,7 @@ use App\Models\Affix;
 use App\Models\OperateEntity;
 use App\Models\Star;
 use App\ModuleableType;
+use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\StarReportRepository;

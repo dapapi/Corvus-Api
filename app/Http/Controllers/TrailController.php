@@ -28,11 +28,26 @@ use Illuminate\Support\Facades\Log;
 
 class TrailController extends Controller
 {
-    public function index(Request $request)
+    public function index(FilterTrailRequest $request)
     {
+        $payload = $request->all();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $trails = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = Trail::where(function ($query) use ($request, $payload) {
+            if ($request->has('keyword') && $payload['keyword'])
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('status') && !is_null($payload['status']))
+                $query->where('progress_status', $payload['status']);
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }

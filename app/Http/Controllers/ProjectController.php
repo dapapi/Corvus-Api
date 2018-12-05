@@ -49,7 +49,23 @@ class ProjectController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $projects = Project::orderBy('created_at', 'desc')->paginate($pageSize);
+        $projects = Project::where(function ($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
+
+            if ($request->has('status'))
+                $query->where('status', $payload['status']);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
+
 
         return $this->response->paginator($projects, new ProjectTransformer());
     }
@@ -580,11 +596,8 @@ class ProjectController extends Controller
 
     public function getClientProject(Request $request, Client $client)
     {
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        } else {
-            $pageSize = config('app.page_size');
-        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
         $projects = Project::select('projects.*')->join('trails', function ($join) {
             $join->on('projects.trail_id', '=', 'trails.id');
         })->where('trails.client_id', '=', $client->id)

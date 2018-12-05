@@ -14,7 +14,7 @@ class AnnouncementTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report','scope'];
 
     public function transform(Announcement $announcement)
     {
@@ -68,6 +68,11 @@ class AnnouncementTransformer extends TransformerAbstract
 
         $tasks = $announcement->tasks()->createDesc()->get();
         return $this->collection($tasks, new AnnouncementTransformer());
+    }
+    public function includeScope(Announcement $announcement)
+    {
+        $scope = $announcement->scope()->createDesc()->get();
+        return $this->collection($scope, new AnnouncementScopeTransformer());
     }
 
     public function includeAffixes(Announcement $announcement)

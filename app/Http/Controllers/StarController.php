@@ -147,7 +147,7 @@ class StarController extends Controller
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
-
+        $user = Auth::guard('api')->user();
         if ($request->has('name') && !empty($payload['name'])) {
             $array['name'] = $payload['name'];//姓名
             if ($array['name'] != $star->name) {
@@ -620,6 +620,17 @@ class StarController extends Controller
             $star->update($array);
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
+            if ($request->has('affix') && count($request->get('affix'))) {
+                $affixes = $request->get('affix');
+                foreach ($affixes as $affix) {
+                    try {
+                        $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                        // 操作日志 ...
+                    } catch (Exception $e) {
+                    }
+                }
+            }
+
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -666,7 +677,6 @@ class StarController extends Controller
             event(new OperateLogEvent([
                 $operate,
             ]));
-
             if ($request->has('affix') && count($request->get('affix'))) {
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
@@ -674,6 +684,7 @@ class StarController extends Controller
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
                         // 操作日志 ...
                     } catch (Exception $e) {
+                        print_r($e);
                     }
                 }
             }

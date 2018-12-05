@@ -3,13 +3,14 @@
 namespace App\Models;
 use App\ModuleUserType;
 use App\User;
+use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Blogger extends Model
 {
     use SoftDeletes;
-
+    use OperateLogTrait;
     protected $fillable = [
         'nickname',
         'communication_status',//沟通状态
@@ -88,4 +89,5 @@ class Blogger extends Model
     {
         return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PRODUCER);
     }
+
 }

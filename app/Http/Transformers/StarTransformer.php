@@ -55,6 +55,9 @@ class StarTransformer extends TransformerAbstract
             'qita_fans_num' =>  $star->qita_fans_num,
             'artist_scout_name' =>  $star->artist_scout_name,
             'star_location' =>  $star->star_location,
+            // 日志内容
+            'last_updated_user' => $star->last_updated_user,
+            'last_updated_at' => $star->last_updated_at,
 
         ];
 

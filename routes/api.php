@@ -157,6 +157,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //为多个博主艺人分配多个经纪人宣传人制作人
         $api->post('/distribution/person', 'App\Http\Controllers\ModuleUserController@addMore');
+        $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人
@@ -377,5 +378,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //销售线索报表--线索占比perTrail
         $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
         $api->get("/reportfrom/salesFunnel", "App\Http\Controllers\ReportFormController@salesFunnel");
+        //销售线索报表--行业分析
+        $api->get("/reportfrom/industryanalysis", "App\Http\Controllers\ReportFormController@industryAnalysis");
+        //项目报表
+        $api->get("/reportfrom/projectreport", "App\Http\Controllers\ReportFormController@projectReport");
+        //项目新增
+        $api->get("/reportfrom/newproject", "App\Http\Controllers\ReportFormController@newProject");
+        //项目占比
+        $api->get("/reportfrom/percentageofproject", "App\Http\Controllers\ReportFormController@percentageOfProject");
+
     });
 });

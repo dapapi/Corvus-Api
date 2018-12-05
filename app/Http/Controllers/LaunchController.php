@@ -80,7 +80,7 @@ class LaunchController extends Controller
             return $this->response->errorInternal('参数不能为零');
         }
 
-            $array[] = ['member',2];
+            $array[] = ['member',$user->id];
             $array[] = ['template_id',hashid_decode($All)];
 
 //            if(empty(draft::where($array)->first())){

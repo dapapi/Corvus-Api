@@ -2,15 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\SystemInternalException;
+use App\Exceptions\UserBadRequestException;
 use App\Http\Requests\BindTelephoneRequest;
 use App\Http\Transformers\UserTransformer;
 use App\Models\Department;
+use App\Models\RequestVerityToken;
+use App\Repositories\UserRepository;
 use App\User;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+    protected $userRepository;
+
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     public function index(Request $request)
     {
         $users = User::orderBy('name')->get();
@@ -51,7 +65,7 @@ class UserController extends Controller
         }
         #查找用户
         try {
-            $userRepository = new UserRepository();
+            $userRepository = $this->userRepository;
             $user = $userRepository->findOrCreateByTelephone($telephone);
         } catch (SystemInternalException $exception) {
             return $this->response->errorInternal('登录失败');

@@ -18,6 +18,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/wechat_open/oauth', 'App\Http\Controllers\Wechat\OpenPlatformController@getLoginUrl');
     $api->get('/wechat_open/oauth/callback', 'App\Http\Controllers\Wechat\OpenPlatformController@oauthCallback');
 
+    # 服务
+    $api->get('services/request_token', 'App\Http\Controllers\ServiceController@requestToken');
+    $api->get('services/send_sms_code', 'App\Http\Controllers\ServiceController@sendSMSCode');
+
 
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');

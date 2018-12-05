@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use App\ModuleUserType;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -83,5 +83,9 @@ class Blogger extends Model
     public function trail()
     {
         return $this->morphToMany(Trail::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
+    }
+    public function publicity()
+    {
+        return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PRODUCER);
     }
 }

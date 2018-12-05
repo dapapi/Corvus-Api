@@ -482,6 +482,24 @@ class BloggerController extends Controller
                 unset($array['sign_contract_other_name']);
             }
         }
+        if(!empty($payload['platform'])){
+            $array['platform']  = $payload['platform'];
+        }
+
+        if(!empty($payload['star_douyin_infos'])){
+            $array['douyin_id']  = $payload['star_douyin_infos']['url'];
+            $array['douyin_fans_num']  = $payload['star_douyin_infos']['avatar'];
+        }
+
+        if(!empty($payload['star_weibo_infos'])){
+            $array['weibo_url']  = $payload['star_weibo_infos']['url'];
+            $array['weibo_fans_num']  = $payload['star_weibo_infos']['avatar'];
+        }
+
+        if(!empty($payload['star_xiaohongshu_infos'])){
+            $array['xiaohongshu_url']  = $payload['star_xiaohongshu_infos']['url'];
+            $array['xiaohongshu_fans_num']  = $payload['star_xiaohongshu_infos']['avatar'];
+        }
 
         DB::beginTransaction();
         try {

@@ -56,9 +56,9 @@ class AffixRepository
             $array['affixable_type'] = ModuleableType::ATTENDANCE;
         }
         //TODO 还有其他类型
-        //
         $affix = Affix::create($array);
         return $affix;
     }
+
 
 }

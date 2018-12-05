@@ -121,9 +121,12 @@ class User extends Authenticatable
 
 
 
+    // todo 可能再加用户状态筛选
     public function findForPassport($name)
     {
         $user = User::where('name', $name)
+            ->orWhere('phone', $name)
+            ->orWhere('email', $name)
             ->first();
         return $user;
     }

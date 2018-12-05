@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\AffixType;
 use App\CommunicationStatus;
 use App\Events\OperateLogEvent;
 use App\Gender;
 use App\Http\Requests\StarRequest;
 use App\Http\Requests\StarUpdateRequest;
 use App\Http\Transformers\StarTransformer;
+use App\Models\Affix;
 use App\Models\OperateEntity;
 use App\Models\Star;
+use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\StarReportRepository;
@@ -614,22 +617,31 @@ class StarController extends Controller
         }
         DB::beginTransaction();
         try {
-            if (count($array) == 0)
-                return $this->response->noContent();
-
-            $star->update($array);
-            // 操作日志
-            event(new OperateLogEvent($arrayOperateLog));
             if ($request->has('affix') && count($request->get('affix'))) {
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
                     try {
+                        //查找对应类型的附件是否存在
+                        $affixmodel = Affix::where([
+                            ['type',$affix['type']],
+                            ['affixable_type',ModuleableType::STAR],
+                            ['affixable_id',$star->id]
+                        ]);
+                        if($affixmodel->id){//存在则删除
+                            $affixmodel->delete();
+                        }
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
                         // 操作日志 ...
                     } catch (Exception $e) {
                     }
                 }
             }
+            if (count($array) == 0)
+                return $this->response->noContent();
+
+            $star->update($array);
+            // 操作日志
+            event(new OperateLogEvent($arrayOperateLog));
 
         } catch (Exception $e) {
             DB::rollBack();

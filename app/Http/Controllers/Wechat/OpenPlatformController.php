@@ -26,14 +26,14 @@ class OpenPlatformController extends Controller
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return \Dingo\Api\Http\Response
      */
     public function oauthCallback(Request $request) {
         $code = $request->get('code');
         //TODO - 完善跨站攻击
         $state = $request->get('state');
         if (!$code) {
-            return redirect(env('MOE_DOMAIN') . '/errors/403');
+            return $this->response->errorForbidden();
         }
         $appId = env('WECHAT_OPEN_PLATFORM_APPID');
 
@@ -42,7 +42,7 @@ class OpenPlatformController extends Controller
         $client = new Client();
         $response = $client->request('get', $url);
         if ($response->getStatusCode() != 200) {
-            return redirect(env('MOE_DOMAIN') . '/errors/403');
+            return $this->response->errorForbidden();
         }
         $body = json_decode($response->getBody());
         $openId = isset($body->openid) ? $body->openid : null;
@@ -59,7 +59,7 @@ class OpenPlatformController extends Controller
                 $userWechatInfo = $userWechatOpenId->userWechatInfo;
             }
         } else {
-            return redirect(env('MOE_DOMAIN') . '/errors/403');
+            return $this->response->errorForbidden();
         }
 
         if (!$userWechatInfo) {
@@ -69,7 +69,7 @@ class OpenPlatformController extends Controller
             $getUeserInfoUrl = 'https://api.weixin.qq.com/sns/userinfo?openid=' . $body->openid . '&access_token=' . $accessToken;
             $userInfoResponse = $client->request('get', $getUeserInfoUrl);
             if ($userInfoResponse->getStatusCode() != 200) {
-                return redirect(env('MOE_DOMAIN') . '/errors/403');
+                return $this->response->errorForbidden();
             }
             $userInfo = json_decode($userInfoResponse->getBody());
             $userWechatArray = [
@@ -91,7 +91,7 @@ class OpenPlatformController extends Controller
                 $userWechatInfo = UserWechatInfo::create($userWechatArray);
             } catch (Exception $exception) {
                 Log::error($exception->getMessage());
-                return redirect(env('MOE_DOMAIN') . '/errors/500');
+                return $this->response->errorInternal('保存微信信息失败');
             }
         }
 
@@ -101,7 +101,7 @@ class OpenPlatformController extends Controller
             $wechatRepos->updateWechatOpenId($openId, $appId, UserWechatOpenId::TYPE_OPEN, $userWechatInfo);
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
-            return redirect(env('MOE_DOMAIN') . '/errors/500');
+            return $this->response->errorInternal('更新OpenId失败');
         }
 
         # 获取User信息

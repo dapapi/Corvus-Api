@@ -22,7 +22,6 @@ use App\Models\BloggerProducer;
 use App\Events\OperateLogEvent;
 use App\Repositories\OperateLogRepository;
 use App\Models\OperateEntity;
-use App\Models\Interfaces\OperateLogInterface;
 use App\OperateLogMethod;
 use App\User;
 use App\Whether;

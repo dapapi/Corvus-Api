@@ -15,7 +15,7 @@ class IssuesTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','answer'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','draft'];
 
     public function transform(Issues $Issues)
     {
@@ -50,7 +50,7 @@ class IssuesTransformer extends TransformerAbstract
 
         ];
 
-        return $this->isAll ?$arrayanswer : $array ;
+        return $this->isAll ? $arrayanswer : $array ;
     }
 
     public function includeCreator(Issues $Issues)
@@ -75,9 +75,14 @@ class IssuesTransformer extends TransformerAbstract
     {
 
         $tasks = $Issues->tasks()->createDesc()->get();
-        return $this->collection($tasks, new ReportTransformer());
+        return $this->collection($tasks, new IssuesTransformer());
     }
+    public function includeDraft(Issues $Issues)
+    {
 
+        $tasks = $Issues->draft()->createDesc()->get();
+        return $this->collection($tasks, new IssuesTransformer());
+    }
     public function includeAffixes(Issues $Issues)
     {
 

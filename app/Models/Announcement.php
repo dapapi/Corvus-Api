@@ -50,7 +50,10 @@ class Announcement extends Model
 
        return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
-
+    public function scope()
+    {
+        return $this->hasMany(AnnouncementScope::class, 'announcement_id', 'id');
+    }
     public function broker()
     {
         return $this->belongsTo(User::class, 'broker_id', 'id');

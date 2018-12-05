@@ -30,9 +30,8 @@ class AnnouncementTransformer extends TransformerAbstract
             'accessory' => $announcement->accessory, //附件
             'stick' => $announcement->stick, //默认 0  未读  1 读
             'delete_at' => $announcement->delete_at,
-            'creator_id' => $announcement->creator_id,
             'created_at' => $announcement->created_at->toDatetimeString(),
-            'updated_at' => $announcement->updated_at->toDatetimeString(),
+            'updated_at' => $announcement->updated_at->toDatetimeString()
 
 
         ];

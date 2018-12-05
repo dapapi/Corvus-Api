@@ -76,8 +76,9 @@ class AnnouncementController extends Controller
 
     public function show(Request $request,Announcement $announcement)
     {
-        $reviewdata = Announcement::first();
-        return $this->response->item($reviewdata, new AnnouncementTransformer());
+
+        return $this->response->item($announcement, new AnnouncementTransformer());
+
     }
     public function store(AccessoryStoreRequest $request,Announcement $announcement)
     {

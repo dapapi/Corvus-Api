@@ -11,6 +11,7 @@ use App\Models\Contact;
 use App\Models\OperateLog;
 use App\Models\Project;
 use App\Models\Star;
+use App\Models\Report;
 use App\Models\Task;
 use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
@@ -122,6 +123,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Issues){
                 $type = ModuleableType::ISSUES;
                 $typeName = '问题';
+            }else if($operate->obj instanceof Report){
+                $type = ModuleableType::REPORT;
+                $typeName = '简报';
             }
             //TODO
 

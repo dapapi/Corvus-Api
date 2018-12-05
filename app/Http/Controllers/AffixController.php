@@ -42,7 +42,6 @@ class AffixController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $type = $request->get('type');
-
         if ($model instanceof Task && $model->id) {
             $query = $model->affixes();
         } else if ($model instanceof Project && $model->id) {
@@ -65,9 +64,7 @@ class AffixController extends Controller
         //TODO 其他模块
         if ($type)
             $query->where('type', $type);
-
         $affixes = $query->createDesc()->paginate($pageSize);
-
         return $this->response->paginator($affixes, new AffixTransformer());
 
     }
@@ -111,7 +108,6 @@ class AffixController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-
         DB::beginTransaction();
         try {
             $affix = $this->affixRepository->addAffix($user, $model, $payload['title'], $payload['url'], $payload['size'], $payload['type']);
@@ -130,7 +126,6 @@ class AffixController extends Controller
                 ]));
             }
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal();

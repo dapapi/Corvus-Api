@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ReportForm\CommercialFunnelRequest;
+use App\Models\Report;
 use App\Repositories\TrailRepository;
-use App\Repositories\TrailRepository2;
+use App\Repositories\ReportFormRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -16,14 +17,14 @@ class ReportFormController extends Controller
         //默认分析7天
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        return (new TrailRepository2())->CommercialFunnelReportFrom($start_time,$end_time);
+        return (new ReportFormRepository())->CommercialFunnelReportFrom($start_time,$end_time);
     }
     //商业漏斗分析报表---销售漏斗
     public function salesFunnel(CommercialFunnelRequest $request){
         //默认分析7天
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        return (new TrailRepository2())->salesFunnel($start_time,$end_time);
+        return (new ReportFormRepository())->salesFunnel($start_time,$end_time);
     }
     //销售线索报表
     public function trailReportFrom(Request $request){
@@ -31,8 +32,8 @@ class ReportFormController extends Controller
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $type = $request->get('type',null);
-        $resource_tye = $request->get('resource_type',null);
-        return (new TrailRepository2())->trailReportFrom($start_time,$end_time,$type,$resource_tye);
+        $department = $request->get('department',null);
+        return (new ReportFormRepository())->trailReportFrom($start_time,$end_time,$type,$department);
     }
     //线索新曾
     public function newTrail(Request $request)
@@ -40,11 +41,11 @@ class ReportFormController extends Controller
         //默认分析7天
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        $type = $request->get('type',null);
-        $resource_tye = $request->get('resource_type',null);
+        $department = $request->get('department',null);
         $target_star = $request->get('target_star',null);
+        $department = $department == null ? null : hashid_decode($department);
         $target_star = $target_star == null ? null :hashid_decode($target_star);
-        return (new TrailRepository2())->newTrail($start_time,$end_time,$type,$resource_tye,$target_star);
+        return (new ReportFormRepository())->newTrail($start_time,$end_time,$department,$target_star);
     }
     //销售线索占比
     public function perTrail(Request $request)
@@ -52,10 +53,66 @@ class ReportFormController extends Controller
         //默认分析7天
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        $department = $department == null ? null : hashid_decode($department);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        return (new ReportFormRepository())->percentageOfSalesLeads($start_time,$end_time,$department,$target_star);
+    }
+    //销售线索--行业分析
+    public function industryAnalysis(Request $request)
+    {
+        //默认分析7天
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $type = $request->get('type',null);
-        $resource_tye = $request->get('resource_type',null);
+        return (new ReportFormRepository())->percentageOfSalesLeads($start_time,$end_time,$type);
+    }
+
+    /**
+     * 项目报表
+     * @param Request $request
+     * @return mixed
+     */
+    public function projectReport(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $type = $request->get('type',null);
+        $department = $request->get('department',null);
+        $department = $department == null ? null : hashid_decode($department);
+        return (new ReportFormRepository())->projectReport($start_time,$end_time,$type,$department);
+    }
+    //项目新增
+    public function newProject(Request $request)
+    {
+//        $start_time,$end_time,$department=null,$target_star=null
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $department = $request->get('department',null);
         $target_star = $request->get('target_star',null);
         $target_star = $target_star == null ? null :hashid_decode($target_star);
-        return (new TrailRepository2())->percentageOfSalesLeads($start_time,$end_time,$type,$resource_tye,$target_star);
+        $department = $department == null ? null : hashid_decode($department);
+        return (new ReportFormRepository())->newProject($start_time,$end_time,$department,$target_star);
+    }
+    //项目占比
+    public function percentageOfProject(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
+        return (new ReportFormRepository())->percentageOfProject($start_time,$end_time,$department,$target_star);
+    }
+    //客户报表
+    public function clientReport(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $type = $request->get('type',null);
+
+
     }
 }

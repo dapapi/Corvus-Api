@@ -377,5 +377,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //销售线索报表--线索占比perTrail
         $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
         $api->get("/reportfrom/salesFunnel", "App\Http\Controllers\ReportFormController@salesFunnel");
+        //销售线索报表--行业分析
+        $api->get("/reportfrom/industryanalysis", "App\Http\Controllers\ReportFormController@industryAnalysis");
+        //项目报表
+        $api->get("/reportfrom/projectreport", "App\Http\Controllers\ReportFormController@projectReport");
+        //项目新增
+        $api->get("/reportfrom/newproject", "App\Http\Controllers\ReportFormController@newProject");
+        //项目占比
+        $api->get("/reportfrom/percentageofproject", "App\Http\Controllers\ReportFormController@percentageOfProject");
+
     });
 });

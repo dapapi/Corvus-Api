@@ -7,9 +7,11 @@ use League\Fractal\TransformerAbstract;
 
 class BloggerTransformer extends TransformerAbstract
 {
+
     protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity'];
 
     private $isAll;
+
 
     public function __construct($isAll = true)
     {
@@ -47,6 +49,7 @@ class BloggerTransformer extends TransformerAbstract
             'xiaohongshu_url'=> $blogger->xiaohongshu_url,//微博url
             'xiaohongshu_fans_num'=> $blogger->xiaohongshu_fans_num,//微博粉丝数
             'created_at'=> $blogger->created_at->toDateTimeString(),
+            'last_updated_user' => $blogger->last_updated_user,
             'updated_at' => $blogger->updated_at->toDateTimeString()
         ];
         $arraySimple = [

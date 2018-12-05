@@ -3,6 +3,7 @@
 namespace App\Models;
 use App\ModuleUserType;
 use App\User;
+use App\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -88,4 +89,5 @@ class Blogger extends Model
     {
         return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PRODUCER);
     }
+
 }

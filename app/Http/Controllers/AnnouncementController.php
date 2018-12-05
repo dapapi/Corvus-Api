@@ -76,9 +76,7 @@ class AnnouncementController extends Controller
 
     public function show(Request $request,Announcement $announcement)
     {
-
-        $reviewdata = Announcement::where('id',$announcement->id)->first();
-
+        $reviewdata = Announcement::first();
         return $this->response->item($reviewdata, new AnnouncementTransformer());
     }
     public function store(AccessoryStoreRequest $request,Announcement $announcement)
@@ -125,6 +123,30 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('创建失败');
         }
 
+    }
+    public function remove(Announcement $announcement)
+    {
+        DB::beginTransaction();
+        try {
+            $announcement->delete();
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $announcement,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DELETE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            dd($e);
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
+        }
+        DB::commit();
     }
     public function edit(AnnouncementUpdateRequest $request, Announcement $announcement)
     {

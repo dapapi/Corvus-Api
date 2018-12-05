@@ -6,7 +6,9 @@ use App\Models\Affix;
 use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\Report;
 use App\Models\Project;
+use App\Models\Announcement;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
@@ -37,13 +39,19 @@ class AffixRepository
         } else if ($model instanceof Client && $model->id) {
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::CLIENT;
+        } else if ($model instanceof Report && $model->id) {
+            $array['affixable_id'] = $model->id;
+            $array['affixable_type'] = ModuleableType::REPORT;
         } else if ($model instanceof Trail && $model->id) {
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::TRAIL;
         } else if ($model instanceof Blogger && $model->id) {
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::BLOGGER;
-        }else if($model instanceof Attendance == ModuleableType::ATTENDANCE){
+        } else if($model instanceof Announcement && $model->id){
+            $array['affixable_id'] = $model->id;
+            $array['affixable_type'] = ModuleableType::ANNOUNCEMENT;
+        } else if($model instanceof Attendance == ModuleableType::ATTENDANCE){
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::ATTENDANCE;
         }

@@ -614,12 +614,6 @@ class StarController extends Controller
         }
         DB::beginTransaction();
         try {
-            if (count($array) == 0)
-                return $this->response->noContent();
-
-            $star->update($array);
-            // 操作日志
-            event(new OperateLogEvent($arrayOperateLog));
             if ($request->has('affix') && count($request->get('affix'))) {
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
@@ -630,6 +624,12 @@ class StarController extends Controller
                     }
                 }
             }
+            if (count($array) == 0)
+                return $this->response->noContent();
+
+            $star->update($array);
+            // 操作日志
+            event(new OperateLogEvent($arrayOperateLog));
 
         } catch (Exception $e) {
             DB::rollBack();

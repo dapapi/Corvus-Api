@@ -54,9 +54,17 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $payload = $request->all();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $tasks = Task::createDesc()->paginate($pageSize);
+        $tasks = Task::where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('type_id'))
+                $query->where('type_id', hashid_decode($payload['type_id']));
+            if ($request->has('status'))
+                $query->where('status', $payload['status']);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
@@ -963,16 +971,16 @@ class TaskController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $trails = Task::where(function($query) use ($request, $payload) {
+        $tasks = Task::where(function($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-        })->paginate($pageSize);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
-        return $this->response->paginator($trails, new TaskTransformer());
+        return $this->response->paginator($tasks, new TaskTransformer());
     }
 
     public function addRelates(AddRelateTaskRequest $request, Task $task)

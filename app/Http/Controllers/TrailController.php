@@ -28,11 +28,26 @@ use Illuminate\Support\Facades\Log;
 
 class TrailController extends Controller
 {
-    public function index(Request $request)
+    public function index(FilterTrailRequest $request)
     {
+        $payload = $request->all();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $trails = Trail::orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = Trail::where(function ($query) use ($request, $payload) {
+            if ($request->has('keyword') && $payload['keyword'])
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('status') && !is_null($payload['status']))
+                $query->where('progress_status', $payload['status']);
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }
@@ -43,7 +58,7 @@ class TrailController extends Controller
         return $this->response->collection($clients, new TrailTransformer());
     }
 
-    // todo 根据所属公司存不同类型 去完善 /users/my
+    // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
     public function store(StoreTrailRequest $request)
     {
         $payload = $request->all();
@@ -117,11 +132,11 @@ class TrailController extends Controller
                 ]);
                 // 操作日志
                 $operate = new OperateEntity([
-                    'obj' => $contact,
-                    'title' => null,
-                    'start' => null,
+                    'obj' => $client,
+                    'title' => '该用户',
+                    'start' => '联系人',
                     'end' => null,
-                    'method' => OperateLogMethod::CREATE,
+                    'method' => OperateLogMethod::ADD_PERSON,
                 ]);
                 event(new OperateLogEvent([
                     $operate,
@@ -443,5 +458,19 @@ class TrailController extends Controller
         })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
+    }
+
+    private function editLog($obj, $field, $old, $new)
+    {
+        $operate = new OperateEntity([
+            'obj' => $obj,
+            'title' => $field,
+            'start' => $old,
+            'end' => $new,
+            'method' => OperateLogMethod::UPDATE,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
     }
 }

@@ -19,7 +19,6 @@ use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
 use App\Repositories\OperateLogRepository;
 use App\Models\OperateEntity;
-use App\Models\Interfaces\OperateLogInterface;
 use App\OperateLogMethod;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +27,6 @@ use Illuminate\Support\Facades\Log;
 class AnnouncementController extends Controller
 {
     protected $affixRepository;
-
     public function __construct(AffixRepository $affixRepository)
     {
         $this->affixRepository = $affixRepository;
@@ -90,17 +88,32 @@ class AnnouncementController extends Controller
         unset($payload['status']);
         unset($payload['type']);
         $payload['creator_id'] = $user->id;//发布人
+
         if ($payload['creator_id']) {
             if(!empty($payload['scope']))
             {
-                $payload['scope'] = hashid_decode($payload['scope']);
+                $scope = $payload['scope'];
+                $len = count($payload['scope']);
+                if($len >= 2){
+                    $array = array();
+
+                    foreach($scope as $key => $value){
+                        $array['scope'][$key] = hashid_decode($value);
+                    }
+                    $payload['scope'] = $array['scope'];
+                    $payload['scope'] = implode(',',$payload['scope']);
+                }else{
+                    $payload['scope'] = hashid_decode(array_values($payload['scope'])[0]);
+                }
             }
             DB::beginTransaction();
             try {
                 $star = Announcement::create($payload);
-                $array['announcement_id'] = $star->id;
-                $array['department_id'] = $payload['scope'];
-                $arr = AnnouncementScope::create($array);
+                foreach($scope as $key => $value){
+                    $arr['announcement_id'] = $star->id;
+                    $arr['department_id'] = hashid_decode($value);
+                    $data = AnnouncementScope::create($arr);
+                }
             }catch (\Exception $e) {
                 dd($e);
                 DB::rollBack();

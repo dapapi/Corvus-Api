@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\Star;
@@ -635,7 +636,7 @@ class ReportFormRepository
      * @param $end_time结束时间
      * @param $sign_contract_status签约状态
      */
-    public function starContractSigningReport($start_time,$end_time,$sign_contract_status)
+    public function starReport($start_time,$end_time,$sign_contract_status)
     {
         $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
@@ -658,6 +659,7 @@ class ReportFormRepository
                         ->on('ts.starable_type','=',ModuleableType::STAR)//艺人
                         ->on('ts.type',TrailStar::EXPECTATION);//目标
                 })->leftJoin('projects as p','p.trail_id','on','ts.trail_id')
+                ->where($arr)
                 ->groupBy('s.id')
                 ->get([
                     's.id','name','sign_contract_status',
@@ -672,15 +674,60 @@ class ReportFormRepository
     }
 
     /**
-     * 艺人分析
+     * 艺人分析--线索
      * @param $start_time
      * @param $end_time
      * @param $deparment
      * @param $target_star
      */
-    public function starAnalysis($start_time,$end_time,$deparment,$target_star)
+    public function starTrailAnalysis($start_time,$end_time,$deparment,$target_star)
+    {
+        /**
+         * SELECT DISTINCT t.id,s.id  as star_id,count(t.type),count(t.industry_id),t.id as trail_id,t.type,t.industry_id from stars as s
+         * LEFT JOIN trail_star as ts on s.id = ts.starable_id and ts.starable_type='star' and ts.type = 1
+         * LEFT JOIN trails as t on t.id = ts.trail_id
+         * where t.id is not null
+         * GROUP BY t.type,t.industry_id
+         */
+        (new Star())->setTable("s")->from("trails as s")
+            ->leftJoin("trails_star as ts",function ($join){
+                $join->on('ts.starable_id','=','s.id')
+                    ->on('ts.starable_type','=',ModuleableType::STAR)//艺人
+                    ->on('ts.type',TrailStar::EXPECTATION);//目标
+            })->leftJoin("trails as t",'t.id','=',"ts.trail_id")
+            ->whereRaw('t.id is not null')
+            ->select(DB::raw('DISTINCT t.id'),"count(t.id) as total","t.type",'t.industry_id')
+            ->get();
+    }
+
+    /**
+     * 艺人分析项目
+     * @param $start_time
+     * @param $end_time
+     * @param $deparment
+     * @param $target_star
+     */
+    public function starProjectAnalysis($start_time,$end_time,$deparment,$target_star)
     {
 
+    }
+
+    /**
+     * 博主报表
+     * @param $start_time
+     * @param $end_time
+     * @param $sign_contract_status
+     */
+    public function bloggerReport($start_time,$end_time,$sign_contract_status)
+    {
+        $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['sign_contract_status',$sign_contract_status];
+        //签约中
+//        if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
+//            (new Blogger())->setTable("b")->from('bloggers as b')
+//                ->leftJoin('')
+//        }
     }
 
 

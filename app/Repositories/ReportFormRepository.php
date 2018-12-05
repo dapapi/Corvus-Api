@@ -642,12 +642,44 @@ class ReportFormRepository
         $arr[] = ['sign_contract_status',$sign_contract_status];
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
-            Star::where($arr)
+            $stars = Star::where($arr)
                 ->select('sign_contract_status','name','birthday','source','communication_status','created_at','')
                 ->get();
         }else{//已签约/解约
-//            (new Star())->
+            //合同，预计订单收入，花费金额都没查呢
+            $stars = (new Star())->setTable("s")->from("trails s")
+                ->leftJoin("module_users as mu",function ($join){
+                    $join->on('mu.moduleable_id','=','s.id')
+                        ->on('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                        ->on('mu.type','=',ModuleUserType::BROKER);//经纪人
+                })->leftJoin("department_user as du",'du.user_id','=','mu.user_id')
+                ->leftJoin("trails_star as ts",function ($join){
+                    $join->on('ts.starable_id','=','s.id')
+                        ->on('ts.starable_type','=',ModuleableType::STAR)//艺人
+                        ->on('ts.type',TrailStar::EXPECTATION);//目标
+                })->leftJoin('projects as p','p.trail_id','on','ts.trail_id')
+                ->groupBy('s.id')
+                ->get([
+                    's.id','name','sign_contract_status',
+                    DB::raw("count(ts.id) as trail_total"),
+                    DB::raw("count(p.id) as project_total"),
+                    DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
+                ]);
+
         }
+        return $stars;
+
+    }
+
+    /**
+     * 艺人分析
+     * @param $start_time
+     * @param $end_time
+     * @param $deparment
+     * @param $target_star
+     */
+    public function starAnalysis($start_time,$end_time,$deparment,$target_star)
+    {
 
     }
 

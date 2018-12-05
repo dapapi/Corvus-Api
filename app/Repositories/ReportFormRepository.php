@@ -2,17 +2,20 @@
 
 namespace App\Repositories;
 
+use App\Models\Client;
+use App\Models\Project;
 use App\Models\Star;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\Models\User;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\SignContractStatus;
 use Carbon\Carbon;
 use DemeterChain\C;
 use Illuminate\Support\Facades\DB;
 
-class TrailRepository2
+class ReportFormRepository
 {
     public function CommercialFunnelReportFrom($start_time,$end_time)
     {
@@ -314,10 +317,10 @@ class TrailRepository2
             $arr[]  = ['t.type',$type];
         }
         if($department != null){
-            $arr[] = ['d.id',$department];
+            $arr[] = ['du.department_id',$department];
         }
         $trails = (new Trail())->setTable('t')->from('trails as t')
-            ->select('t.id',"t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',DB::raw('u.name as principal_user'))
+            ->select(DB::raw('distinct t.id'),"t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',DB::raw('u.name as principal_user'))
             ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
             ->where('ts.starable_type',ModuleableType::STAR)//艺人
             ->where('ts.type',TrailStar::EXPECTATION)//目标
@@ -329,37 +332,38 @@ class TrailRepository2
 //            ->leftjoin('departments as d','d.id','=','department_id')
             ->leftJoin('users as u','u.id','=','t.principal_id')
             ->where($arr)->get();
-        dd($trails->toArray());
-        $trail_list = [];
-        foreach ($trails as $key => $trail){
-            $trail['id']    =   hashid_encode($trail['id']);
-            //线索来源，如果是员工查询员工
-            if(is_numeric($trail['resource'])){//是否还需要确定一下线索来源类型
-                $resource = User::select("name")->find($trail['resource']);
-                $trail['resource'] = $resource;
-            }
-            //目标艺人
-            $starlist = (new TrailStar())->setTable('ts')->from('trail_star as ts')
-                ->leftJoin('stars as s','s.id','=','ts.starable_id')
+        foreach ($trails as &$trail){
+            //获取线索对应的部门
+            $department_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+                ->leftJoin("module_users as mu",'mu.moduleable_id','=','ts.starable_id')
                 ->where('ts.starable_type',ModuleableType::STAR)//艺人
-                ->where('ts.type',TrailStar::EXPECTATION)//目标艺人
-                    ->where('ts.trail_id','=',$trail['id'])
-                ->select("s.name")
-                ->get();
-            $stars = "";
-            if(count($starlist) >= 1){
-                foreach ($starlist as $star){
-                    $stars .= ",".$star['name'];
-                }
+                ->where('ts.type',TrailStar::EXPECTATION)//目标
+                ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+                ->leftjoin('departments as d','d.id','=','department_id')
+                ->where('ts.trail_id',$trail->id)
+                ->get(['d.name']);
+            foreach ($department_list->toArray() as $deparment){
+                if(isset($deparment['name']) && $deparment['name'] != null)
+                    $trail->deparment_name .= ",".$deparment['name'];
             }
-
-            $trail['star_name'] = trim($stars,",");
-            $trail_list[$trail['id']] = $trail;
+            //获取线索对应的目标艺人
+            $star_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+                ->leftJoin("stars as s",'s.id','=','ts.starable_id')
+                ->where('ts.trail_id',$trail->id)
+                ->where('ts.starable_type',ModuleableType::STAR)
+                ->where('ts.type',TrailStar::EXPECTATION)//目标
+                ->get(['s.name']);
+            foreach ($star_list->toArray() as $star){
+                if(isset($star['name']) && $star['name'] != null)
+                $trail->star_name .= ",".$star['name'];
+            }
+            $trail->deparment_name = trim($trail->deparment_name,",");
+            $trail->star_name .= trim($trail->star_name,",");
         }
         return [
-            'trail_total'   =>  count($trail_list),
-            'fee_total' =>  array_sum(array_column($trail_list,'fee')),
-            'trail_list'    =>  $trail_list,
+            'trail_total'   =>  count($trails),
+            'fee_total' =>  array_sum(array_column($trails->toArray(),'fee')),
+            'trail_list'    =>  $trails,
         ];
     }
 
@@ -367,36 +371,32 @@ class TrailRepository2
      * 线索新增
      * @param $start_time
      * @param $end_time
-     * @param null $resource_type
+     * @param null $department
      * @param null $target_star
      * @return array
      */
-    public function newTrail($start_time,$end_time,$resource_type=null,$target_star=null)
+    public function newTrail($start_time,$end_time,$department=null,$target_star=null)
     {
         $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
-        if($resource_type != null){
-            $arr[] = ['t.resource_type',$resource_type];
+        if($department != null){
+            $arr[] = ['du.department_id',$department];
         }
-        $trails = [];
-        if($target_star == null){
-            $trails = (new Trail())->setTable("t")->from('trails as t')
-                ->where($arr)->select('created_at','type')
-                ->select('t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
-                ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
-                ->get();
-        }else{
-            $trails = (new Star())->setTable("s")->from("stars as s")
-                ->leftJoin('trail_star as ts','ts.starable_id','=','s.id')
-                ->leftJoin('trails as t','t.id','=','ts.trail_id')
-                ->where('ts.starable_type',ModuleableType::STAR)//艺人
-                ->where('ts.type',TrailStar::EXPECTATION)//目标艺人
-                    ->where('s.id',$target_star)
-                ->where($arr)
-                ->select('t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
-                ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
-                ->get();
+        if($target_star != null){
+            $arr[] = ['ts.starable_id',$target_star];
         }
+        $trails = (new Trail())->setTable("t")->from('trails as t')
+            ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
+            ->where('ts.starable_type',ModuleableType::STAR)//艺人
+            ->where('ts.type',TrailStar::EXPECTATION)//目标
+            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
+            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+            ->where('mu.type',ModuleUserType::BROKER)//经纪人
+            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->where($arr)
+            ->select(DB::raw("distinct t.id"),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+            ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
+            ->get();
         return $trails;
 
     }
@@ -405,41 +405,251 @@ class TrailRepository2
      * 销售线索占比
      * @param $start_time
      * @param $end_time
-     * @param null $resource_type  来源
+     * @param null $department  部门
      * @param null $target_star  目标艺人
      */
-    public function percentageOfSalesLeads($start_time,$end_time,$resource_type=null,$target_star=null)
+    public function percentageOfSalesLeads($start_time,$end_time,$department=null,$target_star=null)
     {
         $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
-        if($resource_type != null){
-            $arr[] = ['t.resource_type',$resource_type];
+        if($department != null){
+            $arr[] = ['du.department_id',$department];
         }
-        $trails = [];
-        if($target_star == null){
-            $trails = (new Trail())->setTable("t")->from('trails as t')
-                ->leftJoin('industries as i',"i.id",'=','t.industry_id')
-                ->where($arr)->select('created_at','type')
-                ->select("i.name as industry_name",'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
-                ->groupBy(DB::raw("type,t.industry_id"))
-                ->get();
-        }else{
-            $trails = (new Star())->setTable("s")->from("stars as s")
-                ->leftJoin('trail_star as ts','ts.starable_id','=','s.id')
-                ->leftJoin('trails as t','t.id','=','ts.trail_id')
-                ->leftJoin('industries as i',"i.id",'=','t.industry_id')
-                ->where('ts.starable_type',ModuleableType::STAR)//艺人
-                ->where('ts.type',TrailStar::EXPECTATION)//目标艺人
-                ->where('s.id',$target_star)
-                ->where($arr)
-                ->select('t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
-                ->groupBy(DB::raw("i.name as industry_name,type,DATE_FORMAT(t.created_at,'%Y-%m')"))
-                ->get();
+        if($target_star != null){
+            $arr[] = ['ts.starable_id',$target_star];
         }
+        $trails = (new Trail())->setTable("t")->from('trails as t')
+            ->leftJoin('industries as i',"i.id",'=','t.industry_id')
+            ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
+            ->where('ts.starable_type',ModuleableType::STAR)//艺人
+            ->where('ts.type',TrailStar::EXPECTATION)//目标
+            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
+            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+            ->where('mu.type',ModuleUserType::BROKER)//经纪人
+            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->where($arr)
+            ->select(DB::raw("distinct t.id"),"i.name as industry_name",'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+            ->groupBy(DB::raw("type,t.industry_id"))
+            ->get();
         $sum = array_sum(array_column($trails->toArray(),'total'));
         foreach ($trails as &$trail){
             $trail['per'] = $sum == 0? 0 : $trail['total'] / $sum;
         }
         return $trails;
     }
+
+    /**
+     * 销售线索报表，行业分析
+     * @param $start_time
+     * @param $end_time
+     * @param $type
+     */
+    public function industryAnalysis($start_time,$end_time,$type){
+        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($type != null){
+            $arr[] = ['d.id',$type];
+        }
+        (new Trail())->setTable("t")->from("trails as t")
+            ->leftJoin('industries as i',"i.id",'=','t.industry_id')
+            ->where($arr)
+            ->groupBy("t.industry_id")
+            ->get([
+                DB::raw('count(t.id) as total'),
+                "i.name as industry_name"
+            ]);
+    }
+
+    /*********************************************项目报表*****************************************************/
+    public function projectReport($start_time,$end_time,$type,$department)
+    {
+        $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($department != null){
+            $arr[] = ['du.department_id',$department];
+        }
+        if($type != null){
+            $arr[]  = ['p.type',$type];
+        }
+        $peroject_list = (new Project())->setTable("p")->from("projects as p")
+            ->leftJoin('users as u','u.id','=','p.principal_id')
+            ->leftJoin('trail_star as ts','ts.trail_id','=','p.trail_id')
+            ->where('ts.starable_type',ModuleableType::STAR)//艺人
+            ->where('ts.type',TrailStar::EXPECTATION)//目标
+            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
+            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+            ->where('mu.type',ModuleUserType::BROKER)//经纪人
+            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->where($arr)
+            ->get([
+                DB::raw('distinct p.id'),
+                'p.status','p.type','p.title',
+                DB::raw('u.name as principal_name'),
+                'p.trail_id'
+            ]);
+        foreach ($peroject_list as &$project){
+            //查找部门
+            $department_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                ->where('ts.type',TrailStar::EXPECTATION)//目标
+                ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
+                ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+                ->where('mu.type',ModuleUserType::BROKER)//经纪人
+                ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+                ->leftJoin('departments as d','d.id','=','du.department_id')
+                ->where('ts.trail_id',$project->trail_id)
+                ->get(['d.name']);
+            foreach ($department_list->toArray() as $deparment){
+                if(isset($deparment['name']) && $deparment['name'] != null)
+                    $project->deparment_name .= ",".$deparment['name'];
+            }
+            //查找艺人
+            $star_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                ->where('ts.type',TrailStar::EXPECTATION)//目标
+                ->leftJoin('stars as s','s.id','=','ts.starable_id')
+                ->where('ts.trail_id',$project->trail_id)
+                ->get(['s.id','s.name']);
+            foreach ($star_list->toArray() as $star){
+                if(isset($star['name']) && $star['name'] != null)
+                    $project->star_name .= ",".$star['name'];
+            }
+            $project->deparment_name = trim($project->deparment_name,",");
+            $project->star_name = trim($project->star_name,",");
+        }
+        return $peroject_list;
+    }
+
+    /**
+     * 项目新增
+     * @param $start_time
+     * @param $end_time
+     * @param null $department
+     * @param null $target_star
+     * @return mixed
+     */
+    public function newProject($start_time,$end_time,$department=null,$target_star=null)
+    {
+        $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($department != null){
+            $arr[] = ['du.department_id',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['ts.starable_id',$target_star];
+        }
+        $peroject_list = (new Project())->setTable("p")->from("projects as p")
+            ->leftJoin('users as u','u.id','=','p.principal_id')
+            ->leftJoin('trail_star as ts','ts.trail_id','=','p.trail_id')
+            ->where('ts.starable_type',ModuleableType::STAR)//艺人
+            ->where('ts.type',TrailStar::EXPECTATION)//目标
+            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
+            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+            ->where('mu.type',ModuleUserType::BROKER)//经纪人
+            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->where($arr)
+            ->groupBy(DB::raw("p.type,DATE_FORMAT(p.created_at,'%Y-%m')"))
+            ->get([
+                DB::raw('distinct p.id'),
+                DB::raw('count(p.id)'),
+                DB::raw("DATE_FORMAT(p.created_at,'%Y-%m')"),
+                'p.type'
+            ]);
+        return $peroject_list;
+    }
+
+    /**
+     * 项目占比
+     * @param $start_time
+     * @param $end_time
+     * @param null $department
+     * @param null $target_star
+     */
+    public function percentageOfProject($start_time,$end_time,$department=null,$target_star=null)
+    {
+        $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($department != null){
+            $arr[] = ['du.department_id',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['ts.starable_id',$target_star];
+        }
+        $result = (new Project())->setTable("p")->from("projects as p")
+            ->leftJoin('trails as t','t.id','=','p.trail_id')
+            ->leftJoin('industries as i','i.id','=','t.industry_id')
+            ->groupBy(DB::raw('p.type,i.id'))
+            ->get(
+                [
+                    DB::raw('count(p.id) as total'),
+                    'i.name',
+                    't.industry_id',
+                    'p.type'
+                ]
+            );
+        $um = array_sum(array_column($result->toArray(),'total'));
+        $list = [];
+        foreach ($result->toArray() as $value){
+            $value['per'] = $um == 0 ? 0 : $value['total']/$um;
+            $list[$value['type']] = $value;
+        }
+        return $list;
+
+    }
+    //客户报表
+    public function clientReport($start_time,$end_time,$type=null)
+    {
+        $arr[] = ['c.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['c.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($type != null){
+            $arr[] = ['c.type',$type];
+        }
+        $clients = (new Client())->setTable('c')->from('clients as c')
+            ->leftJoin('users as u','u.id','=','c.principal_id')
+            ->where($arr)
+            ->get(['type','company','grade','keyman','u.name as principal_name']);
+        foreach ($clients as $client){
+            //获取联系人
+            $contacts = $client->contacts()->get(['name','phone']);
+            $client->contacts = $contacts;
+        }
+    }
+    //客户分析
+    public function clientAnalysis($start_time,$end_time)
+    {
+        $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
+        Client::where($arr)
+            ->groupBy(DB::raw("type,DATE_FORMAT(created_at,'%Y-%m')"))
+            ->get([
+                DB::raw("count(id) as total"),
+                'type',
+                DB::raw("DATE_FORMAT(created_at,'%Y-%m')")
+            ]);
+    }
+    //签约中艺人报表Contract signing
+
+    /**
+     * 艺人报表
+     * @param $start_time开始时间
+     * @param $end_time结束时间
+     * @param $sign_contract_status签约状态
+     */
+    public function starContractSigningReport($start_time,$end_time,$sign_contract_status)
+    {
+        $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['sign_contract_status',$sign_contract_status];
+        //签约中
+        if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
+            Star::where($arr)
+                ->select('sign_contract_status','name','birthday','source','communication_status','created_at','')
+                ->get();
+        }else{//已签约/解约
+
+        }
+
+    }
+
+
 }

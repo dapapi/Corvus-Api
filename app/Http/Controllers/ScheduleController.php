@@ -90,13 +90,9 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule = Schedule::create($payload);
-            if ($request->has('participant_ids')) {
-                foreach ($payload['participant_ids'] as &$id) {
-                    $id = hashid_decode($id);
-                }
-                unset($id);
+            if ($request->has('participant_ids') && is_array($payload['participant_ids']))
+
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $schedule, ModuleUserType::PARTICIPANT);
-            }
 
             if ($request->has('project_ids')) {
                 foreach ($payload['project_ids'] as &$id) {
@@ -133,6 +129,7 @@ class ScheduleController extends Controller
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');
         }
+
         DB::commit();
 
         return $this->response->item($schedule, new ScheduleTransformer());
@@ -156,28 +153,18 @@ class ScheduleController extends Controller
                 return $this->response->errorBadRequest('会议室id不存在');
         }
 
-        if ($request->has('participant_ids')) {
-            foreach ($payload['participant_ids'] as &$id) {
-                $id = hashid_decode($id);
-            }
-            unset($id);
-        } else {
-            $payload['participant_ids'] = [];
-        }
 
-        if ($request->has('participant_del_ids')) {
-            foreach ($payload['participant_del_ids'] as &$id) {
-                $id = hashid_decode($id);
-            }
-            unset($id);
-        } else {
+        if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
+            $payload['participant_ids'] = [];
+
+        if (!$request->has('participant_del_ids') || is_array($payload['participant_ids']))
             $payload['participant_del_ids'] = [];
-        }
+
 
         DB::beginTransaction();
         try {
             $schedule->update($payload);
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'] ,$schedule, ModuleUserType::PARTICIPANT);
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
 
         } catch (\Exception $exception) {
             Log::error($exception);

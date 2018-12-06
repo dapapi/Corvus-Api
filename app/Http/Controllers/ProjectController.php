@@ -343,23 +343,11 @@ class ProjectController extends Controller
             }
         }
 
-        if ($request->has('participant_ids')) {
-            foreach ($payload['participant_ids'] as &$id) {
-                $id = hashid_decode($id);
-            }
-            unset($id);
-        } else {
+        if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];
-        }
 
-        if ($request->has('participant__del_ids')) {
-            foreach ($payload['participant_del_ids'] as &$id) {
-                $id = hashid_decode($id);
-            }
-            unset($id);
-        } else {
+        if (!$request->has('participant_del_ids') || is_array($payload['participant_ids']))
             $payload['participant_del_ids'] = [];
-        }
 
         DB::beginTransaction();
         try {

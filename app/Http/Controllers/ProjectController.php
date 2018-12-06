@@ -354,6 +354,8 @@ class ProjectController extends Controller
             $project->update($payload);
             $projectId = $project->id;
 
+            $trail = $project->trail;
+
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
 
             if ($request->has('fields')) {
@@ -375,19 +377,9 @@ class ProjectController extends Controller
             }
 
             if ($request->has('trail')) {
-                if (array_key_exists('id', $payload['trail']))
-                    $payload['trail']['id'] = hashid_decode($payload['trail']['id']);
+
 
                 foreach ($payload['trail'] as $key => $val) {
-                    if ($key == 'id') {
-                        $trail = Trail::find($val);
-                        if (!$trail)
-                            throw new Exception('线索不存在或已删除');
-
-                        $project->trail_id = $trail->id;
-                    } else {
-                        break;
-                    }
 
                     if ($key == 'lock') {
                         $trail->lock_status = $val;

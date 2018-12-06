@@ -28,7 +28,6 @@ class EditProjectRequest extends FormRequest
             'type' => 'nullable',
             'principal_id' => 'nullable|numeric',
             'priority' => 'nullable|numeric',
-            'trail.id' => 'required_with:trail',
             'trail.fee' => 'nullable',
             'trail.lock' => 'nullable|boolean',
             'trail.resource_type' => 'nullable|numeric',

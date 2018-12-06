@@ -85,7 +85,6 @@ class ReviewController extends Controller
 
 
         $reviewdata = BulletinReviewTitle::where('bulletin_review_id',$review->id)->first();
-
         // 操作日志
 //        $operate = new OperateEntity([
 //            'obj' => $blogger,

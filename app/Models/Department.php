@@ -13,8 +13,10 @@ class Department extends Model
         'name',
         'department_pid',
         'desc',
+        'city',
     ];
     const DEPARTMENT_HEAD_TYPE = 1; // 部门负责人
+    const NOT_DISTRIBUTION_DEPARTMENT= '未分配部门'; // 部门负责人
 
 
     public function pDepartment()

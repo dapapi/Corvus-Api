@@ -5,8 +5,8 @@ namespace App\Repositories\Wechat;
 use App\Exceptions\SystemInternalException;
 use App\Exceptions\UserBadRequestException;
 use App\User;
-use App\UserWechatInfo;
-use App\UserWechatOpenId;
+use App\Models\UserWechatInfo;
+use App\Models\UserWechatOpenId;
 use Exception;
 use Illuminate\Support\Facades\Log;
 

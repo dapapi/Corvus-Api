@@ -15,10 +15,6 @@ use App\Models\Record;
 use App\Models\FamilyData;
 
 
-
-
-
-
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
@@ -27,8 +23,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
-
 
 
 class User extends Authenticatable
@@ -102,7 +96,6 @@ class User extends Authenticatable
     const  USER_ENTRY_STATUS = 3; //hr审核状态已同意
 
 
-
     const USER_PSWORD = '$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy';
 
     /**
@@ -119,8 +112,6 @@ class User extends Authenticatable
     ];
 
 
-
-
     // todo 可能再加用户状态筛选
     public function findForPassport($name)
     {
@@ -132,7 +123,9 @@ class User extends Authenticatable
     }
 
     public function findForEmail($email)
-    {   var_dump($email);die;
+    {
+        var_dump($email);
+        die;
 
         return $user;
     }
@@ -150,6 +143,17 @@ class User extends Authenticatable
         }
         $company = $this->departmentToCompany($department);
         return $company;
+    }
+
+    public function getIsDepartmentPrincipalAttribute()
+    {
+        $department = $this->department()->wherePivot('type', 1)->first();
+
+        if ($department)
+            return 1;
+        else {
+            return 0;
+        }
     }
 
     public function tasks()

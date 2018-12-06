@@ -112,7 +112,67 @@ class ReportFormController extends Controller
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $type = $request->get('type',null);
-
+        return (new ReportFormRepository())->clientReport($start_time,$end_time,$type);
 
     }
+    //客户分析
+    public function clientAnalysis(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        return (new ReportFormRepository())->clientAnalysis($start_time,$end_time);
+    }
+    public function starReport(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $sign_contract_status = $request->get('sign_contract_status',null);
+        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status);
+    }
+    //艺人线索分析
+    public function starTrailAnalysis(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        return (new ReportFormRepository())->starTrailAnalysis($start_time,$end_time,$department,$target_star);
+    }
+    //艺人项目
+    public function starProjectAnalysis(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        return (new ReportFormRepository())->starProjectAnalysis($start_time,$end_time,$department,$target_star);
+    }
+
+    //博主报表
+    public function bloggerReport(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $sign_contract_status = $request->get('sign_contract_status',null);
+        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status);
+    }
+    //博主线索分析
+    public function bloggerTrailAnalysis(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        return (new ReportFormRepository())->bloggerTrailAnalysis($start_time,$end_time,$department,$target_star);
+    }
+    //博主项目分析
+    public function bloggerProjectAnalysis(Request $request)
+    {
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        return (new ReportFormRepository())->bloggerProjectAnalysis($start_time,$end_time,$department,$target_star);
+    }
+
 }

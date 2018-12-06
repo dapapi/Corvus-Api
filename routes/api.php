@@ -386,6 +386,24 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get("/reportfrom/newproject", "App\Http\Controllers\ReportFormController@newProject");
         //项目占比
         $api->get("/reportfrom/percentageofproject", "App\Http\Controllers\ReportFormController@percentageOfProject");
+        //客户报表
+        $api->get("/reportfrom/clientreport", "App\Http\Controllers\ReportFormController@clientReport");
+        //客户分析
+        $api->get("/reportfrom/clientanalysis", "App\Http\Controllers\ReportFormController@clientAnalysis");
+
+        //艺人报表
+        $api->get("/reportfrom/starreport", "App\Http\Controllers\ReportFormController@starReport");
+        //艺人线索分析
+        $api->get("/reportfrom/startrailanalysis", "App\Http\Controllers\ReportFormController@starTrailAnalysis");
+        //艺人项目分析
+        $api->get("/reportfrom/starprojectanalysis", "App\Http\Controllers\ReportFormController@starProjectAnalysis");
+        //博主报表
+        $api->get("/reportfrom/bloggerreport", "App\Http\Controllers\ReportFormController@bloggerReport");
+        //博主线索分析
+        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
+        //博主项目分析
+        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+
 
     });
 });

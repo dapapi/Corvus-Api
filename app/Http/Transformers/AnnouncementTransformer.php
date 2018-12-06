@@ -14,7 +14,7 @@ class AnnouncementTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['scope'];
+    protected $availableIncludes = ['scope','creator'];
 
     public function transform(Announcement $announcement)
     {
@@ -46,6 +46,15 @@ class AnnouncementTransformer extends TransformerAbstract
         return $this->isAll ? $array :$arraySimple;
     }
 
+    public function includeCreator(Announcement $announcement)
+    {
+
+        $user = $announcement->creator;
+
+        if (!$user)
+            return null;
+        return $this->item($user, new UserTransformer());
+    }
 
     public function includeBroker(Announcement $announcement)
     {

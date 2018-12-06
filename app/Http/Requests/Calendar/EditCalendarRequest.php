@@ -29,6 +29,7 @@ class EditCalendarRequest extends FormRequest
             'privacy' => 'nullable|numeric',
             'star' => 'nullable|numeric',
             'participant_ids' => 'nullable|array',
+            'participant_del_ids' => 'nullable|array',
         ];
     }
 }

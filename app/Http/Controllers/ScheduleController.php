@@ -157,9 +157,8 @@ class ScheduleController extends Controller
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];
 
-        if (!$request->has('participant_del_ids') || is_array($payload['participant_ids']))
+        if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
             $payload['participant_del_ids'] = [];
-
 
         DB::beginTransaction();
         try {

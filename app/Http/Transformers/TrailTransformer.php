@@ -21,7 +21,6 @@ class TrailTransformer extends TransformerAbstract
             'industry_id' => hashid_encode($trail->industry->id),
             'industry' => $trail->industry->name,
             'resource_type' => $trail->resource_type,
-            'resource' => $trail->resource,
             'type' => $trail->type,
             'fee' => $trail->fee,
             'priority' => $trail->priority,
@@ -41,14 +40,6 @@ class TrailTransformer extends TransformerAbstract
         ];
 
         if (is_numeric($trail->resource)) {
-            $user = User::find($trail->resource);
-            $array['resource'] = [
-                'id' => hashid_encode($user->id),
-                'name' => $user->name
-            ];
-        }
-
-        if ($trail->resource_type == Trail::PERSONAL) {
             $resource = User::where('id', $trail->resource)->first();
             if ($resource) {
                 $array['resource'] = [

@@ -540,6 +540,11 @@ class ProjectController extends Controller
                 $project->stop_at = now();
                 $project->status = $status;
                 break;
+            case Project::STATUS_NORMAL:
+                $project->stop_at = null;
+                $project->complete_at = null;
+                $project->status = $status;
+                break;
             default:
                 break;
         }

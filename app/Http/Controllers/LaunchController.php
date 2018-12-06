@@ -68,10 +68,10 @@ class LaunchController extends Controller
     }
     public function all(LaunchAllRequest $request)
     {
+
         $All = $request->get('accessory',false);
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-
         if(empty($All)){
             return $this->response->errorInternal('参数不正确');
         }
@@ -82,11 +82,20 @@ class LaunchController extends Controller
 
             $array[] = ['member',$user->id];
             $array[] = ['template_id',hashid_decode($All)];
-        $arr = draft::where($array)->first()->Answer->toarray();
 
-        $data = issues::where('accessory',hashid_decode($All))->get(['id']);
+//            if(empty(draft::where($array)->first())){
+//
+//            }else{
+//                $arr = draft::where($array)->first()->Answer->toarray();
+//            }
+
+        $data = Issues::where('accessory',hashid_decode($All))->get(['id']);
+
         foreach($data->toarray() as $key => $value) {
             $num = $value['id'];
+           if(empty(draft::where($array)->first())){
+               $isAll = '';
+           }else{
 
             $user =  draft::where($array)->first()->Answer;
             if ($user) {
@@ -96,7 +105,7 @@ class LaunchController extends Controller
             } else {
                 $isAll = '';
             }
-
+          }
         }
         $arr = Issues::where('accessory',hashid_decode($All))->get();
         foreach($arr->toarray() as $key => $value) {
@@ -109,9 +118,8 @@ class LaunchController extends Controller
             }
 //            Report::find($num)->state = $sally;
         }
+
         $getbulletinlist = issues::where('accessory',hashid_decode($All))->createDesc()->get();
-
-
         return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
 
     }

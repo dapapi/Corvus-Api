@@ -115,7 +115,7 @@ class TaskTransformer extends TransformerAbstract
     public function includeRelateProjects(Task $task)
     {
         $projects = $task->relateProjects;
-        return $this->collection($projects, new TaskTransformer());
+        return $this->collection($projects, new ProjectTransformer());
     }
 
 }

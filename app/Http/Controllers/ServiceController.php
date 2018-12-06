@@ -2,120 +2,110 @@
 
 namespace App\Http\Controllers;
 
-use Gregwar\Captcha\CaptchaBuilder;
-use Gregwar\Captcha\PhraseBuilder;
-use Illuminate\Support\Facades\Request;
+use App\Http\Requests\GetRequestTokenRequest;
+use App\Http\Requests\SendSmsRequest;
+use App\Http\Transformers\RequestTokenTransformer;
+use App\Models\RequestVerityToken;
+use App\Sms\VerifyCodeSms;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Overtrue\EasySms\EasySms;
+use Overtrue\EasySms\Exceptions\GatewayErrorException;
 use Qiniu\Auth;
+use Webpatser\Uuid\Uuid;
 
-class ServiceController extends Controller
-{
-
-    public function cloudStorageToken()
-    {
-        $auth = new Auth(config('app.QINIU_ACCESS_KEY'), config('app.QINIU_SECRET_KEY'));
-        $upToken = $auth->uploadToken(config('app.QINIU_BUCKET'), null, 3600, null);
-        return $this->response->array(['data' => ['token' => $upToken]]);
-    }
+class ServiceController extends Controller {
 
     /**
-     * 返回图片验证码
-     * @param ImageCodeRequest $request
-     * @return 图片验证码
+     * @throws Exception
      */
-    public function imageVerificationCode(Request $request)
-    {
+    public function requestToken(GetRequestTokenRequest $request) {
+
+        $token = Uuid::generate(4)->string;
         $payload = $request->all();
-        $width = isset($payload['width']) ? $payload['width'] : 240;
-        $height = isset($payload['height']) ? $payload['height'] : 88;
 
-        //crate image
-        $phraseBuilder = new PhraseBuilder();
-        $phrase = $phraseBuilder->build(4, '0123456789');
-        $builder = new CaptchaBuilder($phrase, $phraseBuilder);
-        $builder->setBackgroundColor(255,255,255);
-        $builder->build($width, $height);
+        $requestToken = RequestVerityToken::where('device', $payload['device'])->first();
 
-        $code = $builder->getPhrase();
+        if ($requestToken) {
+            $requestToken->token = $token;
+            try {
+                $requestToken->save();
+            } catch (Exception $e) {
+                return $this->response->errorInternal('获取Token失败');
+            }
+        } else {
+            try {
+                $requestToken = RequestVerityToken::create(['token' => $token, 'device' => $payload['device'], 'expired_in' => env('Token_Expired_In', 1800)]);
+            } catch (Exception $e) {
+                return $this->response->errorInternal('获取Token失败');
+            }
+        }
 
-        return response($builder->get(), 200)->header('Content-Type', 'image/jpeg');
+        return $this->response->item($requestToken, new RequestTokenTransformer());
     }
 
     /**
      * 获取短信验证码
-     *
-     * @param SendSMSCodeRequest $request
+     * @param SendSmsRequest $request
+     * @return \Dingo\Api\Http\Response|void
+     * @throws \Overtrue\EasySms\Exceptions\InvalidArgumentException
+     * @throws \Overtrue\EasySms\Exceptions\NoGatewayAvailableException
      */
-    public function requestSMSCode(Request $request)
-    {
-        $resultJSON = ['success' => false];
-
+    public function sendSMSCode(SendSmsRequest $request) {
         $payload = $request->all();
-        $imageCode = $payload['image_code'];
         $telephone = $payload['telephone'];
+        $device = $payload['device'];
+        $token = $payload['token'];
 
-        if (is_null($telephone)){
-            $result['message'] = '手机号不能为空';
-            return response()->json($result);
-        }
-
-        if (is_null($imageCode)){
-            $result['message'] = '图片验证码不能为空';
-            return response()->json($result);
-        }
-
-        return $this->sendSMSCode($telephone, $imageCode);
-    }
-
-    /**
-     * 获取短信验证码
-     *
-     * @param $telephone
-     * @param $imageCode
-     * @return $this|\Illuminate\Http\JsonResponse
-     */
-    public function sendSMSCode($telephone, $imageCode)
-    {
-        $resultJSON = ['success' => false];
-
-        if (!Utils::verifyTelephone($telephone)) {
-            $result['message'] = '手机号格式错误';
-            return response()->json($result);
-        }
-
-        if ($imageCode != Session::get("image_code")) {
-            $result['message'] = '图片验证码不正确';
-            return response()->json($result);
-        }
+        #查询该请求
+        $requestToken = RequestVerityToken::where('device', $device)->where('token', $token)->first();
 
         #生成随机号码
         $pool = '0123456789';
         $randomString = substr(str_shuffle(str_repeat($pool, 5)), 0, 4);
 
         #发送短信
-        $singleSender = new SmsSingleSender(env('QCLOUD_SMS_APPID'), env('QCLOUD_SMS_KEY'));
-        $params = array($randomString, "30");
-        $result = $singleSender->sendWithParam("86", $telephone, env('QCLOUD_SMS_TEMPLATE_ID'), $params, "", "", "");
-        $resultObject = json_decode($result);
-
-        #查询发送结果
-        if ($resultObject->result !== 0) {
-            $resultJSON['message'] = '发送短信失败';
-            return response()->json($resultJSON);
+        $easySms = new EasySms(config('sms'));
+        try {
+            $easySms->send($telephone, new VerifyCodeSms($randomString));
+        } catch (GatewayErrorException $exception) {
+            Log::error($exception->getMessage());
+            return $this->response->errorBadRequest('发送短信失败');
         }
 
-        //save telephone and code to session
-        Session::put('tp_' . $telephone, $randomString);
-        Session::save();
-        $cookie = cookie('_time', time(), env('SMS_CODE_TIME'));
+        #保存验证码
+        $requestToken->sms_code = $randomString;
+        $requestToken->telephone = $telephone;
 
-        $resultJSON['success'] = true;
-        return response()->json($resultJSON)->withCookie($cookie);
+        try {
+            $requestToken->save();
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+            return $this->response->errorInternal('缓存短信验证码失败');
+        }
+
+        return $this->response->accepted('','发送成功');
     }
 
+    public function getQiniuToken() {
+        $qiniuAuth = new Auth(env('QINIU_ACCESS_KEY'), env('QINIU_SECRET_KEY'));
+        try {
+            $qiniuToken = $qiniuAuth->uploadToken(env('QINIU_BUCKET'));
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+            return $this->response->errorInternal('生成七牛上传token失败');
+        }
+        return $this->response->array(['token' => $qiniuToken]);
+    }
 
-    public function forgetSmsTime()
-    {
-//        Session::forget('_time');
-        return response()->json(['success' => true])->withCookie(Cookie::forget('_time'));
+    public function getImageQiniuToken() {
+        $qiniuAuth = new Auth(env('QINIU_ACCESS_KEY'), env('QINIU_SECRET_KEY'));
+        try {
+            $qiniuToken = $qiniuAuth->uploadToken(env('QINIU_BUCKET', null, 3600, ['mimeLimit' => 'image/*']));
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+            return $this->response->errorInternal('生成七牛上传token失败');
+        }
+        return $this->response->array(['token' => $qiniuToken]);
     }
 }

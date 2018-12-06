@@ -60,13 +60,11 @@ class CalendarController extends Controller
         try {
             $calendar = Calendar::create($payload);
 
-            if ($request->has('participant_ids')) {
-                foreach ($payload['participant_ids'] as &$id) {
-                    $id = hashid_decode($id);
-                }
-                unset($id);
-                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $calendar, ModuleUserType::PARTICIPANT);
-            }
+            if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
+                $payload['participant_ids'] = [];
+
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $calendar, ModuleUserType::PARTICIPANT);
+
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -92,8 +90,16 @@ class CalendarController extends Controller
             }
         }
 
+        if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
+            $payload['participant_ids'] = [];
+
+        if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
+            $payload['participant_del_ids'] = [];
+
         try {
             $calendar->update($payload);
+
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
         } catch (Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('修改日历失败');

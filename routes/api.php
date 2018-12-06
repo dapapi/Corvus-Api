@@ -390,6 +390,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
         //博主项目分析
         $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+        $api->get('/users', 'App\Http\Controllers\UserController@index');
 
         /*组织架构 部门管理*/
         //获取部门列表

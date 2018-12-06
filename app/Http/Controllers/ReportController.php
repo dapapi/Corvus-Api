@@ -49,7 +49,6 @@ class ReportController extends Controller
     public function all(ReportAllRequest $request){
 
         $isAll = $request->get('template_name',false);
-
         if(empty($isAll)){
             return $this->response->errorInternal('参数不正确');
         }
@@ -58,6 +57,7 @@ class ReportController extends Controller
             return $this->response->errorInternal('参数不能为零');
         }
         $getbulletinlist = Report::where('template_name',$isAll)->get();
+
         return $this->response->collection($getbulletinlist, new ReportTransformer($isAll));
 
     }

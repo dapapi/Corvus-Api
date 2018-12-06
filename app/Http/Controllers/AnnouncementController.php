@@ -82,6 +82,7 @@ class AnnouncementController extends Controller
     public function show(Request $request,Announcement $announcement)
     {
 
+
         return $this->response->item($announcement, new AnnouncementTransformer());
 
     }
@@ -175,7 +176,18 @@ class AnnouncementController extends Controller
             }
         }
         if ($request->has('scope')) {
-            $array['scope'] = $payload['scope'];
+            $scope = $payload['scope'];
+            $len = count($payload['scope']);
+            if($len >= 2){
+                $arr = array();
+
+                foreach($scope as $key => $value){
+                    $arr['scope'][$key] = hashid_decode($value);
+                }
+                $array['scope'] = implode(',',$arr['scope']);
+            }else{
+                $array['scope'] = hashid_decode(array_values($payload['scope'])[0]);
+            }
             if ($array['scope'] != $announcement->scope) {
                 $operateNickname = new OperateEntity([
                     'obj' => $announcement,
@@ -254,6 +266,16 @@ class AnnouncementController extends Controller
             if (count($array) == 0)
                 return $this->response->noContent();
             $announcement->update($array);
+            if(!empty($scope)){
+               $announdelete =  AnnouncementScope::where('announcement_id',$announcement->id)->delete();
+                if($announdelete){
+            foreach($scope as $key => $value){
+                $arr['announcement_id'] = $announcement->id;
+                $arr['department_id'] = hashid_decode($value);
+                $data = AnnouncementScope::create($arr);
+             }
+            }
+            }
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
         } catch (Exception $e) {

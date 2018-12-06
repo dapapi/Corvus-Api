@@ -14,7 +14,7 @@ class AnnouncementTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'broker','report','scope'];
+    protected $availableIncludes = ['scope'];
 
     public function transform(Announcement $announcement)
     {
@@ -22,7 +22,7 @@ class AnnouncementTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($announcement->id),
             'title' => $announcement->title,  //标题
-            'scope' => $announcement->scope,   //公告范围
+           // 'scope' => $announcement->scope,   //公告范围
             'classify' => $announcement->classify,  //分类  1 规则制度   2 内部公告
             'desc' => $announcement->desc, //输入内容
             'readflag' => $announcement->readflag, //默认 0  未读  1 读
@@ -46,14 +46,6 @@ class AnnouncementTransformer extends TransformerAbstract
         return $this->isAll ? $array :$arraySimple;
     }
 
-    public function includeCreator(Announcement $announcement)
-    {
-
-        $user = $announcement->creator;
-        if (!$user)
-            return null;
-        return $this->item($user, new UserTransformer());
-    }
 
     public function includeBroker(Announcement $announcement)
     {
@@ -63,15 +55,10 @@ class AnnouncementTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
-    public function includeTasks(Announcement $announcement)
-    {
-
-        $tasks = $announcement->tasks()->createDesc()->get();
-        return $this->collection($tasks, new AnnouncementTransformer());
-    }
     public function includeScope(Announcement $announcement)
     {
         $scope = $announcement->scope()->createDesc()->get();
+
         return $this->collection($scope, new AnnouncementScopeTransformer());
     }
 

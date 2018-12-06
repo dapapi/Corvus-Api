@@ -15,7 +15,7 @@ class StarTransformer extends TransformerAbstract
         $this->isAll = $isAll;
     }
 
-    protected $availableIncludes = ['creator', 'tasks', 'trails','affixes','broker', 'publicity','trails','project','works'];
+    protected $availableIncludes = ['creator', 'tasks', 'trails','affixes','broker', 'publicity','project','works'];
 
     public function transform(Star $star)
     {

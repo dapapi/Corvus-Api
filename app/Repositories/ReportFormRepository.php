@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Trail;
@@ -14,6 +15,7 @@ use App\ModuleUserType;
 use App\SignContractStatus;
 use Carbon\Carbon;
 use DemeterChain\C;
+use function foo\func;
 use Illuminate\Support\Facades\DB;
 
 class ReportFormRepository
@@ -607,20 +609,21 @@ class ReportFormRepository
         }
         $clients = (new Client())->setTable('c')->from('clients as c')
             ->leftJoin('users as u','u.id','=','c.principal_id')
+            ->leftJoin('contacts as cs','cs.client_id','=','c.id')
             ->where($arr)
-            ->get(['type','company','grade','keyman','u.name as principal_name']);
-        foreach ($clients as $client){
-            //获取联系人
-            $contacts = $client->contacts()->get(['name','phone']);
-            $client->contacts = $contacts;
-        }
+            ->groupBy('c.id')
+            ->get(['c.type','c.company','c.grade','c.keyman','u.name as principal_name',
+                DB::raw('GROUP_CONCAT(cs.name)'),
+                DB::raw('GROUP_CONCAT(cs.phone)')
+                ]);
+        return $clients;
     }
     //客户分析
     public function clientAnalysis($start_time,$end_time)
     {
         $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
-        Client::where($arr)
+        return Client::where($arr)
             ->groupBy(DB::raw("type,DATE_FORMAT(created_at,'%Y-%m')"))
             ->get([
                 DB::raw("count(id) as total"),
@@ -638,9 +641,9 @@ class ReportFormRepository
      */
     public function starReport($start_time,$end_time,$sign_contract_status)
     {
-        $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
-        $arr[] = ['sign_contract_status',$sign_contract_status];
+        $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['s.sign_contract_status',$sign_contract_status];
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
             $stars = Star::where($arr)
@@ -648,23 +651,24 @@ class ReportFormRepository
                 ->get();
         }else{//已签约/解约
             //合同，预计订单收入，花费金额都没查呢
-            $stars = (new Star())->setTable("s")->from("trails s")
+            $stars = (new Star())->setTable("s")->from("stars as s")
                 ->leftJoin("module_users as mu",function ($join){
                     $join->on('mu.moduleable_id','=','s.id')
-                        ->on('mu.moduleable_type','=',ModuleableType::STAR)//艺人
-                        ->on('mu.type','=',ModuleUserType::BROKER);//经纪人
+                        ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                        ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
                 })->leftJoin("department_user as du",'du.user_id','=','mu.user_id')
-                ->leftJoin("trails_star as ts",function ($join){
+                ->leftJoin('departments as d','d.id','=','du.department_id')
+                ->leftJoin("trail_star as ts",function ($join){
                     $join->on('ts.starable_id','=','s.id')
-                        ->on('ts.starable_type','=',ModuleableType::STAR)//艺人
-                        ->on('ts.type',TrailStar::EXPECTATION);//目标
-                })->leftJoin('projects as p','p.trail_id','on','ts.trail_id')
+                        ->where('ts.starable_type','=',ModuleableType::STAR)//艺人
+                        ->where('ts.type',TrailStar::EXPECTATION);//目标
+                })->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
                 ->where($arr)
                 ->groupBy('s.id')
                 ->get([
-                    's.id','name','sign_contract_status',
-                    DB::raw("count(ts.id) as trail_total"),
-                    DB::raw("count(p.id) as project_total"),
+                    's.id','s.name','sign_contract_status',
+                    DB::raw("count(distinct ts.id) as trail_total"),
+                    DB::raw("count(distinct p.id) as project_total"),
                     DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
                 ]);
 
@@ -682,22 +686,34 @@ class ReportFormRepository
      */
     public function starTrailAnalysis($start_time,$end_time,$deparment,$target_star)
     {
-        /**
-         * SELECT DISTINCT t.id,s.id  as star_id,count(t.type),count(t.industry_id),t.id as trail_id,t.type,t.industry_id from stars as s
-         * LEFT JOIN trail_star as ts on s.id = ts.starable_id and ts.starable_type='star' and ts.type = 1
-         * LEFT JOIN trails as t on t.id = ts.trail_id
-         * where t.id is not null
-         * GROUP BY t.type,t.industry_id
-         */
-        (new Star())->setTable("s")->from("trails as s")
-            ->leftJoin("trails_star as ts",function ($join){
+        $result = (new Star())->setTable("s")->from("stars as s")
+            ->leftJoin("trail_star as ts",function ($join){
                 $join->on('ts.starable_id','=','s.id')
-                    ->on('ts.starable_type','=',ModuleableType::STAR)//艺人
-                    ->on('ts.type',TrailStar::EXPECTATION);//目标
+                    ->where('ts.starable_type','=',ModuleableType::STAR)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
             })->leftJoin("trails as t",'t.id','=',"ts.trail_id")
+            ->groupBy('t.type','t.industry_id')
             ->whereRaw('t.id is not null')
-            ->select(DB::raw('DISTINCT t.id'),"count(t.id) as total","t.type",'t.industry_id')
+            ->select(DB::raw('DISTINCT t.id,count(DISTINCT t.id) as total,t.type,t.industry_id'))
             ->get();
+        $list = [];
+        $sum = array_sum(array_column($result->toArray(),'total'));
+        foreach ($result as $value){
+            if(!isset($list[$value['type']])){
+                $list[$value['type']]['type'] = $value['type'];
+                $list[$value['type']]['total'] = $value['total'];
+                $list[$value['type']]['per_type'] = $value['total'] / $sum;
+                $value['per_industry'] = $value['total'] / $sum;
+                $list[$value['type']][] = $value;
+            }else{
+                $list[$value['type']]['total'] += $value['total'];
+                $list[$value['type']]['per_type'] += $value['total'] / $sum;
+                $value['per_industry'] = $value['total'] / $sum;
+                $list[$value['type']][] = $value;
+            }
+        }
+        return $list;
+
     }
 
     /**
@@ -709,7 +725,50 @@ class ReportFormRepository
      */
     public function starProjectAnalysis($start_time,$end_time,$deparment,$target_star)
     {
+        $query = (new Star())->setTable("s")->from("stars as s")
+            ->leftJoin('trail_star as ts',function ($join) {
+                $join->on('ts.starable_id','=','s.id')
+                ->where('ts.starable_type',ModuleableType::STAR)
+                ->where('ts.type',TrailStar::EXPECTATION);
+            })
+            ->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+            ->where(function ($query){
+                $query->where('s.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
+                    ->orWhere('s.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);
+            })->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id');
 
+        $result1 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_MOVIE)//电影
+                ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
+        })->where('tfv.field_id',7)//影视类型
+            ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+
+        $result2 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
+        })->where('tfv.field_id',40)//电影商务
+            ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+        $result = array_merge($result1->toArray(),$result2->toArray());
+        $list = [];
+        $sum = array_sum(array_column($result,'p_total'));
+        foreach ($result as $value){
+            if(!isset($list[$value['type']])){
+                $list[$value['type']]['type_total'] = $value['p_total'];
+                $list[$value['type']]['per_type_total'] = $value['p_total'] / $sum;
+                $list[$value['type']]['type'] = $value['type'];
+                $value['per_p_total'] = $value['p_total'] / $sum;
+                $list[$value['type']][] = $value;
+            }else{
+                $list[$value['type']]['type_total'] += $value['p_total'];
+                $value['per_p_total'] = $value['p_total'] / $sum;
+                $list[$value['type']][] = $value;
+                $list[$value['type']]['per_type_total'] += $value['p_total'] / $sum;
+            }
+
+        }
+
+        return $list;
     }
 
     /**
@@ -720,14 +779,148 @@ class ReportFormRepository
      */
     public function bloggerReport($start_time,$end_time,$sign_contract_status)
     {
-        $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
-        $arr[] = ['sign_contract_status',$sign_contract_status];
+        $arr[] = ['b.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['b.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['b.sign_contract_status',$sign_contract_status];
         //签约中
-//        if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
-//            (new Blogger())->setTable("b")->from('bloggers as b')
-//                ->leftJoin('')
-//        }
+        if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
+            $sub_query = DB::table("operate_logs")->groupBy("created_at")->select(DB::raw("max(created_at) as created_at,id,logable_id,logable_type,method"));
+            $bloggers = (new Blogger())->setTable('b')->from('bloggers as b')
+                ->leftJoin(DB::raw("({$sub_query->toSql()}) as op"),function ($join){
+                    $join->on('op.logable_id','=','b.id')
+                        ->where('op.logable_type','=',ModuleableType::BLOGGER)//可能有问题
+                        ->where('op.method','=',OperateEntity::UPDATED_AT);
+                })
+                ->where($arr)
+                ->groupBy('b.id')
+                ->select('b.nickname','b.type_id','b.communication_status','b.created_at','op.created_at as last_update_at')
+                ->get();
+        }else{
+            //合同，预计订单收入，花费金额都没查呢
+            $bloggers = (new Blogger())->setTable("b")->from("bloggers as b")
+                ->leftJoin("module_users as mu",function ($join){
+                    $join->on('mu.moduleable_id','=','b.id')
+                        ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                        ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
+                })->leftJoin("department_user as du",'du.user_id','=','mu.user_id')
+                ->leftJoin('departments as d','d.id','=','du.department_id')
+                ->leftJoin("trail_star as ts",function ($join){
+                    $join->on('ts.starable_id','=','b.id')
+                        ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
+                        ->where('ts.type',TrailStar::EXPECTATION);//目标
+                })->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+                ->where($arr)
+                ->groupBy('b.id')
+                ->get([
+                    'b.id','b.nickname','sign_contract_status',
+                    DB::raw("count(ts.id) as trail_total"),
+                    DB::raw("count(p.id) as project_total"),
+                    DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
+                ]);
+        }
+        return $bloggers;
+    }
+
+    /**
+     * 博主分析--线索
+     * @param $start_time
+     * @param $end_time
+     * @param $deparment
+     * @param $target_star
+     */
+    public function bloggerTrailAnalysis($start_time,$end_time,$deparment,$target_star)
+    {
+        /**
+         * SELECT DISTINCT t.id,s.id  as star_id,count(t.type),count(t.industry_id),t.id as trail_id,t.type,t.industry_id from stars as s
+         * LEFT JOIN trail_star as ts on s.id = ts.starable_id and ts.starable_type='star' and ts.type = 1
+         * LEFT JOIN trails as t on t.id = ts.trail_id
+         * where t.id is not null
+         * GROUP BY t.type,t.industry_id
+         */
+        $result = (new Star())->setTable("b")->from("bloggers as b")
+            ->leftJoin("trail_star as ts",function ($join){
+                $join->on('ts.starable_id','=','b.id')
+                    ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
+            })->leftJoin("trails as t",'t.id','=',"ts.trail_id")
+            ->where('b.sign_contract_status','=',SignContractStatus::ALREADY_TERMINATE_AGREEMENT)
+            ->whereOr('b.sign_contract_status','=',SignContractStatus::ALREADY_SIGN_CONTRACT)
+            ->whereRaw('t.id is not null')
+            ->groupBy('t.id')
+            ->select(DB::raw('DISTINCT t.id,count(distinct t.id) as total,t.type,t.industry_id'))
+            ->get();
+        $list = [];
+        $sum = array_sum(array_column($result->toArray(),'total'));
+        foreach ($result as $value){
+            if(!isset($list[$value['type']])){
+                $list[$value['type']]['type'] = $value['type'];
+                $list[$value['type']]['total'] = $value['total'];
+                $list[$value['type']]['per_type'] = $value['total'] / $sum;
+                $value['per_industry'] = $value['total'] / $sum;
+                $list[$value['type']][] = $value;
+            }else{
+                $list[$value['type']]['total'] += $value['total'];
+                $list[$value['type']]['per_type'] += $value['total'] / $sum;
+                $value['per_industry'] = $value['total'] / $sum;
+                $list[$value['type']][] = $value;
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * @param $start_time
+     * @param $end_time
+     * @param $deparment
+     * @param $target_star
+     * @return array
+     */
+    public function bloggerProjectAnalysis($start_time,$end_time,$deparment,$target_star)
+    {
+        $query = (new Blogger())->setTable("b")->from("bloggers as b")
+            ->leftJoin('trail_star as ts',function ($join) {
+                $join->on('ts.starable_id','=','b.id')
+                    ->where('ts.starable_type',ModuleableType::STAR)
+                    ->where('ts.type',TrailStar::EXPECTATION);
+            })
+            ->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+            ->where(function ($query){
+                $query->where('b.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
+                    ->orWhere('b.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);
+            })->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id');
+
+        $result1 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_MOVIE)//电影
+            ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
+        })->where('tfv.field_id',7)//影视类型
+        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+
+        $result2 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
+        })->where('tfv.field_id',40)//电影商务
+        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+        $result = array_merge($result1->toArray(),$result2->toArray());
+        $list = [];
+        $sum = array_sum(array_column($result,'p_total'));
+        foreach ($result as $value){
+            if(!isset($list[$value['type']])){
+                $list[$value['type']]['type_total'] = $value['p_total'];
+                $list[$value['type']]['per_type_total'] = $value['p_total'] / $sum;
+                $list[$value['type']]['type'] = $value['type'];
+                $value['per_p_total'] = $value['p_total'] / $sum;
+                $list[$value['type']][] = $value;
+            }else{
+                $list[$value['type']]['type_total'] += $value['p_total'];
+                $value['per_p_total'] = $value['p_total'] / $sum;
+                $list[$value['type']][] = $value;
+                $list[$value['type']]['per_type_total'] += $value['p_total'] / $sum;
+            }
+
+        }
+
+        return $list;
     }
 
 

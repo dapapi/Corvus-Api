@@ -14,6 +14,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\User;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class ModuleUserRepository
 {
@@ -110,6 +111,7 @@ class ModuleUserRepository
                 foreach ($del_person_ids_copy as $key => &$del_person_id) {
                     try {
                         $del_person_id = hashid_decode($del_person_id);//解码
+                        dump($del_person_id);
                         $personDeleteUser = User::findOrFail($del_person_id);//从用户标中查找
                         $array['user_id'] = $personDeleteUser->id;
                         //查找moduleUser表中

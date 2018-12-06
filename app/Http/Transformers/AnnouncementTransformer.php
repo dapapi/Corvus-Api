@@ -22,7 +22,7 @@ class AnnouncementTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($announcement->id),
             'title' => $announcement->title,  //标题
-           // 'scope' => $announcement->scope,   //公告范围
+            'scope' => $announcement->scope,   //公告范围
             'classify' => $announcement->classify,  //分类  1 规则制度   2 内部公告
             'desc' => $announcement->desc, //输入内容
             'readflag' => $announcement->readflag, //默认 0  未读  1 读

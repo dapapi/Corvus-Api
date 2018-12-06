@@ -90,8 +90,10 @@ class LaunchController extends Controller
 //            }
 
         $data = Issues::where('accessory',hashid_decode($All))->get(['id']);
+        if(empty($data)){
 
         foreach($data->toarray() as $key => $value) {
+
             $num = $value['id'];
            if(empty(draft::where($array)->first())){
                $isAll = '';
@@ -106,6 +108,10 @@ class LaunchController extends Controller
                 $isAll = '';
             }
           }
+        }
+        }else{
+
+            $isAll = '';
         }
         $arr = Issues::where('accessory',hashid_decode($All))->get();
         foreach($arr->toarray() as $key => $value) {

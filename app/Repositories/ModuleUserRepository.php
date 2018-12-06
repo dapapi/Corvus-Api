@@ -14,6 +14,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\User;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class ModuleUserRepository
 {
@@ -119,11 +120,12 @@ class ModuleUserRepository
                             ->where('type', $array['type'])->first();
                         if ($moduleUser) {//数据存在则从数据库中删除
                             $moduleUser->delete();
+                            $del_module_person[$moduleable_id][] = $del_person_id;
                         } else {//不存在则将ID从要删除的参与人或者宣传人列表中删除
-                            array_splice($del_person_ids_copy, $key, 1);
+//                            array_splice($del_person_ids_copy, $key, 1);
                         }
                     } catch (Exception $e) {
-                        array_splice($del_person_ids_copy, $key, 1);
+//                        array_splice($del_person_ids_copy, $key, 1);
                     }
                 }
             }
@@ -140,21 +142,22 @@ class ModuleUserRepository
                             ->where('user_id', $array['user_id'])->where('type', $array['type'])->first();
                         if (!$moduleUser) {//不存在则添加
                             ModuleUser::create($array);
+                            $module_person[$moduleable_id][] = $person_id;
                         } else {//存在则从列表中删除
-                            array_splice($person_ids_copy, $key, 1);
+//                            array_splice($person_ids_copy, $key, 1);
 //                    $participantDeleteIds[] = $participantId;
 //                    //要求一个接口可以完成添加人和删除人,已经存在的删除
 //                    $moduleUser->delete();
                         }
                     } catch (Exception $e) {
-                        array_splice($person_ids_copy, $key, 1);
+//                        array_splice($person_ids_copy, $key, 1);
                     }
                 }
             }
-            if(count($del_person_ids_copy))
-                $del_module_person[$moduleable_id] = $del_person_ids_copy;
-            if(count($person_ids_copy))
-                $module_person[$moduleable_id] = $person_ids_copy;
+//            if(count($del_person_ids_copy))
+//                $del_module_person[$moduleable_id] = $del_person_ids_copy;
+//            if(count($person_ids_copy))
+//                $module_person[$moduleable_id] = $person_ids_copy;
 
         }
         //返回添加成功或者删除成功的参与人和宣传人

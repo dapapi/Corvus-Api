@@ -24,7 +24,7 @@ class ReviewTitleTransformer extends TransformerAbstract
             'bulletin_review_id' => $bulletinreviewtitle->bulletin_review_id,
             'creator_id' => $bulletinreviewtitle->creator_id,
             'reviewer_id' => $bulletinreviewtitle->reviewer_id,
-            'title' => $bulletinreviewtitle->title,
+           // 'title' => $bulletinreviewtitle->title,
             'status' => $bulletinreviewtitle->status,
              'issues' => $bulletinreviewtitle->issues,
             'created_at' => $bulletinreviewtitle->created_at->toDatetimeString(),
@@ -73,13 +73,14 @@ class ReviewTitleTransformer extends TransformerAbstract
         $affixes = $bulletinreviewtitle->affixes()->createDesc()->get();
         return $this->collection($affixes, new AffixTransformer());
     }
-    public function includetIssues(BulletinReviewTitle $bulletinreviewtitle)
+    public function includeIssues(BulletinReviewTitle $bulletinreviewtitle)
     {
-        $template = $bulletinreviewtitle->issues;
-        if (!$template)
-            return null;
-        return $this->item($template, new ReviewTitleIssuesAnswerTransformer());
-//        $tasks = $bulletinreviewtitle->issues()->createDesc()->get();
-//        return $this->collection($tasks, new ReviewTitleIssuesAnswerTransformer());
+        $template = $bulletinreviewtitle->issues()->get();
+        return $this->collection($template, new ReviewTitleIssuesAnswerTransformer());
+//        if (!$template)
+//            return null;
+//        return $this->item($template, new ReviewTitleIssuesAnswerTransformer());
+
+
     }
 }

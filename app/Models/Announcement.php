@@ -26,8 +26,8 @@ class Announcement extends Model
 
     public function scopeCreateDesc($query)
     {
-
-        return $query->orderByRaw('stick - creator_id ASC');
+       return $query->orderBy('stick','desc')->orderBy('created_at', 'desc');
+//       return $query->orderByRaw('created_at,stick ASC');
 
     }
     public function creator()

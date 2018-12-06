@@ -40,7 +40,7 @@ class AnnouncementController extends Controller
         $userId = $user->id;
         $department = DepartmentUser::where('user_id',$userId)->get(['department_id'])->toarray();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        if(!empty($department)){
+        if(empty($department)){
             $ar = '';
             $stars = Announcement::where('id',$ar)->createDesc()->paginate(0);
         }else{

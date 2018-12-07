@@ -49,12 +49,13 @@ class UserController extends Controller
         }
     }
 
-    // 微信登录后手机号绑定接口
+    // 微信登录后手机号绑定接口 => 修改密码接口
     public function telephone(BindTelephoneRequest $request) {
         $telephone = $request->get('telephone');
+        $password = $request->get('password');
         #验证是否过期
         $requestVerityToken = RequestVerityToken::where('token', $request->get('token'))->where('device', $request->get('device'))->where('telephone', $telephone)->first();
-        dd($requestVerityToken);
+
         if (!$requestVerityToken){
             return $this->response->errorBadRequest('缺少必要参数');
         }
@@ -64,12 +65,12 @@ class UserController extends Controller
         if ($now > $expiredTime) {
             return $this->response->errorBadRequest('短信验证码已经过期了');
         }
-        #查找用户
+        #用户修改密码
         try {
             $userRepository = $this->userRepository;
-            $user = $userRepository->findOrCreateByTelephone($telephone);
+            $user = $userRepository->changePassword($password, $telephone);
         } catch (SystemInternalException $exception) {
-            return $this->response->errorInternal('登录失败');
+            return $this->response->errorInternal('修改失败');
         } catch (UserBadRequestException $exception) {
             return $this->response->errorBadRequest($exception->getMessage());
         } catch (Exception $exception) {
@@ -84,6 +85,9 @@ class UserController extends Controller
             Log::error($exception->getMessage());
         }
 
-        return $this->response->accepted();
+        $accessToken = $user->createToken('telephone login')->accessToken;
+        return $this->response->array([
+            'access_token' => $accessToken
+        ]);
     }
 }

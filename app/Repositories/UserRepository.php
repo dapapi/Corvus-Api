@@ -110,4 +110,12 @@ class UserRepository {
 
         return $user;
     }
+
+    public function changePassword($password, $telephone)
+    {
+        $user = User::where('phone', $telephone)->first();
+        $user->password = $password;
+        $user->save();
+        return $user;
+    }
 }

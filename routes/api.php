@@ -26,6 +26,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('services/request_token', 'App\Http\Controllers\ServiceController@requestToken');
     $api->get('services/send_sms_code', 'App\Http\Controllers\ServiceController@sendSMSCode');
 
+    $api->post('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');

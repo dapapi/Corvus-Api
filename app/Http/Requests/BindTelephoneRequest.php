@@ -25,8 +25,8 @@ class BindTelephoneRequest extends FormRequest {
             'device' => ['required'],
             'token' => ['required'],
             'sms_code' => ['required'],
-            'password' => 'required|min:6|max:18|confirmed',
-            'password_confirmation' => 'required|min:6|max:18 ',
+            'password' => 'required|min:6|max:18',
+//            'password_confirmation' => 'required|min:6|max:18 ',
         ];
     }
 
@@ -41,8 +41,8 @@ class BindTelephoneRequest extends FormRequest {
             'password.required' => '密码不能为空',
             'password.confirmed' => '两次密码不一致',
             'password.between' => '密码必须在 :min 到 :max 个字符之间',
-            'password_confirmation.required' => '确认密码不能为空',
-            'password_confirmation.between' => '确认密码必须在 :min 到 :max 个字符之间',
+//            'password_confirmation.required' => '确认密码不能为空',
+//            'password_confirmation.between' => '确认密码必须在 :min 到 :max 个字符之间',
         ];
     }
 }

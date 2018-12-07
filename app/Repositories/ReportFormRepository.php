@@ -103,10 +103,16 @@ class ReportFormRepository
             $prev_year_confrim_priority_trail_number
         );
         return [
-                $industry_data,
-                $cooperation_data,
-                $resource_type_data,
-                $priority_data
+                "sum"   =>  $industry_data['sum'],
+                "confirm_sum"  =>  $industry_data['confirm_sum'],
+                "ring_ratio_increment_sum"  =>  $industry_data['ring_ratio_increment_sum'],
+                "annual_ratio_increment_sum"    =>  $industry_data['annual_ratio_increment_sum'],
+                "confirm_ratio_increment_sum"  =>  $industry_data['confirm_ratio_increment_sum'],
+                "confirm_annual_increment_sum" =>  $industry_data['confirm_annual_increment_sum'],
+                $industry_data['data'],
+                $cooperation_data['data'],
+                $resource_type_data['data'],
+                $priority_data['data']
             ];
     }
 
@@ -317,6 +323,7 @@ class ReportFormRepository
             'client_refuse_retention'   =>  $client_refuse_retention,//客户拒绝
             'talk_retention'    =>  $talk_retention,//谈判留存
             'intention_retention'   =>  $intention_retention,//意向签约
+            'retention_trail_number'    =>  $retention_trail_number,//签约完成留存率
             //项目结算
             //归档
         ];

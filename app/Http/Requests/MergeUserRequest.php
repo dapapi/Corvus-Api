@@ -24,7 +24,7 @@ class MergeUserRequest extends FormRequest {
         return [
             'telephone' => ['required', 'regex:/^1[34578]\d{9}$/'],
             'device' => ['required'],
-            'token' => ['required'],
+//            'token' => ['required'],
             'bind_token' => ['required'],
             'sms_code' => ['required', 'sms_code:telephone,device,token']
         ];
@@ -36,7 +36,7 @@ class MergeUserRequest extends FormRequest {
             'telephone.required' => '手机号不能为空',
             'telephone.regex' => '手机号格式错误',
             'device.required' => '设备号不能为空',
-            'token.required' => 'Token不能为空',
+//            'token.required' => 'Token不能为空',
             'sms_code.required' => '短信验证码不能为空',
             'sms_code.sms_code' => '短信验证码错误',
             'bind_token.required' => 'BindToken不能为空'

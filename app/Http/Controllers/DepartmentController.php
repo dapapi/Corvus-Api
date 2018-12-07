@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Transformers\DepartmentTransformer;
+use App\Http\Transformers\DepartmentUserTransformer;
+
 use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\OperateEntity;
@@ -26,42 +28,95 @@ class DepartmentController extends Controller
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
 
+
+
+    //添加部门
+//    public function store(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
+//    {
+//
+//        $payload = $request->all();
+//
+//        $user_id = $user->id;
+//
+//        $payload['department_pid'] = $department->id;
+//        //        $userId = $request->user('api')->id ?? 0;
+//
+//
+//        $array = [
+//            "department_id"=>$department->id,
+//            "user_id"=>$user_id,
+//            "type"=>Department::DEPARTMENT_HEAD_TYPE,
+//        ];
+//        $payload['department_pid'] = $department->id;
+//
+//        try {
+//            //$depar = DepartmentUser::create($array);
+//
+//            $contact = Department::create($payload);
+//            $id = $department->id;
+//            dd($id);
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $department,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+//
+//        } catch (\Exception $exception) {
+//            Log::error($exception);
+//            return $this->response->errorInternal('创建部门失败');
+//        }
+//
+//        return $this->response->item($contact, new DepartmentTransformer());
+//    }
+
     //添加部门
     public function store(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
     {
+
         $payload = $request->all();
 
         $user_id = $user->id;
-        $payload['department_pid'] = $department->id;
-
-        $array = [
-            "department_id"=>$department->id,
-            "user_id"=>$user_id,
-            "type"=>Department::DEPARTMENT_HEAD_TYPE,
+        $departmentArr = [
+            "department_pid"=>$payload['department_pid'],
+            "name"=>$payload['name'],
+            "city"=>$payload['city'],
         ];
-        $payload['department_pid'] = $department->id;
-
+        DB::beginTransaction();
         try {
+            $contact = Department::create($departmentArr);
+            $id = DB::getPdo()->lastInsertId();
+
+            $array = [
+                "department_id"=>$id,
+                "user_id"=>$user_id,
+                "type"=>Department::DEPARTMENT_HEAD_TYPE,
+            ];
             $depar = DepartmentUser::create($array);
-            $contact = Department::create($payload);
             // 操作日志
-            $operate = new OperateEntity([
-                'obj' => $department,
-                'title' => null,
-                'start' => null,
-                'end' => null,
-                'method' => OperateLogMethod::CREATE,
-            ]);
-            event(new OperateLogEvent([
-                $operate,
-            ]));
+//            $operate = new OperateEntity([
+//                'obj' => $department,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
 
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return $this->response->errorInternal('创建部门失败');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
         }
-
-        return $this->response->item($contact, new DepartmentTransformer());
+        DB::commit();
+        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
     }
 
 
@@ -69,20 +124,28 @@ class DepartmentController extends Controller
     public function edit(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
-
-        $user_id = $user->id;
-        $payload['department_pid'] = $department->id;
-
-        $array = [
-            "department_id"=>$department->id,
-            "user_id"=>$user_id,
-            "type"=>Department::DEPARTMENT_HEAD_TYPE,
+        $userId = $user->id;
+        $departmentId = $department->id;
+        $departmentArr = [
+            "department_pid"=>$payload['department_pid'],
+            "name"=>$payload['name'],
+            "city"=>$payload['city'],
         ];
-        $payload['department_pid'] = $department->id;
 
+        DB::beginTransaction();
         try {
+            $contact = $department->update($departmentArr);
+          //  dd($payload['user_id']);
+            $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',$payload['user_id'])->where('type',1)->delete();
+
+            $array = [
+                "department_id"=>$departmentId,
+                "user_id"=>$payload['user_id'],
+                "type"=>Department::DEPARTMENT_HEAD_TYPE,
+            ];
             $depar = DepartmentUser::create($array);
-            $contact = Department::create($payload);
+
+
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $department,
@@ -95,15 +158,153 @@ class DepartmentController extends Controller
                 $operate,
             ]));
 
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return $this->response->errorInternal('创建部门失败');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
         }
-
-        return $this->response->item($contact, new DepartmentTransformer());
+        DB::commit();
+        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
     }
 
 
+    //移动部门
+    public function mobile(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
+    {
+        $payload = $request->all();
+        $userId = $user->id;
+        $departmentId = $department->id;
+        $departmentArr = [
+            "department_pid"=>$payload['department_pid'],
+        ];
+
+        DB::beginTransaction();
+        try {
+            //  dd($payload['user_id']);
+
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $department,
+                'title' => null,
+                'start' => $department->department_pid,
+                'end' => $payload['department_pid'],
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+            $contact = $department->update($departmentArr);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
+    }
+
+
+    //删除部门
+    public function remove(Request $request,Department $department)
+    {
+
+        $departmentId = $department->id;
+        $departmentPid = $department->department_pid;
+        $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
+
+        DB::beginTransaction();
+        try {
+            if($departmentPid !== 0  && !empty($depatments)){
+                $department->delete();
+                return $this->response->noContent();
+            }else{
+
+                return $this->response->errorInternal('该部门有下级部门或部门下有成员');
+
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
+        }
+        DB::commit();
+        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
+
+    }
+
+    //选择成员
+    public function select(Request $request,Department $department)
+    {
+
+        $departmentId = $department->id;
+        $departmentPid = $department->department_pid;
+        $depatments = DepartmentUser::where('department_id', $departmentId)->get();
+        $data = DB::table('department_user')
+                    ->join('users', function($join)
+                    {
+                        $join->on('department_user.user_id', '=', 'users.id');
+                    })->select('users.id', 'users.name')
+                     ->where('department_user.department_id',$departmentId)
+                    ->get();
+
+
+        return $this->response->item($data, new DepartmentUserTransformer());
+
+    }
+
+//    //选择成员
+    public function selectStore(Request $request,Department $department,DepartmentUser $departmentUser)
+    {
+        $payload = $request->all();
+        //dd($payload['user']);
+        $departmentId = $department->id;
+        $departmentPid = $department->department_pid;
+        $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
+        $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
+
+        DB::beginTransaction();
+        try {
+            if(!empty($payload['user'])){
+
+                $num = DB::table('department_user')
+                    ->where('department_id',$departmentId)
+                    ->where('type',0)
+                    ->update(['department_id'=>$depatmentNotid]);
+
+                foreach ($payload['user'] as $key=>$value){
+                    $array = [
+                        "department_id"=>$departmentId,
+                        "user_id"=>$value,
+                    ];
+                    $depar = DepartmentUser::create($array);
+                }
+
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $department,
+                    'title' => null,
+                    'start' => $departmentId,
+                    'end' => json_encode($payload['user']),
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+
+            }else{
+                return $this->response->errorInternal('用户id错误');
+            }
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
+        }
+        DB::commit();
+        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
+
+    }
 
     public function show(Request $request,User $user)
     {
@@ -125,14 +326,26 @@ class DepartmentController extends Controller
         return $department->get()->toArray();
     }
 
-    public function detail(Request $request,User $user)
+
+    //Todo sql
+    public function detail(Request $request,User $user,Department $department)
     {
-        $results = DB::select('select departments.name,departments.city,users.id as user_id,users.name as username,department_user.type from departments 
+        $id = $department->id;
+        $results = DB::select('select departments.name,departments.department_pid,departments.city,users.id as user_id,users.name as username,department_user.type 
+                            from departments 
                             LEFT JOIN department_user on department_user.department_id = departments.id 
                             LEFT JOIN users on department_user.user_id = users.id 
-                            where department_user.type = :id', ['id' => 1]);
+                            where department_user.department_id ='.$id.'
+                            and department_user.type = :id', ['id' => 1]);
+        $res['data'] = array();
+        if($results[0]->department_pid !==0){
+            $res['data'] = Department::where('id', $results[0]->department_pid)->get()->keyBy('id')->toArray();
+            $arr = array_merge($results,$res);
+        }else{
+            $arr = array_merge($results,$res);
+        }
 
-        return $results;
+        return $arr;
 
     }
 
@@ -209,5 +422,17 @@ class DepartmentController extends Controller
             return iconv_substr($s0,0,1,'utf-8');
         }
     }
+
+
+    public function create(User $user,Department $department)
+    { dd(12);
+        //$user = $user->id;
+        $post = $user->id;
+        // 授权策略判断
+        //$this->authorize('create', $department);
+        dd(12);
+
+    }
+
 
 }

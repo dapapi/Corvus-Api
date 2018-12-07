@@ -85,7 +85,6 @@ class ReviewController extends Controller
 
 
         $reviewdata = BulletinReviewTitle::where('bulletin_review_id',$review->id)->first();
-
         // 操作日志
 //        $operate = new OperateEntity([
 //            'obj' => $blogger,
@@ -100,14 +99,13 @@ class ReviewController extends Controller
         return $this->response->item($reviewdata, new ReviewTitleTransformer());
     }
 
-    public function edit(ReviewUpdateRequest $request,review $review)
+    public function edit(ReviewUpdateRequest $request,Review $review)
     {
         $payload = $request->all();
-
         DB::beginTransaction();
         try {
             $bulletion = $review->update($payload);
-            $bulletion_title = BulletinReviewTitle::where('bulletin_review_id',$review->id)->update($payload);
+            $bulletion_title = BulletinReviewTitle::where('bulletin_review_id',$review->id)->first()->update($payload);
 //            // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $blogger,

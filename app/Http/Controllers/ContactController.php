@@ -63,14 +63,10 @@ class ContactController extends Controller
         $payload = $request->all();
 
         try {
-            $contact->name = $request->has('name') ? $payload['name'] : $contact->name;
-            $contact->phone = $request->has('phone') ? $payload['phone'] : $contact->phone;
-            $contact->position = $request->has('position') ? $payload['position'] : $contact->position;
-
             if ($request->has('client_id') && hashid_decode($payload['client_id']) !== $client->id)
                 $contact->client_id = $payload['client_id'];
 
-            $contact->save();
+            $contact->update($payload);
         } catch (\Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('修改联系人失败');

@@ -28,7 +28,8 @@ class EditContactRequest extends FormRequest
             'name' => 'nullable',
             'phone' => ['nullable', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
             'position' => 'nullable',
-            'client_id' => 'nullable|numeric'
+            'type' => 'nullable|numeric',
+            'client' => 'nullable|numeric',
         ];
     }
 }

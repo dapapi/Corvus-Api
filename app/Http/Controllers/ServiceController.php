@@ -11,10 +11,18 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Overtrue\EasySms\EasySms;
 use Overtrue\EasySms\Exceptions\GatewayErrorException;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use Qiniu\Auth;
 use Webpatser\Uuid\Uuid;
 
 class ServiceController extends Controller {
+
+    public function cloudStorageToken()
+    {
+        $auth = new Auth(config('app.QINIU_ACCESS_KEY'), config('app.QINIU_SECRET_KEY'));
+        $upToken = $auth->uploadToken(config('app.QINIU_BUCKET'), null, 3600, null);
+        return $this->response->array(['data' => ['token' => $upToken]]);
+    }
 
     /**
      * @throws Exception

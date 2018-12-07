@@ -57,8 +57,8 @@ class BulletinReviewTitle extends Model
 
      public function issues()
     {
-
-        return $this->belongsTo(BulletinReviewTitleIssuesAnswer::class, 'id', 'bulletin_review_title_id');
+        return $this->hasMany(BulletinReviewTitleIssuesAnswer::class, 'bulletin_review_title_id');
+        //return $this->belongsTo(BulletinReviewTitleIssuesAnswer::class, 'id', 'bulletin_review_title_id');
       //  return $this->morphToMany(BulletinReviewTitleIssuesAnswer::class, 'resourceable','bulletion_review_title');
     }
 }

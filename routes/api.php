@@ -12,6 +12,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
+    $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
+
+    # 原微信公众号绑定用户
+    $api->post('/wechat/merge', 'App\Http\Controllers\Wechat\OfficialController@mergeUser');
 
     # 微信开放平台
     $api->any('/wechat_open', 'App\Http\Controllers\Wechat\OpenPlatformController@serve');
@@ -22,6 +26,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('services/request_token', 'App\Http\Controllers\ServiceController@requestToken');
     $api->get('services/send_sms_code', 'App\Http\Controllers\ServiceController@sendSMSCode');
 
+    $api->post('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
@@ -338,23 +343,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/audit/{user}', 'App\Http\Controllers\PersonnelManageController@audit');//
 
 
-        // department
-        $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
-        $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
-        $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
-
-        $api->post('/departments/{department}', 'App\Http\Controllers\DepartmentController@edit');
-        $api->post('/departments/{department}/user/{user}', 'App\Http\Controllers\DepartmentController@store');
-        $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
-
-
-        // user
-        $api->get('/users', 'App\Http\Controllers\UserController@index');
-
-
-        //$api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
-
-
         $api->post('/materials', 'App\Http\Controllers\MaterialController@store');
         $api->put('/materials/{material}', 'App\Http\Controllers\MaterialController@edit');
         $api->delete('/materials/{material}', 'App\Http\Controllers\MaterialController@delete');
@@ -407,6 +395,58 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
         //博主项目分析
         $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+        $api->get('/users', 'App\Http\Controllers\UserController@index');
+
+        /*组织架构 部门管理*/
+        //获取部门列表
+        $api->get('/departments', 'App\Http\Controllers\DepartmentController@index');
+        //通讯录 名字排序
+        $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
+        //查看部门
+        $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
+        //增加部门
+        $api->post('/departments/{user}', 'App\Http\Controllers\DepartmentController@store');
+        //编辑部门
+        $api->put('/departments/{department}', 'App\Http\Controllers\DepartmentController@edit');
+        //移动部门
+        $api->put('/departments/mobile/{department}', 'App\Http\Controllers\DepartmentController@mobile');
+        //删除部门
+        $api->delete('/departments/remove/{department}', 'App\Http\Controllers\DepartmentController@remove');
+        //获取选择成员
+        $api->get('/departments/select/{department}', 'App\Http\Controllers\DepartmentController@select');
+        //选择成员完成添加
+        $api->put('/departments/member/{department}', 'App\Http\Controllers\DepartmentController@selectStore');
+
+        $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+
+        /*后台权限 分组 控制台*/
+        $api->get('/console','App\Http\Controllers\ConsoleController@index');
+        //获取分组信息
+        $api->get('/console/group','App\Http\Controllers\ConsoleController@getGroup');
+        //添加分组
+        $api->post('/console/group','App\Http\Controllers\ConsoleController@Group');
+        //修改分组
+        $api->put('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@editGroup');
+        //删除分组
+        $api->delete('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@deleteGroup');
+        /*后台权限 角色 控制台*/
+        $api->get('/console/role','App\Http\Controllers\ConsoleController@getRole');
+        //添加角色
+        $api->post('/console/role','App\Http\Controllers\ConsoleController@storeRole');
+        //修改角色
+        $api->put('/console/role/{role}','App\Http\Controllers\ConsoleController@editRole');
+        //删除角色
+        $api->delete('/console/role/{role}','App\Http\Controllers\ConsoleController@deleteRole');
+        //组获取人员
+        $api->get('/console/person/{groupRoles}','App\Http\Controllers\ConsoleController@groupPerson');
+        //角色和用户关联
+        $api->post('/console/relevancy/{role}','App\Http\Controllers\ConsoleController@setRoleUser');
+        //功能列表
+        $api->get('/console/feature/{user}','App\Http\Controllers\ConsoleController@feature');
+        //功能角色关联
+        $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
+        /*后台权限 角色 控制台*/
+        $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
 
 
     });

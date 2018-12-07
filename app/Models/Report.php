@@ -90,10 +90,14 @@ class Report extends Model
 
         $review = $query->first();
 
-        if ($review)
-            return $review->status;
-        else
+        if ($review){
+            $re['id'] = hashid_encode($review->id);
+            $re['status'] = $review->status;
+
+            return  $re;
+    }else{
             return null;
+        }
     }
     public function setStateAttribute($value)
     {

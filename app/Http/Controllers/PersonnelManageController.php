@@ -19,12 +19,15 @@ use App\Models\PersonalSalary;
 use App\Models\PersonalSocialSecurity;
 use App\Models\PersonalSkills;
 use App\Models\DepartmentUser;
+use App\Models\RoleUser;
+
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
 
 class PersonnelManageController extends Controller
 {
@@ -226,6 +229,7 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $status = $payload['status'];
+        $user_id = $user->id;
 
         if ($user->status == $status)
             return $this->response->noContent();
@@ -243,7 +247,9 @@ class PersonnelManageController extends Controller
                 'status' => User::USER_STATUS_DEPARTUE,
                 'hire_shape' => User::HIRE_SHAPE_INTERN,
             ];
-         //归档
+            $num = DB::table("role_users")->where('user_id',$user_id)->delete();
+
+            //归档
         }elseif($status == 6) {
             $array = [
                 'status' => User::USER_ARCHIVE,

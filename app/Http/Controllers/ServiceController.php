@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Overtrue\EasySms\EasySms;
 use Overtrue\EasySms\Exceptions\GatewayErrorException;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use Qiniu\Auth;
 use Webpatser\Uuid\Uuid;
 
@@ -73,11 +74,15 @@ class ServiceController extends Controller {
 
         #发送短信
         $easySms = new EasySms(config('sms'));
+        dd(config('sms'));
         try {
             $easySms->send($telephone, new VerifyCodeSms($randomString));
         } catch (GatewayErrorException $exception) {
             Log::error($exception->getMessage());
             return $this->response->errorBadRequest('发送短信失败');
+        } catch (NoGatewayAvailableException $exception) {
+            dd($exception->getExceptions());
+            return ;
         }
 
         #保存验证码

@@ -109,10 +109,13 @@ class ReportFormRepository
                 "annual_ratio_increment_sum"    =>  $industry_data['annual_ratio_increment_sum'],
                 "confirm_ratio_increment_sum"  =>  $industry_data['confirm_ratio_increment_sum'],
                 "confirm_annual_increment_sum" =>  $industry_data['confirm_annual_increment_sum'],
-                $industry_data['data'],
-                $cooperation_data['data'],
-                $resource_type_data['data'],
-                $priority_data['data']
+                "data"  =>  [
+                    $industry_data['data'],
+                    $cooperation_data['data'],
+                    $resource_type_data['data'],
+                    $priority_data['data']
+                ]
+
             ];
     }
 

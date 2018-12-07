@@ -13,6 +13,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
 
+    # 原微信公众号绑定用户
+    $api->post('/wechat/merge', 'App\Http\Controllers\Wechat\OfficialController@mergeUser');
+
     # 微信开放平台
     $api->any('/wechat_open', 'App\Http\Controllers\Wechat\OpenPlatformController@serve');
     $api->get('/wechat_open/oauth', 'App\Http\Controllers\Wechat\OpenPlatformController@getLoginUrl');

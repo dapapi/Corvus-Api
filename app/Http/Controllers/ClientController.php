@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
-use App\Http\Requests\Cilent\FilterClientRequest;
+use App\Http\Requests\Client\FilterClientRequest;
 use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Transformers\ClientTransformer;

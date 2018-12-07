@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FilterFieldIndexRequest;
 use App\Http\Transformers\FilterFieldTransformer;
 use App\Models\FilterField;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 
 class FilterFieldController extends Controller
 {
-    public function index(FilterFieldIndexRequest $request)
+    public function index(Request $request)
     {
         // 应该对应的表
         $path = $request->path();

@@ -222,8 +222,8 @@ class ReportFormRepository
         if($status != null){
             $arr[] = ['status',$status];
         }
-        $sub_query = "SELECT * FROM ";
-        $sub_query = "SELECT (@num := @num + 1) as id from trails,(SELECT @num := 0) t1 limit 8";
+        $sub_query = "SELECT val as id,name FROM data_dictionaries where parent_id = 28";
+//        $sub_query = "SELECT (@num := @num + 1) as id from trails,(SELECT @num := 0) t1 limit 8";
         $sub_query2 = DB::table("trails as t")->select("t.cooperation_type",DB::raw("count(t.id) as number"))->where($arr)->groupBy("t.cooperation_type");
 
         return DB::table(DB::raw("({$sub_query2->toSql()}) as t1 "))->rightJoin(DB::raw("({$sub_query}) as t2"),"t2.id","=","t1.cooperation_type")

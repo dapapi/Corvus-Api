@@ -319,6 +319,10 @@ class ReportFormRepository
                 (isset($status_number[Trail::PROGRESS_SIGNED]) ? $status_number[Trail::PROGRESS_SIGNED] : 0)
             );
         $signed_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+
+        //归档
+        $archive_trail_number = isset($status_number[Trail::PROGRESS_ARCHIVE]) ? $status_number[Trail::PROGRESS_ARCHIVE] : 0;
+        $archive_retention = $sum == 0 ? 0 : $archive_trail_number / $sum;
         //项目结算留存率
         return [
             "touch_total"   =>  $sum,//接触总量
@@ -326,9 +330,9 @@ class ReportFormRepository
             'client_refuse_retention'   =>  $client_refuse_retention,//客户拒绝
             'talk_retention'    =>  $talk_retention,//谈判留存
             'intention_retention'   =>  $intention_retention,//意向签约
-            'retention_trail_number'    =>  $retention_trail_number,//签约完成留存率
-            //项目结算
+            'signed_retention'    =>  $signed_retention,//签约完成留存率
             //归档
+            'archive_retention'    =>  $archive_retention
         ];
 
 

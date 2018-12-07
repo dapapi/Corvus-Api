@@ -52,7 +52,7 @@ class UserRepository {
 
         if (!$user) {
             // 查找是否已经存在手机号
-            $user = User::where('telephone', $telephone)->first();
+            $user = User::where('phone', $telephone)->first();
             if (!$user) {
                 //创建用户
                 try {

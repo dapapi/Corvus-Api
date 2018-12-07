@@ -54,6 +54,7 @@ class UserController extends Controller
         $telephone = $request->get('telephone');
         #验证是否过期
         $requestVerityToken = RequestVerityToken::where('token', $request->get('token'))->where('device', $request->get('device'))->where('telephone', $telephone)->first();
+        dd($requestVerityToken);
         if (!$requestVerityToken){
             return $this->response->errorBadRequest('缺少必要参数');
         }

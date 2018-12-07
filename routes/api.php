@@ -12,6 +12,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
+    $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
     # 原微信公众号绑定用户
     $api->post('/wechat/merge', 'App\Http\Controllers\Wechat\OfficialController@mergeUser');

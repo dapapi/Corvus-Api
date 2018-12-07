@@ -66,7 +66,8 @@ class ClientController extends Controller
                     'name' => $payload['contact']['name'],
                     'phone' => $payload['contact']['phone'],
                     'position' => $payload['contact']['position'],
-                    'client_id' => $client->id
+                    'client_id' => $client->id,
+                    'type' => $payload['contact']['type']
                 ]);
                 $operate = new OperateEntity([
                     'obj' => $client,

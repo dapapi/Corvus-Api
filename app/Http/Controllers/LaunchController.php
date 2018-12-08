@@ -82,6 +82,8 @@ class LaunchController extends Controller
 
             $array[] = ['member',$user->id];
             $array[] = ['template_id',hashid_decode($All)];
+        $array[] = ['created_at','>=', $payload['start_time']];
+        $array[] = ['created_at','<=', $payload['end_time']];
 
 //            if(empty(draft::where($array)->first())){
 //

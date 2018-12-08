@@ -61,8 +61,18 @@ class ReviewController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+        $status = $request->get('status')?$request->get('status'):1;
+        if(!empty($status)){
+            $array['status'] = $status;
+        }
+        $search = $request->get('search');
+        if(!empty($search)){
+            $array[] = ['title','like','%'.$search.'%'];
+        }
         $array['template_id'] = hashid_decode($payload['template_id']);
         $array['member'] = $user->id;//创建人
+        $array[] = ['created_at','>=', $payload['start_time']];
+        $array[] = ['created_at','<=', $payload['end_time']];
         $pageSize = $request->get('page_size', config('app.page_size'));
          $str = BulletinReview::where($array)->createDesc()->paginate($pageSize);
 //        $payload = $request->all();
@@ -97,8 +107,18 @@ class ReviewController extends Controller
 
             }
         }
+        $status = $request->get('status')?$request->get('status'):1;
+        if(!empty($status)){
+            $arraydate['status'] = $status;
+        }
+        $search = $request->get('search');
+        if(!empty($search)){
+            $arraydate[] = ['title','like','%'.$search.'%'];
+        }
 
         $arraydate['template_id'] = hashid_decode($payload['template_id']);
+        $arraydate[] = ['created_at','>=', $payload['start_time']];
+        $arraydate[] = ['created_at','<=', $payload['end_time']];
         $arraydatemember['member'] = array_unique($array);//成员
         $pageSize = $request->get('page_size', config('app.page_size'));
         $str = BulletinReview::where($arraydate)->wherein('member',$arraydatemember['member'])->createDesc()->paginate($pageSize);
@@ -121,7 +141,8 @@ class ReviewController extends Controller
     {
         $payload = $request->all();
         $arraydate['template_id'] = hashid_decode($payload['template_id']);
-
+        $arraydate[] = ['created_at','>=', $payload['start_time']];
+        $arraydate[] = ['created_at','<=', $payload['end_time']];
         $pageSize = $request->get('page_size', config('app.page_size'));
         $str = BulletinReview::where($arraydate)->createDesc()->paginate($pageSize);
 

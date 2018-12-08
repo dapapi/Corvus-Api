@@ -455,10 +455,15 @@ class ReportFormRepository
             ->leftjoin('department_user as du','du.user_id','=','u.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($arr)
-            ->select(DB::raw("distinct t.id"),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+            ->select(DB::raw("distinct t.id"),DB::raw('sum(t.fee) as total_fee'),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
             ->get();
-        return $trails;
+        return
+            [
+                "sum"   =>  count($trails),
+                "total_fee" =>  array_sum(array_column($trails->toArray(),'total_fee')),
+                "trails"   =>  $trails
+            ];
 
     }
 

@@ -357,46 +357,56 @@ class ReportFormRepository
             $arr[] = ['du.department_id',$department];
         }
         $trails = (new Trail())->setTable('t')->from('trails as t')
-            ->select(DB::raw('distinct t.id'),"t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',DB::raw('u.name as principal_user'))
-            ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
-            ->where('ts.starable_type',ModuleableType::STAR)//艺人
-            ->where('ts.type',TrailStar::EXPECTATION)//目标
-//            ->leftJoin('stars as s','s.id','=','ts.starable_id')
-            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
-            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
-            ->where('mu.type',ModuleUserType::BROKER)//经纪人
-            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
-//            ->leftjoin('departments as d','d.id','=','department_id')
+            ->select("t.id","t.type",'t.title','t.resource_type','t.fee','t.status','t.priority',
+                DB::raw('u.name as principal_user'),
+                DB::raw("GROUP_CONCAT(DISTINCT s.name) as star_name"),
+                DB::raw("GROUP_CONCAT(DISTINCT d.name) as deparment_name")
+            )
+            ->leftJoin('trail_star as ts',function ($join){
+                $join->on('ts.trail_id','=','t.id')
+                    ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
+            })
+            ->leftJoin('stars as s','s.id','=','ts.starable_id')
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','s.id')
+                    ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+                    ->where('mu.type',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u1','u1.id','=','mu.user_id')
+            ->leftjoin('department_user as du','du.user_id','=','u1.id')
+            ->leftjoin('departments as d','d.id','=','du.department_id')
             ->leftJoin('users as u','u.id','=','t.principal_id')
+            ->groupBy('t.id')
             ->where($arr)->get();
-        foreach ($trails as &$trail){
-            //获取线索对应的部门
-            $department_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
-                ->leftJoin("module_users as mu",'mu.moduleable_id','=','ts.starable_id')
-                ->where('ts.starable_type',ModuleableType::STAR)//艺人
-                ->where('ts.type',TrailStar::EXPECTATION)//目标
-                ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
-                ->leftjoin('departments as d','d.id','=','department_id')
-                ->where('ts.trail_id',$trail->id)
-                ->get(['d.name']);
-            foreach ($department_list->toArray() as $deparment){
-                if(isset($deparment['name']) && $deparment['name'] != null)
-                    $trail->deparment_name .= ",".$deparment['name'];
-            }
-            //获取线索对应的目标艺人
-            $star_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
-                ->leftJoin("stars as s",'s.id','=','ts.starable_id')
-                ->where('ts.trail_id',$trail->id)
-                ->where('ts.starable_type',ModuleableType::STAR)
-                ->where('ts.type',TrailStar::EXPECTATION)//目标
-                ->get(['s.name']);
-            foreach ($star_list->toArray() as $star){
-                if(isset($star['name']) && $star['name'] != null)
-                $trail->star_name .= ",".$star['name'];
-            }
-            $trail->deparment_name = trim($trail->deparment_name,",");
-            $trail->star_name .= trim($trail->star_name,",");
-        }
+//        foreach ($trails as &$trail){
+//            //获取线索对应的部门
+//            $department_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+//                ->leftJoin("module_users as mu",'mu.moduleable_id','=','ts.starable_id')
+//                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+//                ->where('ts.type',TrailStar::EXPECTATION)//目标
+//                ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+//                ->leftjoin('departments as d','d.id','=','department_id')
+//                ->where('ts.trail_id',$trail->id)
+//                ->get(['d.name']);
+//            foreach ($department_list->toArray() as $deparment){
+//                if(isset($deparment['name']) && $deparment['name'] != null)
+//                    $trail->deparment_name .= ",".$deparment['name'];
+//            }
+//            //获取线索对应的目标艺人
+//            $star_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+//                ->leftJoin("stars as s",'s.id','=','ts.starable_id')
+//                ->where('ts.trail_id',$trail->id)
+//                ->where('ts.starable_type',ModuleableType::STAR)
+//                ->where('ts.type',TrailStar::EXPECTATION)//目标
+//                ->get(['s.name']);
+//            foreach ($star_list->toArray() as $star){
+//                if(isset($star['name']) && $star['name'] != null)
+//                $trail->star_name .= ",".$star['name'];
+//            }
+//            $trail->deparment_name = trim($trail->deparment_name,",");
+//            $trail->star_name .= trim($trail->star_name,",");
+//        }
         return [
             'trail_total'   =>  count($trails),
             'fee_total' =>  array_sum(array_column($trails->toArray(),'fee')),

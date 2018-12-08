@@ -22,7 +22,8 @@ class DraftTransformer extends TransformerAbstract
             'id' => hashid_encode($draft->id),
             'template_id' => hashid_encode($draft->template_id),
             'member' => $draft->member,    //平台
-            'issues' => $draft->issues
+            'reviewer_id'=> hashid_encode($draft->reviewer_id),
+            'issues_id' => $draft->Answer
         ];
         $arraySimple = [
             'id' => hashid_encode($draft->id),
@@ -55,12 +56,15 @@ class DraftTransformer extends TransformerAbstract
             return null;
         return $this->item($type, new BloggerTypeTransformer());
     }
-    public function includetIssues(Draft $draft)
+    public function includeIssues(Draft $draft)
     {
         $template = $draft->issues;
         if (!$template)
             return null;
         return $this->item($template, new DraftIssuesAnswerTransformer());
+       // $tasks = $draft->issues()->createDesc()->get();
+     //   dd($this->collection($tasks, new DraftTransformer()));
+     //   return $this->collection($tasks, new DraftIssuesAnswerTransformer());
     }
     public function includeTasks(Draft $draft)
     {

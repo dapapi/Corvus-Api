@@ -292,13 +292,13 @@ class ReportFormRepository
         $retention_trail_number = $sum-(
             isset($status_number[Trail::PROGRESS_REFUSE]) ? + $status_number[Trail::PROGRESS_REFUSE] : 0
             );
-        $refuse_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+        $refuse_retention = $sum == 0 ? 0 : floor(($retention_trail_number / $sum)*10000)/10000;
         //客户拒绝后的留存率
         $retention_trail_number = $sum - (
             (isset($status_number[Trail::PROGRESS_REFUSE]) ? + $status_number[Trail::PROGRESS_REFUSE] : 0) +
             (isset($status_number[Trail::PROGRESS_CANCEL])?$status_number[Trail::PROGRESS_CANCEL] : 0)
             );
-        $client_refuse_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+        $client_refuse_retention = $sum == 0 ? 0 : floor(($retention_trail_number / $sum)*10000)/10000;
 
         //进入谈判留存率
         $retention_trail_number = $sum - (
@@ -306,7 +306,7 @@ class ReportFormRepository
                 (isset($status_number[Trail::PROGRESS_CANCEL])?$status_number[Trail::PROGRESS_CANCEL] : 0) +
                 (isset($status_number[Trail::PROGRESS_TALK])?$status_number[Trail::PROGRESS_TALK] : 0)
             );
-        $talk_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+        $talk_retention = $sum == 0 ? 0 : floor(($retention_trail_number / $sum)*10000)/10000;
 
         //意向签约留存率 intention
         $retention_trail_number = $sum - (
@@ -315,7 +315,7 @@ class ReportFormRepository
                 (isset($status_number[Trail::PROGRESS_TALK])?$status_number[Trail::PROGRESS_TALK] : 0)+
                 (isset($status_number[Trail::PROGRESS_INTENTION])?$status_number[Trail::PROGRESS_INTENTION]:0)
             );
-        $intention_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+        $intention_retention = $sum == 0 ? 0 : floor(($retention_trail_number / $sum)*10000)/10000;
 
         //签约完成留存率
         $retention_trail_number = $sum - (
@@ -326,21 +326,27 @@ class ReportFormRepository
                 (isset($status_number[Trail::PROGRESS_SIGNING]) ? $status_number[Trail::PROGRESS_SIGNING] : 0)+
                 (isset($status_number[Trail::PROGRESS_SIGNED]) ? $status_number[Trail::PROGRESS_SIGNED] : 0)
             );
-        $signed_retention = $sum == 0 ? 0 : $retention_trail_number / $sum;
+        $signed_retention = $sum == 0 ? 0 : floor(($retention_trail_number / $sum)*10000)/10000;
 
         //归档
         $archive_trail_number = isset($status_number[Trail::PROGRESS_ARCHIVE]) ? $status_number[Trail::PROGRESS_ARCHIVE] : 0;
-        $archive_retention = $sum == 0 ? 0 : $archive_trail_number / $sum;
+        $archive_retention = $sum == 0 ? 0 : floor(($archive_trail_number / $sum)*10000)/10000;
         //项目结算留存率
         return [
             "touch_total"   =>  $sum,//接触总量
             'refuse_retention'  =>  $refuse_retention,//主动拒绝
+            'refuse_num'    =>  isset($status_number[Trail::PROGRESS_REFUSE]) ?  $status_number[Trail::PROGRESS_REFUSE] : 0,
             'client_refuse_retention'   =>  $client_refuse_retention,//客户拒绝
+            "client_refuse_num" =>  isset($status_number[Trail::PROGRESS_CANCEL]) ?  $status_number[Trail::PROGRESS_CANCEL] : 0,
             'talk_retention'    =>  $talk_retention,//谈判留存
+            'talk_num'  =>  isset($status_number[Trail::PROGRESS_TALK])?$status_number[Trail::PROGRESS_TALK] : 0,
             'intention_retention'   =>  $intention_retention,//意向签约
+            'intention_num' =>  isset($status_number[Trail::PROGRESS_INTENTION])?$status_number[Trail::PROGRESS_INTENTION]:0,
             'signed_retention'    =>  $signed_retention,//签约完成留存率
+            'signed_num'    =>  isset($status_number[Trail::PROGRESS_SIGNED]) ? $status_number[Trail::PROGRESS_SIGNED] : 0,
             //归档
-            'archive_retention'    =>  $archive_retention
+            'archive_retention'    =>  $archive_retention,
+            'archive_num'   =>  isset($status_number[Trail::PROGRESS_ARCHIVE]) ? $status_number[Trail::PROGRESS_ARCHIVE] : 0
         ];
 
 
@@ -626,7 +632,7 @@ class ReportFormRepository
             $arr[] = ['d.id',$department];
         }
         if($target_star != null){
-            $arr[] = ['ts.starable_id',$target_star];
+            $arr[] = ['s.id',$target_star];
         }
         $peroject_list = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('users as u','u.id','=','p.principal_id')
@@ -732,16 +738,38 @@ class ReportFormRepository
      * @param $start_time开始时间
      * @param $end_time结束时间
      * @param $sign_contract_status签约状态
+     * @param $p_type 项目类型
+     * @param $t_type 线索类型
      */
-    public function starReport($start_time,$end_time,$sign_contract_status)
+    public function starReport($start_time,$end_time,$sign_contract_status,$department=null,$p_type=null,$t_type=null)
     {
         $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
         $arr[] = ['s.sign_contract_status',$sign_contract_status];
+        if($p_type != null){
+            $arr[] = ['p.type','=',$p_type];
+        }
+        if($t_type != null){
+            $arr[] = ['t_type','=',$t_type];
+        }
+        if($department != null){
+            $arr[] = ['d.id','=',$department];
+        }
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
-            $stars = Star::where($arr)
-                ->select('sign_contract_status','name','birthday','source','communication_status','created_at','')
+            $sub_query = DB::table("operate_logs")
+                ->groupBy("created_at")
+                ->select(DB::raw("max(created_at) as created_at,id,logable_id,logable_type,method"));
+
+            $stars = (new Star())->setTable("s")->from("stars as s")
+                ->leftJoin(DB::raw("({$sub_query->toSql()}) as op"),function ($join){
+                    $join->on('op.logable_id','=','s.id')
+                        ->where('op.logable_type','=',ModuleableType::STAR)//可能有问题
+                        ->where('op.method','=',OperateEntity::UPDATED_AT);
+                })
+                ->where($arr)
+                ->groupBy('s.id')
+                ->select('s.sign_contract_status','s.name','s.birthday','s.source','s.communication_status','s.created_at','op.created_at as last_update_at')
                 ->get();
         }else{//已签约/解约
             //合同，预计订单收入，花费金额都没查呢
@@ -756,7 +784,9 @@ class ReportFormRepository
                     $join->on('ts.starable_id','=','s.id')
                         ->where('ts.starable_type','=',ModuleableType::STAR)//艺人
                         ->where('ts.type',TrailStar::EXPECTATION);//目标
-                })->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+                })
+                ->leftJoin('trails as t','t.id','=','ts.trail_id')
+                ->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
                 ->where($arr)
                 ->groupBy('s.id')
                 ->get([

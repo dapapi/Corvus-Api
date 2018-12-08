@@ -21,9 +21,11 @@ class ReviewTransformer extends TransformerAbstract
             'id' => hashid_encode($bulletinreview->id),
             'template_id' => hashid_encode($bulletinreview->template_id),
             'template' => $bulletinreview->template->template_name,
+            'template_type' =>  $bulletinreview->template->frequency,
             'member' => $bulletinreview->memberName->name,
             'title' => $bulletinreview->title,
             'countstatus' => $bulletinreview->countstatus,
+            'created_time' => $bulletinreview->created_time,
             'status' => $bulletinreview->status,
             'created_at' => $bulletinreview->created_at->toDateTimeString(),
         ];

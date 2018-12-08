@@ -47,6 +47,10 @@ class BulletinReview extends Model
     {
         return $this->belongsTo(Report::class, 'template_id','id');
     }
+    public function createdTime()
+    {
+        return $this->belongsTo(BulletinReview::class, 'id','id');
+    }
     public function broker()
     {
         return $this->belongsTo(User::class, 'broker_id', 'id');

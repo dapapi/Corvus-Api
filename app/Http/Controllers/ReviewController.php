@@ -129,4 +129,34 @@ class ReviewController extends Controller
 
     }
 
+    public function editAnswer(ReviewUpdateAnswerRequest $request,Review $review)
+    {
+        $payload = $request->all();
+        DB::beginTransaction();
+        try {
+            $bulletion = $review->update($payload);
+            $bulletion_title = BulletinReviewTitle::where('bulletin_review_id',$review->id)->first()->update($payload);
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $blogger,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
+
+        // return $this->response->item(Blogger::find($blogger->id), new BloggerTransformer());
+
+    }
+
 }

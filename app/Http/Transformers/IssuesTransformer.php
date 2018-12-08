@@ -79,7 +79,6 @@ class IssuesTransformer extends TransformerAbstract
     }
     public function includeDraft(Issues $Issues)
     {
-
         $tasks = $Issues->draft()->createDesc()->get();
         return $this->collection($tasks, new IssuesTransformer());
     }

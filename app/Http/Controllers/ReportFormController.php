@@ -124,10 +124,14 @@ class ReportFormController extends Controller
     }
     public function starReport(Request $request)
     {
+//        $start_time,$end_time,$sign_contract_status,$department=null,$p_type=null,$t_type=null
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $sign_contract_status = $request->get('sign_contract_status',null);
-        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status);
+        $department = $request->get("departmnet",null);
+        $p_type = $request->get('p_type',null);
+        $t_type = $request->get('t_type',null);
+        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$p_type,$t_type);
     }
     //艺人线索分析
     public function starTrailAnalysis(Request $request)

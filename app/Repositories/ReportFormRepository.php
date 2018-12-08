@@ -808,16 +808,34 @@ class ReportFormRepository
      * @param $deparment
      * @param $target_star
      */
-    public function starTrailAnalysis($start_time,$end_time,$deparment,$target_star)
+    public function starTrailAnalysis($start_time,$end_time,$department,$target_star)
     {
+        $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($department != null){
+            $arr[] = ['d.id',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['s.id',$target_star];
+        }
         $result = (new Star())->setTable("s")->from("stars as s")
             ->leftJoin("trail_star as ts",function ($join){
                 $join->on('ts.starable_id','=','s.id')
                     ->where('ts.starable_type','=',ModuleableType::STAR)//艺人
                     ->where('ts.type',TrailStar::EXPECTATION);//目标
             })->leftJoin("trails as t",'t.id','=',"ts.trail_id")
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','s.id')
+                    ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                    ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u','u.id','=','mu.user_id')
+            ->leftJoin('department_user as du','du.user_id','=','u.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->groupBy('t.type','t.industry_id')
-            ->whereRaw('t.id is not null')
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
+//            ->whereRaw('t.id is not null')
+            ->where($arr)
             ->select(DB::raw('DISTINCT t.id,count(DISTINCT t.id) as total,t.type,t.industry_id'))
             ->get();
         $list = [];
@@ -847,8 +865,17 @@ class ReportFormRepository
      * @param $deparment
      * @param $target_star
      */
-    public function starProjectAnalysis($start_time,$end_time,$deparment,$target_star)
+    public function starProjectAnalysis($start_time,$end_time,$department,$target_star)
     {
+        $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($department != null){
+            $arr[] = ['d.id',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['s.id',$target_star];
+        }
+        //查询，查询艺人已签约和已解约的
         $query = (new Star())->setTable("s")->from("stars as s")
             ->leftJoin('trail_star as ts',function ($join) {
                 $join->on('ts.starable_id','=','s.id')
@@ -856,10 +883,20 @@ class ReportFormRepository
                 ->where('ts.type',TrailStar::EXPECTATION);
             })
             ->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','s.id')
+                    ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                    ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u','u.id','=','mu.user_id')
+            ->leftJoin('department_user as du','du.user_id','=','u.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where(function ($query){
                 $query->where('s.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
                     ->orWhere('s.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);
-            })->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id');
+            })
+            ->where($arr)
+            ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id');
 
         $result1 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_MOVIE)//电影
@@ -952,8 +989,16 @@ class ReportFormRepository
      * @param $deparment
      * @param $target_star
      */
-    public function bloggerTrailAnalysis($start_time,$end_time,$deparment,$target_star)
+    public function bloggerTrailAnalysis($start_time,$end_time,$department,$target_star)
     {
+        $arr[] = ['b.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['b.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($department != null){
+            $arr[] = ['d.id',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['b.id',$target_star];
+        }
         /**
          * SELECT DISTINCT t.id,s.id  as star_id,count(t.type),count(t.industry_id),t.id as trail_id,t.type,t.industry_id from stars as s
          * LEFT JOIN trail_star as ts on s.id = ts.starable_id and ts.starable_type='star' and ts.type = 1
@@ -967,6 +1012,16 @@ class ReportFormRepository
                     ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
                     ->where('ts.type',TrailStar::EXPECTATION);//目标
             })->leftJoin("trails as t",'t.id','=',"ts.trail_id")
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','b.id')
+                    ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                    ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u','u.id','=','mu.user_id')
+            ->leftJoin('department_user as du','du.user_id','=','u.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
+            ->where($arr)
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->where('b.sign_contract_status','=',SignContractStatus::ALREADY_TERMINATE_AGREEMENT)
             ->whereOr('b.sign_contract_status','=',SignContractStatus::ALREADY_SIGN_CONTRACT)
             ->whereRaw('t.id is not null')
@@ -999,8 +1054,16 @@ class ReportFormRepository
      * @param $target_star
      * @return array
      */
-    public function bloggerProjectAnalysis($start_time,$end_time,$deparment,$target_star)
+    public function bloggerProjectAnalysis($start_time,$end_time,$department,$target_star)
     {
+        $arr[] = ['b.created_at','>',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['b.created_at','<',Carbon::parse($end_time)->toDateString()];
+        if($department != null){
+            $arr[] = ['d.id',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['b.id',$target_star];
+        }
         $query = (new Blogger())->setTable("b")->from("bloggers as b")
             ->leftJoin('trail_star as ts',function ($join) {
                 $join->on('ts.starable_id','=','b.id')
@@ -1008,6 +1071,15 @@ class ReportFormRepository
                     ->where('ts.type',TrailStar::EXPECTATION);
             })
             ->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','b.id')
+                    ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                    ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u','u.id','=','mu.user_id')
+            ->leftJoin('department_user as du','du.user_id','=','u.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
+            ->where($arr)
             ->where(function ($query){
                 $query->where('b.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
                     ->orWhere('b.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);

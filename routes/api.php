@@ -12,6 +12,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
     }
+    $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
+
+    # 原微信公众号绑定用户
+    $api->post('/wechat/merge', 'App\Http\Controllers\Wechat\OfficialController@mergeUser');
 
     # 微信开放平台
     $api->any('/wechat_open', 'App\Http\Controllers\Wechat\OpenPlatformController@serve');
@@ -22,6 +26,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('services/request_token', 'App\Http\Controllers\ServiceController@requestToken');
     $api->get('services/send_sms_code', 'App\Http\Controllers\ServiceController@sendSMSCode');
 
+    $api->post('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
     //resource
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');

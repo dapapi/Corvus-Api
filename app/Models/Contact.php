@@ -23,6 +23,9 @@ class Contact extends Model
     const STATUS_NORMAL = 1;
     const STATUS_FROZEN = 2;
 
+    const TYPE_NORMAL = 1;
+    const TYPE_KEY = 2;
+
     protected $dates = ['deleted_at'];
 
     public function client()

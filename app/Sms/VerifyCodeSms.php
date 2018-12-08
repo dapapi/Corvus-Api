@@ -19,7 +19,7 @@ class VerifyCodeSms extends Message {
     // 定义直接使用内容发送平台的内容
     public function getContent(GatewayInterface $gateway = null) {
         $expired_in = env('SMS_EXPIRED_IN')/60;
-        return sprintf($this->code . '为您的验证码，请于' . $expired_in . '分钟内填写。如非本人操作，请忽略本短信。');
+        return $this->code . '为您的验证码，请于' . $expired_in . '分钟内填写。如非本人操作，请忽略本短信。';
     }
 
     // 定义使用模板发送方式平台所需要的模板 ID
@@ -32,8 +32,10 @@ class VerifyCodeSms extends Message {
 
     // 模板参数
     public function getData(GatewayInterface $gateway = null) {
+        $expired_in = env('SMS_EXPIRED_IN')/60;
         return [
-            'code' => $this->code
+            $this->code,
+	    $expired_in
         ];
     }
 }

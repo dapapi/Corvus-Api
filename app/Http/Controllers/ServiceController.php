@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Overtrue\EasySms\EasySms;
 use Overtrue\EasySms\Exceptions\GatewayErrorException;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use Qiniu\Auth;
 use Webpatser\Uuid\Uuid;
 

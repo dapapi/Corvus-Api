@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+
 use Dingo\Api\Http\FormRequest;
 
-class BindTelephoneRequest extends FormRequest {
+class MergeUserRequest extends FormRequest {
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -24,11 +25,11 @@ class BindTelephoneRequest extends FormRequest {
             'telephone' => ['required', 'regex:/^1[34578]\d{9}$/'],
             'device' => ['required'],
             'token' => ['required'],
-            'sms_code' => ['required'],
-            'password' => 'required|min:6|max:18',
-//            'password_confirmation' => 'required|min:6|max:18 ',
+            'bind_token' => ['required'],
+            'sms_code' => ['required', 'sms_code:telephone,device,token']
         ];
     }
+
 
     public function messages() {
         return [
@@ -38,11 +39,7 @@ class BindTelephoneRequest extends FormRequest {
             'token.required' => 'Token不能为空',
             'sms_code.required' => '短信验证码不能为空',
             'sms_code.sms_code' => '短信验证码错误',
-            'password.required' => '密码不能为空',
-            'password.confirmed' => '两次密码不一致',
-            'password.between' => '密码必须在 :min 到 :max 个字符之间',
-//            'password_confirmation.required' => '确认密码不能为空',
-//            'password_confirmation.between' => '确认密码必须在 :min 到 :max 个字符之间',
+            'bind_token.required' => 'BindToken不能为空'
         ];
     }
 }

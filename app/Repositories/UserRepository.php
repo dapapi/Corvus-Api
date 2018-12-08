@@ -52,20 +52,21 @@ class UserRepository {
 
         if (!$user) {
             // 查找是否已经存在手机号
-            $user = User::where('telephone', $telephone)->first();
+            $user = User::where('phone', $telephone)->first();
             if (!$user) {
-                //创建用户
-                try {
-                    $user = User::create([
-                        'nickname' => $userPlatformInfo->nickname,
-                        'telephone' => $telephone,
-                        'status' => User::STATUS_NORMAL,
-                        'avatar' => $userPlatformInfo->avatar
-                    ]);
-                } catch (Exception $exception) {
-                    Log::error($exception->getMessage());
-                    throw new SystemInternalException('创建用户信息失败');
-                }
+//                //创建用户
+//                try {
+//                    $user = User::create([
+//                        'nickname' => $userPlatformInfo->nickname,
+//                        'telephone' => $telephone,
+//                        'status' => User::STATUS_NORMAL,
+//                        'avatar' => $userPlatformInfo->avatar
+//                    ]);
+//                } catch (Exception $exception) {
+//                    Log::error($exception->getMessage());
+//                    throw new SystemInternalException('创建用户信息失败');
+//                }
+                throw new SystemInternalException('用户不在系统中');
             }
 
             //更新绑定信息
@@ -80,18 +81,18 @@ class UserRepository {
         }
 
 
-        //判断名字是否是正确的 名字以Worktile为准
-        if (get_class($userPlatformInfo) == UserWorktileInfo::class) {
-            if ($user->nickname != $userPlatformInfo->nickname) {
-                try {
-                    $user->update([
-                        'nickname' => $userPlatformInfo->nickname
-                    ]);
-                } catch (Exception $exception) {
-                    Log::error('更新名字失败 ' . $exception->getMessage());
-                }
-            }
-        }
+//        //判断名字是否是正确的 名字以Worktile为准
+//        if (get_class($userPlatformInfo) == UserWorktileInfo::class) {
+//            if ($user->nickname != $userPlatformInfo->nickname) {
+//                try {
+//                    $user->update([
+//                        'nickname' => $userPlatformInfo->nickname
+//                    ]);
+//                } catch (Exception $exception) {
+//                    Log::error('更新名字失败 ' . $exception->getMessage());
+//                }
+//            }
+//        }
 
         //判断头像，头像以微信为准
         if (get_class($userPlatformInfo) == UserWechatInfo::class) {
@@ -107,6 +108,14 @@ class UserRepository {
             }
         }
 
+        return $user;
+    }
+
+    public function changePassword($password, $telephone)
+    {
+        $user = User::where('phone', $telephone)->first();
+        $user->password = $password;
+        $user->save();
         return $user;
     }
 }

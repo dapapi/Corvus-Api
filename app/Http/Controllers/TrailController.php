@@ -20,7 +20,6 @@ use App\Models\TrailStar;
 use App\ModuleableType;
 use App\OperateLogMethod;
 use App\User;
-use function foo\func;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

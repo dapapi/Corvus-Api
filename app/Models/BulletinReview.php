@@ -38,7 +38,6 @@ class BulletinReview extends Model
     {
         return $this->morphMany(OperateLog::class, 'logable');
     }
-
     public function tasks()
     {
 

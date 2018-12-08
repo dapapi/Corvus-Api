@@ -17,8 +17,19 @@ class ReviewTransformer extends TransformerAbstract
 
     public function transform(BulletinReview $bulletinreview)
     {
-
         $array = [
+            'id' => hashid_encode($bulletinreview->id),
+            'template_id' => hashid_encode($bulletinreview->template_id),
+            'template' => $bulletinreview->template->template_name,
+            'member' => $bulletinreview->memberName->name,
+            'title' => $bulletinreview->title,
+            'countstatus' => $bulletinreview->countstatus,
+            'status' => $bulletinreview->status,
+            'created_at' => $bulletinreview->created_at->toDateTimeString(),
+        ];
+
+
+        $arraySimple = [
             'id' => hashid_encode($bulletinreview->id),
             'template_id' => hashid_encode($bulletinreview->template_id),
             'template' => $bulletinreview->template->template_name,
@@ -28,14 +39,7 @@ class ReviewTransformer extends TransformerAbstract
             'created_at' => $bulletinreview->created_at->toDateTimeString(),
         ];
 
-
-//        $arraySimple = [
-//            'id' => hashid_encode($review->id),
-//            'name' => $review->name,
-//            'avatar' => $review->avatar
-//        ];
-
-        return $this->isAll ? $array :'';
+        return $this->isAll ? $array :$arraySimple;
     }
 
 

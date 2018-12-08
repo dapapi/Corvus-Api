@@ -166,22 +166,17 @@ class ReportFormRepository
         $annual_ratio_increment_sum = 0;//接触同比总和
         $confirm_ratio_increment_sum = 0;//达成环比
         $confirm_annual_increment_sum = 0;//达成同比
-        $ratio_sum = 0;//数量占比总和
-        $customer_conversion_rate_sum = 0;//客户转化率总和
         array_map(function ($v) use ($curr_confirm,
                                     &$ring_ratio_increment_sum,&$annual_ratio_increment_sum,
-                                    &$confirm_ratio_increment_sum,&$confirm_annual_increment_sum,
-                                    &$ratio_sum,&$customer_conversion_rate_sum){
+                                    &$confirm_ratio_increment_sum,&$confirm_annual_increment_sum){
             $current_confirm_Arr = $curr_confirm->toArray();
             $ring_ratio_increment_sum += $v->ring_ratio_increment;
             $annual_ratio_increment_sum += $v->annual_increment;
-            $ratio_sum += $v->ratio;
             $v->ratio = floor($v->ratio*10000)/10000;
             $key = array_search($v->id,array_column($current_confirm_Arr,'id'));
             $v->confirm_ratio_increment   =   $current_confirm_Arr[$key]->confirm_ratio_increment; //达成环比增量
             $v->confirm_annual_increment  =   $current_confirm_Arr[$key]->confirm_annual_increment; //达成同比增量
             $v->customer_conversion_rate = $v->number == 0? 0 :$current_confirm_Arr[$key]->number / $v->number;//客户转化率
-            $customer_conversion_rate_sum += $v->customer_conversion_rate;
             $v->customer_conversion_rate = floor($v->customer_conversion_rate*10000)/10000;
             $v->confirm_number = $current_confirm_Arr[$key]->number;//达成数量
             $confirm_ratio_increment_sum += $v->confirm_ratio_increment;
@@ -196,8 +191,8 @@ class ReportFormRepository
             "annual_ratio_increment_sum"    =>  $annual_ratio_increment_sum,
             "confirm_ratio_increment_sum"  =>  $confirm_ratio_increment_sum,
             "confirm_annual_increment_sum" =>  $confirm_annual_increment_sum,
-            "ratio_sum"    =>  $ratio_sum,//数量占比总和
-            "customer_conversion_rate_sum" =>  $customer_conversion_rate_sum,//客户转化率总和
+            "ratio_sum"    =>  $sum == 0 ? 0 : $sum/$sum,//数量占比总和
+            "customer_conversion_rate_sum" =>  $sum == 0 ? 0:floor(($confirm_sum/$sum)*10000)/10000,//客户转化率总和
             "data"  =>  $curr
         ];
     }

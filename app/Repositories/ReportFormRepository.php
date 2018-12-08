@@ -486,22 +486,36 @@ class ReportFormRepository
         }
         $trails = (new Trail())->setTable("t")->from('trails as t')
             ->leftJoin('industries as i',"i.id",'=','t.industry_id')
-            ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
-            ->where('ts.starable_type',ModuleableType::STAR)//艺人
-            ->where('ts.type',TrailStar::EXPECTATION)//目标
-            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
-            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
-            ->where('mu.type',ModuleUserType::BROKER)//经纪人
-            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->leftJoin('trail_star as ts',function ($join){
+                $join->on('ts.trail_id','=','t.id')
+                    ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
+            })
+            ->leftJoin('stars as s','ts.starable_id','=','s.id')
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','s.id')
+                    ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+                    ->where('mu.type',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u','u.id','=','mu.user_id')
+            ->leftjoin('department_user as du','du.user_id','=','u.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($arr)
-            ->select(DB::raw("distinct t.id"),"i.name as industry_name",'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+            ->select(DB::raw("distinct t.id"),"i.name as industry_name",'t.type',
+                DB::raw("sum(t.fee) as total_fee"),
+                DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),
+                DB::raw('count(t.id) as total'))
             ->groupBy(DB::raw("type,t.industry_id"))
             ->get();
         $sum = array_sum(array_column($trails->toArray(),'total'));
         foreach ($trails as &$trail){
             $trail['per'] = $sum == 0? 0 : $trail['total'] / $sum;
         }
-        return $trails;
+        return [
+            "total" =>  $sum,
+            'total_fee' =>  array_sum(array_column($trails->toArray(),'total_fee')),
+            "trails"    =>  $trails
+        ];
     }
 
     /**

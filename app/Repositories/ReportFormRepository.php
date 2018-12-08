@@ -813,13 +813,18 @@ class ReportFormRepository
                 ->groupBy('s.id')
                 ->get([
                     's.id','s.name','sign_contract_status',
+                    DB::raw('sum(distinct t.fee) as total_fee'),
                     DB::raw("count(distinct ts.id) as trail_total"),
                     DB::raw("count(distinct p.id) as project_total"),
                     DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
                 ]);
 
         }
-        return $stars;
+        return [
+            "total" =>  count($stars),
+            "total_fee" => array_sum(array_column($stars->toArray(),'total_fee')),
+            "stars" =>  $stars
+        ];
 
     }
 

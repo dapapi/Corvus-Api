@@ -392,6 +392,7 @@ class ReportFormRepository
             ->leftjoin('departments as d','d.id','=','du.department_id')
             ->leftJoin('users as u','u.id','=','t.principal_id')
             ->groupBy('t.id')
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->where($arr)->get();
 //        foreach ($trails as &$trail){
 //            //获取线索对应的部门
@@ -461,6 +462,7 @@ class ReportFormRepository
             ->leftjoin('department_user as du','du.user_id','=','u.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($arr)
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->select(DB::raw("distinct t.id"),DB::raw('sum(t.fee) as total_fee'),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
             ->get();
@@ -506,6 +508,7 @@ class ReportFormRepository
             ->leftJoin('users as u','u.id','=','mu.user_id')
             ->leftjoin('department_user as du','du.user_id','=','u.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->where($arr)
             ->select(DB::raw("distinct t.id"),"i.name as industry_name",'t.type',
                 DB::raw("sum(t.fee) as total_fee"),
@@ -539,6 +542,7 @@ class ReportFormRepository
         (new Trail())->setTable("t")->from("trails as t")
             ->leftJoin('industries as i',"i.id",'=','t.industry_id')
             ->where($arr)
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->groupBy("t.industry_id")
             ->get([
                 DB::raw('count(t.id) as total'),
@@ -573,6 +577,8 @@ class ReportFormRepository
             ->leftJoin('users as u1','u1.id','=','mu.user_id')
             ->leftjoin('department_user as du','du.user_id','=','u1.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
+            ->whereIn('p.type',[Project::TYPE_VARIETY,Project::TYPE_ENDORSEMENT,Project::TYPE_MOVIE])
             ->where($arr)
             ->groupBy('p.id')
             ->get([
@@ -636,8 +642,9 @@ class ReportFormRepository
         }
         $peroject_list = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('users as u','u.id','=','p.principal_id')
+            ->leftJoin('trails as t','t.id','=','p.trail_id')
             ->leftJoin('trail_star as ts',function ($join){
-                $join->on('ts.trail_id','=','p.trail_id')
+                $join->on('ts.trail_id','=','t.id')
                     ->where('ts.starable_type',ModuleableType::STAR)//艺人
                     ->where('ts.type',TrailStar::EXPECTATION);//目标
             })
@@ -650,6 +657,8 @@ class ReportFormRepository
             ->leftJoin('users as u1','u1.id','=','mu.user_id')
             ->leftjoin('department_user as du','du.user_id','=','u1.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
+            ->whereIn('p.type',[Project::TYPE_VARIETY,Project::TYPE_ENDORSEMENT,Project::TYPE_MOVIE])
             ->where($arr)
             ->groupBy(DB::raw("p.type,DATE_FORMAT(p.created_at,'%Y-%m')"))
             ->get([
@@ -680,6 +689,12 @@ class ReportFormRepository
         }
         $result = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('trails as t','t.id','=','p.trail_id')
+            ->leftJoin('trail_star as ts',function ($join){
+                $join->on('ts.trail_id','=','t.id')
+                    ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
+            })
+            ->leftJoin('stars as s','s.id','=','ts.starable_id')
             ->leftJoin('industries as i','i.id','=','t.industry_id')
             ->groupBy(DB::raw('p.type,i.id'))
             ->get(
@@ -712,24 +727,31 @@ class ReportFormRepository
             ->leftJoin('contacts as cs','cs.client_id','=','c.id')
             ->where($arr)
             ->groupBy('c.id')
-            ->get(['c.type','c.company','c.grade','c.keyman','u.name as principal_name',
-                DB::raw('GROUP_CONCAT(cs.name)'),
-                DB::raw('GROUP_CONCAT(cs.phone)')
+            ->get(['c.id','c.type','c.company','c.grade','c.keyman','u.name as principal_name',
+                DB::raw('GROUP_CONCAT(cs.name) as contact_name'),
+                DB::raw('GROUP_CONCAT(cs.phone) as contact_phone')
                 ]);
-        return $clients;
+        return [
+            "total"   =>  count($clients),
+            "client"    =>  $clients
+        ];
     }
     //客户分析
     public function clientAnalysis($start_time,$end_time)
     {
         $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
-        return Client::where($arr)
+        $clients = Client::where($arr)
             ->groupBy(DB::raw("type,DATE_FORMAT(created_at,'%Y-%m')"))
             ->get([
                 DB::raw("count(id) as total"),
                 'type',
-                DB::raw("DATE_FORMAT(created_at,'%Y-%m')")
+                DB::raw("DATE_FORMAT(created_at,'%Y-%m') as date")
             ]);
+        return [
+            'total' =>  array_sum(array_column($clients->toArray(),'total')),
+            "clients"   =>  $clients
+            ];
     }
     //签约中艺人报表Contract signing
 

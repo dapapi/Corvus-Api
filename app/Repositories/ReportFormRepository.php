@@ -546,57 +546,67 @@ class ReportFormRepository
         $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
         if($department != null){
-            $arr[] = ['du.department_id',$department];
+            $arr[] = ['d.id',$department];
         }
         if($type != null){
             $arr[]  = ['p.type',$type];
         }
         $peroject_list = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('users as u','u.id','=','p.principal_id')
-            ->leftJoin('trail_star as ts','ts.trail_id','=','p.trail_id')
-            ->where('ts.starable_type',ModuleableType::STAR)//艺人
-            ->where('ts.type',TrailStar::EXPECTATION)//目标
-            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
-            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
-            ->where('mu.type',ModuleUserType::BROKER)//经纪人
-            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->leftJoin('trail_star as ts',function ($join){
+                $join->on('ts.trail_id','=','p.trail_id')
+                    ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
+            })
+            ->leftJoin('stars as s','s.id','=','ts.starable_id')
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','s.id')
+                    ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+                    ->where('mu.type',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u1','u1.id','=','mu.user_id')
+            ->leftjoin('department_user as du','du.user_id','=','u1.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($arr)
+            ->groupBy('p.id')
             ->get([
-                DB::raw('distinct p.id'),
+                DB::raw('p.id'),
+                DB::raw("GROUP_CONCAT(distinct d.name) as deparment_name"),
+                DB::raw("GROUP_CONCAT(distinct s.name) as star_name"),
                 'p.status','p.type','p.title',
                 DB::raw('u.name as principal_name'),
                 'p.trail_id'
             ]);
-        foreach ($peroject_list as &$project){
-            //查找部门
-            $department_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
-                ->where('ts.starable_type',ModuleableType::STAR)//艺人
-                ->where('ts.type',TrailStar::EXPECTATION)//目标
-                ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
-                ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
-                ->where('mu.type',ModuleUserType::BROKER)//经纪人
-                ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
-                ->leftJoin('departments as d','d.id','=','du.department_id')
-                ->where('ts.trail_id',$project->trail_id)
-                ->get(['d.name']);
-            foreach ($department_list->toArray() as $deparment){
-                if(isset($deparment['name']) && $deparment['name'] != null)
-                    $project->deparment_name .= ",".$deparment['name'];
-            }
-            //查找艺人
-            $star_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
-                ->where('ts.starable_type',ModuleableType::STAR)//艺人
-                ->where('ts.type',TrailStar::EXPECTATION)//目标
-                ->leftJoin('stars as s','s.id','=','ts.starable_id')
-                ->where('ts.trail_id',$project->trail_id)
-                ->get(['s.id','s.name']);
-            foreach ($star_list->toArray() as $star){
-                if(isset($star['name']) && $star['name'] != null)
-                    $project->star_name .= ",".$star['name'];
-            }
-            $project->deparment_name = trim($project->deparment_name,",");
-            $project->star_name = trim($project->star_name,",");
-        }
+//        foreach ($peroject_list as &$project){
+//            //查找部门
+//            $department_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+//                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+//                ->where('ts.type',TrailStar::EXPECTATION)//目标
+//                ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
+//                ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+//                ->where('mu.type',ModuleUserType::BROKER)//经纪人
+//                ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+//                ->leftJoin('departments as d','d.id','=','du.department_id')
+//                ->where('ts.trail_id',$project->trail_id)
+//                ->get(['d.name']);
+//            foreach ($department_list->toArray() as $deparment){
+//                if(isset($deparment['name']) && $deparment['name'] != null)
+//                    $project->deparment_name .= ",".$deparment['name'];
+//            }
+//            //查找艺人
+//            $star_list = (new TrailStar())->setTable("ts")->from("trail_star as ts")
+//                ->where('ts.starable_type',ModuleableType::STAR)//艺人
+//                ->where('ts.type',TrailStar::EXPECTATION)//目标
+//                ->leftJoin('stars as s','s.id','=','ts.starable_id')
+//                ->where('ts.trail_id',$project->trail_id)
+//                ->get(['s.id','s.name']);
+//            foreach ($star_list->toArray() as $star){
+//                if(isset($star['name']) && $star['name'] != null)
+//                    $project->star_name .= ",".$star['name'];
+//            }
+//            $project->deparment_name = trim($project->deparment_name,",");
+//            $project->star_name = trim($project->star_name,",");
+//        }
         return $peroject_list;
     }
 
@@ -613,26 +623,33 @@ class ReportFormRepository
         $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
         if($department != null){
-            $arr[] = ['du.department_id',$department];
+            $arr[] = ['d.id',$department];
         }
         if($target_star != null){
             $arr[] = ['ts.starable_id',$target_star];
         }
         $peroject_list = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('users as u','u.id','=','p.principal_id')
-            ->leftJoin('trail_star as ts','ts.trail_id','=','p.trail_id')
-            ->where('ts.starable_type',ModuleableType::STAR)//艺人
-            ->where('ts.type',TrailStar::EXPECTATION)//目标
-            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
-            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
-            ->where('mu.type',ModuleUserType::BROKER)//经纪人
-            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->leftJoin('trail_star as ts',function ($join){
+                $join->on('ts.trail_id','=','p.trail_id')
+                    ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
+            })
+            ->leftJoin('stars as s','s.id','=','ts.starable_id')
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','s.id')
+                    ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+                    ->where('mu.type',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u1','u1.id','=','mu.user_id')
+            ->leftjoin('department_user as du','du.user_id','=','u1.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($arr)
             ->groupBy(DB::raw("p.type,DATE_FORMAT(p.created_at,'%Y-%m')"))
             ->get([
                 DB::raw('distinct p.id'),
-                DB::raw('count(p.id)'),
-                DB::raw("DATE_FORMAT(p.created_at,'%Y-%m')"),
+                DB::raw('count(p.id) as total'),
+                DB::raw("DATE_FORMAT(p.created_at,'%Y-%m') as date"),
                 'p.type'
             ]);
         return $peroject_list;

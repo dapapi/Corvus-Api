@@ -626,7 +626,7 @@ class ReportFormRepository
             $arr[] = ['d.id',$department];
         }
         if($target_star != null){
-            $arr[] = ['ts.starable_id',$target_star];
+            $arr[] = ['s.id',$target_star];
         }
         $peroject_list = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('users as u','u.id','=','p.principal_id')
@@ -740,8 +740,19 @@ class ReportFormRepository
         $arr[] = ['s.sign_contract_status',$sign_contract_status];
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
-            $stars = Star::where($arr)
-                ->select('sign_contract_status','name','birthday','source','communication_status','created_at','')
+            $sub_query = DB::table("operate_logs")
+                ->groupBy("created_at")
+                ->select(DB::raw("max(created_at) as created_at,id,logable_id,logable_type,method"));
+
+            $stars = (new Star())->setTable("s")->from("stars as s")
+                ->leftJoin(DB::raw("({$sub_query->toSql()}) as op"),function ($join){
+                    $join->on('op.logable_id','=','s.id')
+                        ->where('op.logable_type','=',ModuleableType::STAR)//可能有问题
+                        ->where('op.method','=',OperateEntity::UPDATED_AT);
+                })
+                ->where($arr)
+                ->groupBy('s.id')
+                ->select('s.sign_contract_status','s.name','s.birthday','s.source','s.communication_status','s.created_at','op.created_at as last_update_at')
                 ->get();
         }else{//已签约/解约
             //合同，预计订单收入，花费金额都没查呢

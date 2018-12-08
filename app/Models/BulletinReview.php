@@ -17,20 +17,15 @@ class BulletinReview extends Model
 
 
     ];
-//    public function report()
-//    {
-//       return $this->hasOne(Report::class,'id','id');
-//    }
-
     public function scopeCreateDesc($query)
     {
         return $query->orderBy('updated_at','desc');
 
     }
-    public function creator()
+    public function memberName()
     {
 
-        return $this->belongsTo(User::class, 'creator_id', 'id');
+        return $this->belongsTo(User::class, 'member','id');
     }
 
     public function affixes()
@@ -51,7 +46,6 @@ class BulletinReview extends Model
     }
     public function template()
     {
-
         return $this->belongsTo(Report::class, 'template_id','id');
     }
     public function broker()

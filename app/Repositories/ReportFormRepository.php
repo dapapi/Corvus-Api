@@ -131,7 +131,7 @@ class ReportFormRepository
 //        dd($current_industry_trail_number);
         //计算数量占比,计算同比
         array_map(function ($v) use ($sum,$prev,$prev_year){
-            $v->ratio = $sum == 0 ? 0 : ($v->number)/$sum; //数量占比
+            $v->ratio = $sum == 0 ? 0 : floor(($v->number/$sum)*10000)/10000; //数量占比
 
             //获取行业上一周期对应的接触数量
             $prev_arr = $prev->toArray();
@@ -171,7 +171,7 @@ class ReportFormRepository
             $key = array_search($v->id,array_column($current_confirm_Arr,'id'));
             $v->confirm_ratio_increment   =   $current_confirm_Arr[$key]->confirm_ratio_increment; //达成环比增量
             $v->confirm_annual_increment  =   $current_confirm_Arr[$key]->confirm_annual_increment; //达成同比增量
-            $v->customer_conversion_rate = $v->number == 0? 0 :$current_confirm_Arr[$key]->number / $v->number;//客户转化率
+            $v->customer_conversion_rate = $v->number == 0? 0 :floor(($current_confirm_Arr[$key]->number / $v->number)*10000)/10000;//客户转化率
             $v->confirm_number = $current_confirm_Arr[$key]->number;//达成数量
             $confirm_ratio_increment_sum += $v->confirm_ratio_increment;
             $confirm_annual_increment_sum += $v->confirm_annual_increment;

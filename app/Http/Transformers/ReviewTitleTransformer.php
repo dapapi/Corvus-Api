@@ -26,7 +26,7 @@ class ReviewTitleTransformer extends TransformerAbstract
             'reviewer_id' => $bulletinreviewtitle->reviewer_id,
            // 'title' => $bulletinreviewtitle->title,
             'status' => $bulletinreviewtitle->status,
-             'issues' => $bulletinreviewtitle->issues,
+            // 'issues' => $bulletinreviewtitle->issues,
             'created_at' => $bulletinreviewtitle->created_at->toDatetimeString(),
             'updated_at' => $bulletinreviewtitle->updated_at->toDatetimeString(),
 

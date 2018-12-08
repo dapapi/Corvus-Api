@@ -236,6 +236,7 @@ class LaunchController extends Controller
                $bulletionload=new BulletinReviewTitleIssuesAnswer();
                $bulletionload->bulletin_review_title_id=$review_id;
                $bulletionload->issues = Issues::find(hashid_decode($key))->issues;
+               $bulletionload->type  = Issues::find(hashid_decode($key))->type;
                $bulletionload->answer = $value;
               $review = $bulletionload->save();
                $payload['reviewer_id'] = hashid_decode($payload['reviewer_id']);

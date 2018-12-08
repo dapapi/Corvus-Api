@@ -845,7 +845,7 @@ class ReportFormRepository
         if($target_star != null){
             $arr[] = ['s.id',$target_star];
         }
-        $result = (new Star())->setTable("s")->from("stars as s")
+        $query = (new Star())->setTable("s")->from("stars as s")
             ->leftJoin("trail_star as ts",function ($join){
                 $join->on('ts.starable_id','=','s.id')
                     ->where('ts.starable_type','=',ModuleableType::STAR)//艺人
@@ -861,10 +861,28 @@ class ReportFormRepository
             ->leftJoin('departments as d','d.id','=','du.department_id')
             ->groupBy('t.type','t.industry_id')
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
+            ->where($arr);
+
 //            ->whereRaw('t.id is not null')
-            ->where($arr)
-            ->select(DB::raw('DISTINCT t.id,count(DISTINCT t.id) as total,t.type,t.industry_id'))
-            ->get();
+
+//            ->select(DB::raw('DISTINCT t.id,count(DISTINCT t.id) as total,t.type,t.industry_id'))
+//            ->get();
+
+        $result1 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_MOVIE)//电影
+            ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
+        })->where('tfv.field_id',7)//影视类型
+        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+
+        $result2 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
+        })->where('tfv.field_id',40)//电影商务
+        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+
+        $result = array_merge($result1,$result2);
+
         $list = [];
         $sum = array_sum(array_column($result->toArray(),'total'));
         foreach ($result as $value){
@@ -909,7 +927,8 @@ class ReportFormRepository
                 ->where('ts.starable_type',ModuleableType::STAR)
                 ->where('ts.type',TrailStar::EXPECTATION);
             })
-            ->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+            ->leftJoin('trails as t','t.id','=','ts.trail_id')
+            ->leftJoin('projects as p','p.trail_id','=','t.id')
             ->leftJoin('module_users as mu',function ($join){
                 $join->on('mu.moduleable_id','=','s.id')
                     ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
@@ -929,34 +948,70 @@ class ReportFormRepository
             $query->where('p.type',Project::TYPE_MOVIE)//电影
                 ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
         })->where('tfv.field_id',7)//影视类型
-            ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->select(
+                    DB::raw("count(distinct s.id) as star_total"),
+                    DB::raw("sum(t.fee) as fee_sum"),
+//                    DB::raw('DISTINCT p.id as project_id'),
+                    DB::raw('count(DISTINCT p.id) as p_total'),
+                    DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
+                    'p.type','tfv.value')
             ->groupBy(DB::raw('p.type,tfv.value'))->get();
 
         $result2 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
         })->where('tfv.field_id',40)//电影商务
-            ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+            ->select(
+                    DB::raw("count(distinct s.id) as star_total"),
+                    DB::raw("sum(t.fee) as fee_sum"),
+//                    DB::raw('DISTINCT p.id as project_id'),
+                    DB::raw('count(DISTINCT p.id) as p_total'),
+                    DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
+                    'p.type','tfv.value')
             ->groupBy(DB::raw('p.type,tfv.value'))->get();
         $result = array_merge($result1->toArray(),$result2->toArray());
         $list = [];
         $sum = array_sum(array_column($result,'p_total'));
         foreach ($result as $value){
-            if(!isset($list[$value['type']])){
-                $list[$value['type']]['type_total'] = $value['p_total'];
-                $list[$value['type']]['per_type_total'] = $value['p_total'] / $sum;
-                $list[$value['type']]['type'] = $value['type'];
+            unset($value['project_id']);
+            $type_key = array_search($value['type'],array_column($list,'type'));
+            if($type_key >= 0 && $type_key !== false){
                 $value['per_p_total'] = $value['p_total'] / $sum;
-                $list[$value['type']][] = $value;
+                $list[$type_key]['type_total']  +=  $value['p_total'];
+                $list[$type_key]['value'][]   =   $value;
+                $list[$type_key]['per_type_total']  += $sum == 0 ? 0 : $value['p_total'] / $sum;
+
             }else{
-                $list[$value['type']]['type_total'] += $value['p_total'];
                 $value['per_p_total'] = $value['p_total'] / $sum;
-                $list[$value['type']][] = $value;
-                $list[$value['type']]['per_type_total'] += $value['p_total'] / $sum;
+                $list[] = [
+                    'type_total'    =>  $value['p_total'],
+                    'per_type_total'    =>  $sum == 0 ? 0 : $value['p_total'] / $sum,
+                    'type'  =>  $value['type'],
+                    'type_name' =>  $value['type_name'],
+                    'value' =>  [$value]
+
+                ];
             }
+//            if(!isset($list[$value['type']])){
+//
+//                $list[$value['type']]['type_total'] = $value['p_total'];
+//                $list[$value['type']]['per_type_total'] = $value['p_total'] / $sum;
+//                $list[$value['type']]['type'] = $value['type'];
+//                $value['per_p_total'] = $value['p_total'] / $sum;
+//                $list[$value['type']][] = $value;
+//            }else{
+//                $list[$value['type']]['type_total'] += $value['p_total'];
+//                $value['per_p_total'] = $value['p_total'] / $sum;
+//                $list[$value['type']][] = $value;
+//                $list[$value['type']]['per_type_total'] += $value['p_total'] / $sum;
+//            }
 
         }
 
-        return $list;
+        return [
+            "star_total"    =>  array_sum(array_column($result,'star_total')),
+            'total_fee' =>  array_sum(array_column($result,'fee_sum')),
+            "list"  =>  $list
+            ];
     }
 
     /**

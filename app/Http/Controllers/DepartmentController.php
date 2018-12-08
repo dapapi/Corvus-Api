@@ -31,51 +31,6 @@ class DepartmentController extends Controller
 
 
     //添加部门
-//    public function store(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
-//    {
-//
-//        $payload = $request->all();
-//
-//        $user_id = $user->id;
-//
-//        $payload['department_pid'] = $department->id;
-//        //        $userId = $request->user('api')->id ?? 0;
-//
-//
-//        $array = [
-//            "department_id"=>$department->id,
-//            "user_id"=>$user_id,
-//            "type"=>Department::DEPARTMENT_HEAD_TYPE,
-//        ];
-//        $payload['department_pid'] = $department->id;
-//
-//        try {
-//            //$depar = DepartmentUser::create($array);
-//
-//            $contact = Department::create($payload);
-//            $id = $department->id;
-//            dd($id);
-//            // 操作日志
-//            $operate = new OperateEntity([
-//                'obj' => $department,
-//                'title' => null,
-//                'start' => null,
-//                'end' => null,
-//                'method' => OperateLogMethod::CREATE,
-//            ]);
-//            event(new OperateLogEvent([
-//                $operate,
-//            ]));
-//
-//        } catch (\Exception $exception) {
-//            Log::error($exception);
-//            return $this->response->errorInternal('创建部门失败');
-//        }
-//
-//        return $this->response->item($contact, new DepartmentTransformer());
-//    }
-
-    //添加部门
     public function store(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
     {
 
@@ -423,16 +378,6 @@ class DepartmentController extends Controller
         }
     }
 
-
-    public function create(User $user,Department $department)
-    { dd(12);
-        //$user = $user->id;
-        $post = $user->id;
-        // 授权策略判断
-        //$this->authorize('create', $department);
-        dd(12);
-
-    }
 
 
 }

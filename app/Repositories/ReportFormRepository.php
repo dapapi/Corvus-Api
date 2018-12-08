@@ -22,24 +22,24 @@ class ReportFormRepository
 {
     public function CommercialFunnelReportFrom($start_time,$end_time)
     {
-        $start_time = Carbon::parse($start_time)->toDateString();
-        $end_time = Carbon::parse($end_time)->toDateString();
-        $current_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($start_time,$end_time);
-        $current_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($start_time,$end_time,Trail::STATUS_CONFIRMED);
+        $start_time = Carbon::parse($start_time)->toDateString();//查询周期开始时间
+        $end_time = Carbon::parse($end_time)->toDateString();//查询周期结束时间
+        $current_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($start_time,$end_time);//获取线索接触数量
+        $current_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($start_time,$end_time,Trail::STATUS_CONFIRMED);//获取线索达成数量
 
         //获取查询周期
         $rang = Carbon::parse($start_time)->diffInDays($end_time);
-        $prev_range_end = Carbon::parse($end_time)->addDay(-($rang+1))->toDateString();
-        $prev_range_start = Carbon::parse($start_time)->addDay(-($rang+1))->toDateString();
+        $prev_range_end = Carbon::parse($end_time)->addDay(-($rang+1))->toDateString();//上一次查询周期线索接触数量
+        $prev_range_start = Carbon::parse($start_time)->addDay(-($rang+1))->toDateString();//上一次查询周期线索达成数量
 
-        $prev_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($prev_range_start,$prev_range_end);
-        $prev_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($prev_range_start,$prev_range_end,Trail::STATUS_CONFIRMED);
+        $prev_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($prev_range_start,$prev_range_end);//上一年查询周期线索接触数量
+        $prev_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($prev_range_start,$prev_range_end,Trail::STATUS_CONFIRMED);//上一年查询周期线索达成数量
 
         $prev_year_start = Carbon::parse($start_time)->addYear(-1)->toDateString();
         $prev_year_end = Carbon::parse($end_time)->addYear(-1)->toDateString();
         $prev_year_industry_trail_number = $this->getEveryIndustryTrailConfrimNumber($prev_year_start,$prev_year_end);
         $prev_year_industry_trail_confirm_number = $this->getEveryIndustryTrailConfrimNumber($prev_year_start,$prev_year_end,Trail::STATUS_CONFIRMED);
-
+        //行业
         $industry_data = $this->computeDate(
             $current_industry_trail_number,
             $prev_industry_trail_number,
@@ -103,11 +103,17 @@ class ReportFormRepository
             $prev_year_confrim_priority_trail_number
         );
         return [
-            "industry"  =>  $industry_data,
-            "cooperation"   =>  $cooperation_data,
-            "resource"  =>  $resource_type_data,
-            'priority'  =>  $priority_data
-        ];
+                "sum"   =>  $industry_data['sum'],
+                "confirm_sum"  =>  $industry_data['confirm_sum'],
+                "ring_ratio_increment_sum"  =>  $industry_data['ring_ratio_increment_sum'],
+                "annual_ratio_increment_sum"    =>  $industry_data['annual_ratio_increment_sum'],
+                "confirm_ratio_increment_sum"  =>  $industry_data['confirm_ratio_increment_sum'],
+                "confirm_annual_increment_sum" =>  $industry_data['confirm_annual_increment_sum'],
+                $industry_data['data'],
+                $cooperation_data['data'],
+                $resource_type_data['data'],
+                $priority_data['data']
+            ];
     }
 
     /**
@@ -118,6 +124,7 @@ class ReportFormRepository
     private function computeDate($curr,$prev,$prev_year,$curr_confirm,$prev_confirm,$prev_year_confirm){
         //计算接触数量总数
         $sum = array_sum(array_column($curr->toArray(),'number'));
+        $confirm_sum = array_sum(array_column($curr_confirm->toArray(),'number'));
 //        dd($current_industry_trail_number);
         //计算数量占比,计算同比
         array_map(function ($v) use ($sum,$prev,$prev_year){
@@ -149,17 +156,34 @@ class ReportFormRepository
             $v->confirm_annual_increment = $v->number - $prev_year_confirm_arr[$prev_year_confirm_key]->number;
             return $v;
         },$curr_confirm->toArray());
-        //合并两个数组
-        array_map(function ($v) use ($curr_confirm){
+        //合并两个数组 //将接触环比增量，接触同比增量，达成环比增量，达成同比增量算出总和
+        $ring_ratio_increment_sum = 0;//接触环比总和
+        $annual_ratio_increment_sum = 0;//接触同比总和
+        $confirm_ratio_increment_sum = 0;//达成环比
+        $confirm_annual_increment_sum = 0;//达成同比
+        array_map(function ($v) use ($curr_confirm,&$ring_ratio_increment_sum,&$annual_ratio_increment_sum,&$confirm_ratio_increment_sum,&$confirm_annual_increment_sum){
             $current_confirm_Arr = $curr_confirm->toArray();
+            $ring_ratio_increment_sum += $v->ring_ratio_increment;
+            $annual_ratio_increment_sum += $v->annual_increment;
             $key = array_search($v->id,array_column($current_confirm_Arr,'id'));
-            $v->confirm_ratio_increment   =   $current_confirm_Arr[$key]->confirm_ratio_increment;
-            $v->confirm_annual_increment  =   $current_confirm_Arr[$key]->confirm_annual_increment;
-            $v->customer_conversion_rate = $v->number == 0? 0 :$current_confirm_Arr[$key]->number / $v->number;
-            $v->confirm_number = $current_confirm_Arr[$key]->number;
+            $v->confirm_ratio_increment   =   $current_confirm_Arr[$key]->confirm_ratio_increment; //达成环比增量
+            $v->confirm_annual_increment  =   $current_confirm_Arr[$key]->confirm_annual_increment; //达成同比增量
+            $v->customer_conversion_rate = $v->number == 0? 0 :$current_confirm_Arr[$key]->number / $v->number;//客户转化率
+            $v->confirm_number = $current_confirm_Arr[$key]->number;//达成数量
+            $confirm_ratio_increment_sum += $v->confirm_ratio_increment;
+            $confirm_annual_increment_sum += $v->confirm_annual_increment;
             return $v;
         },$curr->toArray());
-        return $curr;
+
+        return [
+            "sum"   =>  $sum,
+            "confirm_sum"  =>  $confirm_sum,
+            "ring_ratio_increment_sum"  =>  $ring_ratio_increment_sum,
+            "annual_ratio_increment_sum"    =>  $annual_ratio_increment_sum,
+            "confirm_ratio_increment_sum"  =>  $confirm_ratio_increment_sum,
+            "confirm_annual_increment_sum" =>  $confirm_annual_increment_sum,
+            "data"  =>  $curr
+        ];
     }
     //根据优先级
     public function getEveryPriorityTrailNumber($start_time,$end_time,$status=null){
@@ -204,7 +228,8 @@ class ReportFormRepository
         if($status != null){
             $arr[] = ['status',$status];
         }
-        $sub_query = "SELECT (@num := @num + 1) as id from trails,(SELECT @num := 0) t1 limit 8";
+        $sub_query = "SELECT val as id,name FROM data_dictionaries where parent_id = 28";
+//        $sub_query = "SELECT (@num := @num + 1) as id from trails,(SELECT @num := 0) t1 limit 8";
         $sub_query2 = DB::table("trails as t")->select("t.cooperation_type",DB::raw("count(t.id) as number"))->where($arr)->groupBy("t.cooperation_type");
 
         return DB::table(DB::raw("({$sub_query2->toSql()}) as t1 "))->rightJoin(DB::raw("({$sub_query}) as t2"),"t2.id","=","t1.cooperation_type")
@@ -222,8 +247,9 @@ class ReportFormRepository
         if($status != null){
             $arr[] = ['status',$status];
         }
+        //一个线索只有一个行业
         //DB::connection()->enableQueryLog();
-
+        //子查询，在查询时间内的线索
         $subquery = DB::table("trails as t")
             ->where($arr)
             ->select("t.industry_id","t.id");
@@ -231,8 +257,8 @@ class ReportFormRepository
         return DB::table(DB::raw("({$subquery->toSql()}) as tt"))
             ->rightJoin("industries as i",'i.id','=','tt.industry_id')
             ->mergeBindings($subquery)
-            ->groupBy("i.id")
-            ->get([
+            ->groupBy("i.id")//根据行业分组
+            ->get([//每个行业线索的数量number 名字name，行业id
                 DB::raw("count(tt.id) as number"),"i.id","i.name"
             ]);
 
@@ -297,6 +323,7 @@ class ReportFormRepository
             'client_refuse_retention'   =>  $client_refuse_retention,//客户拒绝
             'talk_retention'    =>  $talk_retention,//谈判留存
             'intention_retention'   =>  $intention_retention,//意向签约
+            'retention_trail_number'    =>  $retention_trail_number,//签约完成留存率
             //项目结算
             //归档
         ];

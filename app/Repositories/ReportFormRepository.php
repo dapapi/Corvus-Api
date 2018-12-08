@@ -435,7 +435,7 @@ class ReportFormRepository
         $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
         if($department != null){
-            $arr[] = ['du.department_id',$department];
+            $arr[] = ['d.id',$department];
         }
         if($target_star != null){
             $arr[] = ['ts.starable_id',$target_star];
@@ -451,8 +451,9 @@ class ReportFormRepository
                     ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
                     ->where('mu.type',ModuleUserType::BROKER);//经纪人
             })
-            ->leftJoin('user as us','u.id','=','mu.user_id')
+            ->leftJoin('users as u','u.id','=','mu.user_id')
             ->leftjoin('department_user as du','du.user_id','=','u.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($arr)
             ->select(DB::raw("distinct t.id"),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))

@@ -25,6 +25,7 @@ class ReviewTransformer extends TransformerAbstract
             'member' => $bulletinreview->memberName->name,
             'title' => $bulletinreview->title,
             'status' => $bulletinreview->status,
+            'created_at' => $bulletinreview->created_at->toDateTimeString(),
         ];
 
 

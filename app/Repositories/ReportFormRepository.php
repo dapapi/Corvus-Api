@@ -441,13 +441,18 @@ class ReportFormRepository
             $arr[] = ['ts.starable_id',$target_star];
         }
         $trails = (new Trail())->setTable("t")->from('trails as t')
-            ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
-            ->where('ts.starable_type',ModuleableType::STAR)//艺人
-            ->where('ts.type',TrailStar::EXPECTATION)//目标
-            ->leftJoin('module_users as mu','mu.moduleable_id','=','ts.starable_id')
-            ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
-            ->where('mu.type',ModuleUserType::BROKER)//经纪人
-            ->leftjoin('department_user as du','du.user_id','=','mu.user_id')
+            ->leftJoin('trail_star as ts',function($join){
+                $join->on('ts.trail_id','=','t.id')
+                    ->where('ts.starable_type',ModuleableType::STAR)//艺人
+                    ->where('ts.type',TrailStar::EXPECTATION);//目标
+            })
+            ->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','=','ts.starable_id')
+                    ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
+                    ->where('mu.type',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('user as us','u.id','=','mu.user_id')
+            ->leftjoin('department_user as du','du.user_id','=','u.id')
             ->where($arr)
             ->select(DB::raw("distinct t.id"),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))

@@ -249,7 +249,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/review/{review}', 'App\Http\Controllers\ReviewController@show');
         $api->post('/review', 'App\Http\Controllers\ReviewController@store');
         $api->put('/review/{review}', 'App\Http\Controllers\ReviewController@edit');
+        $api->put('/review/answer/{review}', 'App\Http\Controllers\ReviewController@editAnswer');
         $api->get('/review/my/template', 'App\Http\Controllers\ReviewController@myTemplate');
+        $api->get('/review/member/template', 'App\Http\Controllers\ReviewController@memberTemplate');
+        $api->get('/review/member/statistic', 'App\Http\Controllers\ReviewController@statistics');
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');

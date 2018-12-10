@@ -29,6 +29,8 @@ class ReviewTransformer extends TransformerAbstract
             'created_time' => $bulletinreview->created_time,
             'status' => $bulletinreview->status,
             'created_at' => $bulletinreview->created_at->toDateTimeString(),
+            'updated_at' => $bulletinreview->updated_at->toDateTimeString(),
+
         ];
 
 
@@ -40,6 +42,7 @@ class ReviewTransformer extends TransformerAbstract
             'title' => $bulletinreview->title,
             'status' => $bulletinreview->status,
             'created_at' => $bulletinreview->created_at->toDateTimeString(),
+            'updated_at' => $bulletinreview->updated_at->toDateTimeString(),
         ];
 
         return $this->isAll ? $array :$arraySimple;

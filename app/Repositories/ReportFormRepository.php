@@ -449,7 +449,7 @@ class ReportFormRepository
             $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
             $list = [];
             for ($i = 0;$i <= $diff;$i++){
-                $curr = $start_month->addMonth($diff)->format('Y-m');
+                $curr = $start_month->copy()->addMonth($i)->format('Y-m');
                 foreach ($trails as $trail){
                     if($trail->date == $curr){
                         $list[$curr][] = $trail;

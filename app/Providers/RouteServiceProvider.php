@@ -329,7 +329,8 @@ class RouteServiceProvider extends ServiceProvider
 
         Route::bind('department', function ($value) {
             try {
-                $id = hashid_encode($value);
+
+                $id = hashid_decode($value);
                 $entity = Department::findOrFail($id);
 
             } catch (Exception $exception) {

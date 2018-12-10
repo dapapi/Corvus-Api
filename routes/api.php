@@ -128,7 +128,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //跟进
         // 简报 问题跟进
-        $api->get('/issues/{issues}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->get('/issues/{issues}/operate_log', 'App\Http\Controllers\OperateLogController@myindex');
         $api->post('/issues/{issues}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/report/{report}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/report/{report}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
@@ -251,6 +251,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/review/{review}', 'App\Http\Controllers\ReviewController@edit');
         $api->put('/review/answer/{review}', 'App\Http\Controllers\ReviewController@editAnswer');
         $api->get('/review/my/template', 'App\Http\Controllers\ReviewController@myTemplate');
+        $api->put('/review/my/template/{reviewtitle}', 'App\Http\Controllers\ReviewController@myTemplateEdit');
         $api->get('/review/member/template', 'App\Http\Controllers\ReviewController@memberTemplate');
         $api->get('/review/member/statistic', 'App\Http\Controllers\ReviewController@statistics');
         //  launch

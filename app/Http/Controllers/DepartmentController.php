@@ -12,11 +12,8 @@ use App\OperateLogMethod;
 use App\Events\OperateLogEvent;
 use App\Http\Transformers\UserTransformer;
 use App\Http\Requests\DepartmentRequest;
-
-
 use App\User;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +25,6 @@ class DepartmentController extends Controller
         $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
-
-
 
     //添加部门
     public function store(DepartmentRequest $departmentrequest,DepartmentUser $departmentUser)
@@ -85,15 +80,16 @@ class DepartmentController extends Controller
         ];
         DB::beginTransaction();
         try {
+
             $contact = $department->update($departmentArr);
-            $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',$payload['user_id'])->where('type',1)->delete();
+            $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',hashid_encode($payload['user_id']))->where('type',1)->delete();
 
             $array = [
                 "department_id"=>$departmentId,
                 "user_id"=>hashid_encode($payload['user_id']),
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
-         
+
             $depar = DepartmentUser::create($array);
             // 操作日志
             $operate = new OperateEntity([
@@ -276,6 +272,7 @@ class DepartmentController extends Controller
     public function detail(Request $request,User $user,Department $department)
     {
         $id = $department->id;
+
         $results = DB::select('select departments.name,departments.department_pid,departments.city,users.id as user_id,users.name as username,department_user.type 
                             from departments 
                             LEFT JOIN department_user on department_user.department_id = departments.id 

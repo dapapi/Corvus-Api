@@ -684,7 +684,8 @@ class ReportFormRepository
         }
         return [
             "sum"   => array_sum(array_column($peoject_list->toArray(),'total')),
-            $list];
+            "data"  =>  $list
+        ];
     }
 
     /**
@@ -734,6 +735,7 @@ class ReportFormRepository
         ->select(
             DB::raw('DISTINCT p.id as project_id'),
             DB::raw('count(DISTINCT p.id) as p_total'),
+            DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
             'p.type','tfv.value'
         )
             ->groupBy(DB::raw('p.type,tfv.value'))->get();
@@ -744,27 +746,49 @@ class ReportFormRepository
         ->select(
             DB::raw('DISTINCT p.id as project_id'),
             DB::raw('count(DISTINCT p.id) as p_total'),
+            DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
             'p.type','tfv.value'
         )
             ->groupBy(DB::raw('p.type,tfv.value'))->get();
         $result = array_merge($result1->toArray(),$result2->toArray());
         $list = [];
         $sum = array_sum(array_column($result,'p_total'));
-        foreach ($result as $value){
-            if(!isset($list[$value['type']])){
-                $list[$value['type']]['type_total'] = floor(($value['p_total'])*10000)/10000;
-                $list[$value['type']]['per_type_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-                $list[$value['type']]['type'] = $value['type'];
-                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-                $list[$value['type']][] = $value;
-            }else{
-                $list[$value['type']]['type_total'] += $value['p_total'];
-                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-                $list[$value['type']][] = $value;
-                $list[$value['type']]['per_type_total'] += floor(($value['p_total'] / $sum)*10000)/10000;
-            }
+        foreach ($result as $value) {
+            unset($value['project_id']);
+            $type_key = array_search($value['type'], array_column($list, 'type'));
+            if ($type_key >= 0 && $type_key !== false) {
+                $value['per_p_total'] = floor(($value['p_total'] / $sum) * 10000) / 10000;
+                $list[$type_key]['type_total'] += $value['p_total'];
+                $list[$type_key]['value'][] = $value;
+                $list[$type_key]['per_type_total'] += $sum == 0 ? 0 : floor(($value['p_total'] / $sum) * 10000) / 10000;
 
+            } else {
+                $value['per_p_total'] = floor(($value['p_total'] / $sum) * 10000) / 10000;
+                $list[] = [
+                    'type_total' => $value['p_total'],
+                    'per_type_total' => $sum == 0 ? 0 : floor(($value['p_total'] / $sum) * 10000) / 10000,
+                    'type' => $value['type'],
+                    'type_name' => $value['type_name'],
+                    'value' => [$value]
+
+                ];
+            }
         }
+//        foreach ($result as $value){
+//            if(!isset($list[$value['type']])){
+//                $list[$value['type']]['type_total'] = floor(($value['p_total'])*10000)/10000;
+//                $list[$value['type']]['per_type_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
+//                $list[$value['type']]['type'] = $value['type'];
+//                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
+//                $list[$value['type']][] = $value;
+//            }else{
+//                $list[$value['type']]['type_total'] += $value['p_total'];
+//                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
+//                $list[$value['type']][] = $value;
+//                $list[$value['type']]['per_type_total'] += floor(($value['p_total'] / $sum)*10000)/10000;
+//            }
+//
+//        }
 
         return $list;
 

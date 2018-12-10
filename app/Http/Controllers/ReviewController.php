@@ -11,9 +11,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ReportEditIssuesRequest;
 use App\Http\Requests\ReviewUpdateRequest;
 use App\Http\Requests\ReviewAllRequest;
-use App\Http\Requests\ReportStoreRequest;
-use App\Http\Requests\ReportAllRequest;
+use App\Http\Requests\ReviewAnswerUpdateRequest;
 use App\Http\Transformers\ReviewTitleTransformer;
+use App\Models\BulletinReviewTitleIssuesAnswer;
 use App\Models\DepartmentUser;
 use App\Http\Transformers\ReviewTransformer;
 use App\Models\BulletinReview;
@@ -21,7 +21,6 @@ use App\Models\Report;
 use App\Models\Review;
 use App\Models\BulletinReviewTitle;
 use App\Models\ReportTemplateUser;
-use App\Models\OperateEntity;
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -90,6 +89,45 @@ class ReviewController extends Controller
 //        }
         return $this->response->paginator($str, new ReviewTransformer());
     }
+    public function myTemplateEdit(ReviewAnswerUpdateRequest $request,BulletinReviewTitle $bulletinreviewtitle)
+    {
+        $payload = $request->all();
+        DB::beginTransaction();
+        try {
+
+            if($request->has('answer')){
+                foreach ($payload as $key => $value){
+                    foreach($value as $kkey => $vvalue){
+                        $bulletion_title = BulletinReviewTitleIssuesAnswer::where('id',hashid_decode($kkey))->first()->update(['answer' => $vvalue]);
+                    }
+
+
+                }
+
+            }
+
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $blogger,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
+
+        // return $this->response->item(Blogger::find($blogger->id), new BloggerTransformer());
+
+    }
     public function memberTemplate(ReviewAllRequest $request)
     {
         $payload = $request->all();
@@ -149,9 +187,11 @@ class ReviewController extends Controller
         $str = BulletinReview::select('*',DB::raw('REPLACE(group_concat(title),\',\',\'.\') as titles'),DB::raw('count(status) as countstatus'))->where($arraydate)->groupBy('member')->createDesc()->paginate($pageSize);
         return $this->response->paginator($str, new ReviewTransformer());
     }
-    public function show(Request $request,review $review)
+    public function show(Request $request,Review $review)
     {
+
         $reviewdata = BulletinReviewTitle::where('bulletin_review_id',$review->id)->first();
+
         // 操作日志
 //        $operate = new OperateEntity([
 //            'obj' => $blogger,
@@ -171,6 +211,7 @@ class ReviewController extends Controller
         $payload = $request->all();
         DB::beginTransaction();
         try {
+
             $bulletion = $review->update($payload);
             $bulletion_title = BulletinReviewTitle::where('bulletin_review_id',$review->id)->first()->update($payload);
 //            // 操作日志

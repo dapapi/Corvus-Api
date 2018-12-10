@@ -5,12 +5,13 @@ namespace App\Providers;
 use App\Models\Affix;
 use App\Models\ApprovalGroup;
 use App\Models\Blogger;
+use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
 use App\Models\Material;
 use App\Models\Project;
 use App\Models\Report;
-use App\Models\Announcement;
 use App\Models\Review;
+use App\Models\Announcement;
 use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Draft;
@@ -182,6 +183,15 @@ class RouteServiceProvider extends ServiceProvider
                 $id = hashid_decode($value);
                 //withTrashed()->
                 $entity = Review::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('reviewtitle', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = BulletinReviewTitle::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

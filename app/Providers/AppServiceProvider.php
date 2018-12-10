@@ -11,6 +11,7 @@ use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\Issues;
 use App\Models\Trail;
 use App\Models\Report;
 use App\User;
@@ -43,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CALENDAR => Calendar::class,
             ModuleableType::SCHEDULE => Schedule::class,
             ModuleableType::USER => User::class,
+            ModuleableType::ISSUES => Issues::class,
             ModuleableType::REPORT => Report::class,
             ModuleableType::ANNOUNCEMENT => Announcement::class,
 

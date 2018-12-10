@@ -16,6 +16,7 @@ use App\Models\Issues;
 use App\Models\Task;
 use App\Models\Trail;
 use App\OperateLogMethod;
+use Illuminate\Support\Facades\Auth;
 use App\Repositories\OperateLogRepository;
 use Exception;
 use Illuminate\Http\Request;
@@ -67,7 +68,6 @@ class OperateLogController extends Controller
             default:
                 break;
         }
-
         $operateLogs = $query->createDesc()->paginate($pageSize);
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
@@ -77,7 +77,40 @@ class OperateLogController extends Controller
         }
         return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
+    public function myIndex(Request $request, Issues $issues)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', 1);
+        $user = Auth::guard('api')->user();
+        if($issues->user_id = $user->id){
+            if ($issues && $issues->user_id) {
+                $query = $issues->operateLogs();
+            }
+        }
+        //TODO 其他模块
 
+        switch ($status) {
+            case 2://不包含跟进
+                $query->where('method', '!=', OperateLogMethod::FOLLOW_UP);
+                break;
+            case 3://只有跟进
+                $query->where('method', '=', OperateLogMethod::FOLLOW_UP);
+                break;
+            case 1://全部
+            default:
+                break;
+        }
+        $operateLogs = $query->createDesc()->paginate($pageSize);
+        dd($operateLogs);
+        foreach ($operateLogs as $operateLog) {
+            if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
+                $operateLog->content = '!!!!!!!';
+                //TODO 隐私字段裁切处理
+            }
+        }
+        return $this->response->paginator($operateLogs, new OperateLogTransformer());
+    }
     public function addFollowUp(OperateLogFollowUpRequest $request, $model)
     {
         $payload = $request->all();

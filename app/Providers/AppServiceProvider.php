@@ -47,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::ISSUES => Issues::class,
             ModuleableType::REPORT => Report::class,
             ModuleableType::ANNOUNCEMENT => Announcement::class,
+            ModuleableType::DEPARTMENT => Department::class,
+
 
             //TODO
         ]);

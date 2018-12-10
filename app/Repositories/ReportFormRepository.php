@@ -617,7 +617,10 @@ class ReportFormRepository
 //            $project->deparment_name = trim($project->deparment_name,",");
 //            $project->star_name = trim($project->star_name,",");
 //        }
-        return $peroject_list;
+        return [
+            "sum"   =>  count($peroject_list),
+            "project"   =>  $peroject_list
+        ];
     }
 
     /**

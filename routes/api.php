@@ -254,6 +254,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/review/my/template/{reviewtitle}', 'App\Http\Controllers\ReviewController@myTemplateEdit');
         $api->get('/review/member/template', 'App\Http\Controllers\ReviewController@memberTemplate');
         $api->get('/review/member/statistic', 'App\Http\Controllers\ReviewController@statistics');
+        // Repository
+        $api->get('/repositorys', 'App\Http\Controllers\RepositoryController@index');
+
+
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');

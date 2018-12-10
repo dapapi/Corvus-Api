@@ -102,7 +102,6 @@ class OperateLogController extends Controller
                 break;
         }
         $operateLogs = $query->createDesc()->paginate($pageSize);
-        dd($operateLogs);
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
                 $operateLog->content = '!!!!!!!';

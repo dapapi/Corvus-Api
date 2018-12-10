@@ -12,11 +12,8 @@ use App\OperateLogMethod;
 use App\Events\OperateLogEvent;
 use App\Http\Transformers\UserTransformer;
 use App\Http\Requests\DepartmentRequest;
-
-
 use App\User;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,14 +26,13 @@ class DepartmentController extends Controller
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
 
-
-
     //添加部门
     public function store(DepartmentRequest $departmentrequest,DepartmentUser $departmentUser)
     {
         $payload = $departmentrequest->all();
+
         $departmentArr = [
-            "department_pid"=>$payload['department_pid'],
+            "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
             "city"=> isset($payload['city']) ? $payload['city'] : '',
         ];
@@ -77,21 +73,25 @@ class DepartmentController extends Controller
         $payload = $departmentrequest->all();
 
         $departmentId = $department->id;
+
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
-            "city"=>$payload['city'],
+            "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
 
         DB::beginTransaction();
         try {
+
             $contact = $department->update($departmentArr);
-            $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',$payload['user_id'])->where('type',1)->delete();
+            $num = DB::table("department_user")->where('department_id',$departmentId)->where('type',1)->delete();
+
             $array = [
                 "department_id"=>$departmentId,
-                "user_id"=>$payload['user_id'],
+                "user_id"=>hashid_decode($payload['user_id']),
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
+
             $depar = DepartmentUser::create($array);
             // 操作日志
             $operate = new OperateEntity([
@@ -274,6 +274,7 @@ class DepartmentController extends Controller
     public function detail(Request $request,User $user,Department $department)
     {
         $id = $department->id;
+
         $results = DB::select('select departments.name,departments.department_pid,departments.city,users.id as user_id,users.name as username,department_user.type 
                             from departments 
                             LEFT JOIN department_user on department_user.department_id = departments.id 

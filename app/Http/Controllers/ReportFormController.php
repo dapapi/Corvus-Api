@@ -131,9 +131,11 @@ class ReportFormController extends Controller
         $sign_contract_status = $request->get('sign_contract_status',null);
         $department = $request->get("departmnet",null);
         $department = $department == null ? null : hashid_decode($department);
-        $p_type = $request->get('p_type',null);
-        $t_type = $request->get('t_type',null);
-        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$p_type,$t_type);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $type = $request->get('type',null);
+
+        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$target_star,$type);
     }
     //艺人线索分析
     public function starTrailAnalysis(Request $request)
@@ -164,7 +166,11 @@ class ReportFormController extends Controller
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $sign_contract_status = $request->get('sign_contract_status',null);
-        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status);
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
+        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star);
     }
     //博主线索分析
     public function bloggerTrailAnalysis(Request $request)

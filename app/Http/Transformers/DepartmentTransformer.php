@@ -14,6 +14,7 @@ class DepartmentTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($department->id),
             'name' => $department->name,
+            'department_pid' => hashid_encode($department->department_pid),
         ];
 
         return $array;

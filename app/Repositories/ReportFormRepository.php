@@ -280,8 +280,8 @@ class ReportFormRepository
     {
         //根据状态分组统计销售线索个状态下
         $staus_trail_number = Trail::select("status",DB::raw("count(id) as total"))
-            ->where('created_at','>',Carbon::parse($start_time)->toDateString())
-            ->where('created_at','<',Carbon::parse($end_time)->toDateString())
+            ->where('created_at','>=',Carbon::parse($start_time)->toDateString())
+            ->where('created_at','<=',Carbon::parse($end_time)->toDateString())
             ->groupBy("status")->get();
         $status_number = [];
         foreach ($staus_trail_number as $value){
@@ -362,8 +362,8 @@ class ReportFormRepository
      */
     public function trailReportFrom($start_time,$end_time,$type=null,$department=null)
     {
-        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($type != null){
             $arr[]  = ['t.type',$type];
         }
@@ -417,8 +417,8 @@ class ReportFormRepository
      */
     public function newTrail($start_time,$end_time,$department=null,$target_star=null)
     {
-        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -457,6 +457,16 @@ class ReportFormRepository
                 foreach ($trails as $trail){
                     if($trail->date == $curr){
                         $list[$curr][] = $trail;
+                        $cloum = array_column($list[$curr],'type');
+                        $sum_key = array_search('sum',$cloum);
+                        if($sum_key === false){
+                            $list[$curr][] = [
+                                'total' => $trail['total'],
+                                "type"  =>  "sum"
+                            ];
+                        }else{
+                            $list[$curr][$sum_key]['total'] +=  $trail['total'];
+                        }
                     }
                 }
                 if(empty($list[$curr])){
@@ -481,8 +491,8 @@ class ReportFormRepository
      */
     public function percentageOfSalesLeads($start_time,$end_time,$department=null,$target_star=null)
     {
-        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['du.department_id',$department];
         }
@@ -531,8 +541,8 @@ class ReportFormRepository
      * @param $type
      */
     public function industryAnalysis($start_time,$end_time,$type){
-        $arr[] = ['t.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['t.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($type != null){
             $arr[] = ['d.id',$type];
         }
@@ -550,8 +560,8 @@ class ReportFormRepository
     /*********************************************项目报表*****************************************************/
     public function projectReport($start_time,$end_time,$type,$department)
     {
-        $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['p.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['p.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -633,8 +643,8 @@ class ReportFormRepository
      */
     public function newProject($start_time,$end_time,$department=null,$target_star=null)
     {
-        $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['p.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['p.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -676,6 +686,16 @@ class ReportFormRepository
             foreach ($peoject_list as $project){
                 if($project->date == $curr){
                     $list[$curr][] = $project;
+                    $cloum = array_column($list[$curr],'type');
+                    $sum_key = array_search('sum',$cloum);
+                    if($sum_key === false){
+                        $list[$curr][] = [
+                            'total' => $project['total'],
+                            "type"  =>  "sum"
+                        ];
+                    }else{
+                        $list[$curr][$sum_key]['total'] +=  $project['total'];
+                    }
                 }
             }
             if(empty($list[$curr])){
@@ -697,8 +717,8 @@ class ReportFormRepository
      */
     public function percentageOfProject($start_time,$end_time,$department=null,$target_star=null)
     {
-        $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['p.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['p.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -796,8 +816,8 @@ class ReportFormRepository
     //客户报表
     public function clientReport($start_time,$end_time,$type=null)
     {
-        $arr[] = ['c.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['c.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['c.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['c.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($type != null){
             $arr[] = ['c.type',$type];
         }
@@ -818,9 +838,10 @@ class ReportFormRepository
     //客户分析
     public function clientAnalysis($start_time,$end_time)
     {
-        $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['created_at','<=',Carbon::parse($end_time)->toDateString()];
         $clients = Client::where($arr)
+            ->whereIn('type',[Client::TYPE_MOVIE,Client::TYPE_VARIETY,Client::TYPE_ENDORSEMENT])
             ->groupBy(DB::raw("type,DATE_FORMAT(created_at,'%Y-%m')"))
             ->get([
                 DB::raw("count(id) as total"),
@@ -836,6 +857,17 @@ class ReportFormRepository
             foreach ($clients as $client){
                 if($client->date == $curr){
                     $list[$curr][] = $client;
+                    $cloum = array_column($list[$curr],'type');
+                    $sum_key = array_search('sum',$cloum);
+                    if($sum_key === false){
+                        $list[$curr][] = [
+                            'total' => $client['total'],
+                            "type"  =>  "sum"
+                        ];
+                    }else{
+                        $list[$curr][$sum_key]['total'] +=  $client['total'];
+                    }
+
                 }
             }
             if(empty($list[$curr])){
@@ -858,19 +890,21 @@ class ReportFormRepository
      * @param $p_type 项目类型
      * @param $t_type 线索类型
      */
-    public function starReport($start_time,$end_time,$sign_contract_status,$department=null,$p_type=null,$t_type=null)
+    public function starReport($start_time,$end_time,$sign_contract_status,$department=null,$target_star,$type=null)
     {
-        $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['s.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['s.created_at','<=',Carbon::parse($end_time)->toDateString()];
         $arr[] = ['s.sign_contract_status',$sign_contract_status];
-        if($p_type != null){
-            $arr[] = ['p.type','=',$p_type];
+        if($type != null){
+            $arr[] = ['p.type','=',$type];
+            $arr[]  =   ['t.type',$type];
         }
-        if($t_type != null){
-            $arr[] = ['t_type','=',$t_type];
-        }
+
         if($department != null){
             $arr[] = ['d.id','=',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['s.id',$target_star];
         }
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
@@ -932,8 +966,8 @@ class ReportFormRepository
      */
     public function starTrailAnalysis($start_time,$end_time,$department,$target_star)
     {
-        $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['s.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['s.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -1007,8 +1041,8 @@ class ReportFormRepository
      */
     public function starProjectAnalysis($start_time,$end_time,$department,$target_star)
     {
-        $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['s.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['s.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -1115,11 +1149,17 @@ class ReportFormRepository
      * @param $end_time
      * @param $sign_contract_status
      */
-    public function bloggerReport($start_time,$end_time,$sign_contract_status)
+    public function bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star)
     {
-        $arr[] = ['b.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['b.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['b.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['b.created_at','<=',Carbon::parse($end_time)->toDateString()];
         $arr[] = ['b.sign_contract_status',$sign_contract_status];
+        if($department != null){
+            $arr[] = ['d.id',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['s.id',$target_star];
+        }
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
             $sub_query = DB::table("operate_logs")->groupBy("created_at")->select(DB::raw("max(created_at) as created_at,id,logable_id,logable_type,method"));
@@ -1146,17 +1186,23 @@ class ReportFormRepository
                     $join->on('ts.starable_id','=','b.id')
                         ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
                         ->where('ts.type',TrailStar::EXPECTATION);//目标
-                })->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+                })->leftJoin('trails as t','t.id','=','ts.trail_id')
+                ->leftJoin('projects as p','p.trail_id','=','t.id')
                 ->where($arr)
                 ->groupBy('b.id')
                 ->get([
                     'b.id','b.nickname','sign_contract_status',
+                    DB::raw('sum(distinct t.fee) as total_fee'),
                     DB::raw("count(ts.id) as trail_total"),
                     DB::raw("count(p.id) as project_total"),
                     DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
                 ]);
         }
-        return $bloggers;
+        return [
+            "total" =>  count($bloggers),
+            "total_fee" => array_sum(array_column($bloggers->toArray(),'total_fee')),
+            "blogger" =>  $bloggers
+        ];
     }
 
     /**
@@ -1168,8 +1214,8 @@ class ReportFormRepository
      */
     public function bloggerTrailAnalysis($start_time,$end_time,$department,$target_star)
     {
-        $arr[] = ['b.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['b.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['b.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['b.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -1233,8 +1279,8 @@ class ReportFormRepository
      */
     public function bloggerProjectAnalysis($start_time,$end_time,$department,$target_star)
     {
-        $arr[] = ['b.created_at','>',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['b.created_at','<',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['b.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['b.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }

@@ -80,8 +80,9 @@ class DepartmentController extends Controller
         ];
         DB::beginTransaction();
         try {
+           
             $contact = $department->update($departmentArr);
-            $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',$payload['user_id'])->where('type',1)->delete();
+            $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',hashid_encode($payload['user_id']))->where('type',1)->delete();
 
             $array = [
                 "department_id"=>$departmentId,

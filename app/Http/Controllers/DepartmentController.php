@@ -11,6 +11,7 @@ use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\Events\OperateLogEvent;
 use App\Http\Transformers\UserTransformer;
+use App\Http\Requests\DepartmentRequest;
 
 
 use App\User;
@@ -24,19 +25,16 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $depatments = Department::where('department_pid', 0)->get();
+        $depatments = Department::where('id', 1)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
 
 
 
     //添加部门
-    public function store(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
+    public function store(DepartmentRequest $departmentrequest,DepartmentUser $departmentUser)
     {
-
-        $payload = $request->all();
-
-        $user_id = $user->id;
+        $payload = $departmentrequest->all();
         $departmentArr = [
             "department_pid"=>$payload['department_pid'],
             "name"=>$payload['name'],
@@ -49,7 +47,7 @@ class DepartmentController extends Controller
 
             $array = [
                 "department_id"=>$id,
-                "user_id"=>$user_id,
+                "user_id"=>$payload['user_id'],
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
             $depar = DepartmentUser::create($array);
@@ -64,14 +62,12 @@ class DepartmentController extends Controller
 //            event(new OperateLogEvent([
 //                $operate,
 //            ]));
-
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
     }
 
 
@@ -79,7 +75,7 @@ class DepartmentController extends Controller
     public function edit(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
-        $userId = $user->id;
+
         $departmentId = $department->id;
         $departmentArr = [
             "department_pid"=>$payload['department_pid'],
@@ -119,7 +115,6 @@ class DepartmentController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
     }
 
 

@@ -703,7 +703,7 @@ class ReportFormRepository
             $arr[] = ['d.id',$department];
         }
         if($target_star != null){
-            $arr[] = ['t.starable_id',$target_star];
+            $arr[] = ['ts.starable_id',$target_star];
         }
         $query = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('trails as t','t.id','=','p.trail_id')

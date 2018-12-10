@@ -457,6 +457,16 @@ class ReportFormRepository
                 foreach ($trails as $trail){
                     if($trail->date == $curr){
                         $list[$curr][] = $trail;
+                        $cloum = array_column($list[$curr],'type');
+                        $sum_key = array_search('sum',$cloum);
+                        if($sum_key === false){
+                            $list[$curr][] = [
+                                'total' => $trail['total'],
+                                "type"  =>  "sum"
+                            ];
+                        }else{
+                            $list[$curr][$sum_key]['total'] +=  $trail['total'];
+                        }
                     }
                 }
                 if(empty($list[$curr])){
@@ -676,6 +686,16 @@ class ReportFormRepository
             foreach ($peoject_list as $project){
                 if($project->date == $curr){
                     $list[$curr][] = $project;
+                    $cloum = array_column($list[$curr],'type');
+                    $sum_key = array_search('sum',$cloum);
+                    if($sum_key === false){
+                        $list[$curr][] = [
+                            'total' => $project['total'],
+                            "type"  =>  "sum"
+                        ];
+                    }else{
+                        $list[$curr][$sum_key]['total'] +=  $project['total'];
+                    }
                 }
             }
             if(empty($list[$curr])){
@@ -836,6 +856,17 @@ class ReportFormRepository
             foreach ($clients as $client){
                 if($client->date == $curr){
                     $list[$curr][] = $client;
+                    $cloum = array_column($list[$curr],'type');
+                    $sum_key = array_search('sum',$cloum);
+                    if($sum_key === false){
+                        $list[$curr][] = [
+                            'total' => $client['total'],
+                            "type"  =>  "sum"
+                        ];
+                    }else{
+                        $list[$curr][$sum_key]['total'] +=  $client['total'];
+                    }
+
                 }
             }
             if(empty($list[$curr])){

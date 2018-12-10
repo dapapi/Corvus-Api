@@ -441,7 +441,11 @@ class ReportFormRepository
             ->leftJoin('departments as d','d.id','=','du.department_id')
             ->where($arr)
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
-            ->select(DB::raw("distinct t.id"),DB::raw('sum(t.fee) as total_fee'),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
+            ->select(
+                DB::raw('sum(t.fee) as total_fee'),'t.type',
+                DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),
+                DB::raw('count(distinct t.id) as total')
+            )
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
             ->get();
             $start_month = Carbon::parse($start_time);
@@ -461,7 +465,7 @@ class ReportFormRepository
             }
         return
             [
-                "sum"   =>  count($trails),
+                "sum"   =>  array_sum(array_column($trails->toArray(),'total')),
                 "total_fee" =>  array_sum(array_column($trails->toArray(),'total_fee')),
                 "trails"   =>  $list
             ];
@@ -511,7 +515,7 @@ class ReportFormRepository
             ->get();
         $sum = array_sum(array_column($trails->toArray(),'total'));
         foreach ($trails as &$trail){
-            $trail['per'] = $sum == 0? 0 : $trail['total'] / $sum;
+            $trail['per'] = $sum == 0? 0 : floor(($trail['total'] / $sum)*10000)/10000;
         }
         return [
             "total" =>  $sum,
@@ -634,7 +638,7 @@ class ReportFormRepository
         if($target_star != null){
             $arr[] = ['s.id',$target_star];
         }
-        $peroject_list = (new Project())->setTable("p")->from("projects as p")
+        $peoject_list = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('users as u','u.id','=','p.principal_id')
             ->leftJoin('trails as t','t.id','=','p.trail_id')
             ->leftJoin('trail_star as ts',function ($join){
@@ -656,12 +660,28 @@ class ReportFormRepository
             ->where($arr)
             ->groupBy(DB::raw("p.type,DATE_FORMAT(p.created_at,'%Y-%m')"))
             ->get([
-                DB::raw('distinct p.id'),
-                DB::raw('count(p.id) as total'),
+                DB::raw('count(distinct p.id) as total'),
                 DB::raw("DATE_FORMAT(p.created_at,'%Y-%m') as date"),
                 'p.type'
             ]);
-        return $peroject_list;
+        $start_month = Carbon::parse($start_time);
+        $end_moth = Carbon::parse($end_time);
+        $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
+        $list = [];
+        for ($i = 0;$i <= $diff;$i++){
+            $curr = $start_month->copy()->addMonth($i)->format('Y-m');
+            foreach ($peoject_list as $project){
+                if($project->date == $curr){
+                    $list[$curr][] = $project;
+                }
+            }
+            if(empty($list[$curr])){
+                $list[$curr] = [];
+            }
+        }
+        return [
+            "sum"   => array_sum(array_column($peoject_list->toArray(),'total')),
+            $list];
     }
 
     /**
@@ -676,12 +696,12 @@ class ReportFormRepository
         $arr[] = ['p.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['p.created_at','<',Carbon::parse($end_time)->toDateString()];
         if($department != null){
-            $arr[] = ['du.department_id',$department];
+            $arr[] = ['d.id',$department];
         }
         if($target_star != null){
-            $arr[] = ['ts.starable_id',$target_star];
+            $arr[] = ['t.starable_id',$target_star];
         }
-        $result = (new Project())->setTable("p")->from("projects as p")
+        $query = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('trails as t','t.id','=','p.trail_id')
             ->leftJoin('trail_star as ts',function ($join){
                 $join->on('ts.trail_id','=','t.id')
@@ -689,22 +709,60 @@ class ReportFormRepository
                     ->where('ts.type',TrailStar::EXPECTATION);//目标
             })
             ->leftJoin('stars as s','s.id','=','ts.starable_id')
-            ->leftJoin('industries as i','i.id','=','t.industry_id')
-            ->groupBy(DB::raw('p.type,i.id'))
-            ->get(
-                [
-                    DB::raw('count(p.id) as total'),
-                    'i.name',
-                    't.industry_id',
-                    'p.type'
-                ]
-            );
-        $um = array_sum(array_column($result->toArray(),'total'));
+            ->leftJoin("module_users as mu",function ($join){
+                $join->on('mu.moduleable_id','=','s.id')
+                    ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
+                    ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
+            })
+            ->leftJoin('users as u','u.id','=','mu.user_id')
+            ->leftJoin('department_user as du','du.user_id','=','u.id')
+            ->leftJoin('departments as d','d.id','=','du.department_id')
+            ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id')
+            ->where(function ($query){
+                $query->where('s.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
+                    ->orWhere('s.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);
+            })->where($arr)
+            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT]);
+
+        $result1 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_MOVIE)//电影
+            ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
+        })->where('tfv.field_id',7)//影视类型
+        ->select(
+            DB::raw('DISTINCT p.id as project_id'),
+            DB::raw('count(DISTINCT p.id) as p_total'),
+            'p.type','tfv.value'
+        )
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+
+        $result2 = $query->where(function ($query){
+            $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
+        })->where('tfv.field_id',40)//电影商务
+        ->select(
+            DB::raw('DISTINCT p.id as project_id'),
+            DB::raw('count(DISTINCT p.id) as p_total'),
+            'p.type','tfv.value'
+        )
+            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+        $result = array_merge($result1->toArray(),$result2->toArray());
         $list = [];
-        foreach ($result->toArray() as $value){
-            $value['per'] = $um == 0 ? 0 : $value['total']/$um;
-            $list[$value['type']] = $value;
+        $sum = array_sum(array_column($result,'p_total'));
+        foreach ($result as $value){
+            if(!isset($list[$value['type']])){
+                $list[$value['type']]['type_total'] = $value['p_total'];
+                $list[$value['type']]['per_type_total'] = $value['p_total'] / $sum;
+                $list[$value['type']]['type'] = $value['type'];
+                $value['per_p_total'] = $value['p_total'] / $sum;
+                $list[$value['type']][] = $value;
+            }else{
+                $list[$value['type']]['type_total'] += $value['p_total'];
+                $value['per_p_total'] = $value['p_total'] / $sum;
+                $list[$value['type']][] = $value;
+                $list[$value['type']]['per_type_total'] += $value['p_total'] / $sum;
+            }
+
         }
+
         return $list;
 
     }
@@ -969,16 +1027,16 @@ class ReportFormRepository
             unset($value['project_id']);
             $type_key = array_search($value['type'],array_column($list,'type'));
             if($type_key >= 0 && $type_key !== false){
-                $value['per_p_total'] = $value['p_total'] / $sum;
+                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
                 $list[$type_key]['type_total']  +=  $value['p_total'];
                 $list[$type_key]['value'][]   =   $value;
-                $list[$type_key]['per_type_total']  += $sum == 0 ? 0 : $value['p_total'] / $sum;
+                $list[$type_key]['per_type_total']  += $sum == 0 ? 0 : floor(($value['p_total'] / $sum)*10000)/10000;
 
             }else{
-                $value['per_p_total'] = $value['p_total'] / $sum;
+                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
                 $list[] = [
                     'type_total'    =>  $value['p_total'],
-                    'per_type_total'    =>  $sum == 0 ? 0 : $value['p_total'] / $sum,
+                    'per_type_total'    =>  $sum == 0 ? 0 : floor(($value['p_total'] / $sum)*10000)/10000,
                     'type'  =>  $value['type'],
                     'type_name' =>  $value['type_name'],
                     'value' =>  [$value]

@@ -25,7 +25,7 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $depatments = Department::where('id', 1)->get();
+        $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
 
@@ -38,7 +38,7 @@ class DepartmentController extends Controller
         $departmentArr = [
             "department_pid"=>$payload['department_pid'],
             "name"=>$payload['name'],
-            "city"=>$payload['city'],
+            "city"=> isset($payload['city']) ? $payload['city'] : '',
         ];
         DB::beginTransaction();
         try {

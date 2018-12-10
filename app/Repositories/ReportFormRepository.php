@@ -444,11 +444,26 @@ class ReportFormRepository
             ->select(DB::raw("distinct t.id"),DB::raw('sum(t.fee) as total_fee'),'t.type',DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),DB::raw('count(t.id) as total'))
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
             ->get();
+            $start_month = Carbon::parse($start_time);
+            $end_moth = Carbon::parse($end_time);
+            $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
+            $list = [];
+            for ($i = 0;$i <= $diff;$i++){
+                $curr = $start_month->addMonth($diff)->format('Y-m');
+                foreach ($trails as $trail){
+                    if($trail->date == $curr){
+                        $list[$curr][] = $trail;
+                    }
+                }
+                if(empty($list[$curr])){
+                    $list[$curr] = [];
+                }
+            }
         return
             [
                 "sum"   =>  count($trails),
                 "total_fee" =>  array_sum(array_column($trails->toArray(),'total_fee')),
-                "trails"   =>  $trails
+                "trails"   =>  $list
             ];
 
     }
@@ -546,6 +561,7 @@ class ReportFormRepository
                     ->where('ts.starable_type',ModuleableType::STAR)//艺人
                     ->where('ts.type',TrailStar::EXPECTATION);//目标
             })
+            ->leftJoin('trails as t','t.id','=','ts.trail_id')
             ->leftJoin('stars as s','s.id','=','ts.starable_id')
             ->leftJoin('module_users as mu',function ($join){
                 $join->on('mu.moduleable_id','=','s.id')

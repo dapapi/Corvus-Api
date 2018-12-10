@@ -133,7 +133,6 @@ class ReportFormController extends Controller
         $department = $department == null ? null : hashid_decode($department);
         $target_star = $request->get('target_star',null);
         $target_star = $target_star == null ? null :hashid_decode($target_star);
-        $department = $department == null ? null : hashid_decode($department);
         $type = $request->get('type',null);
 
         return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$target_star,$type);

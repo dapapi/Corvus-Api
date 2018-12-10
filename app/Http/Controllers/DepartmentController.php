@@ -12,11 +12,8 @@ use App\OperateLogMethod;
 use App\Events\OperateLogEvent;
 use App\Http\Transformers\UserTransformer;
 use App\Http\Requests\DepartmentRequest;
-
-
 use App\User;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +25,6 @@ class DepartmentController extends Controller
         $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
-
-
 
     //添加部门
     public function store(DepartmentRequest $departmentrequest,DepartmentUser $departmentUser)
@@ -93,7 +88,7 @@ class DepartmentController extends Controller
                 "user_id"=>hashid_encode($payload['user_id']),
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
-         
+
             $depar = DepartmentUser::create($array);
             // 操作日志
             $operate = new OperateEntity([

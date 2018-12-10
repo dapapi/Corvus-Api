@@ -30,7 +30,7 @@ class DepartmentController extends Controller
     public function store(DepartmentRequest $departmentrequest,DepartmentUser $departmentUser)
     {
         $payload = $departmentrequest->all();
-        
+
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],

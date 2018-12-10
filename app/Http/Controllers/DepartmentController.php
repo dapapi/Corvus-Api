@@ -78,7 +78,7 @@ class DepartmentController extends Controller
 
         $departmentId = $department->id;
         $departmentArr = [
-            "department_pid"=>$payload['department_pid'],
+            "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
             "city"=>$payload['city'],
         ];

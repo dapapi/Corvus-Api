@@ -93,7 +93,7 @@ class DepartmentController extends Controller
                 "user_id"=>hashid_encode($payload['user_id']),
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
-            dd($array);
+         
             $depar = DepartmentUser::create($array);
             // 操作日志
             $operate = new OperateEntity([

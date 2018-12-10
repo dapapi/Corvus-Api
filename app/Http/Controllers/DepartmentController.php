@@ -78,15 +78,16 @@ class DepartmentController extends Controller
             "name"=>$payload['name'],
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
+
         DB::beginTransaction();
         try {
 
             $contact = $department->update($departmentArr);
-            $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',hashid_encode($payload['user_id']))->where('type',1)->delete();
+            $num = DB::table("department_user")->where('department_id',$departmentId)->where('type',1)->delete();
 
             $array = [
                 "department_id"=>$departmentId,
-                "user_id"=>hashid_encode($payload['user_id']),
+                "user_id"=>hashid_decode($payload['user_id']),
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
 

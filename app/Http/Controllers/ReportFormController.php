@@ -131,9 +131,12 @@ class ReportFormController extends Controller
         $sign_contract_status = $request->get('sign_contract_status',null);
         $department = $request->get("departmnet",null);
         $department = $department == null ? null : hashid_decode($department);
-        $p_type = $request->get('p_type',null);
-        $t_type = $request->get('t_type',null);
-        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$p_type,$t_type);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
+        $type = $request->get('type',null);
+
+        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$target_star,$type);
     }
     //艺人线索分析
     public function starTrailAnalysis(Request $request)

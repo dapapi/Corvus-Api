@@ -23,11 +23,11 @@ class ReviewTransformer extends TransformerAbstract
             'template' => $bulletinreview->template->template_name,
             'template_type' =>  $bulletinreview->template->frequency,
             'member' => $bulletinreview->memberName->name,
-            'title' => $bulletinreview->title,
+            'titles' => $bulletinreview->titles,
             'countstatus' => $bulletinreview->countstatus,
-            'created_time' => $bulletinreview->created_time,
-            'status' => $bulletinreview->status,
-            'created_at' => $bulletinreview->created_at->toDateTimeString(),
+          //  'created_time' => $bulletinreview->created_time,
+          //  'status' => $bulletinreview->status,
+         //   'created_at' => $bulletinreview->created_at->toDateTimeString(),
         ];
 
 

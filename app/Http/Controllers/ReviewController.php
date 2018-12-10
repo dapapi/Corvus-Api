@@ -146,7 +146,7 @@ class ReviewController extends Controller
         $arraydate[] = ['created_at','<=', $payload['end_time']];
        // $arraydate[] = ['status','=', $payload['status']];created_time
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $str = BulletinReview::select('*',DB::raw('count(status) as countstatus'))->where($arraydate)->groupBy('member')->createDesc()->paginate($pageSize);
+        $str = BulletinReview::select('*',DB::raw('REPLACE(group_concat(title),\',\',\'.\') as titles'),DB::raw('count(status) as countstatus'))->where($arraydate)->groupBy('member')->createDesc()->paginate($pageSize);
         return $this->response->paginator($str, new ReviewTransformer());
     }
     public function show(Request $request,review $review)

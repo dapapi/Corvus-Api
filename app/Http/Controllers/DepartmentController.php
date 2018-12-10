@@ -25,7 +25,7 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $depatments = Department::where('id', 1)->get();
+        $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
 
@@ -38,7 +38,7 @@ class DepartmentController extends Controller
         $departmentArr = [
             "department_pid"=>$payload['department_pid'],
             "name"=>$payload['name'],
-            "city"=>$payload['city'],
+            "city"=> isset($payload['city']) ? $payload['city'] : '',
         ];
         DB::beginTransaction();
         try {
@@ -47,7 +47,7 @@ class DepartmentController extends Controller
 
             $array = [
                 "department_id"=>$id,
-                "user_id"=>$payload['user_id'],
+                "user_id"=>hashid_decode($payload['user_id']),
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
             $depar = DepartmentUser::create($array);
@@ -72,9 +72,9 @@ class DepartmentController extends Controller
 
 
     //编辑部门
-    public function edit(Request $request,Department $department,User $user,DepartmentUser $departmentUser)
+    public function edit(DepartmentRequest $departmentrequest,Department $department,User $user,DepartmentUser $departmentUser)
     {
-        $payload = $request->all();
+        $payload = $departmentrequest->all();
 
         $departmentId = $department->id;
         $departmentArr = [
@@ -86,17 +86,13 @@ class DepartmentController extends Controller
         DB::beginTransaction();
         try {
             $contact = $department->update($departmentArr);
-          //  dd($payload['user_id']);
             $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',$payload['user_id'])->where('type',1)->delete();
-
             $array = [
                 "department_id"=>$departmentId,
                 "user_id"=>$payload['user_id'],
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
             $depar = DepartmentUser::create($array);
-
-
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $department,
@@ -151,7 +147,6 @@ class DepartmentController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
     }
 
 
@@ -179,7 +174,6 @@ class DepartmentController extends Controller
             return $this->response->errorInternal('删除失败');
         }
         DB::commit();
-        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
 
     }
 
@@ -252,7 +246,6 @@ class DepartmentController extends Controller
             return $this->response->errorInternal('删除失败');
         }
         DB::commit();
-        return $this->response->item(Department::find($department->id), new DepartmentTransformer());
 
     }
 

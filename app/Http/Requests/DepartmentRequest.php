@@ -28,8 +28,7 @@ class DepartmentRequest extends FormRequest
         return [
             'name'  =>  'required|max:50',
             'department_pid'  =>  'required|numeric',
-            'city'  =>  'required|max:50',
-//            'sort_number'  =>  'required|max:50',
+ //           'city'  =>  'required|max:50',
         ];
     }
 }

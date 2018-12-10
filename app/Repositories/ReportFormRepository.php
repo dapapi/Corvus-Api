@@ -841,6 +841,7 @@ class ReportFormRepository
         $arr[] = ['created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['created_at','<',Carbon::parse($end_time)->toDateString()];
         $clients = Client::where($arr)
+            ->whereIn('type',[Client::TYPE_MOVIE,Client::TYPE_VARIETY,Client::TYPE_ENDORSEMENT])
             ->groupBy(DB::raw("type,DATE_FORMAT(created_at,'%Y-%m')"))
             ->get([
                 DB::raw("count(id) as total"),
@@ -889,19 +890,21 @@ class ReportFormRepository
      * @param $p_type 项目类型
      * @param $t_type 线索类型
      */
-    public function starReport($start_time,$end_time,$sign_contract_status,$department=null,$p_type=null,$t_type=null)
+    public function starReport($start_time,$end_time,$sign_contract_status,$department=null,$target_star,$type=null)
     {
         $arr[] = ['s.created_at','>',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['s.created_at','<',Carbon::parse($end_time)->toDateString()];
         $arr[] = ['s.sign_contract_status',$sign_contract_status];
-        if($p_type != null){
-            $arr[] = ['p.type','=',$p_type];
+        if($type != null){
+            $arr[] = ['p.type','=',$type];
+            $arr[]  =   ['t.type',$type];
         }
-        if($t_type != null){
-            $arr[] = ['t_type','=',$t_type];
-        }
+
         if($department != null){
             $arr[] = ['d.id','=',$department];
+        }
+        if($target_star != null){
+            $arr[] = ['s.id',$target_star];
         }
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){

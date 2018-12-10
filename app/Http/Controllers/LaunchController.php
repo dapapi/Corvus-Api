@@ -92,7 +92,6 @@ class LaunchController extends Controller
 //            }
 //empty($data)
         $data = Issues::where('accessory',hashid_decode($All))->get(['id']);
-        print_r($data);
         if(count($data->toArray())!=0){
 
         foreach($data->toarray() as $key => $value) {

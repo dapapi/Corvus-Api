@@ -80,8 +80,8 @@ class LaunchController extends Controller
             return $this->response->errorInternal('参数不能为零');
         }
 
-            $array[] = ['member',$user->id];
-            $array[] = ['template_id',hashid_decode($All)];
+        $array[] = ['member',$user->id];
+        $array[] = ['template_id',hashid_decode($All)];
         $array[] = ['created_at','>=', $payload['start_time']];
         $array[] = ['created_at','<=', $payload['end_time']];
 
@@ -90,9 +90,9 @@ class LaunchController extends Controller
 //            }else{
 //                $arr = draft::where($array)->first()->Answer->toarray();
 //            }
-
+//empty($data)
         $data = Issues::where('accessory',hashid_decode($All))->get(['id']);
-        if(!empty($data)){
+        if(count($data->toArray())!=0){
 
         foreach($data->toarray() as $key => $value) {
 

@@ -1186,17 +1186,23 @@ class ReportFormRepository
                     $join->on('ts.starable_id','=','b.id')
                         ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
                         ->where('ts.type',TrailStar::EXPECTATION);//目标
-                })->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
+                })->leftJoin('trails as t','t.id','=','ts.trail_id')
+                ->leftJoin('projects as p','p.trail_id','=','t.id')
                 ->where($arr)
                 ->groupBy('b.id')
                 ->get([
                     'b.id','b.nickname','sign_contract_status',
+                    DB::raw('sum(distinct t.fee) as total_fee'),
                     DB::raw("count(ts.id) as trail_total"),
                     DB::raw("count(p.id) as project_total"),
                     DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
                 ]);
         }
-        return $bloggers;
+        return [
+            "total" =>  count($bloggers),
+            "total_fee" => array_sum(array_column($bloggers->toArray(),'total_fee')),
+            "blogger" =>  $bloggers
+        ];
     }
 
     /**

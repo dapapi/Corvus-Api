@@ -77,21 +77,23 @@ class DepartmentController extends Controller
         $payload = $departmentrequest->all();
 
         $departmentId = $department->id;
+
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
-            "city"=>$payload['city'],
+            "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
-
         DB::beginTransaction();
         try {
             $contact = $department->update($departmentArr);
             $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',$payload['user_id'])->where('type',1)->delete();
+
             $array = [
                 "department_id"=>$departmentId,
-                "user_id"=>$payload['user_id'],
+                "user_id"=>hashid_encode($payload['user_id']),
                 "type"=>Department::DEPARTMENT_HEAD_TYPE,
             ];
+            dd($array);
             $depar = DepartmentUser::create($array);
             // 操作日志
             $operate = new OperateEntity([

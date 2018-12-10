@@ -749,16 +749,16 @@ class ReportFormRepository
         $sum = array_sum(array_column($result,'p_total'));
         foreach ($result as $value){
             if(!isset($list[$value['type']])){
-                $list[$value['type']]['type_total'] = $value['p_total'];
-                $list[$value['type']]['per_type_total'] = $value['p_total'] / $sum;
+                $list[$value['type']]['type_total'] = floor(($value['p_total'])*10000)/10000;
+                $list[$value['type']]['per_type_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
                 $list[$value['type']]['type'] = $value['type'];
-                $value['per_p_total'] = $value['p_total'] / $sum;
+                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
                 $list[$value['type']][] = $value;
             }else{
                 $list[$value['type']]['type_total'] += $value['p_total'];
-                $value['per_p_total'] = $value['p_total'] / $sum;
+                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
                 $list[$value['type']][] = $value;
-                $list[$value['type']]['per_type_total'] += $value['p_total'] / $sum;
+                $list[$value['type']]['per_type_total'] += floor(($value['p_total'] / $sum)*10000)/10000;
             }
 
         }

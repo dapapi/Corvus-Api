@@ -80,7 +80,7 @@ class DepartmentController extends Controller
         ];
         DB::beginTransaction();
         try {
-           
+
             $contact = $department->update($departmentArr);
             $num = DB::table("department_user")->where('department_id',$departmentId)->where('user_id',hashid_encode($payload['user_id']))->where('type',1)->delete();
 
@@ -272,6 +272,7 @@ class DepartmentController extends Controller
     public function detail(Request $request,User $user,Department $department)
     {
         $id = $department->id;
+
         $results = DB::select('select departments.name,departments.department_pid,departments.city,users.id as user_id,users.name as username,department_user.type 
                             from departments 
                             LEFT JOIN department_user on department_user.department_id = departments.id 

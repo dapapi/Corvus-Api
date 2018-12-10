@@ -409,7 +409,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //查看部门
         $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
         //增加部门
-        $api->post('/departments/{user}', 'App\Http\Controllers\DepartmentController@store');
+        $api->post('/departments', 'App\Http\Controllers\DepartmentController@store');
         //编辑部门
         $api->put('/departments/{department}', 'App\Http\Controllers\DepartmentController@edit');
         //移动部门
@@ -422,6 +422,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/departments/member/{department}', 'App\Http\Controllers\DepartmentController@selectStore');
 
         $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+
 
         /*后台权限 分组 控制台*/
         $api->get('/console','App\Http\Controllers\ConsoleController@index');
@@ -449,8 +450,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/console/feature/{user}','App\Http\Controllers\ConsoleController@feature');
         //功能角色关联
         $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
-        /*后台权限 角色 控制台*/
+        //增加数据权限
         $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
+        /*后台权限 数据范围 控制台*/
+        $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
+
 
 
     });

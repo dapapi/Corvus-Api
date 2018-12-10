@@ -827,9 +827,25 @@ class ReportFormRepository
                 'type',
                 DB::raw("DATE_FORMAT(created_at,'%Y-%m') as date")
             ]);
+        $start_month = Carbon::parse($start_time);
+        $end_moth = Carbon::parse($end_time);
+        $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
+        $list = [];
+        for ($i = 0;$i <= $diff;$i++){
+            $curr = $start_month->copy()->addMonth($i)->format('Y-m');
+            foreach ($clients as $client){
+                if($client->date == $curr){
+                    $list[$curr][] = $client;
+                }
+            }
+            if(empty($list[$curr])){
+                $list[$curr] = [];
+            }
+        }
+
         return [
             'total' =>  array_sum(array_column($clients->toArray(),'total')),
-            "clients"   =>  $clients
+            "clients"   =>  $list
             ];
     }
     //签约中艺人报表Contract signing

@@ -38,7 +38,6 @@ class BulletinReview extends Model
     {
         return $this->morphMany(OperateLog::class, 'logable');
     }
-
     public function tasks()
     {
 
@@ -47,6 +46,10 @@ class BulletinReview extends Model
     public function template()
     {
         return $this->belongsTo(Report::class, 'template_id','id');
+    }
+    public function createdTime()
+    {
+        return $this->belongsTo(BulletinReview::class, 'id','id');
     }
     public function broker()
     {

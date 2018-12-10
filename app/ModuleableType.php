@@ -22,5 +22,7 @@ abstract class ModuleableType
     const ISSUES = 'issues';
     const REPORT = 'report';
     const DEPARTMENT = 'department';
+    const GTOUPROLES = 'groupRoles';
+    const ROLE = 'role';
 
 }

@@ -318,6 +318,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
         $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
+        $api->delete('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@delete');
 
         //明星，博主日程
         $api->get('/schedules/getcalendar', 'App\Http\Controllers\ScheduleController@getCalendar');

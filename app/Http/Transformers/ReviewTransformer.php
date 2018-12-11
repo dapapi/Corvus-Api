@@ -24,6 +24,7 @@ class ReviewTransformer extends TransformerAbstract
             'template_type' =>  $bulletinreview->template->frequency,
             'member' => $bulletinreview->memberName->name,
             'title' => $bulletinreview->title,
+            dd([$bulletinreview->titles]),
             'titles' => $bulletinreview->titles,
             'countstatus' => $bulletinreview->countstatus,
             'created_time' => $bulletinreview->created_time,

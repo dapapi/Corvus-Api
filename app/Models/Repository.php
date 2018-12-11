@@ -9,17 +9,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Repository extends Model
 {
     use SoftDeletes;
-    protected $table =  '';
+    protected $table =  'repository';
     protected $fillable = [
         'title', // 标题
-        'scope',//公告范围
-        'classify',  //分类  1 规则制度   2 内部公告
-        'desc', //输入内容
-        'readflag', //默认 0  未读  1 读
-        'is_accessory',  // 是否选择附件  默认  0   无附件    1 有附件
-        'accessory',//附件
-        'creator_id',
-        'stick'  //是否制定  默认  0 不 制顶  1  制顶
+        'department_id',//对象id
+        'desc',  //详情
+        'user_id', //发行人
+        'scope', //对象id
+        'stick', //置顶
+        'comments_no',  //禁止评论
+
 
     ];
     protected $dates = ['deleted_at'];

@@ -256,8 +256,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/review/member/statistic', 'App\Http\Controllers\ReviewController@statistics');
         // Repository
         $api->get('/repositorys', 'App\Http\Controllers\RepositoryController@index');
-
-
+        $api->post('/repositorys', 'App\Http\Controllers\RepositoryController@store');
+        $api->get('/repositorys/{repository}', 'App\Http\Controllers\ReviewController@show');
+        $api->put('/repositorys/{repository}', 'App\Http\Controllers\ReviewController@edit');
+        $api->delete('/repositorys', 'App\Http\Controllers\ReviewController@delete');
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');

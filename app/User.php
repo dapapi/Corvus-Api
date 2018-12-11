@@ -238,7 +238,7 @@ class User extends Authenticatable
             return $department;
         } else {
             $department = $department->pDepartment;
-            $this->departmentToCompany($department);
+            return $this->departmentToCompany($department);
         }
     }
 

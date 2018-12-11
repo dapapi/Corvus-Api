@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
+use App\Http\Requests\Filter\TrailFilterRequest;
 use App\Http\Requests\Trail\EditTrailRequest;
 use App\Http\Requests\Trail\FilterTrailRequest;
 use App\Http\Requests\Trail\RefuseTrailReuqest;
@@ -11,6 +12,7 @@ use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Transformers\TrailTransformer;
 use App\Models\Blogger;
+use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\Models\Star;
 use App\Models\Client;
@@ -471,5 +473,60 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+    }
+
+    /**
+     *  todo
+     *  1. 定返回格式
+     *  2. 根据返回拼sql
+     *  3. sql返回带分页带eloquent模型
+     * @param $request
+     */
+    public function getFilter(TrailFilterRequest $request)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $user = Auth::guard('api')->user();
+        $company = $user->company->name;
+
+        $joinSql = FilterJoin::where('company', $company)->where('table_name', 'trails')->first()->join_sql;
+
+        $query = DB::table('trails')->selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
+
+        $keyword = $request->get('keyword', '');
+        if ($keyword !== '') {
+            // todo 本表中字符型字段模糊查询; 本表中枚举使用的字段也需要加入
+            $query->whereRaw('CONCAT(`trails`.`title`,`trails`.`brand`,`trails`.`desc`) LIKE "%?%"', [$keyword]);
+        }
+
+        $conditions = $request->get('conditions');
+        foreach ($conditions as $condition) {
+            $field = $condition['field'];
+            $operator = $condition['operator'];
+            $type = $condition['type'];
+            if ($operator == 'LIKE') {
+                $value = '%' . $condition['value'] . '%';
+                $query->whereRaw("$field $operator ?", [$value]);
+            } else if ($operator == 'in') {
+                $value = $condition['value'];
+                if ($type >= 5)
+                    foreach ($value as &$v) {
+                        $v = hashid_decode($v);
+                    }
+                unset($v);
+                $query->whereIn($field, $value);
+            } else {
+                $value = $condition['value'];
+                $query->whereRaw("$field $operator ?", [$value]);
+            }
+
+        }
+        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
+//        dd($sql_with_bindings);
+        $result = $query->pluck('ids')->toArray();
+
+        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
+
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 }

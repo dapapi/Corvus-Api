@@ -35,7 +35,7 @@ class VerifyCodeSms extends Message {
         $expired_in = env('SMS_EXPIRED_IN')/60;
         return [
             $this->code,
-	    $expired_in
+	        $expired_in
         ];
     }
 }

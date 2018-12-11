@@ -122,7 +122,7 @@ class DepartmentController extends Controller
         $userId = $user->id;
         $departmentId = $department->id;
         $departmentArr = [
-            "department_pid"=>$payload['department_pid'],
+            "department_pid"=>isset($payload['department_pid']) ? hashid_decode($payload['department_pid']) : 0,
         ];
 
         DB::beginTransaction();
@@ -199,12 +199,12 @@ class DepartmentController extends Controller
     public function selectStore(Request $request,Department $department,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
-        //dd($payload['user']);
+
         $departmentId = $department->id;
         $departmentPid = $department->department_pid;
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
-
+        
         DB::beginTransaction();
         try {
             if(!empty($payload['user'])){

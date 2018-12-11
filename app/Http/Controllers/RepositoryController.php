@@ -8,11 +8,11 @@ namespace App\Http\Controllers;
  * Time: 下午2:14
  */
 
-use App\Http\Requests\AccessoryStoreRequest;
+use App\Http\Requests\RepositoryRequest;
 use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Requests\AnnouncementUpdateRequest;
 use App\Models\Announcement;
-use App\Models\DepartmentUser;
+use App\Models\Repository;
 use App\Models\AnnouncementScope;
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
@@ -38,7 +38,7 @@ class RepositoryController extends Controller
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $stars = Announcement::createDesc()->paginate($pageSize);
+        $stars = Repository::createDesc()->paginate($pageSize);
         return $this->response->paginator($stars, new AnnouncementTransformer());
     }
     public function show(Request $request,Announcement $announcement)
@@ -48,41 +48,22 @@ class RepositoryController extends Controller
         return $this->response->item($announcement, new AnnouncementTransformer());
 
     }
-    public function store(AccessoryStoreRequest $request,Announcement $announcement)
+    public function store(RepositoryRequest $request,Repository $repository)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         unset($payload['status']);
         unset($payload['type']);
         $payload['creator_id'] = $user->id;//发布人
-
         if ($payload['creator_id']) {
-            if(!empty($payload['scope']))
-            {
-                $scope = $payload['scope'];
-                $len = count($payload['scope']);
-                if($len >= 2){
-                    $array = array();
 
-                    foreach($scope as $key => $value){
-                        $array['scope'][$key] = hashid_decode($value);
-                    }
-                    $payload['scope'] = $array['scope'];
-                    $payload['scope'] = implode(',',$payload['scope']);
-                }else{
-                    $payload['scope'] = hashid_decode(array_values($payload['scope'])[0]);
-                }
-            }
             DB::beginTransaction();
             try {
-                $star = Announcement::create($payload);
-                foreach($scope as $key => $value){
-                    $arr['announcement_id'] = $star->id;
-                    $arr['department_id'] = hashid_decode($value);
-                    $data = AnnouncementScope::create($arr);
-                }
+                dd($payload);
+                $star = Repository::create($payload);
+
+
             }catch (\Exception $e) {
-                dd($e);
                 DB::rollBack();
                 Log::error($e);
                 return $this->response->errorInternal('创建失败');

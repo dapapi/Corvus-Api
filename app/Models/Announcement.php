@@ -18,6 +18,7 @@ class Announcement extends Model
         'readflag', //默认 0  未读  1 读
         'is_accessory',  // 是否选择附件  默认  0   无附件    1 有附件
         'accessory',//附件
+        'accessory_name',
         'creator_id',
         'stick'  //是否制定  默认  0 不 制顶  1  制顶
 

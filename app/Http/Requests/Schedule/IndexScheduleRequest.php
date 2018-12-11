@@ -4,7 +4,7 @@ namespace App\Http\Requests\Schedule;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class IndexScheduleReuqest extends FormRequest
+class IndexScheduleRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,8 @@ class IndexScheduleReuqest extends FormRequest
     public function rules()
     {
         return [
-            'month' => 'nullable|numeric',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'calendar_ids' => 'nullable|array',
             'material_ids' => 'nullable|array'
         ];

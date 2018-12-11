@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AffixType;
 use App\Http\Requests\Schedule\EditScheduleRequest;
-use App\Http\Requests\Schedule\IndexScheduleReuqest;
+use App\Http\Requests\Schedule\IndexScheduleRequest;
 use App\Http\Requests\Schedule\StoreScheduleRequest;
 use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
@@ -19,7 +19,6 @@ use App\ModuleUserType;
 use App\Repositories\AffixRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScheduleRepository;
-use App\ResourceType;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,11 +35,9 @@ class ScheduleController extends Controller
         $this->affixRepository = $affixRepository;
     }
 
-    public function index(IndexScheduleReuqest $request)
+    public function index(IndexScheduleRequest $request)
     {
         $payload = $request->all();
-        $thisMonth = date('n');
-        $month = $request->get('month', $thisMonth);
 
         if ($request->has('material_ids')) {
             foreach ($payload['material_ids'] as &$id) {
@@ -56,9 +53,14 @@ class ScheduleController extends Controller
             unset($id);
         }
 
-        $schedules = Schedule::where(function ($query) use ($month) {
-            $query->whereMonth('start_at', $month)
-                ->orWhere('repeat', '!=', Schedule::NOREPEAT);
+        $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
+
+        $schedules = Schedule::where(function ($query) use ($payload) {
+            $query->where('start_at', '>', $payload['start_date'])->where('start_at', '<', $payload['end_date']);
+        })->orWhere(function ($query) use ($payload) {
+            $query->where('start_at', '<', $payload['start_date'])->where('end_at', '>', $payload['end_date']);
+        })->orWhere(function ($query) use ($payload) {
+            $query->where('end_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
         });
 
         $schedules->where(function ($query) use ($request, $payload) {
@@ -66,7 +68,7 @@ class ScheduleController extends Controller
                 $query->whereIn('material_id', $payload['material_ids']);
 
             if ($request->has('calendar_ids'))
-                $query->orWhereIn('calendar_ids', $payload['calendar_ids']);
+                $query->whereIn('calendar_id', $payload['calendar_ids']);
         });
         $schedules = $schedules->get();
 

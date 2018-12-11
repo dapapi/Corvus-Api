@@ -36,6 +36,7 @@ class DepartmentController extends Controller
             "name"=>$payload['name'],
             "city"=> isset($payload['city']) ? $payload['city'] : '',
         ];
+
         DB::beginTransaction();
         try {
             $contact = Department::create($departmentArr);
@@ -158,22 +159,19 @@ class DepartmentController extends Controller
         $departmentPid = $department->department_pid;
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
 
-        DB::beginTransaction();
         try {
-            if($departmentPid !== 0  && !empty($depatments)){
-                $department->delete();
+            if(empty($depatments)){
+
+                $sum = $department->delete();
                 return $this->response->noContent();
             }else{
-
                 return $this->response->errorInternal('该部门有下级部门或部门下有成员');
 
             }
         } catch (Exception $e) {
-            DB::rollBack();
-            Log::error($e);
+
             return $this->response->errorInternal('删除失败');
         }
-        DB::commit();
 
     }
 

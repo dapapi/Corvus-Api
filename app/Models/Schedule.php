@@ -50,4 +50,10 @@ class Schedule extends Model
     {
         return $this->belongsTo(Material::class);
     }
+
+    public function participants()
+    {
+        return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PARTICIPANT);
+    }
+
 }

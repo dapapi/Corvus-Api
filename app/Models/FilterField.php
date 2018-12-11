@@ -23,4 +23,5 @@ class FilterField extends Model
     const SELECT = 4; // 多选
     const STAR = 5; // 选艺人
     const USER = 6; // 选组织架构中的人
+    const DEPARTMENT = 7; // 选组织架构中的部门
 }

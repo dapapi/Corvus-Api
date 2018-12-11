@@ -274,6 +274,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
+        $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Transformers\FilterFieldTransformer;
 use App\Models\FilterField;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
 
 class FilterFieldController extends Controller
 {

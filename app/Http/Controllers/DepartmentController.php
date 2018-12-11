@@ -217,7 +217,7 @@ class DepartmentController extends Controller
                 foreach ($payload['user'] as $key=>$value){
                     $array = [
                         "department_id"=>$departmentId,
-                        "user_id"=>$value,
+                        "user_id"=>hashid_decode($value),
                     ];
                     $depar = DepartmentUser::create($array);
                 }

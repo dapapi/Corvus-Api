@@ -261,6 +261,21 @@ class AnnouncementController extends Controller
                 unset($array['stick']);
             }
         }
+        if ($request->has('accessory_name')) {
+            $array['accessory_name'] = $payload['accessory_name'];
+            if ($array['accessory_name'] != $announcement->accessory_name) {
+                $operateNickname = new OperateEntity([
+                    'obj' => $announcement,
+                    'title' => '是否制顶',
+                    'start' => $announcement->accessory_name,
+                    'end' => $array['accessory_name'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateNickname;
+            } else {
+                unset($array['accessory_name']);
+            }
+        }
         DB::beginTransaction();
         try {
             if (count($array) == 0)

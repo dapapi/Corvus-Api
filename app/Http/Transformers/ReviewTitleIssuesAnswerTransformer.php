@@ -14,10 +14,10 @@ class ReviewTitleIssuesAnswerTransformer extends TransformerAbstract
 
         $array = [
             'id' => hashid_encode($bulletinreviewtitleissuesanswer->id),
-            'bulletin_review_id' => $bulletinreviewtitleissuesanswer->bulletin_review_id,
+            'bulletin_review_title_id' => $bulletinreviewtitleissuesanswer->bulletin_review_title_id,
             'issues' => $bulletinreviewtitleissuesanswer->issues,
-            'answer' => $bulletinreviewtitleissuesanswer->reviewer_id,
-            'title' => $bulletinreviewtitleissuesanswer->answer,
+            'type' => $bulletinreviewtitleissuesanswer->type,
+            'answer' => $bulletinreviewtitleissuesanswer->answer,
             'created_at' => $bulletinreviewtitleissuesanswer->created_at->toDatetimeString(),
             'updated_at' => $bulletinreviewtitleissuesanswer->updated_at->toDatetimeString(),
 

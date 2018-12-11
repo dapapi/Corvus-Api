@@ -128,7 +128,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //跟进
         // 简报 问题跟进
-        $api->get('/issues/{issues}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->get('/issues/{issues}/operate_log', 'App\Http\Controllers\OperateLogController@myindex');
         $api->post('/issues/{issues}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/report/{report}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/report/{report}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
@@ -249,7 +249,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/review/{review}', 'App\Http\Controllers\ReviewController@show');
         $api->post('/review', 'App\Http\Controllers\ReviewController@store');
         $api->put('/review/{review}', 'App\Http\Controllers\ReviewController@edit');
+        $api->put('/review/answer/{review}', 'App\Http\Controllers\ReviewController@editAnswer');
         $api->get('/review/my/template', 'App\Http\Controllers\ReviewController@myTemplate');
+        $api->put('/review/my/template/{reviewtitle}', 'App\Http\Controllers\ReviewController@myTemplateEdit');
+        $api->get('/review/member/template', 'App\Http\Controllers\ReviewController@memberTemplate');
+        $api->get('/review/member/statistic', 'App\Http\Controllers\ReviewController@statistics');
+        // Repository
+        $api->get('/repositorys', 'App\Http\Controllers\RepositoryController@index');
+
+
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
@@ -406,7 +414,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //查看部门
         $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
         //增加部门
-        $api->post('/departments/{user}', 'App\Http\Controllers\DepartmentController@store');
+        $api->post('/departments', 'App\Http\Controllers\DepartmentController@store');
         //编辑部门
         $api->put('/departments/{department}', 'App\Http\Controllers\DepartmentController@edit');
         //移动部门
@@ -419,6 +427,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/departments/member/{department}', 'App\Http\Controllers\DepartmentController@selectStore');
 
         $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+
 
         /*后台权限 分组 控制台*/
         $api->get('/console','App\Http\Controllers\ConsoleController@index');
@@ -446,8 +455,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/console/feature/{user}','App\Http\Controllers\ConsoleController@feature');
         //功能角色关联
         $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
-        /*后台权限 角色 控制台*/
+        //增加数据权限
         $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
+        /*后台权限 数据范围 控制台*/
+        $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
+
 
 
     });

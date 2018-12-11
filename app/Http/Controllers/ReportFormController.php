@@ -33,6 +33,7 @@ class ReportFormController extends Controller
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $type = $request->get('type',null);
         $department = $request->get('department',null);
+        $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->trailReportFrom($start_time,$end_time,$type,$department);
     }
     //线索新曾
@@ -124,10 +125,17 @@ class ReportFormController extends Controller
     }
     public function starReport(Request $request)
     {
+//        $start_time,$end_time,$sign_contract_status,$department=null,$p_type=null,$t_type=null
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $sign_contract_status = $request->get('sign_contract_status',null);
-        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status);
+        $department = $request->get("departmnet",null);
+        $department = $department == null ? null : hashid_decode($department);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $type = $request->get('type',null);
+
+        return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$target_star,$type);
     }
     //艺人线索分析
     public function starTrailAnalysis(Request $request)
@@ -136,6 +144,8 @@ class ReportFormController extends Controller
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $department = $request->get('department',null);
         $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->starTrailAnalysis($start_time,$end_time,$department,$target_star);
     }
     //艺人项目
@@ -145,6 +155,8 @@ class ReportFormController extends Controller
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $department = $request->get('department',null);
         $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->starProjectAnalysis($start_time,$end_time,$department,$target_star);
     }
 
@@ -154,7 +166,11 @@ class ReportFormController extends Controller
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $sign_contract_status = $request->get('sign_contract_status',null);
-        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status);
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
+        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star);
     }
     //博主线索分析
     public function bloggerTrailAnalysis(Request $request)
@@ -163,6 +179,8 @@ class ReportFormController extends Controller
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $department = $request->get('department',null);
         $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->bloggerTrailAnalysis($start_time,$end_time,$department,$target_star);
     }
     //博主项目分析
@@ -172,6 +190,8 @@ class ReportFormController extends Controller
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $department = $request->get('department',null);
         $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->bloggerProjectAnalysis($start_time,$end_time,$department,$target_star);
     }
 

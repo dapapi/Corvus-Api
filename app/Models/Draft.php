@@ -12,7 +12,8 @@ class Draft extends Model
     protected $table = 'draft';
     protected $fillable = [
         'template_id',
-        'member'
+        'member',
+        'reviewer_id'
     ];
 //隐藏字段
 //'contract_type',//合同类型

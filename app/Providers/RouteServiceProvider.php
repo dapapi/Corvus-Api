@@ -5,12 +5,13 @@ namespace App\Providers;
 use App\Models\Affix;
 use App\Models\ApprovalGroup;
 use App\Models\Blogger;
+use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
 use App\Models\Material;
 use App\Models\Project;
 use App\Models\Report;
-use App\Models\Announcement;
 use App\Models\Review;
+use App\Models\Announcement;
 use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Draft;
@@ -19,8 +20,10 @@ use App\Models\Schedule;
 use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\PersonalDetail;
-
-
+use App\Models\GroupRoles;
+use App\Models\Department;
+use App\Models\Role;
+use App\Models\DataDictionarie;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
@@ -187,6 +190,15 @@ class RouteServiceProvider extends ServiceProvider
             }
             return $entity;
         });
+        Route::bind('reviewtitle', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = BulletinReviewTitle::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
         Route::bind('issues', function ($value) {
             try {
                 $id = hashid_decode($value);
@@ -287,6 +299,51 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = ApprovalGroup::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('groupRoles', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = GroupRoles::withTrashed()->findOrFail($id);
+
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('role', function ($value) {
+
+            try {
+                $id = hashid_decode($value);
+                $entity = Role::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('department', function ($value) {
+            try {
+
+                $id = hashid_decode($value);
+                $entity = Department::findOrFail($id);
+
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('dictionaries', function ($value) {
+
+            try {
+                $id = hashid_decode($value);
+                $entity = DataDictionarie::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

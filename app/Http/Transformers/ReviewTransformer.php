@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ReviewTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['template','type'];
+    protected $availableIncludes = ['template','member'];
     private $isAll;
     public function __construct($isAll = true)
     {
@@ -17,33 +17,38 @@ class ReviewTransformer extends TransformerAbstract
 
     public function transform(BulletinReview $bulletinreview)
     {
-
         $array = [
             'id' => hashid_encode($bulletinreview->id),
-            'template_id' => $bulletinreview->template_id,
-            'template' => $bulletinreview->template,
-            'member' => $bulletinreview->member,
+            'template_id' => hashid_encode($bulletinreview->template_id),
+            'template' => $bulletinreview->template->template_name,
+            'template_type' =>  $bulletinreview->template->frequency,
+            'member' => $bulletinreview->memberName->name,
             'title' => $bulletinreview->title,
+            'titles' => $bulletinreview->titles,
+            'countstatus' => $bulletinreview->countstatus,
+            'created_time' => $bulletinreview->created_time,
             'status' => $bulletinreview->status,
+            'created_at' => $bulletinreview->created_at->toDateTimeString(),
+            'updated_at' => $bulletinreview->updated_at->toDateTimeString(),
+
         ];
 
 
-//        $arraySimple = [
-//            'id' => hashid_encode($review->id),
-//            'name' => $review->name,
-//            'avatar' => $review->avatar
-//        ];
+        $arraySimple = [
+            'id' => hashid_encode($bulletinreview->id),
+            'template_id' => hashid_encode($bulletinreview->template_id),
+            'template' => $bulletinreview->template->template_name,
+            'member' => $bulletinreview->memberName->name,
+            'title' => $bulletinreview->title,
+            'status' => $bulletinreview->status,
+            'created_at' => $bulletinreview->created_at->toDateTimeString(),
+            'updated_at' => $bulletinreview->updated_at->toDateTimeString(),
+        ];
 
-        return $this->isAll ? $array :'';
+        return $this->isAll ? $array :$arraySimple;
     }
 
-    public function includeCreator(BulletinReview $bulletinreview)
-    {
-        $user = $bulletinreview->creator;
-        if (!$user)
-            return null;
-        return $this->item($user, new UserTransformer());
-    }
+
     public function includeBroker(BulletinReview $bulletinreview)
     {
 
@@ -52,23 +57,5 @@ class ReviewTransformer extends TransformerAbstract
             return null;
         return $this->item($user, new UserTransformer());
     }
-    public function includeTmplate(BulletinReview $bulletinreview)
-    {
-        $template = $bulletinreview->template;
-        if (!$template)
-            return null;
-        return $this->item($template, new ReportTransformer());
-    }
-    public function includeTasks(BulletinReview $bulletinreview)
-    {
 
-        $tasks = $bulletinreview->tasks()->createDesc()->get();
-        return $this->collection($tasks, new ReviewTransformer());
-    }
-    public function includeAffixes(BulletinReview $bulletinreview)
-    {
-
-        $affixes = $bulletinreview->affixes()->createDesc()->get();
-        return $this->collection($affixes, new AffixTransformer());
-    }
 }

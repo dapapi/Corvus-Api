@@ -80,17 +80,19 @@ class LaunchController extends Controller
             return $this->response->errorInternal('参数不能为零');
         }
 
-            $array[] = ['member',$user->id];
-            $array[] = ['template_id',hashid_decode($All)];
+        $array[] = ['member',$user->id];
+        $array[] = ['template_id',hashid_decode($All)];
+        $array[] = ['created_at','>=', $payload['start_time']];
+        $array[] = ['created_at','<=', $payload['end_time']];
 
 //            if(empty(draft::where($array)->first())){
 //
 //            }else{
 //                $arr = draft::where($array)->first()->Answer->toarray();
 //            }
-
+//empty($data)
         $data = Issues::where('accessory',hashid_decode($All))->get(['id']);
-        if(empty($data)){
+        if(count($data->toArray())!=0){
 
         foreach($data->toarray() as $key => $value) {
 
@@ -124,7 +126,6 @@ class LaunchController extends Controller
             }
 //            Report::find($num)->state = $sally;
         }
-
         $getbulletinlist = issues::where('accessory',hashid_decode($All))->createDesc()->get();
         return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
 
@@ -236,6 +237,7 @@ class LaunchController extends Controller
                $bulletionload=new BulletinReviewTitleIssuesAnswer();
                $bulletionload->bulletin_review_title_id=$review_id;
                $bulletionload->issues = Issues::find(hashid_decode($key))->issues;
+               $bulletionload->type  = Issues::find(hashid_decode($key))->type;
                $bulletionload->answer = $value;
               $review = $bulletionload->save();
                $payload['reviewer_id'] = hashid_decode($payload['reviewer_id']);
@@ -290,9 +292,10 @@ class LaunchController extends Controller
         $user = Auth::guard('api')->user();
         $payload['member'] = $user->id;
         $payload['template_id'] = $report->id;
-
+        $payload['reviewer_id'] = hashid_decode($payload['reviewer_id']);
             DB::beginTransaction();
             try {
+
             $draftload  =  draft::create($payload);
             $payloadissues['draft_id'] = $draftload->id;
             foreach($payload['answer'] as $key => $value){

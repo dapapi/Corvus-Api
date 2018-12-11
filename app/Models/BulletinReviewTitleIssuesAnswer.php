@@ -10,6 +10,7 @@ class BulletinReviewTitleIssuesAnswer extends Model
     protected $fillable = [
         'bulletin_review_title_id', // 简报类型
         'issues',  //成员
+        'type',  //成员
         'answer',     //简报周期
 
 

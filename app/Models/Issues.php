@@ -62,8 +62,8 @@ class Issues extends Model
     }
     public function draft()
     {
-
-        return $this->belongsTo(DraftIssuesAnswer::class, 'id', 'issues_id');
+        return $this->belongsTo(DraftIssuesAnswer::class, 'id', 'draft_id');
+      //  return $this->belongsTo(DraftIssuesAnswer::class, 'id', 'issues_id');
         //  return $this->morphToMany(BulletinReviewTitleIssuesAnswer::class, 'resourceable','bulletion_review_title');
     }
     public function getAnswerAttribute()

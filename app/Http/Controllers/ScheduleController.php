@@ -38,8 +38,6 @@ class ScheduleController extends Controller
     public function index(IndexScheduleRequest $request)
     {
         $payload = $request->all();
-        $thisMonth = date('n');
-        $month = $request->get('month', $thisMonth);
 
         if ($request->has('material_ids')) {
             foreach ($payload['material_ids'] as &$id) {
@@ -55,9 +53,14 @@ class ScheduleController extends Controller
             unset($id);
         }
 
-        $schedules = Schedule::where(function ($query) use ($month) {
-            $query->whereMonth('start_at', $month)
-                ->orWhere('repeat', '!=', Schedule::NOREPEAT);
+        $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
+
+        $schedules = Schedule::where(function ($query) use ($payload) {
+            $query->where('start_at', '>', $payload['start_date'])->where('start_at', '<', $payload['end_date']);
+        })->orWhere(function ($query) use ($payload) {
+            $query->where('start_at', '<', $payload['start_date'])->where('end_at', '>', $payload['end_date']);
+        })->orWhere(function ($query) use ($payload) {
+            $query->where('end_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
         });
 
         $schedules->where(function ($query) use ($request, $payload) {

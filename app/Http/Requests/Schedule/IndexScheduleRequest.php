@@ -24,7 +24,8 @@ class IndexScheduleRequest extends FormRequest
     public function rules()
     {
         return [
-            'month' => 'nullable|numeric',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
             'calendar_ids' => 'nullable|array',
             'material_ids' => 'nullable|array'
         ];

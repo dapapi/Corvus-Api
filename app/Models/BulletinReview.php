@@ -51,6 +51,10 @@ class BulletinReview extends Model
     {
         return $this->belongsTo(BulletinReview::class, 'id','id');
     }
+    public function creator()
+    {
+        return $this->belongsTo(BulletinReviewTitle::class, 'id','bulletin_review_id');
+    }
     public function broker()
     {
         return $this->belongsTo(User::class, 'broker_id', 'id');

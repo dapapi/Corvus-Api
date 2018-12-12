@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ReviewTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['template','member'];
+    protected $availableIncludes = ['template','member','creator'];
     private $isAll;
     public function __construct($isAll = true)
     {
@@ -47,8 +47,14 @@ class ReviewTransformer extends TransformerAbstract
 
         return $this->isAll ? $array :$arraySimple;
     }
+    public function includeCreator(BulletinReview $bulletinreview)
+    {
 
-
+        $user = $bulletinreview->creator->creator_id;
+        if (!$user)
+            return null;
+        return $this->item($user, new UserTransformer());
+    }
     public function includeBroker(BulletinReview $bulletinreview)
     {
 

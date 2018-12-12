@@ -63,6 +63,7 @@ class BloggerTransformer extends TransformerAbstract
     public function includeCreator(Blogger $blogger)
     {
         $user = $blogger->creator;
+        dd($user);
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());

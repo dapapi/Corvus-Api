@@ -185,7 +185,6 @@ class ReviewController extends Controller
        // $arraydate[] = ['status','=', $payload['status']];('REPLACE(group_concat(title),\',\',\',\') as titles')
         $pageSize = $request->get('page_size', config('app.page_size'));
         $str = BulletinReview::select('*',DB::raw('REPLACE(group_concat(title, \';\'),\',\',\' \') as titles'),DB::raw('count(status) as countstatus'))->where($arraydate)->groupBy('member')->createDesc()->paginate($pageSize);
-       dd($str);
         return $this->response->paginator($str, new ReviewTransformer());
     }
     public function show(Request $request,Review $review)

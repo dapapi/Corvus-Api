@@ -165,7 +165,7 @@ class ConsoleController extends Controller
         $payload = $request->all();
         if(isset($payload['group_id'])){
             $array = [
-                'group_id' => $payload['group_id'],
+                'group_id' => hashid_decode($payload['group_id']),
             ];
             try {
                 $role->update($array);
@@ -246,7 +246,7 @@ class ConsoleController extends Controller
                 foreach($payload['user'] as $key=>$value){
                     $array = [
                         'role_id'=> $role_id,
-                        'user_id'=> $value
+                        'user_id'=> hashid_decode($value)
                     ];
                     $roleUser->create($array);
                 }

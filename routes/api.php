@@ -437,7 +437,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取分组信息
         $api->get('/console/group','App\Http\Controllers\ConsoleController@getGroup');
         //添加分组
-        $api->post('/console/group','App\Http\Controllers\ConsoleController@Group');
+        $api->post('/console/group','App\Http\Controllers\ConsoleController@storeGroup');
         //修改分组
         $api->put('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@editGroup');
         //删除分组

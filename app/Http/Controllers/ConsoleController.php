@@ -89,9 +89,9 @@ class ConsoleController extends Controller
         return $this->response->accepted();
     }
 
-    public function editGroup(RoleRequest $roleRequest,GroupRoles $groupRoles,User $user)
+    public function editGroup(Request $request,GroupRoles $groupRoles,User $user)
     {
-        $payload = $roleRequest->all();
+        $payload = $request->all();
         try {
             $operate = new OperateEntity([
                 'obj' => $groupRoles,

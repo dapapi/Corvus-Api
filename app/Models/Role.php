@@ -9,17 +9,22 @@ class Role extends Model
 {
     protected $fillable = [
         'name',
-        'display_name',
-        'desc'
+        'group_id',
+        'description'
     ];
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'role_user');
+        return $this->belongsToMany(User::class, 'role_users');
     }
 
     public function actions()
     {
         return $this->belongsToMany(Action::class, 'role_action');
+    }
+
+    public function Training()
+    {
+        return $this->hasMany(Training::class, 'user_id', 'id');
     }
 }

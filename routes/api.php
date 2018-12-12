@@ -442,6 +442,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@editGroup');
         //删除分组
         $api->delete('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@deleteGroup');
+
+
         /*后台权限 角色 控制台*/
         $api->get('/console/role','App\Http\Controllers\ConsoleController@getRole');
         //添加角色
@@ -450,6 +452,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/console/role/{role}','App\Http\Controllers\ConsoleController@editRole');
         //删除角色
         $api->delete('/console/role/{role}','App\Http\Controllers\ConsoleController@deleteRole');
+        //移动角色
+        $api->put('/console/mobile/{role}','App\Http\Controllers\ConsoleController@mobileRole');
+
         //组获取人员
         $api->get('/console/person/{groupRoles}','App\Http\Controllers\ConsoleController@groupPerson');
         //角色和用户关联

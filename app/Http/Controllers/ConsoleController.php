@@ -158,6 +158,36 @@ class ConsoleController extends Controller
     }
 
 
+    public function mobileRole(Request $request,Role $role)
+    {
+        $payload = $request->all();
+        if(isset($payload['group_id'])){
+            $array = [
+                'group_id' => $payload['group_id'],
+            ];
+            try {
+                $role->update($array);
+    //            // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $role,
+                    'title' => $role->group_id,
+                    'start' => $payload['group_id'],
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            } catch (\Exception $exception) {
+                Log::error($exception);
+                return $this->response->errorInternal('修改失败');
+            }
+        }else{
+            return $this->response->errorInternal('分组ID错误');
+        }
+        return $this->response->accepted();
+    }
+
     public function editRole(RoleRequest $roleRequest,Role $role)
     {
         $payload = $roleRequest->all();

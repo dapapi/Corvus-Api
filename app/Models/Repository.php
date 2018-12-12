@@ -12,12 +12,12 @@ class Repository extends Model
     protected $table =  'repository';
     protected $fillable = [
         'title', // 标题
-        'department_id',//对象id
         'desc',  //详情
-        'user_id', //发行人
+        'creator_id', //发行人
         'scope', //对象id
         'stick', //置顶
         'comments_no',  //禁止评论
+        'accessory',
 
 
     ];

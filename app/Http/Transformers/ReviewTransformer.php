@@ -50,7 +50,8 @@ class ReviewTransformer extends TransformerAbstract
     public function includeCreator(BulletinReview $bulletinreview)
     {
 
-        $user = $bulletinreview->creator->creator_id;
+        $user = $bulletinreview->creator;
+        dd($user);
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());

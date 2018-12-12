@@ -27,7 +27,6 @@ class RepositoryRequest extends FormRequest
 
             'title' => 'max:255', // 昵称
             'scope'=> 'nullable', // 视屏名称
-            'classify' => 'nullable',//发布时间
 //            'desc' => 'max:255', // 装换率
             'accessory' => 'max:500',//链接
             'stick' => 'nullable',//是否有广告

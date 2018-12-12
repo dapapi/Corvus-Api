@@ -136,8 +136,9 @@ class ConsoleController extends Controller
         $array = [
             'group_id' => hashid_decode($payload['group_id']),
             'name' => $payload['name'],
+            'description' => isset($payload['description']) ? $payload['description'] : '',
         ];
-        
+
         try {
             $role->create($array);
 //            // 操作日志
@@ -204,9 +205,11 @@ class ConsoleController extends Controller
                 $operate,
             ]));
             $array = [
-                'group_id' => $payload['group_id'],
+                'group_id' => hashid_decode($payload['group_id']),
                 'name' => $payload['name'],
+                'description' => isset($payload['description']) ? $payload['description'] : '',
             ];
+
             $role->update($array);
 
         } catch (\Exception $exception) {

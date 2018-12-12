@@ -51,7 +51,6 @@ class ReviewTransformer extends TransformerAbstract
     {
 
         $user = $bulletinreview->creator;
-        dd($user);
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());

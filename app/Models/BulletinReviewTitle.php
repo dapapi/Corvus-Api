@@ -32,6 +32,11 @@ class BulletinReviewTitle extends Model
         return $this->belongsTo(User::class, 'creator_id', 'id');
     }
 
+    public function reviewer()
+    {
+
+        return $this->belongsTo(User::class, 'reviewer_id', 'id');
+    }
     public function affixes()
     {
 

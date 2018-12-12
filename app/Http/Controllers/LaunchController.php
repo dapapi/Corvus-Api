@@ -198,6 +198,7 @@ class LaunchController extends Controller
            }else if($template->frequency == 5){
                $data = date('Y年').','.date('1月1日').'-'.date('12月31日');
            }
+
            $paysload->title = $data;
            $paysload->status = $this->Approval;
            $bool = $paysload->save();
@@ -231,6 +232,7 @@ class LaunchController extends Controller
            }
            $bulletionload->title=$data1;
            $bulletionload->status = $this->Approval;
+           $bulletionload->reviewer_id = hashid_decode($payload['reviewer_id']);
            $booll = $bulletionload->save();
            $review_id = $bulletionload->id;
            foreach($payload['answer'] as $key => $value){

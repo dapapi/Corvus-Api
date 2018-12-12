@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\ModuleUserType;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -38,4 +39,10 @@ class Calendar extends Model
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');
     }
+
+    public function participants()
+    {
+        return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PARTICIPANT);
+    }
+
 }

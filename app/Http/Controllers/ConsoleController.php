@@ -134,9 +134,10 @@ class ConsoleController extends Controller
     {
         $payload = $roleRequest->all();
         $array = [
-            'group_id' => $payload['group_id'],
+            'group_id' => hashid_decode($payload['group_id']),
             'name' => $payload['name'],
         ];
+        
         try {
             $role->create($array);
 //            // 操作日志

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
+use App\Exports\TrailsExport;
 use App\Http\Requests\Filter\TrailFilterRequest;
 use App\Http\Requests\Trail\EditTrailRequest;
 use App\Http\Requests\Trail\FilterTrailRequest;
@@ -529,4 +530,15 @@ class TrailController extends Controller
 
         return $this->response->paginator($trails, new TrailTransformer());
     }
+
+    public function export()
+    {
+        $file = '当前线索导出'. date('YmdHis', time()).'.xlsx';
+        (new TrailsExport())->store( 'exports/' . $file);
+        return $this->response->array([
+            'url' => '/download',
+            'filename' => $file
+        ]);
+    }
+
 }

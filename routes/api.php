@@ -466,6 +466,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
 
+        //获取消息
+        $api->get('/getmsg','App\Http\Controllers\MessageController@index');
+        //更改消息状态
+        $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
 
     });
 });

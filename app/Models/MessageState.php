@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MessageState extends Model
 {
+    const UN_READ = 1;//未读
+    const HAS_READ = 2;//已读
 //    use SoftDeletes;
     public function data()
     {

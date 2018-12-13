@@ -11,7 +11,7 @@ class MessageStateTransform extends TransformerAbstract
     public function transform(MessageState $messageState)
     {
         return [
-            'user_id'   =>  $messageState->user_id,
+            'user_id'   =>  hashid_encode($messageState->user_id),
             'state' =>  $messageState->state,
         ];
     }

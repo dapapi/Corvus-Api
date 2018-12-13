@@ -18,15 +18,19 @@ class MessageController extends Controller
         $state = $request->get('state',null);
         $arr = [];
         if($module != null){
-            $arr[] = ['module', $module];
+            $arr[] = ['m.module', $module];
         }
         if($state != null){
-            $arr[]  =   ['state',$state];
+            $arr[]  =   ['m.state',$state];
         }
-//        $user = Auth::guard('api')->user();
-//        $arr[] = ['user_id',$user->id];
+        $user = Auth::guard('api')->user();
+        $arr[] = ['ms.user_id',$user->id];
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $result = Message::where($arr)->paginate($pageSize);
+        $result = (new Message())->setTable("m")->from('messages as m')
+            ->leftJoin('message_states as ms','ms.message_id','m.id')
+            ->groupBy('m.id')
+            ->select('m.id','m.module','m.title','m.link')
+            ->where($arr)->paginate($pageSize);
         return $this->response()->paginator($result,new MessageTransform());
     }
     //设置已读未读状态

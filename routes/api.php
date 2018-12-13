@@ -439,7 +439,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取分组信息
         $api->get('/console/group','App\Http\Controllers\ConsoleController@getGroup');
         //添加分组
-        $api->post('/console/group','App\Http\Controllers\ConsoleController@Group');
+        $api->post('/console/group','App\Http\Controllers\ConsoleController@storeGroup');
         //修改分组
         $api->put('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@editGroup');
         //删除分组
@@ -452,6 +452,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/console/role/{role}','App\Http\Controllers\ConsoleController@editRole');
         //删除角色
         $api->delete('/console/role/{role}','App\Http\Controllers\ConsoleController@deleteRole');
+        //移动角色
+        $api->put('/console/mobile/{role}','App\Http\Controllers\ConsoleController@mobileRole');
         //组获取人员
         $api->get('/console/person/{role}','App\Http\Controllers\ConsoleController@rolePerson');
         //角色和用户关联

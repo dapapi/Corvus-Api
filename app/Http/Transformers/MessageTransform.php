@@ -21,9 +21,7 @@ class MessageTransform extends TransformerAbstract
     }
     public function includeRecive(Message $message)
     {
-//        DB::connection()->enableQueryLog();
         $recive = $message->recive;
-//        $sql = DB::getQueryLog();
         return $this->collection($recive,new MessageStateTransform());
     }
 }

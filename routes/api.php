@@ -474,6 +474,5 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
-
     });
 });

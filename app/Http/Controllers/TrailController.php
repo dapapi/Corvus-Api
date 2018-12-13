@@ -27,6 +27,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Excel;
 
 class TrailController extends Controller
 {
@@ -531,14 +532,15 @@ class TrailController extends Controller
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
-    public function export()
+    public function export(Request $request)
     {
         $file = '当前线索导出'. date('YmdHis', time()).'.xlsx';
-        (new TrailsExport())->store( 'exports/' . $file);
-        return $this->response->array([
-            'url' => '/download',
-            'filename' => $file
-        ]);
+        return (new TrailsExport())->download($file);
+    }
+
+    public function import()
+    {
+
     }
 
 }

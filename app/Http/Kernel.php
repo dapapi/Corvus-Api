@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\ExcelExportSetResponseHeader;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -65,5 +66,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'cors' => \Barryvdh\Cors\HandleCors::class,
 
+        'test' => ExcelExportSetResponseHeader::class
     ];
 }

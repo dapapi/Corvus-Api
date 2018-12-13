@@ -273,7 +273,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail
-        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export');
+        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('test');
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');

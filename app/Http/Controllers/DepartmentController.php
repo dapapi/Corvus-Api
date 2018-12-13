@@ -204,20 +204,25 @@ class DepartmentController extends Controller
         $departmentPid = $department->department_pid;
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
-        
+
         DB::beginTransaction();
         try {
             if(!empty($payload['user'])){
 
-                $num = DB::table('department_user')
-                    ->where('department_id',$departmentId)
-                    ->where('type',0)
-                    ->update(['department_id'=>$depatmentNotid]);
+//                $num = DB::table('department_user')
+//                    ->where('department_id',$departmentId)
+//                    ->where('type',0)
+//                    ->update(['department_id'=>$depatmentNotid]);
+
 
                 foreach ($payload['user'] as $key=>$value){
+                    $userId = hashid_decode($value);
+
+                    $num = DB::table("department_user")->where('user_id',$userId)->delete();
+
                     $array = [
                         "department_id"=>$departmentId,
-                        "user_id"=>hashid_decode($value),
+                        "user_id"=>$userId,
                     ];
                     $depar = DepartmentUser::create($array);
                 }

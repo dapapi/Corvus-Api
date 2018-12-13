@@ -12,10 +12,9 @@ class Groups extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'id',
         'name',
-
         'creator_id',
-
         'update_id',
     ];
 

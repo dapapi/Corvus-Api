@@ -29,7 +29,7 @@ class ReportTransformer extends TransformerAbstract
             'status' =>$report->status,
            // 'review_id' => $report->status['id'],
             'delete_at' => $report->delete_at,
-            'created_id' => $report->created_id,
+           // 'created_id' => $report->created_id,
             'created_at' => $report->created_at->toDatetimeString(),
             'updated_at' => $report->updated_at->toDatetimeString(),
             //'issues_id' => $report->issues_id,

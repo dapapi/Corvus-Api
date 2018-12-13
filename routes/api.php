@@ -437,11 +437,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取分组信息
         $api->get('/console/group','App\Http\Controllers\ConsoleController@getGroup');
         //添加分组
-        $api->post('/console/group','App\Http\Controllers\ConsoleController@Group');
+        $api->post('/console/group','App\Http\Controllers\ConsoleController@storeGroup');
         //修改分组
         $api->put('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@editGroup');
         //删除分组
         $api->delete('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@deleteGroup');
+
+
         /*后台权限 角色 控制台*/
         $api->get('/console/role','App\Http\Controllers\ConsoleController@getRole');
         //添加角色
@@ -450,6 +452,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/console/role/{role}','App\Http\Controllers\ConsoleController@editRole');
         //删除角色
         $api->delete('/console/role/{role}','App\Http\Controllers\ConsoleController@deleteRole');
+        //移动角色
+        $api->put('/console/mobile/{role}','App\Http\Controllers\ConsoleController@mobileRole');
+
         //组获取人员
         $api->get('/console/person/{groupRoles}','App\Http\Controllers\ConsoleController@groupPerson');
         //角色和用户关联
@@ -463,7 +468,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
+        $api->get('/scope/{user}/operation/{dictionaries}','App\Http\Controllers\ScopeController@show');
 
+        //获取消息
+        $api->get('/getmsg','App\Http\Controllers\MessageController@index');
 
     });
 });

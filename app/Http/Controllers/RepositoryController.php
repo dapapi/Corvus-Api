@@ -59,7 +59,6 @@ class RepositoryController extends Controller
 
             DB::beginTransaction();
             try {
-                dd($payload);
                 $star = Repository::create($payload);
 
 

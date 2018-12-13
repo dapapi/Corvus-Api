@@ -22,8 +22,8 @@ class ReviewTitleTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($bulletinreviewtitle->id),
             'bulletin_review_id' => $bulletinreviewtitle->bulletin_review_id,
-            'creator_id' => $bulletinreviewtitle->creator_id,
-            'reviewer_id' => $bulletinreviewtitle->reviewer_id,
+            'creator_id' => $bulletinreviewtitle->creator->name,
+            'reviewer_id' => !empty($bulletinreviewtitle->reviewer)?$bulletinreviewtitle->reviewer->name:'',
            // 'title' => $bulletinreviewtitle->title,
             'status' => $bulletinreviewtitle->status,
             // 'issues' => $bulletinreviewtitle->issues,

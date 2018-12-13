@@ -1,10 +1,12 @@
 <?php
-
 namespace App\Http\Requests;
 
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\Role;
 
-class RepositoryRequest extends FormRequest
+
+class RoleRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,13 +26,10 @@ class RepositoryRequest extends FormRequest
     public function rules()
     {
         return [
-
-            'title' => 'max:255', // 昵称
-            'scope'=> 'nullable', // 视屏名称
-//            'desc' => 'max:255', // 装换率
-            'accessory' => 'max:500',//链接
-            'stick' => 'nullable',//是否有广告
-
+            'name'  =>  'required|max:50',
+            'group_id'  =>  'required|numeric',
+//            'description'  =>  'required|max:50',
+//            'sort_number'  =>  'required|max:50',
         ];
     }
 }

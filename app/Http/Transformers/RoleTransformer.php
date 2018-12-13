@@ -20,7 +20,7 @@ class RoleTransformer extends TransformerAbstract
     {
         $array = [
             'id' => hashid_encode($role->id),
-            'group_id' => $role->group_id,
+            'group_id' => hashid_encode($role->group_id),
             'name' => $role->name,
             'description' => $role->description,
         ];

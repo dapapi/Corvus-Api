@@ -59,7 +59,7 @@ class ConsoleController extends Controller
 
     public function getGroup(Request $request)
     {
-        $groupInfo = GroupRoles::orderBy('name')->get();
+        $groupInfo = GroupRoles::orderBy('created_at')->get();
         return $this->response->collection($groupInfo, new GroupRolesTransformer());
     }
 
@@ -89,9 +89,9 @@ class ConsoleController extends Controller
         return $this->response->accepted();
     }
 
-    public function editGroup(RoleRequest $roleRequest,GroupRoles $groupRoles,User $user)
+    public function editGroup(Request $request,GroupRoles $groupRoles,User $user)
     {
-        $payload = $roleRequest->all();
+        $payload = $request->all();
         try {
             $operate = new OperateEntity([
                 'obj' => $groupRoles,
@@ -134,9 +134,11 @@ class ConsoleController extends Controller
     {
         $payload = $roleRequest->all();
         $array = [
-            'group_id' => $payload['group_id'],
+            'group_id' => hashid_decode($payload['group_id']),
             'name' => $payload['name'],
+            'description' => isset($payload['description']) ? $payload['description'] : '',
         ];
+
         try {
             $role->create($array);
 //            // 操作日志
@@ -163,7 +165,7 @@ class ConsoleController extends Controller
         $payload = $request->all();
         if(isset($payload['group_id'])){
             $array = [
-                'group_id' => $payload['group_id'],
+                'group_id' => hashid_decode($payload['group_id']),
             ];
             try {
                 $role->update($array);
@@ -203,9 +205,11 @@ class ConsoleController extends Controller
                 $operate,
             ]));
             $array = [
-                'group_id' => $payload['group_id'],
+                'group_id' => hashid_decode($payload['group_id']),
                 'name' => $payload['name'],
+                'description' => isset($payload['description']) ? $payload['description'] : '',
             ];
+
             $role->update($array);
 
         } catch (\Exception $exception) {
@@ -242,7 +246,7 @@ class ConsoleController extends Controller
                 foreach($payload['user'] as $key=>$value){
                     $array = [
                         'role_id'=> $role_id,
-                        'user_id'=> $value
+                        'user_id'=> hashid_decode($value)
                     ];
                     $roleUser->create($array);
                 }

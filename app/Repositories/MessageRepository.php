@@ -2,20 +2,40 @@
 
 namespace App\Repositories;
 
+use App\Helper\SendMessage;
 use App\Models\Message;
 use App\Models\MessageData;
+use App\Models\MessageState;
+use function foo\func;
 use Illuminate\Support\Facades\DB;
 
 class MessageRepository
 {
-    public function addMessage($title,$module,$data){
+    //向数据库添加消息，向前端推消息
+    public function addMessage($user,$title,$module,$link,$data,$recives){
         $message = new Message();
         $message->title = $title;
         $message->module = $module;
+        $message->link = $link;
         $message->save();
-        $message_date = new MessageData();
-        $data['message_id'] =   $message->id;
-        $message_date->addAll($data);
+        foreach ($data as &$value){
+            $value['message_id'] = $message->id;
+        }
+
+        DB::table('message_datas')->insert($data);
+        $recives_data = [];
+        foreach ($recives as $recive){
+            $recives_data[] = [
+                'message_id'  =>  $message->id,
+                'user_id' =>  $recive
+            ];
+        }
+
+//        $message_state = new MessageState();
+        DB::table("message_states")->insert($recives_data);
+        $send_message = new SendMessage();
+        $send_message->login($user->id,$user->name);
+        $send_message->sendMessage($title,$link,$data,$recives);
     }
 
 }

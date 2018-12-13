@@ -20,8 +20,10 @@ use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
+use App\Models\User;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
 use Exception;
@@ -186,7 +188,7 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
-    public function store(StoreProjectRequest $request)
+    public function store(Request $request)
     {
         // todo 可能涉及筛选可选线索
         $payload = $request->all();
@@ -313,12 +315,13 @@ class ProjectController extends Controller
             }
 
         } catch (Exception $exception) {
+            echo hashid_encode(62);
+            dd($exception);
             DB::rollBack();
             Log::error($exception);
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-
         return $this->response->item($project, new ProjectTransformer());
 
     }

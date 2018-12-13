@@ -453,7 +453,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //删除角色
         $api->delete('/console/role/{role}','App\Http\Controllers\ConsoleController@deleteRole');
         //组获取人员
-        $api->get('/console/person/{groupRoles}','App\Http\Controllers\ConsoleController@groupPerson');
+        $api->get('/console/person/{role}','App\Http\Controllers\ConsoleController@rolePerson');
         //角色和用户关联
         $api->post('/console/relevancy/{role}','App\Http\Controllers\ConsoleController@setRoleUser');
         //功能列表

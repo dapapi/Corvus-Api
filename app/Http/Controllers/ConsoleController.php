@@ -6,7 +6,7 @@ use App\Http\Transformers\UserTransformer;
 use App\Http\Transformers\GroupRolesTransformer;
 use App\Http\Transformers\RoleTransformer;
 use App\Http\Transformers\DataDictionarieTransformer;
-
+use App\Http\Transformers\RoleUserTransformer;
 use App\Events\OperateLogEvent;
 use App\Models\Department;
 use App\Models\Role;
@@ -226,13 +226,13 @@ class ConsoleController extends Controller
     }
 
 
-    public function groupPerson(Request $request,GroupRoles $groupRoles)
+    public function rolePerson(Request $request,Role $role)
     {
         $payload = $request->all();
-        $group_id = $groupRoles->id;
-        $groupInfo = Role::where('group_id',$group_id)->get();
-
-        return $this->response->collection($groupInfo, new RoleTransformer());
+        $roleId = $role->id;
+        
+        $roleInfo = RoleUser::where('role_id',$roleId)->get();
+        return $this->response->collection($roleInfo, new RoleUserTransformer());
     }
 
     public function setRoleUser(Request $request,Role $role,RoleUser $roleUser)

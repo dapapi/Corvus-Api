@@ -8,7 +8,12 @@ use PHPUnit\DbUnit\TestCaseTrait;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-
+use Tests\MyApp_DbUnit_ArrayDataSet;
+//include '../data/client.php';
+//include '../data/contact.php.php';
+//include '../data/deparment.php';
+//include '../data/User.php';
+//include '../data/deparment_user.php.php';
 class UserTest extends TestCase
 {
     use TestCaseTrait;
@@ -36,6 +41,8 @@ class UserTest extends TestCase
     }
     public function getDataSet()
     {
-        return $this->createXMLDataSet('user.xml');
+        $user = include __DIR__.'/../data/User.php';
+//        return $this->createXMLDataSet('user.xml');
+        return new MyApp_DbUnit_ArrayDataSet($user);
     }
 }

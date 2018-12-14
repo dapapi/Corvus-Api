@@ -475,9 +475,9 @@ class ProjectController extends Controller
             $data = [];
             $data[] = [
                 "title" =>  '项目名称', //通知消息中的消息内容标题
-                'value' =>  $payload['title']  //通知消息内容对应的值
+                'value' =>  $project->title,  //通知消息内容对应的值
             ];
-            $principal = User::findOrFail($payload['principal_id']);
+            $principal = User::findOrFail($project->principal_id);
             $data[] = [
                 'title' =>  '项目负责人',
                 'value' =>  $principal->name
@@ -487,7 +487,7 @@ class ProjectController extends Controller
             DB::commit();
         }catch (Exception $e){
             DB::rollBack();
-
+            dd($e);
         }
 
         return $this->response->accepted();

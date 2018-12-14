@@ -41,8 +41,20 @@ class UserTest extends TestCase
     }
     public function getDataSet()
     {
-        $user = include __DIR__.'/../data/User.php';
+//        $user = include __DIR__.'/../data/User.php';
 //        return $this->createXMLDataSet('user.xml');
-        return new MyApp_DbUnit_ArrayDataSet($user);
+        $client = include  __DIR__.'/../data/client.php';
+        $contact = include  __DIR__.'/../data/contact.php';
+        $department = include  __DIR__.'/../data/department.php';
+        $user = include  __DIR__.'/../data/User.php';
+        $department_user = include __DIR__.'/../data/deparment_user.php';
+        $data = [
+            "users"=>$user,
+            "clients"=>$client,
+            "contacts"=>$contact,
+            "departments"=>$department,
+            "department_user"=>$department_user
+        ];
+        return new MyApp_DbUnit_ArrayDataSet($data);
     }
 }

@@ -6,7 +6,7 @@
  * Time: 11:12 AM
  */
 return [
-    'contacts'  =>  [
+//    'contacts'  =>  [
         ['id'=>1, 'name'=>'客户联系人1', 'phone'=>'18686868878','position'=>'销售总监','client_id'=>1, 'type'=>'1','status'=>1,'created_at'=>'2018-12-03 19:08:19'],
         ['id'=>2, 'name'=>'客户联系人2', 'phone'=>'18686868878','position'=>'销售总监','client_id'=>1, 'type'=>'1','status'=>1,'created_at'=>'2018-12-03 19:08:19'],
         ['id'=>3, 'name'=>'客户联系人3', 'phone'=>'18686868878','position'=>'销售总监','client_id'=>2, 'type'=>'1','status'=>1,'created_at'=>'2018-12-03 19:08:19'],
@@ -27,5 +27,5 @@ return [
         ['id'=>18,'name'=>'客户联系人18','phone'=>'18686868878','position'=>'销售总监','client_id'=>9, 'type'=>'1','status'=>1,'created_at'=>'2018-12-03 19:08:19'],
         ['id'=>19,'name'=>'客户联系人19','phone'=>'18686868878','position'=>'销售总监','client_id'=>11,'type'=>'1','status'=>1,'created_at'=>'2018-12-03 19:08:19'],
         ['id'=>20,'name'=>'客户联系人10','phone'=>'18686868878','position'=>'销售总监','client_id'=>11,'type'=>'1','status'=>1,'created_at'=>'2018-12-03 19:08:19'],
-    ]
+//    ]
 ];

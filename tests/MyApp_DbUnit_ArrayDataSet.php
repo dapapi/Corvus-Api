@@ -9,7 +9,12 @@
 namespace Tests;
 
 //PHPUnit_Extensions_Database_DataSet_AbstractDataSet
-class MyApp_DbUnit_ArrayDataSet extends PHPUn
+use PHPUnit\DbUnit\DataSet\AbstractDataSet;
+use PHPUnit\DbUnit\DataSet\DefaultTableIterator;
+use PHPUnit\DbUnit\DataSet\DefaultTableMetadata;
+use PHPUnit\DbUnit\DataSet\DefaultTable;
+
+class MyApp_DbUnit_ArrayDataSet extends AbstractDataSet
 {
     /**
      * @var array
@@ -27,8 +32,8 @@ class MyApp_DbUnit_ArrayDataSet extends PHPUn
                 $columns = array_keys($rows[0]);
             }
 
-            $metaData = new PHPUnit_Extensions_Database_DataSet_DefaultTableMetaData($tableName, $columns);
-            $table = new PHPUnit_Extensions_Database_DataSet_DefaultTable($metaData);
+            $metaData = new DefaultTableMetadata($tableName, $columns);
+            $table = new DefaultTable($metaData);
 
             foreach ($rows AS $row) {
                 $table->addRow($row);
@@ -39,7 +44,7 @@ class MyApp_DbUnit_ArrayDataSet extends PHPUn
 
     protected function createIterator($reverse = false)
     {
-        return new PHPUnit_Extensions_Database_DataSet_DefaultTableIterator($this->tables, $reverse);
+        return new DefaultTableIterator($this->tables, $reverse);
     }
 
     public function getTable($tableName)

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+    <table name="departments">
+        <column>name</column>
+        <column>department_pid</column>
+        <column>desc</column>
+        <column>city</column>
+        <column>created_at</column>
+        <row>
+            <value>泰洋系</value>
+            <value>0</value>
+            <value>总部门</value>
+            <value>北京</value>
+            <value>2018-12-08 17:00:33</value>
+        </row>
+        <row>
+            <value>泰洋川禾</value>
+            <value>1</value>
+            <value>第一级子部门</value>
+            <value>北京</value>
+            <value>2018-12-08 17:00:33</value>
+        </row>
+        <row>
+            <value>papitube</value>
+            <value>1</value>
+            <value>第二级子部门</value>
+            <value>北京</value>
+            <value>2018-12-08 17:00:33</value>
+        </row>
+    </table>
+    <table name="users">
+        <column>name</column>
+        <column>email</column>
+        <column>password</column>
+        <column>gender</column>
+        <column>id_number</column>
+        <column>phone</column>
+        <column>political</column>
+        <column>marriage</column>
+        <column>cadastral_address</column>
+        <column>current_address</column>
+        <column>national</column>
+        <column>blood_type</column>
+        <column>position_type</column>
+        <column>status</column>
+        <column>entry_status</column>
+        <column>department_id</column>
+        <column>created_at</column>
+        <row>
+            <value>测试用户1</value>
+            <value>ceshi1@163.com</value>
+            <value>$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy</value>
+            <value>1</value>
+            <value>342426189002213344</value>
+            <value>15812345678</value>
+            <value>党员</value>
+            <value>未婚</value>
+            <value>北京市</value>
+            <value>北京市高碑店</value>
+            <value>汉族</value>
+            <value>A</value>
+            <value>1</value>
+            <value>0</value>
+            <value>2</value>
+            <value>9</value>
+            <value>2018-11-13 14:22:19</value>
+        </row>
+        <row>
+            <value>测试用户2</value>
+            <value>ceshi2@163.com</value>
+            <value>$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy</value>
+            <value>1</value>
+            <value>342426189002213344</value>
+            <value>15812345678</value>
+            <value>党员</value>
+            <value>未婚</value>
+            <value>北京市</value>
+            <value>北京市高碑店</value>
+            <value>汉族</value>
+            <value>A</value>
+            <value>1</value>
+            <value>0</value>
+            <value>2</value>
+            <value>9</value>
+            <value>2018-11-13 14:22:19</value>
+        </row>
+        <row>
+            <value>测试用户3</value>
+            <value>ceshi3@163.com</value>
+            <value>$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy</value>
+            <value>1</value>
+            <value>342426189002213344</value>
+            <value>15812345678</value>
+            <value>党员</value>
+            <value>未婚</value>
+            <value>北京市</value>
+            <value>北京市高碑店</value>
+            <value>汉族</value>
+            <value>A</value>
+            <value>1</value>
+            <value>0</value>
+            <value>2</value>
+            <value>9</value>
+            <value>2018-11-13 14:22:19</value>
+        </row>
+    </table>
+    <table name="department_user">
+        <column>department_id</column>
+        <column>user_id</column>
+        <column>type</column>
+        <column>created_at</column>
+        <row>
+            <value>1</value>
+            <value>1</value>
+            <value>0</value>
+            <value>2018-11-13 14:22:19</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>2</value>
+            <value>0</value>
+            <value>2018-11-13 14:22:19</value>
+        </row>
+        <row>
+            <value>3</value>
+            <value>3</value>
+            <value>0</value>
+            <value>2018-11-13 14:22:19</value>
+        </row>
+    </table>
+
+</dataset>

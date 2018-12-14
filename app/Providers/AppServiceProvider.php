@@ -14,6 +14,8 @@ use App\Models\Task;
 use App\Models\Issues;
 use App\Models\Trail;
 use App\Models\Report;
+use App\Models\Department;
+use App\Models\Repository;
 use App\User;
 
 use App\ModuleableType;
@@ -48,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::REPORT => Report::class,
             ModuleableType::ANNOUNCEMENT => Announcement::class,
             ModuleableType::DEPARTMENT => Department::class,
-
+            ModuleableType::REPOSITORY => Repository::class,
 
             //TODO
         ]);

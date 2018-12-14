@@ -15,6 +15,7 @@ use App\Models\Announcement;
 use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Draft;
+use App\Models\Repository;
 use App\Models\Contact;
 use App\Models\Schedule;
 use App\Models\PersonalJob;
@@ -25,6 +26,7 @@ use App\Models\Department;
 use App\Models\Role;
 use App\Models\DataDictionarie;
 use App\Models\Star;
+use App\Models\CommentLog;
 use App\Models\Task;
 use App\Models\Trail;
 use App\User;
@@ -88,6 +90,24 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Contact::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('commentlog', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = CommentLog::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('repository', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Repository::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

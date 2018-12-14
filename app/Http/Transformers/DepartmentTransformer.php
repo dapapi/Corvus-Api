@@ -23,7 +23,6 @@ class DepartmentTransformer extends TransformerAbstract
     public function includeDepartments(Department $department)
     {
         $departments = $department->departments;
-
         return $this->collection($departments, new DepartmentTransformer());
     }
 

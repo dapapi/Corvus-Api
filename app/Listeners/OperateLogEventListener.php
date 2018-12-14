@@ -18,6 +18,7 @@ use App\Models\PersonalSalary;
 use App\Models\Department;
 use App\Models\Issues;
 use App\Models\Trail;
+use App\Models\Repository;
 use App\Models\Work;
 use App\User;
 use App\ModuleableType;
@@ -126,6 +127,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Report){
                 $type = ModuleableType::REPORT;
                 $typeName = '简报';
+            }else if($operate->obj instanceof Repository){
+                $type = ModuleableType::REPOSITORY;
+                $typeName = '知识库';
             }
             //TODO
 

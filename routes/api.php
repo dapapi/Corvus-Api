@@ -126,6 +126,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/trails/{trail}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
 
+        // 评论
+        $api->get('/repositorys/{repository}/show_comment', 'App\Http\Controllers\CommentLogController@index');
+        $api->post('/repositorys/{repository}/add_comment/{commentlog}', 'App\Http\Controllers\CommentLogController@addaddComment');
+        $api->post('/repositorys/{repository}/add_comment', 'App\Http\Controllers\CommentLogController@addComment');
         //跟进
         // 简报 问题跟进
         $api->get('/issues/{issues}/operate_log', 'App\Http\Controllers\OperateLogController@myindex');
@@ -257,9 +261,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // Repository
         $api->get('/repositorys', 'App\Http\Controllers\RepositoryController@index');
         $api->post('/repositorys', 'App\Http\Controllers\RepositoryController@store');
-        $api->get('/repositorys/{repository}', 'App\Http\Controllers\ReviewController@show');
-        $api->put('/repositorys/{repository}', 'App\Http\Controllers\ReviewController@edit');
-        $api->delete('/repositorys', 'App\Http\Controllers\ReviewController@delete');
+        $api->get('/repositorys/{repository}', 'App\Http\Controllers\RepositoryController@show');
+        $api->put('/repositorys/{repository}', 'App\Http\Controllers\RepositoryController@edit');
+        $api->delete('/repositorys/{repository}', 'App\Http\Controllers\RepositoryController@delete');
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
@@ -285,10 +289,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
+        // contract 合同
+        $api->get('/contracts/papi', 'App\Http\Controllers\ContractController@papiIndex');
+        $api->get('/contracts/all', 'App\Http\Controllers\ContractController@all');
+
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+
 
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');

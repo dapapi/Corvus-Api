@@ -27,7 +27,7 @@ class MessageRepository
         foreach ($recives as $recive){
             $recives_data[] = [
                 'message_id'  =>  $message->id,
-                'user_id' =>  $recive
+                'user_id' =>  hashid_decode($recive)
             ];
         }
 

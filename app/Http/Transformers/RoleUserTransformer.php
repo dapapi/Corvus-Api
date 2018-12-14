@@ -4,33 +4,32 @@ namespace App\Http\Transformers;
 
 
 use App\Models\Department;
-use App\Models\Role;
+use App\Models\RoleUser;
 use App\User;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
 
 
-class RoleTransformer extends TransformerAbstract
+class RoleUserTransformer extends TransformerAbstract
 {
     protected $availableIncludes = [
 
     ];
     protected $defaultIncludes = ['users'];
-    public function transform(Role $role)
+    public function transform(RoleUser $roleUser)
     {
         $array = [
-            'id' => hashid_encode($role->id),
-            'group_id' => hashid_encode($role->group_id),
-            'name' => $role->name,
-            'description' => $role->description,
+            'role_id' => hashid_encode($roleUser->role_id),
+            'user_id' => $roleUser->user_id,
+
         ];
         return $array;
     }
 
 
-    public function includeUsers(Role $role)
+    public function includeUsers(RoleUser $roleUser)
     {
-        $userinfo = $role->users;
+        $userinfo = $roleUser->users;
 
         return $this->collection($userinfo, new UserTransformer());
     }

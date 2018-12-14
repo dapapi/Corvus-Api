@@ -20,6 +20,8 @@ use App\Models\Issues;
 use App\Models\Trail;
 use App\Models\Repository;
 use App\Models\Work;
+use App\Models\GroupRoles;
+use App\Models\Role;
 use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -130,6 +132,12 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Repository){
                 $type = ModuleableType::REPOSITORY;
                 $typeName = '知识库';
+            }else if($operate->obj instanceof GroupRoles){
+                $type = ModuleableType::GTOUPROLES;
+                $typeName = '分组';
+            }else if($operate->obj instanceof Role) {
+                $type = ModuleableType::ROLE;
+                $typeName = '角色';
             }
             //TODO
 

@@ -16,11 +16,7 @@ class FilterFieldController extends Controller
         $splitter = strpos($path, '/');
         $table = substr($path,0,$splitter);
 
-        //
-        $user = Auth::guard('api')->user();
-        $departmentId = $user->department()->first()->id;
-
-        $fields = FilterField::where('table_name', $table)->where('department_id', $departmentId)->get();
+        $fields = FilterField::where('table_name', $table)->get();
 
         return $this->response->collection($fields, new FilterFieldTransformer());
     }

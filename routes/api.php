@@ -32,6 +32,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/resources', 'App\Http\Controllers\ResourceController@index');
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
+    $api->get('/download', 'App\Http\Controllers\ExcelController@download');
     $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
@@ -276,6 +277,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail
+        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('test');
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
@@ -446,7 +448,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取分组信息
         $api->get('/console/group','App\Http\Controllers\ConsoleController@getGroup');
         //添加分组
-        $api->post('/console/group','App\Http\Controllers\ConsoleController@Group');
+        $api->post('/console/group','App\Http\Controllers\ConsoleController@storeGroup');
         //修改分组
         $api->put('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@editGroup');
         //删除分组
@@ -459,8 +461,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/console/role/{role}','App\Http\Controllers\ConsoleController@editRole');
         //删除角色
         $api->delete('/console/role/{role}','App\Http\Controllers\ConsoleController@deleteRole');
+        //移动角色
+        $api->put('/console/mobile/{role}','App\Http\Controllers\ConsoleController@mobileRole');
         //组获取人员
-        $api->get('/console/person/{groupRoles}','App\Http\Controllers\ConsoleController@groupPerson');
+        $api->get('/console/person/{role}','App\Http\Controllers\ConsoleController@rolePerson');
         //角色和用户关联
         $api->post('/console/relevancy/{role}','App\Http\Controllers\ConsoleController@setRoleUser');
         //功能列表
@@ -472,9 +476,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
-        $api->get('/scope/{user}/operation/{dictionaries}','App\Http\Controllers\ScopeController@show');
 
-
-
+        //获取消息
+        $api->get('/getmsg','App\Http\Controllers\MessageController@index');
+        //更改消息状态
+        $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
     });
 });

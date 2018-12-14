@@ -6,7 +6,7 @@ use App\Http\Transformers\UserTransformer;
 use App\Http\Transformers\GroupRolesTransformer;
 use App\Http\Transformers\RoleTransformer;
 use App\Http\Transformers\DataDictionarieTransformer;
-
+use App\Http\Transformers\RoleUserTransformer;
 use App\Events\OperateLogEvent;
 use App\Models\Department;
 use App\Models\Role;
@@ -59,7 +59,7 @@ class ConsoleController extends Controller
 
     public function getGroup(Request $request)
     {
-        $groupInfo = GroupRoles::orderBy('name')->get();
+        $groupInfo = GroupRoles::orderBy('created_at')->get();
         return $this->response->collection($groupInfo, new GroupRolesTransformer());
     }
 
@@ -134,9 +134,11 @@ class ConsoleController extends Controller
     {
         $payload = $roleRequest->all();
         $array = [
-            'group_id' => $payload['group_id'],
+            'group_id' => hashid_decode($payload['group_id']),
             'name' => $payload['name'],
+            'description' => isset($payload['description']) ? $payload['description'] : '',
         ];
+
         try {
             $role->create($array);
 //            // 操作日志
@@ -158,6 +160,36 @@ class ConsoleController extends Controller
     }
 
 
+    public function mobileRole(Request $request,Role $role)
+    {
+        $payload = $request->all();
+        if(isset($payload['group_id'])){
+            $array = [
+                'group_id' => hashid_decode($payload['group_id']),
+            ];
+            try {
+                $role->update($array);
+    //            // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $role,
+                    'title' => $role->group_id,
+                    'start' => $payload['group_id'],
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            } catch (\Exception $exception) {
+                Log::error($exception);
+                return $this->response->errorInternal('修改失败');
+            }
+        }else{
+            return $this->response->errorInternal('分组ID错误');
+        }
+        return $this->response->accepted();
+    }
+
     public function editRole(RoleRequest $roleRequest,Role $role)
     {
         $payload = $roleRequest->all();
@@ -173,9 +205,11 @@ class ConsoleController extends Controller
                 $operate,
             ]));
             $array = [
-                'group_id' => $payload['group_id'],
+                'group_id' => hashid_decode($payload['group_id']),
                 'name' => $payload['name'],
+                'description' => isset($payload['description']) ? $payload['description'] : '',
             ];
+
             $role->update($array);
 
         } catch (\Exception $exception) {
@@ -192,13 +226,13 @@ class ConsoleController extends Controller
     }
 
 
-    public function groupPerson(Request $request,GroupRoles $groupRoles)
+    public function rolePerson(Request $request,Role $role)
     {
         $payload = $request->all();
-        $group_id = $groupRoles->id;
-        $groupInfo = Role::where('group_id',$group_id)->get();
-
-        return $this->response->collection($groupInfo, new RoleTransformer());
+        $roleId = $role->id;
+        
+        $roleInfo = RoleUser::where('role_id',$roleId)->get();
+        return $this->response->collection($roleInfo, new RoleUserTransformer());
     }
 
     public function setRoleUser(Request $request,Role $role,RoleUser $roleUser)
@@ -212,7 +246,7 @@ class ConsoleController extends Controller
                 foreach($payload['user'] as $key=>$value){
                     $array = [
                         'role_id'=> $role_id,
-                        'user_id'=> $value
+                        'user_id'=> hashid_decode($value)
                     ];
                     $roleUser->create($array);
                 }

@@ -26,4 +26,6 @@ abstract class ModuleableType
     const ROLE = 'role';
     const REPOSITORY = 'repository';
 
+
+
 }

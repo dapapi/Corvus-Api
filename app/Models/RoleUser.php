@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\User;
+
 
 class RoleUser extends Model
 {
@@ -14,13 +16,11 @@ class RoleUser extends Model
 
     ];
 
+
     public function users()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(User::class, 'id', 'user_id');
     }
 
-    public function roles()
-    {
-        return $this->belongsTo(Role::class);
-    }
+
 }

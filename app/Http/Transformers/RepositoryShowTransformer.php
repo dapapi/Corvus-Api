@@ -5,7 +5,7 @@ namespace App\Http\Transformers;
 use App\Models\Repository;
 use League\Fractal\TransformerAbstract;
 
-class RepositoryTransformer extends TransformerAbstract
+class RepositoryShowTransformer extends TransformerAbstract
 {
 
     private $isAll;
@@ -22,13 +22,13 @@ class RepositoryTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($repository->id),
             'title' => $repository->title,  //标题
-            //'scope' => $repository->scope,  //对象id
-            //'desc' => $repository->desc, //输入内容
+            'scope' => $repository->scope,  //对象id
+            'desc' => $repository->desc, //输入内容
             'creator_id' => hashid_encode($repository->creator_id),//创建人id
-           // 'accessory' =>$repository->accessory,
-            //'is_accessory' =>$repository->is_accessory,
+            'accessory' =>$repository->accessory,
+            'is_accessory' =>$repository->is_accessory,
             'stick' => $repository->stick, //是否选择置顶  默认  0   无附件    1 有附件
-            //'comments_no' => $repository->comments_no,
+            'comments_no' => $repository->comments_no,
             'delete_at' => $repository->delete_at,
             'created_at' => $repository->created_at->toDatetimeString(),
             'updated_at' => $repository->updated_at->toDatetimeString()

@@ -14,6 +14,7 @@ use Ap\Gender;
 use App\Http\Requests\LaunchAllRequest;
 use App\Http\Requests\LaunchStoreRequest;
 use App\Http\Transformers\IssuesTransformer;
+use App\Http\Transformers\IssuesAllTransformer;
 use App\Http\Transformers\AnswerTransformer;
 use App\Http\Requests\DraftStoreRequest;
 Use App\Http\Transformers\ReportTransformer;
@@ -93,14 +94,12 @@ class LaunchController extends Controller
 //empty($data)
         $data = Issues::where('accessory',hashid_decode($All))->get(['id']);
         if(count($data->toArray())!=0){
-
         foreach($data->toarray() as $key => $value) {
 
             $num = $value['id'];
            if(empty(draft::where($array)->first())){
                $isAll = '';
            }else{
-
             $user =  draft::where($array)->first()->Answer;
             if ($user) {
                 $isAll = $user;
@@ -127,7 +126,7 @@ class LaunchController extends Controller
 //            Report::find($num)->state = $sally;
         }
         $getbulletinlist = issues::where('accessory',hashid_decode($All))->createDesc()->get();
-        return $this->response->collection($getbulletinlist, new IssuesTransformer($isAll));
+        return $this->response->collection($getbulletinlist, new IssuesAllTransformer($isAll));
 
     }
 //    public function allDraft(LaunchAllRequest $request)
@@ -321,7 +320,6 @@ class LaunchController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $stars = Draft::createDesc()->paginate($pageSize);
-
         return $this->response->paginator($stars, new DraftTransformer());
 
 

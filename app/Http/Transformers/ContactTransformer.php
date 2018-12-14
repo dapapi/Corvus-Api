@@ -22,6 +22,7 @@ class ContactTransformer extends TransformerAbstract
                 'name' => $contact->name,
                 'phone' => $contact->phone,
                 'position' => $contact->position,
+                'type' => $contact->type,
                 'status' => $contact->status,
             ];
         } else {

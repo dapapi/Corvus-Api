@@ -9,16 +9,18 @@ namespace App\Http\Controllers;
  */
 
 use App\Http\Requests\RepositoryRequest;
-use App\Http\Transformers\AnnouncementTransformer;
-use App\Http\Requests\AnnouncementUpdateRequest;
-use App\Models\Announcement;
-use App\Models\Repository;
-use App\Models\AnnouncementScope;
-use App\Repositories\AffixRepository;
-use Illuminate\Http\Request;
+use App\Http\Requests\RepositoryUpdateRequest;
+use App\Http\Transformers\RepositoryTransformer;
+use App\Http\Transformers\RepositoryShowTransformer;
 use App\Events\OperateLogEvent;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\Models\Department;
+use App\Models\DepartmentUser;
+use App\Models\Repository;
+use App\Repositories\AffixRepository;
+use Illuminate\Http\Request;
+use App\RepositoryScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,30 +33,103 @@ class RepositoryController extends Controller
         $this->affixRepository = $affixRepository;
     }
 
-    public function index(Request $request)
+    public function index(RepositoryRequest $request)
     {
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $stars = Repository::createDesc()->paginate($pageSize);
-        return $this->response->paginator($stars, new AnnouncementTransformer());
+        if($request->has('department')){
+            $department = hashid_decode($payload['department']);
+            $users = DepartmentUser::where('department_id',$department)->get(['user_id']);
+            $department = DepartmentUser::where('department_id',$department)->get(['department_id'])->toArray();
+            if(!empty($department)){
+                    $department_name  = !empty(Department::where('id',$department[0]['department_id'])->get()->toArray())?Department::where('id',$department[0]['department_id'])->get()->toArray():'';
+                    $scope = RepositoryScope::getStr($department_name[0]['name']);
+                    if($scope == 0){
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+                    }else if($scope == 1){
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+                    }else if($scope == 2){
+
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',2)->createDesc()->paginate($pageSize);
+                    }else if($scope == 3){
+
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',3)->createDesc()->paginate($pageSize);
+                    }else if($scope == 4){
+
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',4)->createDesc()->paginate($pageSize);
+                    }
+              }else{
+
+                    $department = DepartmentUser::where('user_id',$userId)->get(['department_id'])->toArray();
+                    $users = DepartmentUser::where('department_id',$department)->get(['user_id']);
+                    $department = DepartmentUser::where('department_id',$department)->get(['department_id'])->toArray();
+                    $department_name  = !empty(Department::where('id',$department[0]['department_id'])->get()->toArray())?Department::where('id',$department[0]['department_id'])->get()->toArray():'';
+                    $scope = RepositoryScope::getStr($department_name[0]['name']);
+                    if($scope == 0){
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+                    }else if($scope == 1){
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+                    }else if($scope == 2){
+
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',2)->createDesc()->paginate($pageSize);
+                    }else if($scope == 3){
+
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',3)->createDesc()->paginate($pageSize);
+                    }else if($scope == 4){
+
+                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',4)->createDesc()->paginate($pageSize);
+                    }
+
+
+            }
+
+        }else{
+
+
+            $department = DepartmentUser::where('user_id',$userId)->get(['department_id'])->toArray();
+            $users = DepartmentUser::where('department_id',$department)->get(['user_id']);
+            $department = DepartmentUser::where('department_id',$department)->get(['department_id'])->toArray();
+            $department_name  = !empty(Department::where('id',$department[0]['department_id'])->get()->toArray())?Department::where('id',$department[0]['department_id'])->get()->toArray():'';
+            $scope = RepositoryScope::getStr($department_name[0]['name']);
+            if($scope == 0){
+                $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+            }else if($scope == 1){
+                $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+            }else if($scope == 2){
+
+                $stars = Repository::wherein('creator_id',$users)->orwhere('scope',2)->createDesc()->paginate($pageSize);
+            }else if($scope == 3){
+
+                $stars = Repository::wherein('creator_id',$users)->orwhere('scope',3)->createDesc()->paginate($pageSize);
+            }else if($scope == 4){
+
+                $stars = Repository::wherein('creator_id',$users)->orwhere('scope',4)->createDesc()->paginate($pageSize);
+            }
+
+        }
+        return $this->response->paginator($stars, new RepositoryTransformer());
     }
-    public function show(Request $request,Announcement $announcement)
+    public function show(Request $request,Repository $repository)
     {
 
 
-        return $this->response->item($announcement, new AnnouncementTransformer());
+        return $this->response->item($repository, new RepositoryShowTransformer());
 
     }
-    public function store(RepositoryRequest $request,Repository $repository)
+    public function store(RepositoryRequest $repositoryrequest,Repository $repository)
     {
-        $payload = $request->all();
+        $payload = $repositoryrequest->all();
         $user = Auth::guard('api')->user();
         unset($payload['status']);
         unset($payload['type']);
         $payload['creator_id'] = $user->id;//发布人
+
+        if($repositoryrequest->has('scope')){
+            $payload['scope'] = hashid_decode($payload['scope']);
+        }
         if ($payload['creator_id']) {
 
             DB::beginTransaction();
@@ -73,14 +148,14 @@ class RepositoryController extends Controller
         }
 
     }
-    public function remove(Announcement $announcement)
+    public function delete(Repository $repository)
     {
         DB::beginTransaction();
         try {
-            $announcement->delete();
+            $repository->delete();
             // 操作日志
             $operate = new OperateEntity([
-                'obj' => $announcement,
+                'obj' => $repository,
                 'title' => null,
                 'start' => null,
                 'end' => null,
@@ -90,25 +165,24 @@ class RepositoryController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('删除失败');
         }
         DB::commit();
     }
-    public function edit(AnnouncementUpdateRequest $request, Announcement $announcement)
+    public function edit(RepositoryUpdateRequest $request, Repository $repository)
     {
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
         if ($request->has('title')) {
             $array['title'] = $payload['title'];
-            if ($array['title'] != $announcement->title) {
+            if ($array['title'] != $repository->title) {
                 $operateNickname = new OperateEntity([
-                    'obj' => $announcement,
+                    'obj' => $repository,
                     'title' => '标题',
-                    'start' => $announcement->title,
+                    'start' => $repository->title,
                     'end' => $array['title'],
                     'method' => OperateLogMethod::UPDATE,
                 ]);
@@ -118,23 +192,12 @@ class RepositoryController extends Controller
             }
         }
         if ($request->has('scope')) {
-            $scope = $payload['scope'];
-            $len = count($payload['scope']);
-            if($len >= 2){
-                $arr = array();
-
-                foreach($scope as $key => $value){
-                    $arr['scope'][$key] = hashid_decode($value);
-                }
-                $array['scope'] = implode(',',$arr['scope']);
-            }else{
-                $array['scope'] = hashid_decode(array_values($payload['scope'])[0]);
-            }
-            if ($array['scope'] != $announcement->scope) {
+            $array['scope'] = hashid_decode($payload['scope']);
+            if ($array['scope'] != $repository->scope) {
                 $operateNickname = new OperateEntity([
-                    'obj' => $announcement,
-                    'title' => '公告范围',
-                    'start' => $announcement->title,
+                    'obj' => $repository,
+                    'title' => '对象id',
+                    'start' => $repository->scope,
                     'end' => $array['scope'],
                     'method' => OperateLogMethod::UPDATE,
                 ]);
@@ -143,28 +206,14 @@ class RepositoryController extends Controller
                 unset($array['scope']);
             }
         }
-        if ($request->has('classify')) {
-            $array['classify'] = $payload['classify'];
-            if ($array['classify'] != $announcement->classify) {
-                $operateNickname = new OperateEntity([
-                    'obj' => $announcement,
-                    'title' => '分类',
-                    'start' => $announcement->classify,
-                    'end' => $array['classify'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateNickname;
-            } else {
-                unset($array['classify']);
-            }
-        }
+
         if ($request->has('desc')) {
             $array['desc'] = $payload['desc'];
-            if ($array['desc'] != $announcement->desc) {
+            if ($array['desc'] != $repository->desc) {
                 $operateNickname = new OperateEntity([
-                    'obj' => $announcement,
-                    'title' => '公告内容',
-                    'start' => $announcement->desc,
+                    'obj' => $repository,
+                    'title' => '知识库内容',
+                    'start' => $repository->desc,
                     'end' => $array['desc'],
                     'method' => OperateLogMethod::UPDATE,
                 ]);
@@ -173,51 +222,11 @@ class RepositoryController extends Controller
                 unset($array['desc']);
             }
         }
-        if ($request->has('accessory')) {
-            $array['accessory'] = $payload['accessory'];
-            if ($array['accessory'] != $announcement->accessory) {
-                $operateNickname = new OperateEntity([
-                    'obj' => $announcement,
-                    'title' => '公告附件修改',
-                    'start' => $announcement->accessory,
-                    'end' => $array['accessory'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateNickname;
-            } else {
-                unset($array['accessory']);
-            }
-        }
-        if ($request->has('stick')) {
-            $array['stick'] = $payload['stick'];
-            if ($array['stick'] != $announcement->stick) {
-                $operateNickname = new OperateEntity([
-                    'obj' => $announcement,
-                    'title' => '是否制顶',
-                    'start' => $announcement->stick,
-                    'end' => $array['stick'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateNickname;
-            } else {
-                unset($array['stick']);
-            }
-        }
         DB::beginTransaction();
         try {
             if (count($array) == 0)
                 return $this->response->noContent();
-            $announcement->update($array);
-            if(!empty($scope)){
-               $announdelete =  AnnouncementScope::where('announcement_id',$announcement->id)->delete();
-                if($announdelete){
-            foreach($scope as $key => $value){
-                $arr['announcement_id'] = $announcement->id;
-                $arr['department_id'] = hashid_decode($value);
-                $data = AnnouncementScope::create($arr);
-             }
-            }
-            }
+            $repository->update($array);
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
         } catch (Exception $e) {

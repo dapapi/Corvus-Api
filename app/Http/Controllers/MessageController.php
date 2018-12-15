@@ -93,13 +93,20 @@ class MessageController extends Controller
     //设置已读未读状态
     public function changeSate(Request $request){
         $message_id = $request->get('message_id',null);
+        $all_read = $request->get('all','no');
         $user = Auth::guard('api')->user();
-        try{
-            $message_sate = MessageState::findOrFail(['message_id' => hashid_decode($message_id),'user_id'=>$user->id]);
-            $message_sate->state = MessageState::HAS_READ;//已读
-        }catch (\Exception $e){
-            $this->response()->errorInternal("消息不存在");
+        if($all_read=="yes"){
+            MessageState::where('user_id',$user->id)->update(['state'=>MessageState::HAS_READ]);
         }
+        if($message_id != null && $all_read == "no"){
+            try{
+                $message_sate = MessageState::findOrFail(['message_id' => hashid_decode($message_id),'user_id'=>$user->id]);
+                $message_sate->state = MessageState::HAS_READ;//已读
+            }catch (\Exception $e){
+                $this->response()->errorInternal("消息不存在");
+            }
+        }
+
         return $this->response()->noContent();
     }
     public function getModules()
@@ -107,16 +114,22 @@ class MessageController extends Controller
         $user = Auth::guard('api')->user();
 
         //获取消息模块
-        return (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
-            ->leftJoin('messages as m','m.module','dd.val')
-            ->leftJoin('message_states as ms',function ($join){
-                $join->on('ms.message_id','m.id')
+        $subquery = DB::table(DB::raw('message_states as ms'))
+            ->leftJoin('messages as m',function ($join){
+                $join->on('m.id','ms.message_id')
                     ->where('ms.state',MessageState::UN_READ);
             })
-            ->where('dd.parent_id',206)
             ->where('ms.user_id',$user->id)
+            ->select('m.module',DB::raw("count('DISTINCT ms.message_id') as un_read"))
+            ->groupBy('m.module');
+
+        $result = (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
+            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.val')
+            ->mergeBindings($subquery)
+            ->where('dd.parent_id',206)
             ->groupBy('dd.val')
-            ->get(['dd.val','dd.name',DB::raw("count('DISTINCT ms.message_id') as un_read")]);
+            ->get(['dd.val','dd.name','m.un_read']);
+        return $result;
     }
 
 }

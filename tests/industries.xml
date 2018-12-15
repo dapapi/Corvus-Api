@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+    <table name="induestries">
+        <column>name</column>
+        <column>type</column>
+        <column>created_at</column>
+        <row>
+            <value>食品饮料</value>
+            <value>1</value>
+            <value>2018-10-29 08:17:28</value>
+        </row>
+        <row>
+            <value>奢侈品</value>
+            <value>1</value>
+            <value>2018-10-29 08:17:28</value>
+        </row>
+        <row>
+            <value>服装/运动</value>
+            <value>1</value>
+            <value>2018-10-29 08:17:28</value>
+        </row>
+    </table>
+</dataset>

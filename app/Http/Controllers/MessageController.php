@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Transformers\MessageTransform;
 use App\Models\Message;
 use App\Models\MessageState;
+use App\ModuleableType;
 use App\Repositories\MessageRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,4 +46,30 @@ class MessageController extends Controller
         }
         return $this->response()->noContent();
     }
+    public function getModules()
+    {
+        return [
+            ModuleableType::PROJECT => '项目',
+        ModuleableType::TASK => '任务',
+        ModuleableType::STAR => '艺人',
+        ModuleableType::CLIENT => '客户',
+        ModuleableType::CONTACT => '联系人',
+        ModuleableType::TRAIL => '线索',
+        ModuleableType::BLOGGER => '博主',
+        ModuleableType::USER => '用户',
+        ModuleableType::PERSONA_JOB => '人事',
+        ModuleableType::PERSONA_SALARY => '工资',
+        ModuleableType::WORK => '作品库',
+        ModuleableType::ATTENDANCE => '考勤',
+        ModuleableType::CALENDAR => '日历',
+        ModuleableType::SCHEDULE => '调度',
+        ModuleableType::ANNOUNCEMENT => '公告',
+        ModuleableType::ISSUES => '问题',
+        ModuleableType::REPORT => '报告',
+        ModuleableType::DEPARTMENT => '部门',
+        ModuleableType::GTOUPROLES => '组',
+        ModuleableType::ROLE => '角色',
+        ];
+    }
+
 }

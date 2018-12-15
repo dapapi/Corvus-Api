@@ -470,7 +470,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //角色和用户关联
         $api->post('/console/relevancy/{role}','App\Http\Controllers\ConsoleController@setRoleUser');
         //功能列表
-        $api->get('/console/feature/{user}','App\Http\Controllers\ConsoleController@feature');
+        $api->get('/console/feature/{role}','App\Http\Controllers\ConsoleController@feature');
         //功能角色关联
         $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
         //增加数据权限
@@ -483,5 +483,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
+        $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
     });
 });

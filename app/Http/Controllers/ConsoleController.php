@@ -260,10 +260,10 @@ class ConsoleController extends Controller
         }
     }
 
-    public function feature(Request $request,DataDictionarie $dataDictionarie,User $user)
+    public function feature(Request $request,DataDictionarie $dataDictionarie,User $user,Role $role)
     {
-        $userid = $user->id;
-        $roleId = RoleUser::where('user_id', $userid)->first()->role_id;
+
+        $roleId = $role->id;
         $depatments = DataDictionarie::where('parent_id', 1)->get();
         $roleInfo = RoleResource::where('role_id', $roleId)->get()->toArray();
 
@@ -277,13 +277,13 @@ class ConsoleController extends Controller
             );
             foreach($tree_data[$value['id']]['data'] as $k=>&$datum){
                 foreach ($roleInfo as $rkey=>$role){
-                    if($datum['id'] == $role['resouce_id']){
+                    if($datum['id'] === $role['resouce_id']){
                         $datum['selected'] = true;
                     }else{
                         $datum['selected'] = false;
                     }
                     if($datum['selected'] == true) {
-                        break;
+                        continue;
                     }
                 }
             }
@@ -320,21 +320,22 @@ class ConsoleController extends Controller
     public function scope(Request $request,Role $role,RoleUser $roleUser,RoleResource $roleResource,User $user,RoleDataView $roleDataView,RoleDataManage $roleDataManage)
     {
 
-        $userid = $user->id;
-
-        $roleId = RoleUser::where('user_id', $userid)->first()->role_id;
 
         $dataDictionarie = DataDictionarie::where('code', 1)->get()->toArray();
+        $roleId = 1;
         $tree_data = array();
         $res = array();
         foreach ($dataDictionarie as $key=>$value){
+
             //本人相关 本部门 部门下属 全部
             $reoureInfo = RoleResourceView::where('resource_id', $value['id'])->get()->toArray();
-           // dd($reoureInfo);
+
             $info = array_column($reoureInfo, 'data_view_id');
+
             $res = DataDictionarie::whereIn('id', $info)->get()->toArray();
 
             $roleManage = $roleDataView->where('role_id',$roleId)->where('resource_id',$value['id'])->get()->toArray();
+
             foreach ($res as $rkey=>&$rvale){
 
                 foreach ($roleManage as $mkey=>&$mvalue){
@@ -342,9 +343,10 @@ class ConsoleController extends Controller
                         $rvale['selected'] = true;
                     }else{
                         $rvale['selected'] = false;
+                        continue;
                     }
                     if($rvale['selected'] == true) {
-                        break;
+                        continue;
                     }
                 }
             }
@@ -361,6 +363,7 @@ class ConsoleController extends Controller
                     if($rolevalue['id'] == $evalue['data_manage_id']){
                         $rolevalue['selected'] = true;
                     }else{
+
                         $rolevalue['selected'] = false;
                     }
                     if($rolevalue['selected'] == true) {

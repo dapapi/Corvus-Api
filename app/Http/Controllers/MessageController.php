@@ -109,10 +109,9 @@ class MessageController extends Controller
 
         return $this->response()->noContent();
     }
-    public function getModules()
+    public function getModules(Request $request)
     {
         $user = Auth::guard('api')->user();
-
         //获取消息模块
         $subquery = DB::table(DB::raw('message_states as ms'))
             ->leftJoin('messages as m',function ($join){

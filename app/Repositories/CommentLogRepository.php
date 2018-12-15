@@ -14,10 +14,9 @@ use App\Models\Task;
 use App\Models\Issues;
 use App\Models\Trail;
 use App\Models\Type;
-use App\Models\CommentLog;
 use App\User;
 
-class OperateLogRepository
+class CommentLogRepository
 {
     public function getObject($model)
     {

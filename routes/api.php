@@ -79,6 +79,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\ModuleUserController@addModuleUserParticipant');
         $api->put('/tasks/{task}/participant_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //附件
+        $api->get('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->post('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@index');
         $api->post('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/tasks/{task}/affix', 'App\Http\Controllers\AffixController@index');
@@ -127,6 +129,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/trails/{trail}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
 
+        // 评论
+        $api->get('/repositorys/{repository}/show_comment', 'App\Http\Controllers\CommentLogController@index');
+        $api->post('/repositorys/{repository}/add_comment/{commentlog}', 'App\Http\Controllers\CommentLogController@addaddComment');
+        $api->post('/repositorys/{repository}/add_comment', 'App\Http\Controllers\CommentLogController@addComment');
         //跟进
         // 简报 问题跟进
         $api->get('/issues/{issues}/operate_log', 'App\Http\Controllers\OperateLogController@myindex');
@@ -258,9 +264,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // Repository
         $api->get('/repositorys', 'App\Http\Controllers\RepositoryController@index');
         $api->post('/repositorys', 'App\Http\Controllers\RepositoryController@store');
-        $api->get('/repositorys/{repository}', 'App\Http\Controllers\ReviewController@show');
-        $api->put('/repositorys/{repository}', 'App\Http\Controllers\ReviewController@edit');
-        $api->delete('/repositorys', 'App\Http\Controllers\ReviewController@delete');
+        $api->get('/repositorys/{repository}', 'App\Http\Controllers\RepositoryController@show');
+        $api->put('/repositorys/{repository}', 'App\Http\Controllers\RepositoryController@edit');
+        $api->delete('/repositorys/{repository}', 'App\Http\Controllers\RepositoryController@delete');
         //  launch
         $api->get('/launch', 'App\Http\Controllers\LaunchController@index');
         $api->get('/launch/all', 'App\Http\Controllers\LaunchController@all');
@@ -287,10 +293,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
+        // contract 合同
+        $api->get('/contracts/papi', 'App\Http\Controllers\ContractController@papiIndex');
+        $api->get('/contracts/all', 'App\Http\Controllers\ContractController@all');
+
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+
 
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
@@ -459,7 +470,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //角色和用户关联
         $api->post('/console/relevancy/{role}','App\Http\Controllers\ConsoleController@setRoleUser');
         //功能列表
-        $api->get('/console/feature/{user}','App\Http\Controllers\ConsoleController@feature');
+        $api->get('/console/feature/{role}','App\Http\Controllers\ConsoleController@feature');
         //功能角色关联
         $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
         //增加数据权限
@@ -472,5 +483,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
+        $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
     });
 });

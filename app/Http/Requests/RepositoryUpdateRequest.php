@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Dingo\Api\Http\FormRequest;
 
-class RepositoryRequest extends FormRequest
+class RepositoryUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,6 @@ class RepositoryRequest extends FormRequest
     public function rules()
     {
         return [
-
 
         ];
     }

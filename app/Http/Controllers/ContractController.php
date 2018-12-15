@@ -9,14 +9,14 @@ use App\Http\Requests\BloggerRequest;
 use App\Http\Requests\BloggerUpdateRequest;
 use App\Http\Requests\BloggerProductionRequest;
 use App\Http\Requests\BloggerProducerRequest;
-use App\Http\Transformers\BloggerTransformer;
+use App\Http\Transformers\ContractPapiTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\ProductionTransformer;
 use App\Models\Blogger;
 use App\Models\Production;
 use App\Models\BloggerType;
-use App\Models\StarWeiboshuInfo;
-use App\Models\StarXiaohongshuInfo;
+use App\Models\ContractPapi;
+use App\Models\ContractQinyang;
 use App\Models\StarDouyinInfo;
 use App\Models\BloggerProducer;
 use App\Events\OperateLogEvent;
@@ -40,27 +40,14 @@ class ContractController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request)
+    public function papiIndex(Request $request)
     {
         $payload = $request->all();
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $status = $request->get('status', config('app.status'));
-        $array = [];//查询条件
-        //合同
-        $status = empty($status)?$array[] = ['sign_contract_status',1]:$array[] = ['sign_contract_status',$status];
-        if($request->has('name')){//姓名
-            $array[] = ['nickname','like','%'.$payload['name'].'%'];
-        }
 
-        if($request->has('type')){//类型
-            $array[] = ['type_id',hashid_decode($payload['type'])];
-        }
-        if($request->has('communication_status')){//沟通状态
-            $array[] = ['communication_status',$payload['communication_status']];
-        }
-        // sign_contract_status   签约状态
-        $bloggers = Blogger::where($array)->createDesc()->paginate($pageSize);
-        return $this->response->paginator($bloggers, new BloggerTransformer());
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', 1);
+        $contracts = ContractPapi::createDesc()->paginate($pageSize);
+        return $this->response->paginator($contracts, new ContractPapiTransformer());
     }
     public function all(Request $request)
     {

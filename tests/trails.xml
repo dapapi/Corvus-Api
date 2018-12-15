@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+    <table name="trails">
+        <column>title</column>
+        <column>brand</column>
+        <column>principal_id</column>
+        <column>industry_id</column>
+        <column>client_id</column>
+        <column>creator_id</column>
+        <column>type</column>
+        <column>status</column>
+        <column>priority</column>
+        <column>lock_status</column>
+        <column>progress_status</column>
+        <column>resource</column>
+        <column>resource_type</column>
+        <column>fee</column>
+        <column>desc</column>
+        <column>created_at</column>
+        <row>
+            <value>销售线索测试1</value>
+            <value>销售线索测试1</value>
+            <value>1</value>
+            <value>1</value>
+            <value>1</value>
+            <value>1</value>
+            <value>0</value>
+            <value>1</value>
+            <value>2</value>
+            <value>4</value>
+            <value>10000</value>
+            <value>销售线索测试</value>
+            <value>2018-11-13 14:22:19</value>
+        </row>
+    </table>
+</dataset>

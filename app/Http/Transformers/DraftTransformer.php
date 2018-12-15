@@ -22,7 +22,7 @@ class DraftTransformer extends TransformerAbstract
             'id' => hashid_encode($draft->id),
             'template_id' => hashid_encode($draft->template_id),
             'member' => $draft->member,    //平台
-            'reviewer_id'=> hashid_encode($draft->reviewer_id),
+            'reviewer_id'=> $draft->reviewer['name'],
             'issues_id' => $draft->Answer
         ];
         $arraySimple = [

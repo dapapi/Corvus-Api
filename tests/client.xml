@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+    <table name="clients">
+        <column>company</column>
+        <column>type</column>
+        <column>status</column>
+        <column>grade</column>
+        <column>province</column>
+        <column>city</column>
+        <column>district</column>
+        <column>address</column>
+        <column>principal_id</column>
+        <column>creator_id</column>
+        <column>size</column>
+        <column>keyman</column>
+        <column>desc</column>
+        <column>created_at</column>
+        <row>
+            <value>星巴克</value>
+
+        </row>
+    </table>
+</dataset>

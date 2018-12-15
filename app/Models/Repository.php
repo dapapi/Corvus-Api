@@ -43,6 +43,10 @@ class Repository extends Model
     {
         return $this->morphMany(OperateLog::class, 'logable');
     }
+    public function commentLogs()
+    {
+        return $this->morphMany(CommentLog::class, 'logable');
+    }
 
     public function tasks()
     {

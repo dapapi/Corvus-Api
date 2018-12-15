@@ -24,6 +24,7 @@ abstract class ModuleableType
     const DEPARTMENT = 'department';
     const GTOUPROLES = 'groupRoles';
     const ROLE = 'role';
+    const REPOSITORY = 'repository';
 
 
 

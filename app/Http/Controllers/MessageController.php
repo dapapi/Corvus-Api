@@ -27,21 +27,24 @@ class MessageController extends Controller
         }
         $user = Auth::guard('api')->user();
         $arr[] = ['ms.user_id',$user->id];
-        $pageSize = $request->get('page_size', config('app.page_size'));
         $result = (new Message())->setTable("m")->from('messages as m')
             ->leftJoin('message_states as ms','ms.message_id','m.id')
             ->leftJoin('message_datas as md','md.message_id','ms.message_id')
             ->orderBy('m.created_at','desc')
             ->select(
                 'm.id','m.module','m.title as message_title','m.link','m.created_at',
-                'ms.user_id','md.title','md.value'
+                'ms.user_id','md.title','md.value','ms.state'
                 )
             ->where($arr)
             ->get();
         $list = [];
+        $no_read = 0;//未读消息数量
         foreach ($result->toArray() as $value){
             $value['created'] = Carbon::parse($value['created_at'])->format('Y-m-d');
             if(!isset($list[$value['created']])){
+                if($value['state'] == MessageState::UN_READ){
+                    $no_read++;
+                }
                 $list[$value['created']][] = [
                     'message_id' => $value['id'],
                     'message_title'=> $value['message_title'],
@@ -49,12 +52,15 @@ class MessageController extends Controller
                     'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                     'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                     'module'   =>   $value['module'],
+                    'state' =>  $value['state'],
                     'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
                 ];
             }else{
-                dump($value['id']);
                 $message_key = array_search($value['id'],array_column($list[$value['created']],'message_id'));
                 if($message_key === false){
+                    if($value['state'] == MessageState::UN_READ){
+                        $no_read++;
+                    }
                     $list[$value['created']][] = [
                         'message_id' => $value['id'],
                         'message_title'=> $value['message_title'],
@@ -62,6 +68,7 @@ class MessageController extends Controller
                         'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                         'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                         'module'   =>   $value['module'],
+                        'state' =>  $value['state'],
                         'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
                     ];
                 }else{
@@ -71,7 +78,10 @@ class MessageController extends Controller
             }
 
         }
-        return $list;
+        return [
+            'no_read'=>$no_read,
+            'data'=>$list
+        ];
     }
     //设置已读未读状态
     public function changeSate(Request $request){

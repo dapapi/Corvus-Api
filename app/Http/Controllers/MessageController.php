@@ -7,6 +7,7 @@ use App\Models\Message;
 use App\Models\MessageState;
 use App\ModuleableType;
 use App\Repositories\MessageRepository;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -29,10 +30,48 @@ class MessageController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $result = (new Message())->setTable("m")->from('messages as m')
             ->leftJoin('message_states as ms','ms.message_id','m.id')
-            ->groupBy('m.id')
-            ->select('m.id','m.module','m.title','m.link')
-            ->where($arr)->paginate($pageSize);
-        return $this->response()->paginator($result,new MessageTransform());
+            ->leftJoin('message_datas as md','md.message_id','ms.message_id')
+            ->orderBy('m.created_at','desc')
+            ->select(
+                'm.id','m.module','m.title as message_title','m.link','m.created_at',
+                'ms.user_id','md.title','md.value'
+                )
+            ->where($arr)
+            ->get();
+        $list = [];
+        foreach ($result->toArray() as $value){
+            $value['created'] = Carbon::parse($value['created_at'])->format('Y-m-d');
+            if(!isset($list[$value['created']])){
+                $list[$value['created']][] = [
+                    'message_id' => $value['id'],
+                    'message_title'=> $value['message_title'],
+                    'link'=> $value['link'],
+                    'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
+                    'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
+                    'module'   =>   $value['module'],
+                    'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
+                ];
+            }else{
+                dump($value['id']);
+                $message_key = array_search($value['id'],array_column($list[$value['created']],'message_id'));
+                if($message_key === false){
+                    $list[$value['created']][] = [
+                        'message_id' => $value['id'],
+                        'message_title'=> $value['message_title'],
+                        'link'=> $value['link'],
+                        'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
+                        'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
+                        'module'   =>   $value['module'],
+                        'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
+                    ];
+                }else{
+                    $list[$value['created']][$message_key]['body'][] = ['title'=>$value['title'],'value'=>$value['value']];
+                }
+
+            }
+
+        }
+        return $list;
     }
     //设置已读未读状态
     public function changeSate(Request $request){

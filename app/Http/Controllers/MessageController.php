@@ -22,7 +22,7 @@ class MessageController extends Controller
             $arr[] = ['m.module', $module];
         }
         if($state != null){
-            $arr[]  =   ['m.state',$state];
+            $arr[]  =   ['ms.state',$state];
         }
         $user = Auth::guard('api')->user();
         $arr[] = ['ms.user_id',$user->id];
@@ -70,6 +70,9 @@ class MessageController extends Controller
         ModuleableType::GTOUPROLES => '组',
         ModuleableType::ROLE => '角色',
         ];
+    }
+    public function checklogin(){
+
     }
 
 }

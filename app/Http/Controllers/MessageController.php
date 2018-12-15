@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Transformers\MessageTransform;
+use App\Models\DataDictionarie;
 use App\Models\Message;
 use App\Models\MessageState;
 use App\ModuleableType;
 use App\Repositories\MessageRepository;
 use Carbon\Carbon;
+use function GuzzleHttp\Psr7\copy_to_string;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -32,7 +35,7 @@ class MessageController extends Controller
             ->leftJoin('message_datas as md','md.message_id','ms.message_id')
             ->orderBy('m.created_at','desc')
             ->select(
-                'm.id','m.module','m.title as message_title','m.link','m.created_at',
+                'm.id','m.module','m.title as message_title','m.link','m.created_at','m.subheading',
                 'ms.user_id','md.title','md.value','ms.state'
                 )
             ->where($arr)
@@ -48,6 +51,7 @@ class MessageController extends Controller
                 $list[$value['created']][] = [
                     'message_id' => $value['id'],
                     'message_title'=> $value['message_title'],
+                    'message_subheading'    =>  $value['subheading'],
                     'link'=> $value['link'],
                     'created_at' => $value['created_at'],
                     'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
@@ -65,6 +69,7 @@ class MessageController extends Controller
                     $list[$value['created']][] = [
                         'message_id' => $value['id'],
                         'message_title'=> $value['message_title'],
+                        'message_subheading'    =>  $value['subheading'],
                         'link'=> $value['link'],
                         'created_at' => $value['created_at'],
                         'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
@@ -99,31 +104,19 @@ class MessageController extends Controller
     }
     public function getModules()
     {
-        return [
-            ModuleableType::PROJECT => '项目',
-        ModuleableType::TASK => '任务',
-        ModuleableType::STAR => '艺人',
-        ModuleableType::CLIENT => '客户',
-        ModuleableType::CONTACT => '联系人',
-        ModuleableType::TRAIL => '线索',
-        ModuleableType::BLOGGER => '博主',
-        ModuleableType::USER => '用户',
-        ModuleableType::PERSONA_JOB => '人事',
-        ModuleableType::PERSONA_SALARY => '工资',
-        ModuleableType::WORK => '作品库',
-        ModuleableType::ATTENDANCE => '考勤',
-        ModuleableType::CALENDAR => '日历',
-        ModuleableType::SCHEDULE => '调度',
-        ModuleableType::ANNOUNCEMENT => '公告',
-        ModuleableType::ISSUES => '问题',
-        ModuleableType::REPORT => '报告',
-        ModuleableType::DEPARTMENT => '部门',
-        ModuleableType::GTOUPROLES => '组',
-        ModuleableType::ROLE => '角色',
-        ];
-    }
-    public function checklogin(){
+        $user = Auth::guard('api')->user();
 
+        //获取消息模块
+        return (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
+            ->leftJoin('messages as m','m.module','dd.val')
+            ->leftJoin('message_states as ms',function ($join){
+                $join->on('ms.message_id','m.id')
+                    ->where('ms.state',MessageState::UN_READ);
+            })
+            ->where('dd.parent_id',206)
+            ->where('ms.user_id',$user->id)
+            ->groupBy('dd.val')
+            ->get(['dd.val','dd.name',DB::raw("count('DISTINCT ms.message_id') as un_read")]);
     }
 
 }

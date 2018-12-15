@@ -24,10 +24,11 @@ class SendMessage{
         $user->userName = $username;
         $this->websocket_client->send(json_encode($user));
     }
-    public function sendMessage($title,$link,$data,$recives)
+    public function sendMessage($title,$subheading,$link,$data,$recives)
     {
         $message = new Message();
         $message->title = $title;
+        $message->subheading = $subheading;
         $message->to = implode(",",$recives);
         $message->link = $link;
         $message->message = $data;

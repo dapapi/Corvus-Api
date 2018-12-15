@@ -13,6 +13,8 @@ class Message
 {
     public $from;
     public $to;
+    public $title;
+    public $subheading;
     public $action;
     public $link;
     public $message;

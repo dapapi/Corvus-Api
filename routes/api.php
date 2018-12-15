@@ -79,6 +79,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\ModuleUserController@addModuleUserParticipant');
         $api->put('/tasks/{task}/participant_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //附件
+        $api->get('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->post('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@index');
         $api->post('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/tasks/{task}/affix', 'App\Http\Controllers\AffixController@index');

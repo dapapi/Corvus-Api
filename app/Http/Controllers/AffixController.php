@@ -17,6 +17,7 @@ use App\Models\Star;
 use App\Models\Report;
 use App\Models\Task;
 use App\Models\Trail;
+use App\Models\Repository;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\OperateLogRepository;
@@ -59,6 +60,8 @@ class AffixController extends Controller
         } else if ($model instanceof Blogger && $model->id) {
             $query = $model->affixes();
         }else if ($model instanceof Attendance && $model->id) {
+            $query = $model->affixes();
+        }else if ($model instanceof Repository && $model->id) {
             $query = $model->affixes();
         }
         //TODO 其他模块

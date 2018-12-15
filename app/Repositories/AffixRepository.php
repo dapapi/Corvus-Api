@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Announcement;
 use App\Models\Star;
 use App\Models\Task;
+use App\Models\Repository;
 use App\Models\Trail;
 use App\ModuleableType;
 use App\User;
@@ -54,6 +55,9 @@ class AffixRepository
         } else if($model instanceof Attendance == ModuleableType::ATTENDANCE){
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::ATTENDANCE;
+        }else if($model instanceof Repository == ModuleableType::REPOSITORY){
+            $array['affixable_id'] = $model->id;
+            $array['affixable_type'] = ModuleableType::REPOSITORY;
         }
         //TODO 还有其他类型
         $affix = Affix::create($array);

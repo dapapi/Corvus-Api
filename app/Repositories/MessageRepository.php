@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\DB;
 class MessageRepository
 {
     //向数据库添加消息，向前端推消息
-    public function addMessage($user,$title,$module,$link,$data,$recives){
+    public function addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$recives){
         $message = new Message();
         $message->title = $title;
+        $message->subheading = $subheading;
         $message->module = $module;
         $message->link = $link;
         $message->save();
@@ -34,8 +35,8 @@ class MessageRepository
 //        $message_state = new MessageState();
         DB::table("message_states")->insert($recives_data);
         $send_message = new SendMessage();
-        $send_message->login($user->id,$user->name);
-        $send_message->sendMessage($title,$link,$data,$recives);
+        $send_message->login($authorization,$user->id,$user->name);
+        $send_message->sendMessage($title,$subheading,$link,$data,$recives);
     }
 
 }

@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Transformers\MessageTransform;
+use App\Models\DataDictionarie;
 use App\Models\Message;
 use App\Models\MessageState;
 use App\ModuleableType;
 use App\Repositories\MessageRepository;
 use Carbon\Carbon;
+use function GuzzleHttp\Psr7\copy_to_string;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -32,7 +35,7 @@ class MessageController extends Controller
             ->leftJoin('message_datas as md','md.message_id','ms.message_id')
             ->orderBy('m.created_at','desc')
             ->select(
-                'm.id','m.module','m.title as message_title','m.link','m.created_at',
+                'm.id','m.module','m.title as message_title','m.link','m.created_at','m.subheading',
                 'ms.user_id','md.title','md.value','ms.state'
                 )
             ->where($arr)
@@ -48,7 +51,9 @@ class MessageController extends Controller
                 $list[$value['created']][] = [
                     'message_id' => $value['id'],
                     'message_title'=> $value['message_title'],
+                    'message_subheading'    =>  $value['subheading'],
                     'link'=> $value['link'],
+                    'created_at' => $value['created_at'],
                     'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                     'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                     'module'   =>   $value['module'],
@@ -64,7 +69,9 @@ class MessageController extends Controller
                     $list[$value['created']][] = [
                         'message_id' => $value['id'],
                         'message_title'=> $value['message_title'],
+                        'message_subheading'    =>  $value['subheading'],
                         'link'=> $value['link'],
+                        'created_at' => $value['created_at'],
                         'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                         'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                         'module'   =>   $value['module'],
@@ -86,42 +93,42 @@ class MessageController extends Controller
     //设置已读未读状态
     public function changeSate(Request $request){
         $message_id = $request->get('message_id',null);
+        $all_read = $request->get('all','no');
         $user = Auth::guard('api')->user();
-        try{
-            $message_sate = MessageState::findOrFail(['message_id' => hashid_decode($message_id),'user_id'=>$user->id]);
-            $message_sate->state = MessageState::HAS_READ;//已读
-        }catch (\Exception $e){
-            $this->response()->errorInternal("消息不存在");
+        if($all_read=="yes"){
+            MessageState::where('user_id',$user->id)->update(['state'=>MessageState::HAS_READ]);
         }
+        if($message_id != null && $all_read == "no"){
+            try{
+                $message_sate = MessageState::findOrFail(['message_id' => hashid_decode($message_id),'user_id'=>$user->id]);
+                $message_sate->state = MessageState::HAS_READ;//已读
+            }catch (\Exception $e){
+                $this->response()->errorInternal("消息不存在");
+            }
+        }
+
         return $this->response()->noContent();
     }
-    public function getModules()
+    public function getModules(Request $request)
     {
-        return [
-            ModuleableType::PROJECT => '项目',
-        ModuleableType::TASK => '任务',
-        ModuleableType::STAR => '艺人',
-        ModuleableType::CLIENT => '客户',
-        ModuleableType::CONTACT => '联系人',
-        ModuleableType::TRAIL => '线索',
-        ModuleableType::BLOGGER => '博主',
-        ModuleableType::USER => '用户',
-        ModuleableType::PERSONA_JOB => '人事',
-        ModuleableType::PERSONA_SALARY => '工资',
-        ModuleableType::WORK => '作品库',
-        ModuleableType::ATTENDANCE => '考勤',
-        ModuleableType::CALENDAR => '日历',
-        ModuleableType::SCHEDULE => '调度',
-        ModuleableType::ANNOUNCEMENT => '公告',
-        ModuleableType::ISSUES => '问题',
-        ModuleableType::REPORT => '报告',
-        ModuleableType::DEPARTMENT => '部门',
-        ModuleableType::GTOUPROLES => '组',
-        ModuleableType::ROLE => '角色',
-        ];
-    }
-    public function checklogin(){
+        $user = Auth::guard('api')->user();
+        //获取消息模块
+        $subquery = DB::table(DB::raw('message_states as ms'))
+            ->leftJoin('messages as m',function ($join){
+                $join->on('m.id','ms.message_id')
+                    ->where('ms.state',MessageState::UN_READ);
+            })
+            ->where('ms.user_id',$user->id)
+            ->select('m.module',DB::raw("count('DISTINCT ms.message_id') as un_read"))
+            ->groupBy('m.module');
 
+        $result = (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
+            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.val')
+            ->mergeBindings($subquery)
+            ->where('dd.parent_id',206)
+            ->groupBy('dd.val')
+            ->get(['dd.val','dd.name','m.un_read']);
+        return $result;
     }
 
 }

@@ -470,6 +470,7 @@ class ProjectController extends Controller
         try{
             $user = Auth::guard('api')->user();
             $title = $user->name."将你加入了项目";  //通知消息的标题
+            $subheading = "副标题";
             $module = "project";
             $link = 123;
             $data = [];
@@ -483,7 +484,8 @@ class ProjectController extends Controller
                 'value' =>  $principal->name
             ];
             $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
-            (new MessageRepository())->addMessage($user,$title,$module,$link,$data,$participant_ids);
+            $authorization = $request->header()['authorization'][0];
+            (new MessageRepository())->addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$participant_ids);
             DB::commit();
         }catch (Exception $e){
             DB::rollBack();

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
+use App\Exports\ClientsExport;
 use App\Http\Requests\Client\FilterClientRequest;
 use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
+use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\ClientTransformer;
+use App\Imports\ClientsImport;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\OperateEntity;
@@ -16,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ClientController extends Controller
 {
@@ -179,5 +183,25 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+    }
+
+    public function import(ExcelImportRequest $request)
+    {
+        DB::beginTransaction();
+        try {
+            Excel::import(new ClientsImport(), $request->file('file'));
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+        }
+        DB::commit();
+        return $this->response->created();
+    }
+
+    public function export()
+    {
+        $file = '当前用户导出'. date('YmdHis', time()).'.xlsx';
+        return (new ClientsExport())->download($file);
     }
 }

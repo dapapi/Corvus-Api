@@ -66,6 +66,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'cors' => \Barryvdh\Cors\HandleCors::class,
 
-        'test' => ExcelExportSetResponseHeader::class
+        'export' => ExcelExportSetResponseHeader::class
     ];
 }

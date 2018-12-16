@@ -224,6 +224,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@detail');
 
         // client
+        $api->get('/clients/export', 'App\Http\Controllers\ClientController@export')->middleware('export');
+        $api->post('/clients/import', 'App\Http\Controllers\ClientController@import');
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
@@ -279,7 +281,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail
-        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('test');
+        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('export');
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');

@@ -123,11 +123,11 @@ class MessageController extends Controller
             ->groupBy('m.module');
 
         $result = (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
-            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.val')
+            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.id')
             ->mergeBindings($subquery)
             ->where('dd.parent_id',206)
-            ->groupBy('dd.val')
-            ->get(['dd.val','dd.name','m.un_read']);
+            ->groupBy('dd.id')
+            ->get(['dd.id','dd.name','m.un_read']);
         return $result;
     }
 

@@ -11,6 +11,8 @@ use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\FieldValue;
+use App\Models\Message;
+use App\Models\MessageState;
 use App\Models\ModuleUser;
 use App\Models\Project;
 use App\Models\ProjectRelate;
@@ -26,11 +28,13 @@ use App\ModuleUserType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
+use Dingo\Api\Facade\Route;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use League\Fractal;
 use League\Fractal\Manager;
 use League\Fractal\Serializer\DataArraySerializer;
@@ -471,8 +475,8 @@ class ProjectController extends Controller
             $user = Auth::guard('api')->user();
             $title = $user->name."将你加入了项目";  //通知消息的标题
             $subheading = "副标题";
-            $module = "project";
-            $link = 123;
+            $module = Message::PROJECT;
+            $link = URL::action("ProjectController@edit",["project"=>$project->id]);
             $data = [];
             $data[] = [
                 "title" =>  '项目名称', //通知消息中的消息内容标题

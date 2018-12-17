@@ -49,7 +49,7 @@ class MessageController extends Controller
                     $no_read++;
                 }
                 $list[$value['created']][] = [
-                    'message_id' => $value['id'],
+                    'message_id' => hashid_encode($value['id']),
                     'message_title'=> $value['message_title'],
                     'message_subheading'    =>  $value['subheading'],
                     'link'=> $value['link'],
@@ -67,7 +67,7 @@ class MessageController extends Controller
                         $no_read++;
                     }
                     $list[$value['created']][] = [
-                        'message_id' => $value['id'],
+                        'message_id' => hashid_encode($value['id']),
                         'message_title'=> $value['message_title'],
                         'message_subheading'    =>  $value['subheading'],
                         'link'=> $value['link'],

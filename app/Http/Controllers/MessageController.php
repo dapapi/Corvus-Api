@@ -94,9 +94,13 @@ class MessageController extends Controller
     public function changeSate(Request $request){
         $message_id = $request->get('message_id',null);
         $all_read = $request->get('all','no');
+        $module = $request->get("module",null);
         $user = Auth::guard('api')->user();
-        if($all_read=="yes"){
-            MessageState::where('user_id',$user->id)->update(['state'=>MessageState::HAS_READ]);
+        if($all_read=="yes" && $module != null && is_numeric($module)){
+            (new Message())->setTable("m")->from("messages as s")
+                ->leftJoin("message_states as ms",'ms.message_id','m.id')
+                ->where([['user_id',$user->id],['module',$module]])
+                ->update(['state'=>MessageState::HAS_READ]);
         }
         if($message_id != null && $all_read == "no"){
             try{

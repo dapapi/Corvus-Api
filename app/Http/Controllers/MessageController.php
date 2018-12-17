@@ -45,7 +45,7 @@ class MessageController extends Controller
         $list = [];
         $no_read = 0;//未读消息数量
         foreach ($result->toArray() as $value){
-            $value['id']    =   hashid_decode($value['id']);
+            $value['id']    =   hashid_encode($value['id']);
             $value['created'] = Carbon::parse($value['created_at'])->format('Y-m-d');
             if(!isset($list[$value['created']])){
                 if($value['state'] == MessageState::UN_READ){
@@ -110,7 +110,7 @@ class MessageController extends Controller
         }
         if($message_id != null && $all_read == "no"){
             try{
-                MessageState::where(['message_id' => hashid_encode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->id]);
+                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->id]);
             }catch (\Exception $e){
                 $this->response()->errorInternal("修改失败");
             }

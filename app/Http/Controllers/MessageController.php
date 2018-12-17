@@ -106,11 +106,11 @@ class MessageController extends Controller
             $message->setTable("m")->from("messages as m")
                 ->leftJoin("message_states as ms",'ms.message_id','m.id')
                 ->where([['ms.user_id',$user->id],['m.module',$module],['ms.state',MessageState::UN_READ]])
-                ->update(['ms.state'=>MessageState::HAS_READ,"ms.updated_at"=>Carbon::now(),"updated_by"=>$user->id]);
+                ->update(['ms.state'=>MessageState::HAS_READ,"ms.updated_at"=>Carbon::now(),"updated_by"=>$user->name]);
         }
         if($message_id != null && $all_read == "no"){
             try{
-                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->id]);
+                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->name]);
             }catch (\Exception $e){
                 $this->response()->errorInternal("修改失败");
             }

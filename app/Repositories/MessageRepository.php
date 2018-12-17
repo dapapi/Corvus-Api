@@ -38,8 +38,8 @@ class MessageRepository
 //        $message_state = new MessageState();
         DB::table("message_states")->insert($recives_data);
         $send_message = new SendMessage();
-        $send_message->login($authorization,$user->id,$user->name);
-        $send_message->sendMessage($title,$subheading,$link,$data,$recives);
+        $send_message->login($authorization,$user->id,$user->name,$title,$subheading,$link,$data,$recives);
+//        $send_message->sendMessage($title,$subheading,$link,$data,$recives);
     }
 
 }

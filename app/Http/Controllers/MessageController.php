@@ -100,14 +100,16 @@ class MessageController extends Controller
         $user = Auth::guard('api')->user();
 //        (new Message())->where('module',$module)->recive()->where('user_id',$user->id) ->update(['ms.state'=>MessageState::HAS_READ]);
         if($all_read=="yes" && $module != null && is_numeric($module)){
-            (new Message())->setTable("m")->from("messages as m")
+            $message = new Message();
+            $message->timestamps = false;//禁用时间戳自动维护
+            $message->setTable("m")->from("messages as m")
                 ->leftJoin("message_states as ms",'ms.message_id','m.id')
-                ->where([['ms.user_id',$user->id],['m.module',$module]])
-                ->update(['ms.state'=>MessageState::HAS_READ]);
+                ->where([['ms.user_id',$user->id],['m.module',$module],['ms.state',MessageState::UN_READ]])
+                ->update(['ms.state'=>MessageState::HAS_READ,"ms.updated_at"=>Carbon::now(),"updated_by"=>$user->id]);
         }
         if($message_id != null && $all_read == "no"){
             try{
-                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ]);
+                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->id]);
             }catch (\Exception $e){
                 $this->response()->errorInternal("修改失败");
             }

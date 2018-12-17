@@ -6,6 +6,7 @@ use App\Helper\SendMessage;
 use App\Models\Message;
 use App\Models\MessageData;
 use App\Models\MessageState;
+use Carbon\Carbon;
 use function foo\func;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +20,7 @@ class MessageRepository
         $message->module = $module;
         $message->link = $link;
         $message->save();
+
         foreach ($data as &$value){
             $value['message_id'] = $message->id;
         }
@@ -28,7 +30,8 @@ class MessageRepository
         foreach ($recives as $recive){
             $recives_data[] = [
                 'message_id'  =>  $message->id,
-                'user_id' =>  hashid_decode($recive)
+                'user_id' =>  hashid_decode($recive),
+                'created_at'    =>  Carbon::now()
             ];
         }
 

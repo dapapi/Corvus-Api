@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Message extends Model
 {
     use SoftDeletes;
-    public $timestamps = false; //不要删除，否则在更该消息状态时因为有两个updated_at报错
     protected $fillable = [
         'module',
         'title',

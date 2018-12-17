@@ -492,6 +492,7 @@ class ProjectController extends Controller
             (new MessageRepository())->addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$participant_ids);
             DB::commit();
         }catch (Exception $e){
+            dd($e);
             DB::rollBack();
         }
 

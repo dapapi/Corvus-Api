@@ -110,7 +110,7 @@ class MessageController extends Controller
         }
         if($message_id != null && $all_read == "no"){
             try{
-                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->id]);
+                MessageState::where(['message_id' => hashid_encode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->id]);
             }catch (\Exception $e){
                 $this->response()->errorInternal("修改失败");
             }

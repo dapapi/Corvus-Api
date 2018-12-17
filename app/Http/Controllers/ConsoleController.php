@@ -264,6 +264,7 @@ class ConsoleController extends Controller
     {
 
         $roleId = $role->id;
+
         $depatments = DataDictionarie::where('parent_id', 1)->get();
         $roleInfo = RoleResource::where('role_id', $roleId)->get()->toArray();
 
@@ -283,7 +284,7 @@ class ConsoleController extends Controller
                         $datum['selected'] = false;
                     }
                     if($datum['selected'] == true) {
-                        continue;
+                        break;
                     }
                 }
             }
@@ -343,10 +344,10 @@ class ConsoleController extends Controller
                         $rvale['selected'] = true;
                     }else{
                         $rvale['selected'] = false;
-                        continue;
+                        
                     }
                     if($rvale['selected'] == true) {
-                        continue;
+                        break;
                     }
                 }
             }

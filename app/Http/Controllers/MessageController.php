@@ -45,13 +45,14 @@ class MessageController extends Controller
         $list = [];
         $no_read = 0;//未读消息数量
         foreach ($result->toArray() as $value){
+            $value['id']    =   hashid_decode($value['id']);
             $value['created'] = Carbon::parse($value['created_at'])->format('Y-m-d');
             if(!isset($list[$value['created']])){
                 if($value['state'] == MessageState::UN_READ){
                     $no_read++;
                 }
                 $list[$value['created']][] = [
-                    'message_id' => hashid_encode($value['id']),
+                    'message_id' => $value['id'],
                     'message_title'=> $value['message_title'],
                     'message_subheading'    =>  $value['subheading'],
                     'link'=> $value['link'],
@@ -69,7 +70,7 @@ class MessageController extends Controller
                         $no_read++;
                     }
                     $list[$value['created']][] = [
-                        'message_id' => hashid_encode($value['id']),
+                        'message_id' => $value['id'],
                         'message_title'=> $value['message_title'],
                         'message_subheading'    =>  $value['subheading'],
                         'link'=> $value['link'],

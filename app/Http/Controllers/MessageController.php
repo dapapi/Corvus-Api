@@ -30,6 +30,7 @@ class MessageController extends Controller
         }
         $user = Auth::guard('api')->user();
         $arr[] = ['ms.user_id',$user->id];
+        DB::connection()->enableQueryLog();
         $result = (new Message())->setTable("m")->from('messages as m')
             ->leftJoin('message_states as ms','ms.message_id','m.id')
             ->leftJoin('message_datas as md','md.message_id','ms.message_id')
@@ -40,6 +41,7 @@ class MessageController extends Controller
                 )
             ->where($arr)
             ->get();
+        $sql = DB::getQueryLog();
         $list = [];
         $no_read = 0;//未读消息数量
         foreach ($result->toArray() as $value){
@@ -105,10 +107,9 @@ class MessageController extends Controller
         }
         if($message_id != null && $all_read == "no"){
             try{
-                $message_sate = MessageState::findOrFail(['message_id' => hashid_decode($message_id),'user_id'=>$user->id]);
-                $message_sate->state = MessageState::HAS_READ;//已读
+                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ]);
             }catch (\Exception $e){
-                $this->response()->errorInternal("消息不存在");
+                $this->response()->errorInternal("修改失败");
             }
         }
 

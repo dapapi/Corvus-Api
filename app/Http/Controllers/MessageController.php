@@ -127,7 +127,7 @@ class MessageController extends Controller
             ->mergeBindings($subquery)
             ->where('dd.parent_id',206)
             ->groupBy('dd.id')
-            ->get(['dd.id','dd.name','m.un_read']);
+            ->get(['dd.id','dd.val','dd.name','m.un_read']);
         return $result;
     }
 

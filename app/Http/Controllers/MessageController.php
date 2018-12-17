@@ -96,11 +96,12 @@ class MessageController extends Controller
         $all_read = $request->get('all','no');
         $module = $request->get("module",null);
         $user = Auth::guard('api')->user();
+//        (new Message())->where('module',$module)->recive()->where('user_id',$user->id) ->update(['ms.state'=>MessageState::HAS_READ]);
         if($all_read=="yes" && $module != null && is_numeric($module)){
-            (new Message())->setTable("m")->from("messages as s")
+            (new Message())->setTable("m")->from("messages as m")
                 ->leftJoin("message_states as ms",'ms.message_id','m.id')
-                ->where([['user_id',$user->id],['module',$module]])
-                ->update(['state'=>MessageState::HAS_READ]);
+                ->where([['ms.user_id',$user->id],['m.module',$module]])
+                ->update(['ms.state'=>MessageState::HAS_READ]);
         }
         if($message_id != null && $all_read == "no"){
             try{

@@ -407,14 +407,16 @@ class ConsoleController extends Controller
 
                         $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
 
+                        $array = [
+                            'role_id'=>$roleId,
+                            'resource_id'=>$value['resource_id'],
+                            'data_view_id'=>$value['scope'],
+                            'data_view_sql'=>$dataViewSql,
+                        ];
+
                     }
 
-                    $array = [
-                        'role_id'=>$roleId,
-                        'resource_id'=>$value['resource_id'],
-                        'data_view_id'=>$value['scope'],
-                        'data_view_sql'=>$dataViewSql,
-                    ];
+
                     $deparInfo = RoleDataView::create($array);
 
 

@@ -296,6 +296,7 @@ class ConsoleController extends Controller
     public function featureRole(Request $request,Role $role,RoleUser $roleUser,RoleResource $roleResource)
     {
         $payload = $request->all();
+
         $role_id = $role->id;
         if(!empty($payload)){
             //删除所有角色ID信息 然后在添加关联数据
@@ -304,7 +305,7 @@ class ConsoleController extends Controller
                 foreach($payload['resouce'] as $key=>$value){
                     $array = [
                         'role_id'=>$role_id,
-                        'resouce_id'=>hashid_decode($value)
+                        'resouce_id'=>(int)$value
                     ];
                     $roleResource->create($array);
                 }

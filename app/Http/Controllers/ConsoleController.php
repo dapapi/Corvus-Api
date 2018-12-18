@@ -324,7 +324,7 @@ class ConsoleController extends Controller
 
 
         $dataDictionarie = DataDictionarie::where('code', 1)->get()->toArray();
-        $roleId = 1;
+        $roleId = $role->id;
         $tree_data = array();
         $res = array();
         foreach ($dataDictionarie as $key=>$value){
@@ -387,21 +387,32 @@ class ConsoleController extends Controller
         return $tree_data;
     }
 
-    public function scopeStore(Request $request,Role $role,RoleResourceView $roleResourceView,User $user)
+    public function scopeStore(Request $request,Role $role,RoleResourceView $roleResourceView)
     {
         $payload = $request->all();
         $roleId = $role->id;
-        $userId = $user->id;
-
         if(!empty($payload)){
-
+            $dataViewSql = "{\"rules\": [{\"field\" : \"created_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
             DB::beginTransaction();
             try {
                 foreach($payload as $key=>$value){
+
                     //本人相关 本部门 部门下属 全部 直接update修改
-                    $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->update(
-                        ['data_view_id' => $value['scope']]
-                    );
+//                    $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->update(
+//                        ['data_view_id' => $value['scope']]
+//                    );
+
+                    $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
+
+                    $array = [
+                        'role_id'=>$roleId,
+                        'resource_id'=>$value['resource_id'],
+                        'data_view_id'=>$value['scope'],
+                        'data_view_sql'=>$dataViewSql,
+                    ];
+                    $deparInfo = RoleDataView::create($array);
+
+
                     //创建 参与 所见 删除再添加
                     $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
 

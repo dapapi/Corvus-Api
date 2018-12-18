@@ -10,7 +10,7 @@ class RoleDataView extends Model
 
     protected $fillable = [
         'role_id',
-        'resouce_id',
+        'resource_id',
         'data_view_id',
         'data_view_sql',
     ];

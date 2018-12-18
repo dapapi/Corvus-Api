@@ -22,6 +22,8 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\TrustProxies::class,
         \Barryvdh\Cors\HandleCors::class,
+        \App\Http\Middleware\Permissions::class,
+
     ];
 
     /**
@@ -66,6 +68,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'cors' => \Barryvdh\Cors\HandleCors::class,
 
-        'test' => ExcelExportSetResponseHeader::class
+        'export' => ExcelExportSetResponseHeader::class
     ];
 }

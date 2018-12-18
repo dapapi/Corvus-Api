@@ -11,6 +11,8 @@ use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\FieldValue;
+use App\Models\Message;
+use App\Models\MessageState;
 use App\Models\ModuleUser;
 use App\Models\Project;
 use App\Models\ProjectRelate;
@@ -26,11 +28,13 @@ use App\ModuleUserType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
+use Dingo\Api\Facade\Route;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use League\Fractal;
 use League\Fractal\Manager;
 use League\Fractal\Serializer\DataArraySerializer;
@@ -470,8 +474,9 @@ class ProjectController extends Controller
         try{
             $user = Auth::guard('api')->user();
             $title = $user->name."将你加入了项目";  //通知消息的标题
-            $module = "project";
-            $link = 123;
+            $subheading = "副标题";
+            $module = Message::PROJECT;
+            $link = URL::action("ProjectController@edit",["project"=>$project->id]);
             $data = [];
             $data[] = [
                 "title" =>  '项目名称', //通知消息中的消息内容标题
@@ -483,9 +488,11 @@ class ProjectController extends Controller
                 'value' =>  $principal->name
             ];
             $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
-            (new MessageRepository())->addMessage($user,$title,$module,$link,$data,$participant_ids);
+            $authorization = $request->header()['authorization'][0];
+            (new MessageRepository())->addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$participant_ids);
             DB::commit();
         }catch (Exception $e){
+            dd($e);
             DB::rollBack();
         }
 

@@ -532,15 +532,14 @@ class TrailController extends Controller
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
-    public function export(Request $request)
-    {
-        $file = '当前线索导出'. date('YmdHis', time()).'.xlsx';
-        return (new TrailsExport())->download($file);
-    }
-
     public function import()
     {
 
     }
 
+    public function export(Request $request)
+    {
+        $file = '当前线索导出'. date('YmdHis', time()).'.xlsx';
+        return (new TrailsExport())->download($file);
+    }
 }

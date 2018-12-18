@@ -17,21 +17,26 @@ class SendMessage{
         $this->websocket_client = new Client($uri);
     }
 
-    public function login($user_id,$username)
+    public function login($authorization,$user_id,$username,$title,$subheading,$link,$data,$recives)
     {
         $user = new User();
         $user->userId = $user_id;
+        $user->authorization = $authorization;
         $user->userName = $username;
         $this->websocket_client->send(json_encode($user));
+        $this->sendMessage($title,$subheading,$link,$data,$recives);
+        $this->websocket_client->close();
     }
-    public function sendMessage($title,$link,$data,$recives)
+    public function sendMessage($title,$subheading,$link,$data,$recives)
     {
         $message = new Message();
         $message->title = $title;
+        $message->subheading = $subheading;
         $message->to = implode(",",$recives);
         $message->link = $link;
         $message->message = $data;
         $message->action = "sendmessage";
+        dump($this->websocket_client);
         $this->websocket_client->send(json_encode($message));
     }
     public function recive(){

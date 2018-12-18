@@ -3,6 +3,7 @@
 namespace App\Http\Transformers;
 
 use App\Models\Message;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use League\Fractal\TransformerAbstract;
 
@@ -16,7 +17,8 @@ class MessageTransform extends TransformerAbstract
             'module'    =>  $message->module,
             'title' =>  $message->title,
             'link'  =>  $message->link,
-            'created'   =>  $message->created_at,
+            'created_at'   =>  Carbon::parse($message->created_at)->format('Y-m-d'),
+            'dayofweek' =>  Carbon::parse($message->created_at)->dayOfWeek
         ];
     }
     public function includeRecive(Message $message)

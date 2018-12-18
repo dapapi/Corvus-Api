@@ -21,9 +21,8 @@ class Client extends Model
     const TYPE_ENDORSEMENT = 3; // 商务代言
     const TYPE_PAPI = 4; // papi项目
 
-    const SIZE_NORMAL = 1;
-    const SIZE_LISTED = 2;
-    const SIZE_TOP500 = 3;
+    const SIZE_LISTED = 1;
+    const SIZE_TOP500 = 2;
 
     const GRADE_NORMAL = 1;
     const GRADE_PROXY = 2;

@@ -11,9 +11,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class TrailsExport implements FromQuery, WithMapping, WithHeadings
 {
     use Exportable;
-    /**
-     * @return \Illuminate\Support\Collection
-     */
+
     public function query()
     {
         return Trail::query();
@@ -45,7 +43,7 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
         $resource_type = $this->resourceType($trail->resource_type);
         if ($trail->contact) {
             $contact = $trail->contact->name;
-            $phone = $trail->contact->phone;
+            $phone = $trail->contact->phone . '';
         } else {
             $contact = '';
             $phone = '';

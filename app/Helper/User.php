@@ -13,6 +13,7 @@ class User
 {
     public $userId;
     public $userName;
+    public $authorization;
     public function __toString()
     {
         return json_encode($this);

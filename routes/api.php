@@ -224,6 +224,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@detail');
 
         // client
+        $api->get('/clients/export', 'App\Http\Controllers\ClientController@export')->middleware('export');
+        $api->post('/clients/import', 'App\Http\Controllers\ClientController@import');
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
@@ -279,7 +281,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail
-        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('test');
+        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('export');
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
@@ -495,11 +497,19 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //功能列表
         $api->get('/console/feature/{role}','App\Http\Controllers\ConsoleController@feature');
         //功能角色关联
-        $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
-        //增加数据权限
-        $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
+        $api->post('/console/feature/{role}','App\Http\Controllers\ConsoleController@featureRole');
+        //获取数据权限
+        $api->get('/console/scope/{role}','App\Http\Controllers\ConsoleController@scope');
+
+        //增加修改数据权限
+        $api->post('/console/scope/{role}','App\Http\Controllers\ConsoleController@scopeStore');
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
+
+        /*审批 增加数据 控制台*/
+        $api->post('/ApprovalFrom','App\Http\Controllers\ApprovalFromController@store');
+        $api->get('/ApprovalFrom/my/{user}','App\Http\Controllers\ApprovalFromController@myApply');
+
 
 
         //获取消息

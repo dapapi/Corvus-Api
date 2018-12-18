@@ -217,32 +217,17 @@ class DepartmentController extends Controller
         try {
             if(!empty($payload['user'])){
 
-//                $num = DB::table('department_user')
-//                    ->where('department_id',$departmentId)
-//                    ->where('type',0)
-//                    ->update(['department_id'=>$depatmentNotid]);
-
+                $num = DB::table('department_user')
+                    ->where('department_id',$departmentId)
+                    ->where('type','!=',1)
+                    ->update(['department_id'=>10]);
 
                 foreach ($payload['user'] as $key=>$value){
                     $userId = hashid_decode($value);
-
-                    $num = DB::table('department_user')
-                                ->where('department_id',$departmentId)
-                                ->where('type','!=',1)
-                                ->update(['department_id'=>10]);
-
                     $snum = DB::table('department_user')
                         ->where('user_id',$userId)
                         ->update(['department_id'=>$departmentId]);
 
-//                    dd($userId);
-//                    $num = DB::table("department_user")->where('user_id',$userId)->delete();
-//
-//                    $array = [
-//                        "department_id"=>$departmentId,
-//                        "user_id"=>$userId,
-//                    ];
-//                    $depar = DepartmentUser::create($array);
                 }
 
                 // 操作日志

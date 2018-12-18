@@ -396,13 +396,17 @@ class ConsoleController extends Controller
             DB::beginTransaction();
             try {
                 foreach($payload as $key=>$value){
-
+                   
                     //本人相关 本部门 部门下属 全部 直接update修改
 //                    $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->update(
 //                        ['data_view_id' => $value['scope']]
 //                    );
 
-                    $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
+                    if (isset($value['resource_id'])) {
+
+                        $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
+
+                    }
 
                     $array = [
                         'role_id'=>$roleId,

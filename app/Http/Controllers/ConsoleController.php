@@ -406,31 +406,23 @@ class ConsoleController extends Controller
                     if (is_array($value)) {
 
                         $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
-
                         $array = [
                             'role_id'=>$roleId,
                             'resource_id'=>$value['resource_id'],
                             'data_view_id'=>$value['scope'],
                             'data_view_sql'=>$dataViewSql,
                         ];
-
-                    }
-
-
-                    $deparInfo = RoleDataView::create($array);
-
-
-                    //创建 参与 所见 删除再添加
-                    $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
-
-                    foreach ($value['manage'] as $mkey=>$mvalue){
-
-                        $array = [
-                            'role_id'=>$roleId,
-                            'resource_id'=>$value['resource_id'],
-                            'data_manage_id'=>$mvalue,
-                        ];
-                        $depar = RoleDataManage::create($array);
+                         $deparInfo = RoleDataView::create($array);
+                        //创建 参与 所见 删除再添加
+                        $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
+                        foreach ($value['manage'] as $mkey=>$mvalue){
+                            $array = [
+                                'role_id'=>$roleId,
+                                'resource_id'=>$value['resource_id'],
+                                'data_manage_id'=>$mvalue,
+                            ];
+                            $depar = RoleDataManage::create($array);
+                        }
                     }
                 }
                 // 操作日志

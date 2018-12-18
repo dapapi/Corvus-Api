@@ -15,19 +15,19 @@ class ContractPapi extends Model
         'type_id',//合同类型
         'contract_company',//合同公司
         'nickname',//昵称
-        'name',//姓名
+        'creator_id',//创建人id
         'contract_name',//合同名称
         'treaty_particulars',//合同摘要
         'business_id',//业务类型
         'contract_start_date',//合约起始日
         'contract_end_date',//合约终止日
         'earnings',//收益分配比例
-        'certificate_id',//证件类别
+        'certificate',//证件类别
         'certificate_number',//certificate_number
-        'certificate_affix_id',//certificate_affix_id
+        'certificate_affix',//certificate_affix_id
         'scanning_affix_id',//scanning_affix_id
         'scanning',//份数
-        'contract_affix_id',//附件类别
+        'contract_affix',//附件类别
 
     ];
 //隐藏字段

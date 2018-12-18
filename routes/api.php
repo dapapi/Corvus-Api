@@ -295,12 +295,35 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
         // contract 合同
         $api->get('/contracts/papi', 'App\Http\Controllers\ContractController@papiIndex');
+        $api->get('/contracts/qingyang', 'App\Http\Controllers\ContractController@qingyangIndex');
         $api->get('/contracts/all', 'App\Http\Controllers\ContractController@all');
 
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+
+
+        //review
+        //查看问题
+        $api->get('/reviews/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
+        $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
+        //查看问劵
+        $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
+        $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
+        $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
+
+
+        //保存问劵
+        $api->post('/reviews/{reviewquestionnaire}/store/Answer', 'App\Http\Controllers\ReviewQuestionController@storeAnswer');
+        //查看问题对应选项
+        $api->get('/reviews/{reviewquestionnaire}/questions/{reviewquestion}/items/index', 'App\Http\Controllers\ReviewQuestionItemController@index');
+        $api->post('/reviews/{reviewquestionnaire}/questions/{reviewquestion}/items/store', 'App\Http\Controllers\ReviewQuestionItemController@store');
+        $api->put('/reviews/{reviewquestionnaire}/questions/{reviewquestion}/items/{reviewquestionitem}/value', 'App\Http\Controllers\ReviewQuestionItemController@updateValue');
+
+
+
+
 
 
         // project

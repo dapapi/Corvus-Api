@@ -26,7 +26,8 @@ class ContractPapiTransformer extends TransformerAbstract
             'contract_no' => $contractPapi->contract_no,
             'type_id' => $contractPapi->type_id,//合同类型
             'contract_company' => $contractPapi->contract_company,//合同公司
-            'name' => $contractPapi->name,//姓名
+          //  'creator' => $contractPapi->creator,//姓名
+            'approval_status' => $contractPapi->approval_status,
             'contract_name' => $contractPapi->contract_name,//合同名称
             'treaty_particulars' => $contractPapi->treaty_particulars,//合同摘要
             'business_id' => $contractPapi->business_id,//业务类型
@@ -35,10 +36,10 @@ class ContractPapiTransformer extends TransformerAbstract
             'earnings' => $contractPapi->earnings,//收益分配比例
             'certificate_id' => $contractPapi->certificate_id,//证件类别
             'certificate_number' => $contractPapi->certificate_number,//certificate_number
-            'certificate_affix_id' => $contractPapi->certificate_affix_id,//certificate_affix_id
-            'scanning_affix_id' => $contractPapi->scanning_affix_id,//scanning_affix_id
+            'certificate_affix' => $contractPapi->certificate_affix,//certificate_affix_id
+            'scanning_affix' => $contractPapi->scanning_affix,//scanning_affix_id
             'scanning' => $contractPapi->scanning,//份数
-            'contract_affix_id' => $contractPapi->contract_affix_id,//附件类别
+            'contract_affix' => $contractPapi->contract_affix,//附件类别
             'created_at'=> $contractPapi->created_at->toDateTimeString(), //创建时间
             'updated_at' => $contractPapi->updated_at->toDateTimeString()
         ];

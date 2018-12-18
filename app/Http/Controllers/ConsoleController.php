@@ -390,19 +390,20 @@ class ConsoleController extends Controller
     public function scopeStore(Request $request,Role $role,RoleResourceView $roleResourceView)
     {
         $payload = $request->all();
+
         $roleId = $role->id;
         if(!empty($payload)){
             $dataViewSql = "{\"rules\": [{\"field\" : \"created_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
             DB::beginTransaction();
             try {
                 foreach($payload as $key=>$value){
-                   
+
                     //本人相关 本部门 部门下属 全部 直接update修改
 //                    $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->update(
 //                        ['data_view_id' => $value['scope']]
 //                    );
 
-                    if (isset($value['resource_id'])) {
+                    if (is_array($value)) {
 
                         $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
 

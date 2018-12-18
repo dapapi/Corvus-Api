@@ -20,4 +20,8 @@ class ReviewAnswer extends Model {
     {
         return $query->orderBy('created_at', 'desc');
     }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 }

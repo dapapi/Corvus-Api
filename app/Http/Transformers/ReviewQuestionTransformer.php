@@ -9,7 +9,7 @@ class ReviewQuestionTransformer extends TransformerAbstract
 {
 
 
-    protected $availableIncludes = ['creator', 'items'];
+    protected $availableIncludes = ['creator', 'items','selectrows'];
 
     private $isAll;
 
@@ -42,7 +42,12 @@ class ReviewQuestionTransformer extends TransformerAbstract
         $tasks = $reviewquestion->items;
         return $this->collection($tasks, new ReviewQuestionitemTransformer());
     }
-
+    public function includeSelectrows(ReviewQuestion $reviewquestion)
+    {
+        $selectrows = $reviewquestion->selectrows()->get();
+        //return $this->item($selectrows, new BloggerProducerTransformer());
+        return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer());
+    }
 //
 //    public function items() {
 //        return $this->hasMany(ReviewQuestionItem::class, 'review_question_id', 'id')->orderBy('sort', 'asc');

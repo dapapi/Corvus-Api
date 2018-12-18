@@ -46,19 +46,15 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
     }
     public function includeSum(ReviewQuestionnaire $reviewquestionnaire)
     {
-        $user = $reviewquestionnaire->sum;
+        $reviewanswer = $reviewquestionnaire->sum;
+        return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
 
-        if (!$user)
-            return null;
-        return $this->item($user, new UserTransformer());
     }
-    public function items() {
-        return $this->hasMany(ReviewQuestionnaire::class, 'review_question_id', 'id')->orderBy('sort', 'asc');
+    public function includeitems(ReviewQuestionnaire $reviewquestionnaire) {
+       dd($reviewquestionnaire->items);
     }
 
-    public function review() {
-        return $this->belongsTo(Review::class);
-    }
+
 
 
 }

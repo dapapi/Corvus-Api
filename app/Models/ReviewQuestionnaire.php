@@ -6,7 +6,7 @@ use App\User;
 use App\Models\ReviewAnswer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Support\Facades\DB;
 class ReviewQuestionnaire extends Model
 {
     use SoftDeletes;
@@ -22,8 +22,8 @@ class ReviewQuestionnaire extends Model
     }
     public function sum() {
 
-//        ReviewAnswer::select(DB::raw('sum(content) as counts'))->where('review_id',$reviewquestionnaire->id)->groupBy('user_id')->get()
-        return $this->hasMany(ReviewAnswer::class, 'review_id', 'id');
+     $data =  $this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('*',DB::raw('sum(content) as counts'))->groupby('user_id');
+        return $data;
     }
 
     public function creator()
@@ -40,42 +40,6 @@ class ReviewQuestionnaire extends Model
     {
         return $this->morphToMany(Task::class, 'resourceable', 'task_resources');
     }
-//    public function bulletincotent()
-//    {
-//        return $this->hasMany(ReviewAnswer::class,'template_id','id' );
-////        return $this->belongsTo(BulletinReview::class, 'template_id', 'id');
-//    }
-//
-//    public function getStatusAttribute()
-//    {
-//        //
-//        $user = Auth::guard('api')->user();
-//        $query = $this->BulletinReview()->where('member', $user->id);
-//
-//        switch ($this->frequency) {
-//            case 1:
-//                break;
-//            case 2:
-//                break;
-//            case 3:
-//                break;
-//            case 4:
-//                break;
-//            default:
-//                $query->where('created_at', '>=', Carbon::today()->toDateTimeString())->where('created_at', '<=',Carbon::tomorrow()->toDateTimeString());
-//                break;
-//        }
-//
-//        $review = $query->first();
-//
-//        if ($review){
-//            $re['id'] = hashid_encode($review->id);
-//            $re['status'] = $review->status;
-//
-//            return  $re;
-//        }else{
-//            return null;
-//        }
-//    }
+
 
 }

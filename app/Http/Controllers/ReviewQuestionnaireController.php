@@ -28,7 +28,6 @@ class ReviewQuestionnaireController extends Controller {
     public function show(Request $request,ReviewQuestionnaire $reviewquestionnaire) {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-       // $reviewanswer = ReviewAnswer::select(DB::raw('sum(content) as counts'))->where('review_id',$reviewquestionnaire->id)->groupBy('user_id')->get();
         $reviews = ReviewQuestionnaire::where('id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());
     }

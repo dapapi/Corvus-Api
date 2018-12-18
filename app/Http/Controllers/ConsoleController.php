@@ -304,7 +304,7 @@ class ConsoleController extends Controller
                 foreach($payload['resouce'] as $key=>$value){
                     $array = [
                         'role_id'=>$role_id,
-                        'resouce_id'=>(int)$value
+                        'resouce_id'=>hashid_decode($value)
                     ];
                     $roleResource->create($array);
                 }
@@ -344,7 +344,7 @@ class ConsoleController extends Controller
                         $rvale['selected'] = true;
                     }else{
                         $rvale['selected'] = false;
-                        
+
                     }
                     if($rvale['selected'] == true) {
                         break;

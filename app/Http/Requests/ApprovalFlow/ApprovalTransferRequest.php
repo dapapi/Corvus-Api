@@ -4,7 +4,7 @@ namespace App\Http\Requests\ApprovalFlow;
 
 use Dingo\Api\Http\FormRequest;
 
-class ApprovalRequest extends FormRequest
+class ApprovalTransferRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

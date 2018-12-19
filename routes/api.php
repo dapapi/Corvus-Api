@@ -508,7 +508,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         /*审批 增加数据 控制台*/
         $api->post('/ApprovalFrom','App\Http\Controllers\ApprovalFromController@store');
+        //我申请
         $api->get('/ApprovalFrom/my/{user}','App\Http\Controllers\ApprovalFromController@myApply');
+        $api->get('/ApprovalFrom/detail','App\Http\Controllers\ApprovalFromController@detail');
+        //我的审批 待审批
+        $api->get('/ApprovalFrom/approval/{user}','App\Http\Controllers\ApprovalFromController@myApproval');
+        //我的审批 已审批
+        $api->get('/ApprovalFrom/thenapproval/{user}','App\Http\Controllers\ApprovalFromController@myThenApproval');
+
 
 
 

@@ -23,6 +23,19 @@ class DataDictionarie extends Model
         'description',
     ];
 
+    const FORM_STATE_DSP = 231; // 待审批
+    const FORM_STATE_YTY = 232; // 已同意
+    const FORM_STATE_YJJ = 233; // 已拒绝
+    const FORM_STATE_YCX = 234; // 已撤销
+    const FORM_STATE_YZF = 235; // 已作废
+
+    //审批表单状态
+    const FIOW_TYPE_TJSP = 237; // 提交审批
+    const FIOW_TYPE_DSP = 238;  //  待审批
+
+
+
+
     public function dataDictionaries()
     {
         return $this->hasMany(DataDictionarie::class, 'parent_id', 'id');

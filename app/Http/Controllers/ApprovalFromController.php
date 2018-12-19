@@ -33,18 +33,16 @@ class ApprovalFromController extends Controller
 
     public function store($notice='',$userId,$projectNumber)
     {
-
-        $projectType = project::PROJECT_TYPE;
-
         if($projectNumber){
             DB::beginTransaction();
             try {
                 $array = [
                   'form_id'=>1,
                   'form_instance_number'=>$projectNumber,
-                  'form_state'=>DataDictionarie::FORM_STATE_DSP,
-                  'business_type'=>$projectType
+                  'form_status'=>DataDictionarie::FORM_STATE_DSP,
+                  'business_type'=>project::PROJECT_TYPE
                 ];
+
                 Business::create($array);
 
                 $executeInfo = ChainFixed::where('form_id',1)->get()->toArray();

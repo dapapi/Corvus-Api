@@ -13,7 +13,7 @@ class Business extends Model
     protected $fillable = [
         'form_id',
         'form_instance_number',
-        'form_state',
+        'form_status',
         'business_type',
     ];
 

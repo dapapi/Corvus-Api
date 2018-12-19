@@ -20,7 +20,6 @@ class ReviewAnswerSumTransformer extends TransformerAbstract{
     public function transform(ReviewAnswer $reviewanswer)
     {
         $array = [
-
             'truncate'=> $reviewanswer->TRUNCATE,
 
         ];

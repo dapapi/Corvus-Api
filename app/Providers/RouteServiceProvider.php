@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Affix;
+use App\Models\ApprovalForm\ApprovalForm;
+use App\Models\ApprovalForm\Business;
+use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalGroup;
 use App\Models\Blogger;
 use App\Models\BulletinReviewTitle;
@@ -413,6 +416,33 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = DataDictionarie::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('approval', function ($value) {
+
+            try {
+                $id = hashid_decode($value);
+                $entity = ApprovalForm::where('form_id',$id)->first();
+                if (!$entity)
+                    throw new Exception('form_id不存在');
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('instance', function ($num) {
+            try {
+                $entity = Instance::where('form_instance_number',$num)->first();
+                if (!$entity)
+                    $entity = Business::where('form_instance_number',$num)->first();
+
+                if (!$entity)
+                    throw new Exception('number不存在');
             } catch (Exception $exception) {
                 abort(404);
             }

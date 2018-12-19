@@ -31,8 +31,10 @@ class ApprovalFormController extends Controller
 
     }
 
-    public function store($notice='',$userId,$projectNumber)
+    public function store($notice='',$projectNumber)
     {
+        $user = Auth::guard('api')->user();
+        $userId = $user->id;
         if($projectNumber){
             DB::beginTransaction();
             try {
@@ -45,7 +47,7 @@ class ApprovalFormController extends Controller
 
                 Business::create($array);
 
-                $executeInfo = ChainFixed::where('form_id',1)->get()->toArray();
+                //$executeInfo = ChainFixed::where('form_id',1)->get()->toArray();
 
                 $executeArray = [
                     'form_instance_number'=>$projectNumber,
@@ -87,9 +89,10 @@ class ApprovalFormController extends Controller
     }
 
 
-    public function myApply(Request $request,User $user)
+    public function myApply(Request $request)
     {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
@@ -139,13 +142,12 @@ class ApprovalFormController extends Controller
         return $projects;
     }
 
-    public function myApproval(Request $request,User $user)
+    public function myApproval(Request $request)
     {
 
         $payload = $request->all();
-
+        $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $query = DB::table('approval_flow_execute as afe')//
 
             ->join('approval_form_business as bu',function($join){
@@ -174,10 +176,11 @@ class ApprovalFormController extends Controller
 
 
 
-    public function myThenApproval(Request $request,User $user)
+    public function myThenApproval(Request $request)
     {
 
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 

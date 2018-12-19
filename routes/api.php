@@ -509,14 +509,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*审批 增加数据 控制台*/
         $api->post('/approvals/','App\Http\Controllers\ApprovalFromController@store');
         //我申请
-        $api->get('/approvals/my/{user}','App\Http\Controllers\ApprovalFormController@myApply');
-        $api->get('/ApprovalFrom/detail','App\Http\Controllers\ApprovalFormController@detail');
+        $api->get('/approvals/my','App\Http\Controllers\ApprovalFormController@myApply');
+        $api->get('/approvals/detail/{instance}','App\Http\Controllers\ApprovalFormController@detail');
         //我的审批 待审批
-        $api->get('/ApprovalFrom/approval/{user}','App\Http\Controllers\ApprovalFormController@myApproval');
+        $api->get('/approvals/approval','App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批
-        $api->get('/ApprovalFrom/thenapproval/{user}','App\Http\Controllers\ApprovalFormController@myThenApproval');
+        $api->get('/approvals/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
         // 审批流
         $api->get('/approvals/{approval}/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
+
+        $api->get('/approvals/notify','App\Http\Controllers\ApprovalFromController@notify');
 
 
 

@@ -2,9 +2,12 @@
 
 namespace App\Models\ApprovalFlow;
 
+use App\Interfaces\ChainInterface;
+use App\Models\Role;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class ChainFixed extends Model
+class ChainFixed extends Model implements ChainInterface
 {
     protected $table = 'approval_flow_chain_fixed';
 
@@ -14,4 +17,14 @@ class ChainFixed extends Model
         'next_id',
         'condition_id'
     ];
+
+    public function next()
+    {
+        if ($this->approver_type == 244)
+            return $this->hasOne(User::class, 'id', 'next_id');
+        else if ($this->approvel_type == 246 or $this->approvel_type == 245)
+            return $this->hasOne(Role::class, 'id', 'next_id');
+        else
+            return null;
+    }
 }

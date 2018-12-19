@@ -486,5 +486,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
         $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
+
+        // 审批流
+        $api->get('/approvals/{approval}/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
     });
 });

@@ -26,9 +26,12 @@ class Project extends Model
     const STATUS_COMPLETE = 2; // 完成
     const STATUS_FROZEN = 3; // 终止
     const STATUS_DEL = 4; // 删除
+    const PROJECT_TYPE = 'projects'; // 业务类型
+
 
     protected $fillable = [
         'title',
+        'project_number',
         'principal_id',
         'creator_id',
         'trail_id',
@@ -43,6 +46,12 @@ class Project extends Model
         'stop_at',
         'delete_at'
     ];
+
+
+    static function getProjectNumber()
+    {
+        return date("Ymd",time()).rand(100000000,999999999);//审批编号
+    }
 
     public function principal()
     {

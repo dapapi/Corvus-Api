@@ -217,9 +217,15 @@ class ProjectController extends Controller
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         DB::beginTransaction();
+        $payload['project_number'] = Project::getProjectNumber();
+
         try {
             $project = Project::create($payload);
             $projectId = $project->id;
+
+            $approvalFrom = new ApprovalFromController();
+            $userId = $user->id;
+            $approvalFrom->store($notice='',$userId,$payload['project_number']);
 
             if ($payload['type'] != 5) {
                 foreach ($payload['fields'] as $key => $val) {

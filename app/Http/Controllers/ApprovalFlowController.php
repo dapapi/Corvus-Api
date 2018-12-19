@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ApprovalFlow\ApprovalRequest;
+use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
 use App\Http\Requests\ApprovalFlow\StoreFreeChainsRequest;
 use App\Http\Transformers\ChainTransformer;
@@ -16,11 +16,11 @@ use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
-use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -48,9 +48,7 @@ class ApprovalFlowController extends Controller
             ->orderBy('sort_number')
             ->get();
 
-
         return $this->response->collection($chains, new ChainTransformer());
-
     }
 
     public function storeFreeChains(StoreFreeChainsRequest $request, $formNumber)
@@ -96,12 +94,18 @@ class ApprovalFlowController extends Controller
         return;
     }
 
-    // 1. 提交后 修改execute中的人和状态；
-    // 2. 在记录表中添加一条记录
-    // 3. 查对应chain表，将下一个审批人加入execute表
-    public function agree(ApprovalRequest $request)
+    /**
+     * @param Request $request
+     * @param $instance
+     * @return \Dingo\Api\Http\Response|void
+     *
+     * 1. 提交后 修改execute中的人和状态；
+     * 2. 在记录表中添加一条记录
+     * 3. 查对应chain表，将下一个审批人加入execute表
+     */
+    public function agree(Request $request, $instance)
     {
-        $num = $request->get('number');
+        $num = $instance->form_instance_number;
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
@@ -126,9 +130,9 @@ class ApprovalFlowController extends Controller
         return $this->response->created();
     }
 
-    public function reject(ApprovalRequest $request)
+    public function reject(Request $request, $instance)
     {
-        $num = $request->get('number');
+        $num = $instance->form_instance_number;
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
@@ -148,13 +152,11 @@ class ApprovalFlowController extends Controller
         return $this->response->created();
     }
 
-    public function transfer(ApprovalRequest $request)
+    public function transfer(ApprovalTransferRequest $request, $instance)
     {
-        $num = $request->get('number');
+        $num = $instance->form_instance_number;
 
-        $nextId = $request->get('next_id', null);
-        if (!is_numeric($nextId))
-            return $this->response->errorBadRequest('未填写转交人');
+        $nextId = $request->get('next_id');
 
         $nextId = hashid_decode($nextId);
         if (is_null(User::find($nextId)))
@@ -178,9 +180,9 @@ class ApprovalFlowController extends Controller
         return $this->response->created();
     }
 
-    public function cancel(ApprovalRequest $request)
+    public function cancel(Request $request, $instance)
     {
-        $num = $request->get('number');
+        $num = $instance->form_instance_number;
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
@@ -210,9 +212,9 @@ class ApprovalFlowController extends Controller
         return $this->response->created();
     }
 
-    public function discard(ApprovalRequest $request)
+    public function discard(Request $request, $instance)
     {
-        $num = $request->get('number');
+        $num = $instance->form_instance_number;
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;

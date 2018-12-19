@@ -22,6 +22,8 @@ use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
+use App\Models\ProjectHistorie;
+
 use App\Models\User;
 use App\ModuleableType;
 use App\ModuleUserType;
@@ -223,9 +225,9 @@ class ProjectController extends Controller
             $project = Project::create($payload);
             $projectId = $project->id;
 
-            $approvalFrom = new ApprovalFormController();
-            $userId = $user->id;
-            $approvalFrom->store($notice='',$userId,$payload['project_number']);
+            $projectHistorie = ProjectHistorie::create($payload);
+            $approvalForm = new ApprovalFormController();
+            $approvalForm->store($notice='',$payload['project_number']);
 
             if ($payload['type'] != 5) {
                 foreach ($payload['fields'] as $key => $val) {

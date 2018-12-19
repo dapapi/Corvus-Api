@@ -24,7 +24,7 @@ class ApprovalTransferRequest extends FormRequest
     public function rules()
     {
         return [
-            'number' => 'required',
+            'next_id' => 'required|numeric',
         ];
     }
 }

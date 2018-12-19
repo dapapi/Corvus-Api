@@ -30,6 +30,7 @@ class MessageController extends Controller
         }
         $user = Auth::guard('api')->user();
         $arr[] = ['ms.user_id',$user->id];
+        DB::connection()->enableQueryLog();
         $result = (new Message())->setTable("m")->from('messages as m')
             ->leftJoin('message_states as ms','ms.message_id','m.id')
             ->leftJoin('message_datas as md','md.message_id','ms.message_id')
@@ -40,9 +41,11 @@ class MessageController extends Controller
                 )
             ->where($arr)
             ->get();
+        $sql = DB::getQueryLog();
         $list = [];
         $no_read = 0;//未读消息数量
         foreach ($result->toArray() as $value){
+            $value['id']    =   hashid_encode($value['id']);
             $value['created'] = Carbon::parse($value['created_at'])->format('Y-m-d');
             if(!isset($list[$value['created']])){
                 if($value['state'] == MessageState::UN_READ){
@@ -94,16 +97,22 @@ class MessageController extends Controller
     public function changeSate(Request $request){
         $message_id = $request->get('message_id',null);
         $all_read = $request->get('all','no');
+        $module = $request->get("module",null);
         $user = Auth::guard('api')->user();
-        if($all_read=="yes"){
-            MessageState::where('user_id',$user->id)->update(['state'=>MessageState::HAS_READ]);
+//        (new Message())->where('module',$module)->recive()->where('user_id',$user->id) ->update(['ms.state'=>MessageState::HAS_READ]);
+        if($all_read=="yes" && $module != null && is_numeric($module)){
+            $message = new Message();
+            $message->timestamps = false;//禁用时间戳自动维护
+            $message->setTable("m")->from("messages as m")
+                ->leftJoin("message_states as ms",'ms.message_id','m.id')
+                ->where([['ms.user_id',$user->id],['m.module',$module],['ms.state',MessageState::UN_READ]])
+                ->update(['ms.state'=>MessageState::HAS_READ,"ms.updated_at"=>Carbon::now(),"updated_by"=>$user->name]);
         }
         if($message_id != null && $all_read == "no"){
             try{
-                $message_sate = MessageState::findOrFail(['message_id' => hashid_decode($message_id),'user_id'=>$user->id]);
-                $message_sate->state = MessageState::HAS_READ;//已读
+                MessageState::where(['message_id' => hashid_decode($message_id),'user_id'=>$user->id])->update(['state'=>MessageState::HAS_READ,'updated_by'=>$user->name]);
             }catch (\Exception $e){
-                $this->response()->errorInternal("消息不存在");
+                $this->response()->errorInternal("修改失败");
             }
         }
 
@@ -123,11 +132,11 @@ class MessageController extends Controller
             ->groupBy('m.module');
 
         $result = (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
-            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.val')
+            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.id')
             ->mergeBindings($subquery)
             ->where('dd.parent_id',206)
-            ->groupBy('dd.val')
-            ->get(['dd.val','dd.name','m.un_read']);
+            ->groupBy('dd.id')
+            ->get(['dd.id','dd.val','dd.name','m.un_read']);
         return $result;
     }
 

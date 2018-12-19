@@ -14,7 +14,11 @@ use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\ProductionTransformer;
 use App\Models\Blogger;
 use App\Models\Production;
+use App\Models\DepartmentUser;
 use App\Models\BloggerType;
+use App\Models\ModuleUser;
+use App\Models\ReviewUser;
+use App\Models\ReviewQuestionnaire;
 use App\Models\StarWeiboshuInfo;
 use App\Models\StarXiaohongshuInfo;
 use App\Models\StarDouyinInfo;
@@ -648,6 +652,10 @@ class BloggerController extends Controller
         $payload = $request->all();
         $blooger_id = $payload['blogger_id'];
         unset($payload['blogger_id']);
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array['creator_id'] = $user->id;
+
         DB::beginTransaction();
         try {
             $production = Production::create($payload);
@@ -655,6 +663,43 @@ class BloggerController extends Controller
             $model->blogger_id =hashid_decode($blooger_id);
             $model->producer_id =$production->id;
             $m = $model->save();
+            if (!empty($array['creator_id'])) {
+                $department_id = DepartmentUser::where('user_id',$array['creator_id'])->first()->department_id;
+                $users = DepartmentUser::where('department_id',$department_id)->get(['user_id'])->toArray();
+                if(isset($users)){
+                    foreach($users as $key => $val){
+                        $moduleuser = new ModuleUser;
+                        $moduleuser->user_id = $val['user_id'];
+                        $moduleuser->moduleable_id = $production->id;
+                        $moduleuser->moduleable_type = 'reviewquestionnaire';
+                        $moduleuser->type = 1;  //1  参与人
+                        $modeluseradd = $moduleuser->save();
+                     }
+                }
+
+                $reviewquestionnairemodel = new ReviewQuestionnaire;
+                $reviewquestionnairemodel->name = '制作人视频评分-视频评分';
+                $reviewquestionnairemodel->creator_id = $array['creator_id'];
+              //  $now = now()->toDateTimeString();
+                $number = date("w",time());  //当时是周几
+                $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
+                $diff_day = $number - 6; //求到周一差几天
+                $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
+                $reviewquestionnairemodel->deadline = $deadline;
+                $reviewquestionnairemodel->reviewable_id = $production->id;
+                $reviewquestionnairemodel->reviewable_type = 'production';
+                $reviewquestionnairemodel->auth_type = '2';
+                $reviewquestionnaireadd = $reviewquestionnairemodel->save();
+                if($reviewquestionnaireadd == true){
+                    foreach($users as $key => $val){
+                        $reviewuser = new ReviewUser;
+                        $reviewuser->user_id = $val['user_id'];
+                        $reviewuser->reviewquestionnaire_id = $reviewquestionnairemodel->id;
+                        $reviewuseradd = $reviewuser->save();
+                    }
+
+                }
+            }
 //            // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $production,

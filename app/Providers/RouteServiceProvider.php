@@ -15,8 +15,12 @@ use App\Models\Review;
 use App\Models\Announcement;
 use App\Models\Issues;
 use App\Models\Client;
+use App\Models\Production;
 use App\Models\Draft;
 use App\Models\Repository;
+use App\Models\ReviewQuestionnaire;
+use App\Models\ReviewQuestionItem;
+use App\Models\ReviewQuestion;
 use App\Models\Contact;
 use App\Models\Schedule;
 use App\Models\PersonalJob;
@@ -100,6 +104,51 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = CommentLog::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('production', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Production::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('reviewquestionitem', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = ReviewQuestionItem::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('reviewquestionnaire', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = ReviewQuestionnaire::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('reviewquestion', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = reviewquestion::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('review', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Review::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

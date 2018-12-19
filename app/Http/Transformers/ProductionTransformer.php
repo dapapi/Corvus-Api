@@ -24,7 +24,7 @@ class ProductionTransformer extends TransformerAbstract
             'videoname' => $production->videoname,
             'release_time' => $production->release_time,
             'read_proportion' => $production->read_proportion,
-            'link' => boolval($production->link),
+            'link' => $production->link,
             'advertising' => $production->advertising
 
         ];

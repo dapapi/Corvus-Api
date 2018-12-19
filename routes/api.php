@@ -297,12 +297,35 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
         // contract 合同
         $api->get('/contracts/papi', 'App\Http\Controllers\ContractController@papiIndex');
+        $api->get('/contracts/qingyang', 'App\Http\Controllers\ContractController@qingyangIndex');
         $api->get('/contracts/all', 'App\Http\Controllers\ContractController@all');
 
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+
+
+        //review
+        //查看问题
+        $api->get('/reviews/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
+        $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
+        //查看问劵
+        $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
+        $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
+        $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
+
+
+        //保存问劵
+        $api->post('/reviews/{reviewquestionnaire}/store/Answer', 'App\Http\Controllers\ReviewQuestionController@storeAnswer');
+        //查看问题对应选项
+        $api->get('/reviews/{reviewquestionnaire}/questions/{reviewquestion}/items/index', 'App\Http\Controllers\ReviewQuestionItemController@index');
+        $api->post('/reviews/{reviewquestionnaire}/questions/{reviewquestion}/items/store', 'App\Http\Controllers\ReviewQuestionItemController@store');
+        $api->put('/reviews/{reviewquestionnaire}/questions/{reviewquestion}/items/{reviewquestionitem}/value', 'App\Http\Controllers\ReviewQuestionItemController@updateValue');
+
+
+
+
 
 
         // project
@@ -474,11 +497,19 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //功能列表
         $api->get('/console/feature/{role}','App\Http\Controllers\ConsoleController@feature');
         //功能角色关联
-        $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
-        //增加数据权限
-        $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
+        $api->post('/console/feature/{role}','App\Http\Controllers\ConsoleController@featureRole');
+        //获取数据权限
+        $api->get('/console/scope/{role}','App\Http\Controllers\ConsoleController@scope');
+
+        //增加修改数据权限
+        $api->post('/console/scope/{role}','App\Http\Controllers\ConsoleController@scopeStore');
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
+
+        /*审批 增加数据 控制台*/
+        $api->post('/ApprovalFrom','App\Http\Controllers\ApprovalFromController@store');
+        $api->get('/ApprovalFrom/my/{user}','App\Http\Controllers\ApprovalFromController@myApply');
+
 
 
         //获取消息

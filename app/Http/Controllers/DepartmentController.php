@@ -74,7 +74,7 @@ class DepartmentController extends Controller
         $payload = $departmentrequest->all();
 
         $departmentId = $department->id;
-
+        $userId = hashid_decode($payload['user_id']);
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
@@ -83,28 +83,35 @@ class DepartmentController extends Controller
 
         DB::beginTransaction();
         try {
+//            $contact = $department->update($departmentArr);
+//            //$num = DB::table("department_user")->where('department_id',$departmentId)->where('type',1)->delete();
 
-            $contact = $department->update($departmentArr);
-            $num = DB::table("department_user")->where('department_id',$departmentId)->where('type',1)->delete();
+            $num = DB::table('department_user')
+                ->where('department_id',$departmentId)
+                ->where('type',1)
+                ->update(['type'=>0]);
 
-            $array = [
-                "department_id"=>$departmentId,
-                "user_id"=>hashid_decode($payload['user_id']),
-                "type"=>Department::DEPARTMENT_HEAD_TYPE,
-            ];
-
-            $depar = DepartmentUser::create($array);
-            // 操作日志
-            $operate = new OperateEntity([
-                'obj' => $department,
-                'title' => null,
-                'start' => null,
-                'end' => null,
-                'method' => OperateLogMethod::CREATE,
-            ]);
-            event(new OperateLogEvent([
-                $operate,
-            ]));
+            $num = DB::table('department_user')
+                ->where('user_id',hashid_decode($payload['user_id']))
+                ->update(['type'=>1]);
+////            $array = [
+////                "department_id"=>$departmentId,
+////                "user_id"=>hashid_decode($payload['user_id']),
+////                "type"=>Department::DEPARTMENT_HEAD_TYPE,
+////            ];
+////
+////            $depar = DepartmentUser::create($array);
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $department,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -157,12 +164,12 @@ class DepartmentController extends Controller
 
         $departmentId = $department->id;
         $departmentPid = $department->department_pid;
-        $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
+
+        $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
 
         try {
             if(empty($depatments)){
-
-                $sum = $department->delete();
+                $num = DB::table("departments")->where('id',$departmentId)->delete();
                 return $this->response->noContent();
             }else{
                 return $this->response->errorInternal('该部门有下级部门或部门下有成员');
@@ -201,6 +208,7 @@ class DepartmentController extends Controller
         $payload = $request->all();
 
         $departmentId = $department->id;
+
         $departmentPid = $department->department_pid;
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
@@ -209,22 +217,17 @@ class DepartmentController extends Controller
         try {
             if(!empty($payload['user'])){
 
-//                $num = DB::table('department_user')
-//                    ->where('department_id',$departmentId)
-//                    ->where('type',0)
-//                    ->update(['department_id'=>$depatmentNotid]);
-
+                $num = DB::table('department_user')
+                    ->where('department_id',$departmentId)
+                    ->where('type','!=',1)
+                    ->update(['department_id'=>10]);
 
                 foreach ($payload['user'] as $key=>$value){
                     $userId = hashid_decode($value);
+                    $snum = DB::table('department_user')
+                        ->where('user_id',$userId)
+                        ->update(['department_id'=>$departmentId]);
 
-                    $num = DB::table("department_user")->where('user_id',$userId)->delete();
-
-                    $array = [
-                        "department_id"=>$departmentId,
-                        "user_id"=>$userId,
-                    ];
-                    $depar = DepartmentUser::create($array);
                 }
 
                 // 操作日志

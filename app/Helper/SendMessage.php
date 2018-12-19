@@ -14,16 +14,20 @@ class SendMessage{
     public function __construct($uri=null)
     {
         $uri = $uri == null ? config("app.websocket_uri") : $uri;
+
         $this->websocket_client = new Client($uri);
+
     }
 
-    public function login($authorization,$user_id,$username)
+    public function login($authorization,$user_id,$username,$title,$subheading,$link,$data,$recives)
     {
         $user = new User();
         $user->userId = $user_id;
         $user->authorization = $authorization;
         $user->userName = $username;
         $this->websocket_client->send(json_encode($user));
+        $this->sendMessage($title,$subheading,$link,$data,$recives);
+        $this->websocket_client->close();
     }
     public function sendMessage($title,$subheading,$link,$data,$recives)
     {

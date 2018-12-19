@@ -14,7 +14,9 @@ class SendMessage{
     public function __construct($uri=null)
     {
         $uri = $uri == null ? config("app.websocket_uri") : $uri;
+
         $this->websocket_client = new Client($uri);
+
     }
 
     public function login($authorization,$user_id,$username,$title,$subheading,$link,$data,$recives)
@@ -36,7 +38,6 @@ class SendMessage{
         $message->link = $link;
         $message->message = $data;
         $message->action = "sendmessage";
-        dump($this->websocket_client);
         $this->websocket_client->send(json_encode($message));
     }
     public function recive(){

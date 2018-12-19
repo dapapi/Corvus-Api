@@ -25,8 +25,8 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
             'name'=> $reviewquestionnaire->name,
             // 'creator_id'=> $reviewquestionnaire->creator_id,
             'deadline'=> $reviewquestionnaire->deadline,
-            'reviewable_id'=> hashid_encode($reviewquestionnaire->reviewable_id),
-            'reviewable_type'=> $reviewquestionnaire->reviewable_type,
+           // 'reviewable_id'=> hashid_encode($reviewquestionnaire->reviewable_id),
+          //  'reviewable_type'=> $reviewquestionnaire->reviewable_type,
             'auth_type'=> $reviewquestionnaire->auth_type,
             'created_at'=> $reviewquestionnaire->created_at->toDateTimeString(),
             'updated_at' => $reviewquestionnaire->updated_at->toDateTimeString()

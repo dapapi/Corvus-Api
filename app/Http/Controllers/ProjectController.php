@@ -349,7 +349,6 @@ class ProjectController extends Controller
                 }
             }
         }
-
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];
 
@@ -358,6 +357,7 @@ class ProjectController extends Controller
 
         DB::beginTransaction();
         try {
+
             $project->update($payload);
             $projectId = $project->id;
 
@@ -472,6 +472,7 @@ class ProjectController extends Controller
         DB::commit();
         DB::beginTransaction();
         try{
+
             $user = Auth::guard('api')->user();
             $title = $user->name."将你加入了项目";  //通知消息的标题
             $subheading = "副标题";
@@ -489,10 +490,10 @@ class ProjectController extends Controller
             ];
             $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
             $authorization = $request->header()['authorization'][0];
+
             (new MessageRepository())->addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$participant_ids);
             DB::commit();
         }catch (Exception $e){
-            dd($e);
             DB::rollBack();
         }
 

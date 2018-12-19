@@ -23,6 +23,7 @@ use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\Models\ProjectHistorie;
+use App\Models\FieldHistorie;
 
 use App\Models\User;
 use App\ModuleableType;
@@ -232,6 +233,11 @@ class ProjectController extends Controller
             if ($payload['type'] != 5) {
                 foreach ($payload['fields'] as $key => $val) {
                     FieldValue::create([
+                        'field_id' => hashid_decode((int)$key),
+                        'project_id' => $projectId,
+                        'value' => $val,
+                    ]);
+                    FieldHistorie::create([
                         'field_id' => hashid_decode((int)$key),
                         'project_id' => $projectId,
                         'value' => $val,

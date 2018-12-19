@@ -223,7 +223,7 @@ class ProjectController extends Controller
             $project = Project::create($payload);
             $projectId = $project->id;
 
-            $approvalFrom = new ApprovalFromController();
+            $approvalFrom = new ApprovalFormController();
             $userId = $user->id;
             $approvalFrom->store($notice='',$userId,$payload['project_number']);
 

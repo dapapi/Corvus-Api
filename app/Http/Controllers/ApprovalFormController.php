@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
-class ApprovalFromController extends Controller
+class ApprovalFormController extends Controller
 {
     public function index(Request $request)
     {
@@ -116,7 +116,7 @@ class ApprovalFromController extends Controller
         return $query;
     }
 
-    public function detail(Request $request,User $user)
+    public function detail(Request $request, $instance)
     {
         $payload = $request->all();
         $projects = DB::table('approval_form_business as bu')
@@ -134,7 +134,7 @@ class ApprovalFromController extends Controller
                 $join->on('departments.id','=','department_user.department_id');
             })
 
-            ->where('hi.project_number', $payload['number'])
+            ->where('hi.project_number', $instance->form_instance_number)
             ->select('*')->get();
 
 

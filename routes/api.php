@@ -507,15 +507,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
         /*审批 增加数据 控制台*/
-        $api->post('/ApprovalFrom','App\Http\Controllers\ApprovalFromController@store');
+        $api->post('/approvals/','App\Http\Controllers\ApprovalFromController@store');
         //我申请
-        $api->get('/ApprovalFrom/my/{user}','App\Http\Controllers\ApprovalFromController@myApply');
-        $api->get('/ApprovalFrom/detail','App\Http\Controllers\ApprovalFromController@detail');
+        $api->get('/approvals/my/{user}','App\Http\Controllers\ApprovalFormController@myApply');
+        $api->get('/ApprovalFrom/detail','App\Http\Controllers\ApprovalFormController@detail');
         //我的审批 待审批
-        $api->get('/ApprovalFrom/approval/{user}','App\Http\Controllers\ApprovalFromController@myApproval');
+        $api->get('/ApprovalFrom/approval/{user}','App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批
-        $api->get('/ApprovalFrom/thenapproval/{user}','App\Http\Controllers\ApprovalFromController@myThenApproval');
-
+        $api->get('/ApprovalFrom/thenapproval/{user}','App\Http\Controllers\ApprovalFormController@myThenApproval');
+        // 审批流
+        $api->get('/approvals/{approval}/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
 
 
 
@@ -525,7 +526,5 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
         $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
 
-        // 审批流
-        $api->get('/approvals/{approval}/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
     });
 });

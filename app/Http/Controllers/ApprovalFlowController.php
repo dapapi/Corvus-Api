@@ -37,8 +37,6 @@ class ApprovalFlowController extends Controller
         $changeType = $request->get('change_type', null);
         $value = $request->get('value', null);
 
-        $user = Auth::guard('api')->user();
-        $department = $user->department()->first();
         $conditionId = null;
 
         if ($changeType === 224 && $controlId && $value)
@@ -46,11 +44,11 @@ class ApprovalFlowController extends Controller
 
         $chains = ChainFixed::where('form_id', $formId)
             ->where('condition_id', $conditionId)
+            ->where('next_id', '!=', 0)
             ->orderBy('sort_number')
-            // todo 优化: 可能需要在拉起审批时就展示主管是谁
             ->get();
 
-        return $this->response->collection($chains, new ChainTransformer($department->Id));
+        return $this->response->collection($chains, new ChainTransformer());
 
     }
 

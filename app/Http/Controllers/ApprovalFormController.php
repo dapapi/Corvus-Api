@@ -47,12 +47,12 @@ class ApprovalFormController extends Controller
 
                 Business::create($array);
 
-                //$executeInfo = ChainFixed::where('form_id',1)->get()->toArray();
+                $executeInfo = ChainFixed::where('form_id',1)->get()->toArray();
 
                 $executeArray = [
                     'form_instance_number'=>$projectNumber,
-                    'current_handler_id'=>$userId,
-                    'flow_type_id'=>DataDictionarie::FIOW_TYPE_DSP
+                    'current_handler_id'=>$executeInfo[0]['next_id'],
+                    'flow_type_id'=>DataDictionarie::FORM_STATE_DSP
                 ];
 
                 Execute::create($executeArray);
@@ -206,6 +206,38 @@ class ApprovalFormController extends Controller
             ->select('afe.*','bu.*','users.name','users.id','ph.created_at')
             ->paginate($pageSize);
 
+        return $query;
+    }
+
+    public function notify(Request $request)
+    {
+
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $query = DB::table('approval_form_participants as afp')//
+
+        ->join('approval_form_business as bu',function($join){
+            $join->on('afp.form_instance_number','=','bu.form_instance_number');
+        })
+            ->join('users',function($join){
+                $join->on('afp.notice_id','=','users.id');
+            })
+
+            ->join('project_histories as ph',function($join){
+                $join->on('ph.project_number','=','afp.form_instance_number');
+            })
+
+            ->where(function($query) use($payload,$request) {
+                if ($request->has('keyword')) {
+                    $query->where('afp.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
+                }
+            })
+            ->where('afp.notice_id', $user->id)
+            //->whereNotIn( 'afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP,DataDictionarie::FIOW_TYPE_DSP])
+            ->select('afp.*','bu.*','users.name','users.id','ph.created_at')
+            ->paginate($pageSize);
         return $query;
     }
 

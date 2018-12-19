@@ -31,15 +31,6 @@ class ReviewQuestionnaireController extends Controller {
         $reviews = ReviewQuestionnaire::where('id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());
     }
-    public function createPromotion(Request $request, Promotion $promotion) {
-        $templates = ReviewTemplate::where('reviewable_type', ReviewableType::PROMOTION)->get();
-        return view('reviews.create')->with('reviewable', $promotion)->with(compact('templates'));
-    }
-
-    public function createVideo(Request $request, Video $video) {
-        $templates = ReviewTemplate::where('reviewable_type', ReviewableType::VIDEO)->get();
-        return view('reviews.create')->with('reviewable', $video)->with(compact('templates'));
-    }
 
     public function store(ReviewQuestionnaireStoreRequest $request, Production $production) {
         $payload = $request->all();
@@ -130,20 +121,4 @@ class ReviewQuestionnaireController extends Controller {
         ]);
         return redirect('/' . $review->reviewable_type . 's/' . hashid_encode($review->reviewable_id));
     }
-
-//    public function paper (Request $request, Review $review) {
-//        $user = $request->user();
-//        $deadline = Carbon::parse($review->deadline);
-//        $now = Carbon::now();
-//        if ($deadline->lt($now)) {
-//            Session::put([
-//                'type' => MessageStatus::WARNING,
-//                'message' => '问卷过期了',
-//            ]);
-//            return redirect()->back();
-//        }
-//        dd($review->users()->find($user->id));
-//        $questions = $review->questions()->orderBy('sort')->get();
-//        return view('reviews.questions.list')->with(compact('review', 'questions'));
-//    }
 }

@@ -9,6 +9,7 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
 
     protected $availableIncludes = ['creator', 'sum'];
 
+  //  protected $defaultIncludes = ['creator', 'sum'];
     private $isAll;
 
 
@@ -51,7 +52,7 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
 
     }
     public function includeitems(ReviewQuestionnaire $reviewquestionnaire) {
-       dd($reviewquestionnaire->items);
+      // dd($reviewquestionnaire->items);
     }
 
 

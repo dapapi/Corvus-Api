@@ -20,7 +20,8 @@ class ReviewAnswerSumTransformer extends TransformerAbstract{
     public function transform(ReviewAnswer $reviewanswer)
     {
         $array = [
-            'counts'=> $reviewanswer->counts,
+
+            'truncate'=> $reviewanswer->TRUNCATE,
 
         ];
         $arraySimple = [

@@ -28,7 +28,10 @@ class ReviewQuestionController extends Controller
         if(empty($selectuser)){
             return $this->response->errorBadRequest('用户不能查看本问劵');
         }
-
+        $due = $reviewquestionnaire->deadline;
+        if($due < now()->toDateTimeString()){
+            return $this->response->errorBadRequest('问劵已过期');
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $questions = ReviewQuestion::where('review_id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
        // $questions = $reviewquestionnaire->questions()->get()->paginate($pageSize);

@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
 
-    protected $availableIncludes = ['creator', 'sum'];
+    protected $availableIncludes = ['creator', 'sum','production'];
 
   //  protected $defaultIncludes = ['creator', 'sum'];
     private $isAll;
@@ -51,8 +51,10 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
         return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
 
     }
-    public function includeitems(ReviewQuestionnaire $reviewquestionnaire) {
-      // dd($reviewquestionnaire->items);
+    public function includeProduction(ReviewQuestionnaire $reviewquestionnaire) {
+
+        $reviewanswer = $reviewquestionnaire->production->where('id',$reviewquestionnaire->reviewable_id)->get();
+        return $this->collection($reviewanswer, new ProductionTransformer());
     }
 
 

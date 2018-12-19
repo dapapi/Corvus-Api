@@ -47,6 +47,9 @@ class ReviewQuestionnaire extends Model
     {
         return $this->morphToMany(Task::class, 'resourceable', 'task_resources');
     }
-
+    public function production()
+    {
+        return $this->belongsTo(Production::class, 'reviewable_id', 'id');
+    }
 
 }

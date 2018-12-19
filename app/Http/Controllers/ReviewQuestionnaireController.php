@@ -25,12 +25,14 @@ class ReviewQuestionnaireController extends Controller {
         $reviews = ReviewQuestionnaire::createDesc()->paginate($pageSize);
         return $this->response->paginator($reviews, new ReviewQuestionnaireTransformer());
     }
+
     public function show(Request $request,ReviewQuestionnaire $reviewquestionnaire) {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $reviews = ReviewQuestionnaire::where('id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());
     }
+
 
     public function store(ReviewQuestionnaireStoreRequest $request, Production $production) {
         $payload = $request->all();
@@ -84,6 +86,7 @@ class ReviewQuestionnaireController extends Controller {
         return $this->response->created();
 
     }
+
 
     public function delete(Review $review) {
         try {

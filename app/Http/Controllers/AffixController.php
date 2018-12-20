@@ -9,6 +9,7 @@ use App\Http\Transformers\AffixTransformer;
 use App\Models\Affix;
 use App\Models\Attendance;
 use App\Models\Blogger;
+use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\Client;
 use App\Models\OperateEntity;
@@ -46,6 +47,8 @@ class AffixController extends Controller
         if ($model instanceof Task && $model->id) {
             $query = $model->affixes();
         } else if ($model instanceof Project && $model->id) {
+            $query = $model->affixes();
+        }else if ($model instanceof Schedule && $model->id) {
             $query = $model->affixes();
         } else if ($model instanceof Star && $model->id) {
             $query = $model->affixes();

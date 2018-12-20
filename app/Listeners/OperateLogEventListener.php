@@ -13,6 +13,7 @@ use App\Models\Project;
 use App\Models\Star;
 use App\Models\Report;
 use App\Models\Task;
+use App\Models\Schedule;
 use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\Department;
@@ -132,6 +133,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Repository){
                 $type = ModuleableType::REPOSITORY;
                 $typeName = '知识库';
+            }else if($operate->obj instanceof Schedule){
+                $type = ModuleableType::SCHEDULE;
+                $typeName = '日程';
             }else if($operate->obj instanceof GroupRoles){
                 $type = ModuleableType::GTOUPROLES;
                 $typeName = '分组';

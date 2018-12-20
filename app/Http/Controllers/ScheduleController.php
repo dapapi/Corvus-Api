@@ -92,6 +92,7 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule = Schedule::create($payload);
+            dd($payload);
             if ($request->has('participant_ids') && is_array($payload['participant_ids']))
 
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $schedule, ModuleUserType::PARTICIPANT);

@@ -6,6 +6,7 @@ use App\Models\Affix;
 use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\Schedule;
 use App\Models\Report;
 use App\Models\Project;
 use App\Models\Announcement;
@@ -31,6 +32,9 @@ class AffixRepository
         if ($model instanceof Task && $model->id) {
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::TASK;
+        }else if ($model instanceof Schedule && $model->id) {
+            $array['affixable_id'] = $model->id;
+            $array['affixable_type'] = ModuleableType::SCHEDULE;
         } else if ($model instanceof Project && $model->id) {
             $array['affixable_id'] = $model->id;
             $array['affixable_type'] = ModuleableType::PROJECT;

@@ -46,6 +46,10 @@ class Schedule extends Model
     {
         return $this->belongsTo(Calendar::class);
     }
+    public function affixes()
+    {
+        return $this->morphMany(Affix::class, 'affixable');
+    }
 
     public function material()
     {

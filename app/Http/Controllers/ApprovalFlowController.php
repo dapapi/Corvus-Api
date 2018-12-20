@@ -29,17 +29,18 @@ class ApprovalFlowController extends Controller
     protected $num;
 
     // 拉起表单时显示的审批流程
-    public function getChains(GetChainsRequest $request, ApprovalForm $approval)
+    public function getChains(GetChainsRequest $request)
     {
-        $formId = $approval->form_id;
+        $formId = $request->get('form_id');
+        if ($formId > 1000)
+            $formId = hashid_decode($formId);
 
-        $controlId = $request->get('control_id', null);
         $changeType = $request->get('change_type', null);
         $value = $request->get('value', null);
 
         $conditionId = null;
 
-        if ($changeType === 224 && $controlId && $value)
+        if ($changeType === 224 && $value)
             $conditionId = $this->getCondition($formId, $value);
 
         $chains = ChainFixed::where('form_id', $formId)

@@ -515,7 +515,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
         $api->get('/approvals/notify','App\Http\Controllers\ApprovalFormController@notify');
         // 审批流
-        $api->get('/approvals/{approval}/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
+        $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
         $api->post('/approval_instance/{instance}/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
         $api->post('/approval_instance/{instance}/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');
         $api->post('/approval_instance/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');

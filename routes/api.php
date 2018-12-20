@@ -507,18 +507,22 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
         /*审批 增加数据 控制台*/
-        $api->post('/approvals/','App\Http\Controllers\ApprovalFromController@store');
+        $api->post('/approvals/','App\Http\Controllers\ApprovalFormController@store');
         //我申请
-        $api->get('/approvals/my/{user}','App\Http\Controllers\ApprovalFormController@myApply');
-        $api->get('/ApprovalFrom/detail','App\Http\Controllers\ApprovalFormController@detail');
+        $api->get('/approvals/my','App\Http\Controllers\ApprovalFormController@myApply');
+        $api->get('/approvals/detail/{instance}','App\Http\Controllers\ApprovalFormController@detail');
         //我的审批 待审批
-        $api->get('/ApprovalFrom/approval/{user}','App\Http\Controllers\ApprovalFormController@myApproval');
+        $api->get('/approvals/approval','App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批
-        $api->get('/ApprovalFrom/thenapproval/{user}','App\Http\Controllers\ApprovalFormController@myThenApproval');
+        $api->get('/approvals/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
+        $api->get('/approvals/notify','App\Http\Controllers\ApprovalFormController@notify');
         // 审批流
         $api->get('/approvals/{approval}/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
-
-
+        $api->post('/approval_instance/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
+        $api->post('/approval_instance/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');
+        $api->post('/approval_instance/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
+        $api->post('/approval_instance/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
+        $api->post('/approval_instance/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
 
         //获取消息
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');

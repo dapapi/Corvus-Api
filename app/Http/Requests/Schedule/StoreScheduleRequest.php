@@ -30,7 +30,7 @@ class StoreScheduleRequest extends FormRequest
             'is_allday' => 'required|boolean',
             'start_at' => 'required|date',
             //'start_at' => 'required|date|after_or_equal:today',
-            'end_at' => 'required|date|after:start_at',
+            'end_at' => 'required|date|after_or_equal:start_at',
             'privacy' => 'required|boolean',
             'project_ids' => 'nullable|array',
             'task_ids' => 'nullable|array',

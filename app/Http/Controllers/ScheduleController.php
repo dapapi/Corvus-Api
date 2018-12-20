@@ -52,17 +52,17 @@ class ScheduleController extends Controller
             }
             unset($id);
         }
-
+        $payload['start_date'] = $payload['start_date'].' 00:00:00';
         $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
-
         $schedules = Schedule::where(function ($query) use ($payload) {
-            $query->where('start_at', '>', $payload['start_date'])->where('start_at', '<', $payload['end_date']);
-        })->orWhere(function ($query) use ($payload) {
-            $query->where('start_at', '<', $payload['start_date'])->where('end_at', '>', $payload['end_date']);
-        })->orWhere(function ($query) use ($payload) {
-            $query->where('end_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
+            $query->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
         });
 
+        //->orWhere(function ($query) use ($payload) {
+        //            $query->where('start_at', '<', $payload['start_date'])->where('end_at', '>', $payload['end_date']);
+        //        })->orWhere(function ($query) use ($payload) {
+        //            $query->where('end_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
+        //        })
         $schedules->where(function ($query) use ($request, $payload) {
             if ($request->has('material_ids'))
                 $query->whereIn('material_id', $payload['material_ids']);

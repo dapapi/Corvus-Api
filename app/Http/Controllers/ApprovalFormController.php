@@ -47,7 +47,7 @@ class ApprovalFormController extends Controller
 
                 Business::create($array);
 
-                $executeInfo = ChainFixed::where('form_id',1)->get()->toArray();
+                $executeInfo = ChainFixed::where('form_id', $formId)->get()->toArray();
 
                 $executeArray = [
                     'form_instance_number'=>$projectNumber,
@@ -68,6 +68,7 @@ class ApprovalFormController extends Controller
                         $participantsArray = [
                             'form_instance_number'=>$projectNumber,
                             'notice_id'=>$value['id'],
+                            'created_at'=>date("Y-m-d H:i:s",time()),
                         ];
                         Participant::create($participantsArray);
                     }

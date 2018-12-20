@@ -42,35 +42,12 @@ class ReviewQuestionController extends Controller
 
     public function up(Review $review, $sort)
     {
-        if ($sort > 1) {
-            try {
-                $reviewQuestion1 = $review->questions()->where('sort', $sort)->first();
-                $reviewQuestion2 = $review->questions()->where('sort', $sort - 1)->first();
-                $reviewQuestion1->sort = $sort - 1;
-                $reviewQuestion2->sort = $sort;
-                $reviewQuestion1->save();
-                $reviewQuestion2->save();
-            } catch (Exception $e) {
-            }
-        }
-        return redirect()->back();
+
     }
 
     public function down(Review $review, $sort)
     {
-        $max = ReviewQuestion::max('sort');
-        if ($sort < $max) {
-            try {
-                $reviewQuestion1 = $review->questions()->where('sort', $sort)->first();
-                $reviewQuestion2 = $review->questions()->where('sort', $sort + 1)->first();
-                $reviewQuestion1->sort = $sort + 1;
-                $reviewQuestion2->sort = $sort;
-                $reviewQuestion1->save();
-                $reviewQuestion2->save();
-            } catch (Exception $e) {
-            }
-        }
-        return redirect()->back();
+
     }
 
     /**
@@ -83,40 +60,17 @@ class ReviewQuestionController extends Controller
      */
     public function sort(Request $request, Review $review, ReviewQuestion $question)
     {
-        $payload = $request->all();
-        if (isset($payload['sort']) && $payload['sort'] != '') {
-            $array = json_decode($payload['sort'])->data;
-            for ($i = 0; $i < count($array); $i++) {
-                try {
-                    $postImage = ReviewQuestion::findOrFail($array[$i]);
-                    $postImage->sort = $i + 1;
-                    $postImage->save();
-                } catch (Exception $e) {
-                    return response()->json(['success' => false, 'message' => '排序失败']);
-                }
-            }
-        }
-        return response()->json(['success' => true, 'message' => '排序成功']);
+
     }
 
     public function update(Request $request, Review $review, ReviewQuestion $question)
     {
-        $payload = $request->all();
-        if (isset($payload['name']) && $payload['name'] != '' && $payload['name'] != $question->title) {
-            try {
-                $question->title = $payload['name'];
-                $question->save();
-            } catch (Exception $e) {
-                return response()->json(['success' => false, 'message' => '修改失败']);
-            }
-            return response()->json(['success' => true, 'message' => '修改成功']);
-        }
-        return response()->json(['success' => false, 'message' => '修改失败']);
+
     }
 
     public function create(Review $review)
     {
-        return view('reviews.questions.add')->with('review', $review);
+
     }
 
     public function store(ReviewQuestionStoreRequest $request, ReviewQuestionnaire $reviewquestionnaire)
@@ -171,60 +125,11 @@ class ReviewQuestionController extends Controller
 
     }
     public function appendItem(QuestionItemRequest $request, Review $review, ReviewQuestion $question) {
-        // 传id
-//        $questionId = hashid_decode($request->get('question'));
-        // 路由带对象
-//        $questionId = $question->id;
-        $title = $request->get('item');
-        $value = $request->get('value');
 
-//        $question = ReviewQuestion::where('id', $questionId)->first();
-//        dd($question);
-        $amount = $question->items()->count();
-        if ($question->type == ReviewQuestionType::TEXT || $question->type == ReviewQuestionType::RATING) {
-            // 加返回信息
-            return response()->json(['success' => false, 'message' => '添加失败']);
-        } elseif ($question->type == ReviewQuestionType::RADIO || ReviewQuestionType::CHECKBOX) {
-            try {
-                $item = $question->items()->create(['title' => $title, 'sort' => $amount + 1, 'value' => $value]);
-            } catch (Exception $exception) {
-                return response()->json(['success' => false, 'message' => '添加失败']);
-            }
-            $data = [
-                'success' => true,
-                'message' => '添加成功',
-                'data'    => [
-                    'title' => $item->title,
-                    'sort'  => $item->sort,
-                    'value' => $item->value,
-                ]
-            ];
-            return response()->json($data);
-        } else {
-            return response()->json(['success' => false, 'message' => '非法操作']);
-        }
-        
     }
 
     public function delete(Review $review, ReviewQuestion $question)
     {
-        try {
-            $questions = $review->questions()->where('sort', '>', $question->sort)->orderBy('sort', 'asc')->get();
-            foreach ($questions as $q) {
-                $q->sort -= 1;
-                $q->save();
-            }
 
-            $question->delete();
-        } catch (Exception $exception) {
-            $bag = new MessageBag();
-            $bag->add('system', '删除失败');
-            return redirect()->back()->withInput()->with('errors', $bag);
-        }
-        Session::put([
-            'type' => MessageStatus::SUCCESS,
-            'message' => '删除成功',
-        ]);
-        return redirect()->back();
     }
 }

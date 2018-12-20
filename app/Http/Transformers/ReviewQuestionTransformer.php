@@ -23,7 +23,7 @@ class ReviewQuestionTransformer extends TransformerAbstract
     {
         $array = [
             'id' => hashid_encode($reviewquestion->id),
-            'review_id'=> hashid_encode($reviewquestion->review_id),
+          //  'review_id'=> hashid_encode($reviewquestion->review_id),
             'title'=> $reviewquestion->title,
             'type'=> $reviewquestion->type,
             'sort'=> $reviewquestion->sort,

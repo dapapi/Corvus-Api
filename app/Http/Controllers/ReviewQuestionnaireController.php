@@ -87,41 +87,94 @@ class ReviewQuestionnaireController extends Controller {
 
     }
 
-
-    public function delete(Review $review) {
-        try {
-            $review->delete();
-        } catch (Exception $exception) {
-            $bag = new MessageBag();
-            $bag->add('system', '删除失败');
-            return redirect()->back()->withInput()->with('errors', $bag);
-        }
-        Session::put([
-            'type' => MessageStatus::SUCCESS,
-            'message' => '删除成功',
-        ]);
-        return redirect()->back();
-    }
-
-    public function edit(Review $review) {
-        return view('reviews.update')->with('review', $review);
-    }
-
-    public function update(ReviewUpdateRequest $request, Review $review) {
+    public function storeExcellent(ReviewQuestionnaireStoreRequest $request, Production $production) {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array['creator_id'] = $user->id;
 
+                    $array[] = ['id',$user->id];
+//        $array[] = ['type',1];
+//        $arr = empty(DepartmentUser::where($array)->first());
+//        if($arr){
+//            return $this->response->errorInternal('创建失败');
+//        }
+        DB::beginTransaction();
         try {
-            $review->update($payload);
-        } catch (Exception $exception) {
-            $bag = new MessageBag();
-            $bag->add('system', '修改失败');
-            return redirect()->back()->withInput()->with('errors', $bag);
-        }
+            if (!empty($array['creator_id'])) {
+//
+                $users = array();
+                $users[] = ['user_id' => 116];
+                $users[] = ['user_id' => 124];
+                $users[] = ['user_id' => 125];
+                $users[] = ['user_id' => 126];
+                $users[] = ['user_id' => 127];
+                $users[] = ['user_id' => 128];
+                $users[] = ['user_id' => 129];
+                $users[] = ['user_id' => 130];
+                $users[] = ['user_id' => 132];
+                $users[] = ['user_id' => 135];
+                $users[] = ['user_id' => 136];
+                $users[] = ['user_id' => 137];
+                $users[] = ['user_id' => 138];
+                $users[] = ['user_id' => 139];
+                $users[] = ['user_id' => 140];
+                $users[] = ['user_id' => 141];
+                $users[] = ['user_id' => 142];
+                $users[] = ['user_id' => 143];
+                $users[] = ['user_id' => 144];
+                $users[] = ['user_id' => 145];
+                $users[] = ['user_id' => 146];
+                $users[] = ['user_id' => 147];
+                $users[] = ['user_id' => 148];
+                $users[] = ['user_id' => 149];
+                $users[] = ['user_id' => 150];
 
-        Session::put([
-            'type' => MessageStatus::SUCCESS,
-            'message' => '修改成功',
-        ]);
-        return redirect('/' . $review->reviewable_type . 's/' . hashid_encode($review->reviewable_id));
+                if(isset($users)){
+
+                    foreach($users as $key => $val){
+                        $moduleuser = new ModuleUser;
+                        $moduleuser->user_id = $val['user_id'];
+                        $moduleuser->moduleable_id = $production->id;
+                        $moduleuser->moduleable_type = 'reviewquestionnaire';
+                        $moduleuser->type = 1;  //1  参与人
+                        $modeluseradd = $moduleuser->save();
+
+                    }
+                }
+
+                $reviewquestionnairemodel = new ReviewQuestionnaire;
+
+                $reviewquestionnairemodel->name = '评优团视频评分任务-视频评分';
+                $reviewquestionnairemodel->creator_id = $array['creator_id'];
+                //  $now = now()->toDateTimeString();
+                $number = date("w",time());  //当时是周几
+                $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
+                $diff_day = $number - 8; //求到周一差几天
+                $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
+                $reviewquestionnairemodel->deadline = $deadline;
+                $reviewquestionnairemodel->reviewable_id = $production->id;
+                $reviewquestionnairemodel->reviewable_type = 'production';
+                $reviewquestionnairemodel->auth_type = '2';
+                $reviewquestionnaireadd = $reviewquestionnairemodel->save();
+
+                if($reviewquestionnaireadd == true){
+                    foreach($users as $key => $val){
+                        $reviewuser = new ReviewUser;
+                        $reviewuser->user_id = $val['user_id'];
+                        $reviewuser->reviewquestionnaire_id = $reviewquestionnairemodel->id;
+                        $reviewuseradd = $reviewuser->save();
+                    }
+
+                }
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+        return $this->response->created();
+
     }
+
 }

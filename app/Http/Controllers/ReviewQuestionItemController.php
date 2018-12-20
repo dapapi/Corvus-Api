@@ -22,10 +22,16 @@ class ReviewQuestionItemController extends Controller
     public function up(ReviewQuestionnaire $reviewquestionnaire, ReviewQuestion $reviewquestion)
     {
 
+    }
+
+    public function down(Review $review, ReviewQuestion $question, $sort)
+    {
+//        $max = ReviewQuestionItem::max('sort');
+//        if ($sort < $max) {
 //            try {
 //                $reviewQuestionItem1 = $question->items()->where('sort', $sort)->first();
-//                $reviewQuestionItem2 = $question->items()->where('sort', $sort - 1)->first();
-//                $reviewQuestionItem1->sort = $sort - 1;
+//                $reviewQuestionItem2 = $question->items()->where('sort', $sort + 1)->first();
+//                $reviewQuestionItem1->sort = $sort + 1;
 //                $reviewQuestionItem2->sort = $sort;
 //                $reviewQuestionItem1->save();
 //                $reviewQuestionItem2->save();
@@ -33,23 +39,6 @@ class ReviewQuestionItemController extends Controller
 //            }
 //        }
 //        return redirect()->back();
-    }
-
-    public function down(Review $review, ReviewQuestion $question, $sort)
-    {
-        $max = ReviewQuestionItem::max('sort');
-        if ($sort < $max) {
-            try {
-                $reviewQuestionItem1 = $question->items()->where('sort', $sort)->first();
-                $reviewQuestionItem2 = $question->items()->where('sort', $sort + 1)->first();
-                $reviewQuestionItem1->sort = $sort + 1;
-                $reviewQuestionItem2->sort = $sort;
-                $reviewQuestionItem1->save();
-                $reviewQuestionItem2->save();
-            } catch (Exception $e) {
-            }
-        }
-        return redirect()->back();
     }
 
     public function update(Request $request, ReviewQuestionnaire $reviewquestionnaire, ReviewQuestion $reviewquestion, ReviewQuestionItem $reviewquestionitem)
@@ -102,23 +91,23 @@ class ReviewQuestionItemController extends Controller
 
     public function delete(Review $review, ReviewQuestion $question, ReviewQuestionItem $questionItem)
     {
-        try {
-            $questionItems = $question->items()->where('sort', '>', $questionItem->sort)->orderBy('sort', 'asc')->get();
-            foreach ($questionItems as $qT) {
-                $qT->sort -= 1;
-                $qT->save();
-            }
-
-            $questionItem->delete();
-        } catch (Exception $exception) {
-            $bag = new MessageBag();
-            $bag->add('system', '删除失败');
-            return redirect()->back()->withInput()->with('errors', $bag);
-        }
-        Session::put([
-            'type' => MessageStatus::SUCCESS,
-            'message' => '删除成功',
-        ]);
-        return redirect()->back();
+//        try {
+//            $questionItems = $question->items()->where('sort', '>', $questionItem->sort)->orderBy('sort', 'asc')->get();
+//            foreach ($questionItems as $qT) {
+//                $qT->sort -= 1;
+//                $qT->save();
+//            }
+//
+//            $questionItem->delete();
+//        } catch (Exception $exception) {
+//            $bag = new MessageBag();
+//            $bag->add('system', '删除失败');
+//            return redirect()->back()->withInput()->with('errors', $bag);
+//        }
+//        Session::put([
+//            'type' => MessageStatus::SUCCESS,
+//            'message' => '删除成功',
+//        ]);
+//        return redirect()->back();
     }
 }

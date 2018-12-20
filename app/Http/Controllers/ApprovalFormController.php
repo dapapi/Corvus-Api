@@ -31,7 +31,7 @@ class ApprovalFormController extends Controller
 
     }
 
-    public function store($notice='',$projectNumber)
+    public function store($formId, $notice='',$projectNumber)
     {
         $user = Auth::guard('api')->user();
         $userId = $user->id;
@@ -39,7 +39,7 @@ class ApprovalFormController extends Controller
             DB::beginTransaction();
             try {
                 $array = [
-                  'form_id'=>1,
+                  'form_id'=>$formId,
                   'form_instance_number'=>$projectNumber,
                   'form_status'=>DataDictionarie::FORM_STATE_DSP,
                   'business_type'=>project::PROJECT_TYPE
@@ -47,7 +47,7 @@ class ApprovalFormController extends Controller
 
                 Business::create($array);
 
-                $executeInfo = ChainFixed::where('form_id',1)->get()->toArray();
+                $executeInfo = ChainFixed::where('form_id', $formId)->get()->toArray();
 
                 $executeArray = [
                     'form_instance_number'=>$projectNumber,
@@ -68,6 +68,7 @@ class ApprovalFormController extends Controller
                         $participantsArray = [
                             'form_instance_number'=>$projectNumber,
                             'notice_id'=>$value['id'],
+                            'created_at'=>date("Y-m-d H:i:s",time()),
                         ];
                         Participant::create($participantsArray);
                     }

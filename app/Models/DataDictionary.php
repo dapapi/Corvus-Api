@@ -23,4 +23,6 @@ class DataDictionary extends Model
         'updated_by',
         'order_by',
     ];
+
+
 }

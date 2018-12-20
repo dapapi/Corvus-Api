@@ -20,4 +20,9 @@ class Instance extends Model
         'updated_at',
         'order_by',
     ];
+
+    public function form()
+    {
+        return $this->hasOne(ApprovalForm::class, 'form_id', 'id');
+    }
 }

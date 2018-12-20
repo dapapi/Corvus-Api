@@ -195,7 +195,7 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
         // todo 可能涉及筛选可选线索
         $payload = $request->all();
@@ -228,7 +228,7 @@ class ProjectController extends Controller
 
             $projectHistorie = ProjectHistorie::create($payload);
             $approvalForm = new ApprovalFormController();
-            $approvalForm->store($notice='',$payload['project_number']);
+            $approvalForm->store($payload['type'], $notice='',$payload['project_number']);
 
             if ($payload['type'] != 5) {
                 foreach ($payload['fields'] as $key => $val) {

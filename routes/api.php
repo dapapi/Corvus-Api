@@ -506,8 +506,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
-        /*审批 增加数据 控制台*/
-        $api->post('/approvals/','App\Http\Controllers\ApprovalFormController@store');
         //我申请
         $api->get('/approvals/my','App\Http\Controllers\ApprovalFormController@myApply');
         $api->get('/approvals/detail/{instance}','App\Http\Controllers\ApprovalFormController@detail');
@@ -518,11 +516,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals/notify','App\Http\Controllers\ApprovalFormController@notify');
         // 审批流
         $api->get('/approvals/{approval}/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
-        $api->post('/approval_instance/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
-        $api->post('/approval_instance/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');
-        $api->post('/approval_instance/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
-        $api->post('/approval_instance/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
-        $api->post('/approval_instance/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
+        $api->post('/approval_instance/{instance}/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
+        $api->post('/approval_instance/{instance}/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');
+        $api->post('/approval_instance/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
+        $api->post('/approval_instance/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
+        $api->post('/approval_instance/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
 
         //获取消息
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');

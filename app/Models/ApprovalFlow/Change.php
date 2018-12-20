@@ -2,6 +2,8 @@
 
 namespace App\Models\ApprovalFlow;
 
+use App\Models\DataDictionary;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Change extends Model
@@ -17,4 +19,14 @@ class Change extends Model
         'change_state',
         'comment',
     ];
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'change_id', 'id');
+    }
+
+    public function dictionary()
+    {
+        return $this->hasOne(DataDictionary::class, 'change_state', 'id');
+    }
 }

@@ -40,7 +40,7 @@ class ApprovalFlowController extends Controller
         $conditionId = null;
 
         if ($changeType === 224 && $controlId && $value)
-            $conditionId = $this->getCondition($formId, $controlId, $value);
+            $conditionId = $this->getCondition($formId, $value);
 
         $chains = ChainFixed::where('form_id', $formId)
             ->where('condition_id', $conditionId)
@@ -94,6 +94,71 @@ class ApprovalFlowController extends Controller
         return;
     }
 
+    // 展示整个链 已完成 当前 未审批
+    public function getMergeChains(Request $request, Instance $instance)
+    {
+        $num = $instance->form_instance_number;
+
+        $array = [];
+        foreach (Change::where('form_instance_number', $num)->orderBy('change_at', 'asc')->cursor() as $item) {
+            $array[] = [
+                'name' => $item->user->name,
+                'avatar' => null,
+                'change_at' => $item->change_at,
+                'change_state' => $item->dictionary
+            ];
+        }
+
+        $now = Execute::where('form_instance_number')->first();
+        if ($now->flow_type_id != 231)
+            return $this->response->array(['data' => $array]);
+        else
+            $array[] = [
+                'name' => $now->person->name,
+                'avatar' => null,
+                'change_state' => $now->dictionary
+            ];
+
+        $next = $this->getChainNext($instance, $now->current_handler_id);
+
+        $form = $instance->form;
+        $formId = $instance->form_id;
+        $condition = null;
+        if ($form->change_type === 224) {
+            $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
+            $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $formControlId)->select('form_control_value')->first()->form_control_value;
+            $condition = $this->getCondition($formId, $value);
+        }
+
+
+        // todo 找到具体到链
+        $nextChain = ChainFixed::where('next_id', $next)->where('form_id', $formId)->first();
+        $chains = ChainFixed::where('form_id', $formId)
+            ->where('condition_id', $condition)
+            ->where('next_id', '!=', 0)
+            ->where('sort_number', '>',$nextChain->sort_number)
+            ->orderBy('sort_number')
+            ->get();
+        if ($form->change_type === 223) {
+            $nextChain = ChainFree::where('next_id', $next)->where('form_id', $formId)->first();
+            $chains = ChainFree::where('form_number', $num)
+                ->where('next_id', '!=', 0)
+                ->where('sort_number', '>', $nextChain->sort_number)
+                ->orderBy('sort_number')
+                ->get();
+        }
+        foreach ($chains as $chain) {
+            $array[] = [
+                'name' => $chain->next->name,
+                'avatar' => null,
+                'change_state' => null
+            ];
+        }
+
+        return $this->response->array(['data' => $array]);
+    }
+
+    /* 流转用接口 */
     /**
      * @param Request $request
      * @param $instance
@@ -107,6 +172,8 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+        $comment = $request->get('comment', null);
+
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
@@ -115,7 +182,7 @@ class ApprovalFlowController extends Controller
         DB::beginTransaction();
         try {
             $nextId = $this->getChainNext($this->getInstance($num), $userId);
-            $this->storeRecord($num, $userId, $now, 239);
+            $this->storeRecord($num, $userId, $now, 239, $comment);
 
             if ($nextId)
                 $this->createOrUpdateHandler($num, $nextId);
@@ -134,6 +201,8 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+        $comment = $request->get('comment', null);
+
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
@@ -141,7 +210,7 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->storeRecord($num, $userId, $now, 240);
+            $this->storeRecord($num, $userId, $now, 240, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 233);
         } catch (Exception $exception) {
@@ -156,6 +225,8 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+        $comment = $request->get('comment', null);
+
         $nextId = $request->get('next_id');
 
         $nextId = hashid_decode($nextId);
@@ -169,7 +240,7 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->storeRecord($num, $userId, $now, 241);
+            $this->storeRecord($num, $userId, $now, 241, $comment);
 
             $this->createOrUpdateHandler($num, $nextId);
         } catch (Exception $exception) {
@@ -184,6 +255,7 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
@@ -196,11 +268,13 @@ class ApprovalFlowController extends Controller
             return $this->response->errorForbidden('审批流程已开始，已无法取消');
         }
 
+        $comment = $request->get('comment', null);
+
         $now = Carbon::now();
 
         DB::beginTransaction();
         try {
-            $this->storeRecord($num, $userId, $now, 234);
+            $this->storeRecord($num, $userId, $now, 234, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 242);
 
@@ -224,11 +298,13 @@ class ApprovalFlowController extends Controller
             return $this->response->errorForbidden('审批流程未开始，不可作废');
         }
 
+        $comment = $request->get('comment', null);
+
         $now = Carbon::now();
 
         DB::beginTransaction();
         try {
-            $this->storeRecord($num, $userId, $now, 235);
+            $this->storeRecord($num, $userId, $now, 235, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 235);
         } catch (Exception $exception) {
@@ -238,6 +314,8 @@ class ApprovalFlowController extends Controller
         DB::commit();
         return $this->response->created();
     }
+
+    /* 流转用辅助方法 */
 
     private function getInstance($num)
     {
@@ -251,6 +329,12 @@ class ApprovalFlowController extends Controller
         return $instance;
     }
 
+    /**
+     * @param $instance
+     * @param $preId
+     * @return int $nextId
+     * @throws Exception
+     */
     private function getChainNext($instance, $preId)
     {
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
@@ -367,7 +451,7 @@ class ApprovalFlowController extends Controller
         }
     }
 
-    private function storeRecord($num, $userId, $dateTime, $status)
+    private function storeRecord($num, $userId, $dateTime, $status, $comment)
     {
         try {
             $record = Change::create([
@@ -375,6 +459,7 @@ class ApprovalFlowController extends Controller
                 'change_id' => $userId,
                 'change_at' => $dateTime,
                 'change_status' => $status,
+                'comment' => $comment
             ]);
         } catch (Exception $exception) {
             throw $exception;

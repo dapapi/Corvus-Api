@@ -31,7 +31,7 @@ class ApprovalFormController extends Controller
 
     }
 
-    public function store($notice='',$projectNumber)
+    public function store($formId, $notice='',$projectNumber)
     {
         $user = Auth::guard('api')->user();
         $userId = $user->id;
@@ -39,7 +39,7 @@ class ApprovalFormController extends Controller
             DB::beginTransaction();
             try {
                 $array = [
-                  'form_id'=>1,
+                  'form_id'=>$formId,
                   'form_instance_number'=>$projectNumber,
                   'form_status'=>DataDictionarie::FORM_STATE_DSP,
                   'business_type'=>project::PROJECT_TYPE

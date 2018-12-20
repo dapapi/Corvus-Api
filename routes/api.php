@@ -314,7 +314,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
         $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
         $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
-
+        $api->post('/reviewquestionnaires/{production}/create/excellent', 'App\Http\Controllers\ReviewQuestionnaireController@storeExcellent');
 
         //保存问劵
         $api->post('/reviews/{reviewquestionnaire}/store/Answer', 'App\Http\Controllers\ReviewQuestionController@storeAnswer');

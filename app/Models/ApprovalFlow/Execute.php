@@ -16,6 +16,7 @@ class Execute extends Model
     protected $fillable = [
         'form_instance_number',
         'current_handler_id',
+        'current_handler_type',
         'flow_type_id'
     ];
 

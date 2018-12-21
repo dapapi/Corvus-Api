@@ -23,6 +23,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ApprovalFlowController extends Controller
 {
@@ -83,7 +84,6 @@ class ApprovalFlowController extends Controller
             $now = Carbon::now();
 
             $this->storeRecord($formNumber, $user->id, $now, 237);
-            $this->storeRecord($formNumber, $chains[0]['id'], $now, 238);
 
             $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 231);
         } catch (Exception $exception) {
@@ -106,7 +106,8 @@ class ApprovalFlowController extends Controller
                 'name' => $item->user->name,
                 'avatar' => null,
                 'change_at' => $item->change_at,
-                'change_state' => $item->dictionary
+                'change_state' => $item->dictionary,
+                'approval_stage' => 'done',
             ];
         }
 
@@ -117,7 +118,8 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'name' => $now->person->name,
                 'avatar' => null,
-                'change_state' => $now->dictionary
+                'change_state' => $now->dictionary,
+                'approval_stage' => 'doing'
             ];
 
         $next = $this->getChainNext($instance, $now->current_handler_id);
@@ -152,7 +154,8 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'name' => $chain->next->name,
                 'avatar' => null,
-                'change_state' => null
+                'change_state' => null,
+                'approval_stage' => 'todo'
             ];
         }
 
@@ -182,6 +185,7 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
+            $this->verifyHandler($num, $userId);
             $nextId = $this->getChainNext($this->getInstance($num), $userId);
             $this->storeRecord($num, $userId, $now, 239, $comment);
 
@@ -192,6 +196,7 @@ class ApprovalFlowController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
+            Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
@@ -211,11 +216,13 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
+            $this->verifyHandler($num, $userId);
             $this->storeRecord($num, $userId, $now, 240, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 233);
         } catch (Exception $exception) {
             DB::rollBack();
+            Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
@@ -241,11 +248,13 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
+            $this->verifyHandler($num, $userId);
             $this->storeRecord($num, $userId, $now, 241, $comment);
 
             $this->createOrUpdateHandler($num, $nextId);
         } catch (Exception $exception) {
             DB::rollBack();
+            Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
@@ -275,12 +284,13 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->storeRecord($num, $userId, $now, 234, $comment);
+            $this->storeRecord($num, $userId, $now, 242, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 242);
 
         } catch (Exception $exception) {
             DB::rollBack();
+            Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
@@ -305,11 +315,12 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->storeRecord($num, $userId, $now, 235, $comment);
+            $this->storeRecord($num, $userId, $now, 243, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 235);
         } catch (Exception $exception) {
             DB::rollBack();
+            Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
@@ -339,6 +350,7 @@ class ApprovalFlowController extends Controller
     private function getChainNext($instance, $preId)
     {
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
+
         if (!$form)
             throw new Exception('form不存在');
 
@@ -397,6 +409,7 @@ class ApprovalFlowController extends Controller
      */
     private function getCondition($formId, $value)
     {
+        dd($formId);
         $formControl = Control::where('form_id', $formId)->first();
         $arr = [
             82,
@@ -438,6 +451,7 @@ class ApprovalFlowController extends Controller
                 Execute::create([
                     'form_instance_number' => $num,
                     'current_handler_id' => $userId,
+                    'current_handler_type' => 245,
                     'flow_type_id' => $status,
                 ]);
 
@@ -452,14 +466,14 @@ class ApprovalFlowController extends Controller
         }
     }
 
-    private function storeRecord($num, $userId, $dateTime, $status, $comment)
+    private function storeRecord($num, $userId, $dateTime, $status, $comment = null)
     {
         try {
             $record = Change::create([
                 'form_instance_number' => $num,
                 'change_id' => $userId,
                 'change_at' => $dateTime,
-                'change_status' => $status,
+                'change_state' => $status,
                 'comment' => $comment
             ]);
         } catch (Exception $exception) {
@@ -467,5 +481,16 @@ class ApprovalFlowController extends Controller
         }
 
         return $record;
+    }
+
+    private function verifyHandler($num, $userId)
+    {
+        $now = Execute::where('form_instance_number', $num)->first();
+        if ($now->flow_type_id != 231)
+            // todo 新建一个验证
+            throw new Exception('流程不正确');
+
+        if ($now->current_handler_id != $userId)
+            throw new Exception('非当前用户');
     }
 }

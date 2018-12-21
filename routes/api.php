@@ -516,11 +516,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
         // 审批流
         $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
-        $api->post('/approval_instance/{instance}/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
-        $api->post('/approval_instance/{instance}/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');
-        $api->post('/approval_instance/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
-        $api->post('/approval_instance/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
-        $api->post('/approval_instance/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
+        $api->put('/approval_instances/{instance}/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
+        $api->put('/approval_instances/{instance}/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');
+        $api->put('/approval_instances/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
+        $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
+        $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
 
         //获取消息
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');

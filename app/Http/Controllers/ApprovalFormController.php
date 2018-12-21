@@ -159,7 +159,22 @@ class ApprovalFormController extends Controller
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
 
+        $project = DB::table('projects')
+            ->join('approval_form_business as bu',function($join){
+                $join->on('projects.project_number','=','bu.form_instance_number');
+            })
+            ->join('users',function($join){
+                $join->on('projects.creator_id','=','users.id');
+            })
+            ->join('department_user',function($join){
+                $join->on('department_user.user_id','=','users.id');
+            })
+            ->join('departments',function($join){
+                $join->on('departments.id','=','department_user.department_id');
+            })->select('users.name','departments.name as department_name ','projects.project_number','bu.form_status','projects.created_at')->where('projects.project_number' , $project->project_number)->get();
+
         $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $result->addMeta('approval', $project);
 
         return $result;
     }
@@ -171,7 +186,7 @@ class ApprovalFormController extends Controller
         $user = Auth::guard('api')->user();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $query = DB::table('approval_flow_execute as afe')//
+        $data = DB::table('approval_flow_execute as afe')//
 
             ->join('approval_form_business as bu',function($join){
                 $join->on('afe.form_instance_number','=','bu.form_instance_number');
@@ -191,10 +206,15 @@ class ApprovalFormController extends Controller
             })
             ->where('afe.current_handler_id', $user->id)
             ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
-            ->select('afe.*','bu.*','users.name','users.id','ph.title','ph.created_at')
-            ->paginate($pageSize);
+            ->select('afe.*','bu.*','users.name','ph.title','ph.created_at')
+            ->paginate($pageSize)->toArray();
 
-        return $query;
+        foreach ($data['data'] as $key=>&$value){
+            $value->id = hashid_encode($value->id);
+            $value->current_handler_id = hashid_encode($value->current_handler_id);
+        }
+
+        return $data;
     }
 
 
@@ -248,7 +268,7 @@ class ApprovalFormController extends Controller
         }
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $query = DB::table('approval_form_participants as afp')//
+        $data = DB::table('approval_form_participants as afp')//
 
         ->join('approval_form_business as bu',function($join){
             $join->on('afp.form_instance_number','=','bu.form_instance_number');
@@ -257,7 +277,7 @@ class ApprovalFormController extends Controller
                 $join->on('afp.notice_id','=','users.id');
             })
 
-            ->join('project_histories as ph',function($join){
+            ->join('projects as ph',function($join){
                 $join->on('ph.project_number','=','afp.form_instance_number');
             })
 
@@ -268,9 +288,14 @@ class ApprovalFormController extends Controller
             })
             ->where('afp.notice_id', $user->id)
             ->whereIn( 'bu.form_status', $payload['status'])
-            ->select('afp.*','bu.*','users.name','users.id','ph.created_at')
-            ->paginate($pageSize);
-        return $query;
+            ->select('ph.id','afp.*','bu.*','users.name','ph.created_at')
+            ->paginate($pageSize)->toArray();
+
+        foreach ($data['data'] as $key=>&$value){
+            $value->id = hashid_encode($value->id);
+            $value->notice_id = hashid_encode($value->notice_id);
+        }
+        return $data;
     }
 
 }

@@ -171,7 +171,8 @@ class ApprovalFormController extends Controller
             })
             ->join('departments',function($join){
                 $join->on('departments.id','=','department_user.department_id');
-            })->select('users.name','departments.name as department_name ','projects.project_number','bu.form_status','projects.created_at')->where('projects.project_number' , $project->project_number)->get();
+            })->select('users.name','departments.name as department_name','projects.project_number','bu.form_status','projects.created_at')
+              ->where('projects.project_number' , $project->project_number)->get();
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $project);

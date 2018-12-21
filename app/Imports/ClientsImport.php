@@ -5,14 +5,16 @@ namespace App\Imports;
 use App\Models\Client;
 use App\User;
 use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMappedCells;
 
-class ClientsImport implements  ToModel, WithBatchInserts, WithChunkReading, WithHeadingRow
+class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
 {
 //    public function mapping(): array
 //    {
@@ -22,37 +24,39 @@ class ClientsImport implements  ToModel, WithBatchInserts, WithChunkReading, Wit
 //            'grade' => 'C2',
 //            'principal' => 'D2',
 //            'name' => 'E2',
-//            'type' => 'F2',
-//            'phone' => 'G2',
+//            'phone' => 'F2',
+//            'type' => 'G2',
 //            'position' => 'H2',
 //            'size' => 'I2',
 //        ];
 //    }
 
-    public function model(array $row)
+    public function collection(Collection $rows)
     {
         $user = Auth::guard('api')->user();
-        dd($row);
+
         try {
-            $client = Client::create([
-                'type' => $row['client_type'],
-                'company' => $row['company'],
-                'grade' => $row['grade'] == '直客' ? 1 : 2,
-                'principal_id' => $this->principal($row['principal']),
-                'creator_id' => $user->id,
-                'size' => $row['size'] == '上市公司' ? 2 : 1,
-            ]);
-            $client->contacts()->create([
-                'name' => $row['name'],
-                'type' => $row['type'] == '否' ? 1 : 2,
-                'phone' => $row['phone'],
-                'position' => $row['position'],
-            ]);
+            foreach ($rows as $key => $row) {
+                if ($key == 0)
+                    continue ;
+                $client = Client::create([
+                    'type' => $row[0],
+                    'company' => $row[1],
+                    'grade' => $row[2] == '直客' ? 1 : 2,
+                    'principal_id' => $this->principal($row[3]),
+                    'creator_id' => $user->id,
+                    'size' => $row[8] == '上市公司' ? 2 : 1,
+                ]);
+                $client->contacts()->create([
+                    'name' => $row[4],
+                    'type' => $row[6] == '是' ? 2 : 1,
+                    'phone' => $row[5],
+                    'position' => $row[7],
+                ]);
+            }
         } catch (Exception $exception) {
             throw $exception;
         }
-
-        return $client;
     }
 
 

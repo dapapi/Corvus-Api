@@ -6,6 +6,7 @@ use App\Models\Affix;
 use App\Models\Blogger;
 use App\Models\Repository;
 use App\Models\Report;
+use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\Client;
 use App\Models\Project;
@@ -27,6 +28,8 @@ class OperateLogRepository
         } else if ($model instanceof Project && $model->id) {
             $obj = $model;
         } else if ($model instanceof Star && $model->id) {
+            $obj = $model;
+        }else if ($model instanceof Schedule && $model->id) {
             $obj = $model;
         } else if ($model instanceof Client && $model->id) {
             $obj = $model;

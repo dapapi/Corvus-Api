@@ -81,6 +81,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //附件
         $api->get('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@index');
         $api->post('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->get('/schedules/{schedule}/affix', 'App\Http\Controllers\AffixController@index');
+        $api->post('/schedules/{schedule}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@index');
         $api->post('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/tasks/{task}/affix', 'App\Http\Controllers\AffixController@index');
@@ -180,6 +182,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        $api->get('/bloggers/select', 'App\Http\Controllers\BloggerController@select');
         //获取类型
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
         //添加作品
@@ -308,6 +311,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //review
         //查看问题
+      //  $api->get('/tasks/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->get('/reviews/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
         //查看问劵
@@ -508,7 +512,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //我申请
         $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
-        $api->get('/approvals_project/detail/{instance}','App\Http\Controllers\ApprovalFormController@detail');
+        $api->get('/approvals_project/detail/{project}','App\Http\Controllers\ApprovalFormController@detail');
         //我的审批 待审批
         $api->get('/approvals_project/approval','App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批

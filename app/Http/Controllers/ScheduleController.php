@@ -109,17 +109,17 @@ class ScheduleController extends Controller
                 unset($id);
             }
 
-            if ($request->has('task_ids')) {
-                foreach ($payload['task_ids'] as $id) {
-                    $id = hashid_decode($id);
-                    TaskResource::create([
-                        'task_id' => $id,
-                        'resourceable_id' => $schedule->id,
-                        'resourceable_type' => ModuleableType::SCHEDULE,
-                        'resource_id' => $module->id,
-                    ]);
-                }
-            }
+//            if ($request->has('task_ids')) {
+//                foreach ($payload['task_ids'] as $id) {
+//                    $id = hashid_decode($id);
+//                    TaskResource::create([
+//                        'task_id' => $id,
+//                        'resourceable_id' => $schedule->id,
+//                        'resourceable_type' => ModuleableType::SCHEDULE,
+//                        'resource_id' => $module->id,
+//                    ]);
+//                }
+//            }
 
             if ($request->has('affix')) {
                 foreach ($payload['affix'] as $affix) {
@@ -127,6 +127,7 @@ class ScheduleController extends Controller
                 }
             }
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');

@@ -10,6 +10,7 @@ use App\Http\Requests\BloggerUpdateRequest;
 use App\Http\Requests\BloggerProductionRequest;
 use App\Http\Requests\BloggerProducerRequest;
 use App\Http\Transformers\BloggerTransformer;
+use App\Http\Transformers\BloggerDepartmentUserTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\ProductionTransformer;
 use App\Models\Blogger;
@@ -149,6 +150,26 @@ class BloggerController extends Controller
         }
         DB::commit();
     }
+
+    //选择成员
+    public function select(Request $request,DepartmentUser $departmentuser)
+    {
+        $user = Auth::guard('api')->user();
+        $payload = $request->all();
+
+        if($request->has('searchid')){
+            $searchid = hashid_decode($payload['searchid']);
+        }else{
+            $searchid = $user->id;
+        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $depatments = DepartmentUser::where('user_id', $searchid)->get(['department_id']);
+
+        $users = $departmentuser->wherein('department_id', $depatments)->paginate($pageSize);
+        return $this->response->paginator($users, new BloggerDepartmentUserTransformer());
+
+    }
+
     public function edit(BloggerUpdateRequest $request, Blogger $blogger)
     {
         $payload = $request->all();

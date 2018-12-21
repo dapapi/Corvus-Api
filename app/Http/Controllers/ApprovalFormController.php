@@ -13,11 +13,20 @@ use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalFlow\ChainFixed;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalForm\Participant;
+use App\Http\Transformers\TemplateFieldTransformer;
+use App\Models\TemplateField;
 
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+
+use Dingo\Api\Facade\Route;
+use Exception;
+use Illuminate\Support\Facades\URL;
+use League\Fractal;
+use League\Fractal\Manager;
+use League\Fractal\Serializer\DataArraySerializer;
 
 class ApprovalFormController extends Controller
 {
@@ -97,8 +106,14 @@ class ApprovalFormController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $query = DB::table('approval_form_business as bu')
+        $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
+        if($payload['status'] == 1){
+            $payload['status'] = array('231');
+        }else{
+            $payload['status'] = array('232','233','234','235');
+        }
 
+        $data = DB::table('approval_form_business as bu')
              ->join('project_histories as hi',function($join){
                  $join->on('bu.form_instance_number','=','hi.project_number');
              })
@@ -110,36 +125,41 @@ class ApprovalFormController extends Controller
                     $query->where('bu.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
                 }
             })
-            ->where('hi.creator_id', $user->id)
-            ->where('bu.form_status', DataDictionarie::FORM_STATE_DSP)
-            ->select('hi.*','bu.*','users.name','users.id')
-            ->paginate($pageSize);
 
-        return $query;
+            ->where('hi.creator_id', $user->id)
+            ->whereIn('bu.form_status', $payload['status'])
+            ->select('hi.*','bu.*','users.name')
+            ->paginate($pageSize)->toArray();
+
+        //return $this->response->item($data, new ProjectTransformer());
+
+        foreach ($data['data'] as $key=>&$value){
+            $value->id = hashid_decode($value->id);
+            $value->creator_id = hashid_decode($value->creator_id);
+
+        }
+        return $data;
+
     }
 
-    public function detail(Request $request, $instance)
+    public function detail(Request $request, Project $project)
     {
         $payload = $request->all();
-        $project = DB::table('approval_form_business as bu')
 
-            ->join('project_histories as hi',function($join){
-                $join->on('bu.form_instance_number','=','hi.project_number');
-            })
-            ->join('users',function($join){
-                $join->on('hi.creator_id','=','users.id');
-            })
-            ->join('department_user',function($join){
-                $join->on('department_user.user_id','=','users.id');
-            })
-            ->join('departments',function($join){
-                $join->on('departments.id','=','department_user.department_id');
-            })
+        $payload['type'] = isset($payload['type']) ? $payload['type'] : 1;
 
-            ->where('hi.project_number', $instance->form_instance_number)
-            ->select('*')->get();
+        $result = $this->response->item($project, new ProjectTransformer());
 
-        return $project;
+        $data = TemplateField::where('status', $payload['type'])->get();
+
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+
+        return $result;
     }
 
     public function myApproval(Request $request)
@@ -147,6 +167,7 @@ class ApprovalFormController extends Controller
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
         $query = DB::table('approval_flow_execute as afe')//
 
@@ -168,7 +189,7 @@ class ApprovalFormController extends Controller
             })
             ->where('afe.current_handler_id', $user->id)
             ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
-            ->select('afe.*','bu.*','users.name','users.id','ph.created_at')
+            ->select('afe.*','bu.*','users.name','users.id','ph.title','ph.created_at')
             ->paginate($pageSize);
 
         return $query;
@@ -216,6 +237,14 @@ class ApprovalFormController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
+        $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
+
+        if($payload['status'] == 1){
+            $payload['status'] = array('231');
+        }else{
+            $payload['status'] = array('232','233','234','235');
+        }
+
         $pageSize = $request->get('page_size', config('app.page_size'));
         $query = DB::table('approval_form_participants as afp')//
 
@@ -236,7 +265,7 @@ class ApprovalFormController extends Controller
                 }
             })
             ->where('afp.notice_id', $user->id)
-            //->whereNotIn( 'afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP,DataDictionarie::FIOW_TYPE_DSP])
+            ->whereIn( 'bu.form_status', $payload['status'])
             ->select('afp.*','bu.*','users.name','users.id','ph.created_at')
             ->paginate($pageSize);
         return $query;

@@ -5,7 +5,7 @@ namespace App\Http\Transformers;
 use App\Models\Project;
 use League\Fractal\TransformerAbstract;
 
-class ProjectTransformer extends TransformerAbstract
+class ProjectHistoriesTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants', 'relate_tasks', 'relate_projects'];
 
@@ -26,7 +26,6 @@ class ProjectTransformer extends TransformerAbstract
                 'privacy' => $project->privacy,
                 'priority' => $project->priority,
                 'status' => $project->status,
-                'projected_expenditure'=> $project->projected_expenditure,
                 'start_at' => $project->start_at,
                 'end_at' => $project->end_at,
                 'created_at' => $project->created_at->toDateTimeString(),

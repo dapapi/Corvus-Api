@@ -37,6 +37,7 @@ class Project extends Model
         'trail_id',
         'privacy',
         'priority',
+        'projected_expenditure',
         'status',
         'type',
         'desc',

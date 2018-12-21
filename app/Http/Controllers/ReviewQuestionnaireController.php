@@ -8,7 +8,10 @@ use App\Http\Transformers\ReviewQuestionnaireTransformer;
 use App\Http\Transformers\ReviewQuestionnaireShowTransformer;
 use App\Models\DepartmentUser;
 use App\Models\Production;
+use App\Models\ReviewQuestion;
+use App\Models\ReviewQuestionItem;
 use App\Models\ModuleUser;
+use App\ReviewItemAnswer;
 use App\Models\ReviewAnswer;
 use App\Models\ReviewUser;
 use App\Models\ReviewQuestionnaire;
@@ -34,7 +37,7 @@ class ReviewQuestionnaireController extends Controller {
     }
 
 
-    public function store(ReviewQuestionnaireStoreRequest $request, Production $production) {
+    public function store(ReviewQuestionnaireStoreRequest $request, Production $production,ReviewQuestionnaire $reviewquestionnaire,ReviewQuestion $reviewquestion) {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $array['creator_id'] = $user->id;
@@ -67,6 +70,7 @@ class ReviewQuestionnaireController extends Controller {
             $reviewquestionnairemodel->reviewable_type = 'production';
             $reviewquestionnairemodel->auth_type = '2';
             $reviewquestionnaireadd = $reviewquestionnairemodel->save();
+
             if($reviewquestionnaireadd == true){
                 foreach($users as $key => $val){
                     $reviewuser = new ReviewUser;
@@ -76,8 +80,30 @@ class ReviewQuestionnaireController extends Controller {
                 }
 
             }
+
+            $issues =ReviewItemAnswer::getIssue();
+            $answer =ReviewItemAnswer::getAnswer();
+            foreach ($issues as $key => $value){
+                $issue['title'] = $value['titles'];
+                $issue['review_id'] = $reviewquestionnairemodel->id;
+                $issue['sort'] = $reviewquestionnaire->questions()->count() + 1;;
+                $reviewQuestion = ReviewQuestion::create($issue);
+                $reviewQuestionId = $reviewQuestion->id;
+                foreach ($answer[$key] as $key1 => $value1) {
+                    $arr = array();
+                    $arr['title'] = $value1['answer'];
+                    $arr['value'] = $value1['value'];
+                    $arr['review_question_id'] = $reviewQuestionId;
+                    $arr['sort'] = $reviewquestion->items()->count() + 1;
+                    $reviewQuestion = ReviewQuestionItem::create($arr);
+                }
+
+            }
+
+
         }
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');
@@ -98,36 +124,14 @@ class ReviewQuestionnaireController extends Controller {
 //        if($arr){
 //            return $this->response->errorInternal('创建失败');
 //        }
+//        if($request->has('name','评优团视频评分任务')){
+//            $array['name'] = '评优团视频评分任务';
+//        }
         DB::beginTransaction();
         try {
             if (!empty($array['creator_id'])) {
 //
-                $users = array();
-                $users[] = ['user_id' => 116];
-                $users[] = ['user_id' => 124];
-                $users[] = ['user_id' => 125];
-                $users[] = ['user_id' => 126];
-                $users[] = ['user_id' => 127];
-                $users[] = ['user_id' => 128];
-                $users[] = ['user_id' => 129];
-                $users[] = ['user_id' => 130];
-                $users[] = ['user_id' => 132];
-                $users[] = ['user_id' => 135];
-                $users[] = ['user_id' => 136];
-                $users[] = ['user_id' => 137];
-                $users[] = ['user_id' => 138];
-                $users[] = ['user_id' => 139];
-                $users[] = ['user_id' => 140];
-                $users[] = ['user_id' => 141];
-                $users[] = ['user_id' => 142];
-                $users[] = ['user_id' => 143];
-                $users[] = ['user_id' => 144];
-                $users[] = ['user_id' => 145];
-                $users[] = ['user_id' => 146];
-                $users[] = ['user_id' => 147];
-                $users[] = ['user_id' => 148];
-                $users[] = ['user_id' => 149];
-                $users[] = ['user_id' => 150];
+              $users =ReviewItemAnswer::getUsers();
 
                 if(isset($users)){
 

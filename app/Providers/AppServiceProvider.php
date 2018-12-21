@@ -46,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CALENDAR => Calendar::class,
             ModuleableType::SCHEDULE => Schedule::class,
             ModuleableType::USER => User::class,
+            ModuleableType::SCHEDULE => Schedule::class,
             ModuleableType::ISSUES => Issues::class,
             ModuleableType::REPORT => Report::class,
             ModuleableType::ANNOUNCEMENT => Announcement::class,

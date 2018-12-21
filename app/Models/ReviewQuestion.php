@@ -24,6 +24,7 @@ class ReviewQuestion extends Model {
 
         return $this->hasMany(ReviewQuestionItem::class, 'review_question_id', 'id')->orderBy('sort', 'asc');
     }
+
     public function selectrows() {
 
 

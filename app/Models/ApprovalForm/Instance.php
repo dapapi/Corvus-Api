@@ -23,6 +23,6 @@ class Instance extends Model
 
     public function form()
     {
-        return $this->hasOne(ApprovalForm::class, 'form_id', 'id');
+        return $this->belongsTo(ApprovalForm::class, 'form_id', 'id');
     }
 }

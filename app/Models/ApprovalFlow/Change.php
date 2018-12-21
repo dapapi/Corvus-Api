@@ -22,11 +22,11 @@ class Change extends Model
 
     public function user()
     {
-        return $this->hasOne(User::class, 'change_id', 'id');
+        return $this->belongsTo(User::class, 'change_id', 'id');
     }
 
     public function dictionary()
     {
-        return $this->hasOne(DataDictionary::class, 'change_state', 'id');
+        return $this->belongsTo(DataDictionary::class, 'change_state', 'id');
     }
 }

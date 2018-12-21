@@ -17,6 +17,9 @@ class Business extends Model
         'business_type',
     ];
 
-
+    public function form()
+    {
+        return $this->belongsTo(ApprovalForm::class, 'form_id', 'form_id');
+    }
 
 }

@@ -96,7 +96,7 @@ class ApprovalFlowController extends Controller
     }
 
     // 展示整个链 已完成 当前 未审批
-    public function getMergeChains(Request $request, Instance $instance)
+    public function getMergeChains(Request $request, $instance)
     {
         $num = $instance->form_instance_number;
 
@@ -106,19 +106,25 @@ class ApprovalFlowController extends Controller
                 'name' => $item->user->name,
                 'avatar' => null,
                 'change_at' => $item->change_at,
-                'change_state' => $item->dictionary,
+                'change_state_obj' => [
+                    'changed_state' => $item->dictionary->name,
+                    'changed_icon' => $item->dictionary->icon,
+                ],
                 'approval_stage' => 'done',
             ];
         }
 
-        $now = Execute::where('form_instance_number')->first();
+        $now = Execute::where('form_instance_number', $num)->first();
         if ($now->flow_type_id != 231)
             return $this->response->array(['data' => $array]);
         else
             $array[] = [
                 'name' => $now->person->name,
                 'avatar' => null,
-                'change_state' => $now->dictionary,
+                'change_state' => [
+                    'changed_state' => $now->dictionary->name,
+                    'changed_icon' => $now->dictionary->icon,
+                ],
                 'approval_stage' => 'doing'
             ];
 
@@ -154,7 +160,10 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'name' => $chain->next->name,
                 'avatar' => null,
-                'change_state' => null,
+                'change_state' => [
+                    'changed_state' => $now->dictionary->name,
+                    'changed_icon' => $now->dictionary->icon,
+                ],
                 'approval_stage' => 'todo'
             ];
         }
@@ -380,12 +389,12 @@ class ApprovalFlowController extends Controller
             $this->getTransferNextChain($instance, $now);
         }
 
-        if ($chain->approver_type == 245) {
+        if ($chain->approver_type == 246) {
             $user = Auth::guard('api')->user();
             $department = $user->department()->first();
             $departmentHead = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
 
-            $nextId = $departmentHead->id;
+            $nextId = $departmentHead->user_id;
         } else {
             $nextId = $chain->next->id;
         }
@@ -409,7 +418,6 @@ class ApprovalFlowController extends Controller
      */
     private function getCondition($formId, $value)
     {
-        dd($formId);
         $formControl = Control::where('form_id', $formId)->first();
         $arr = [
             82,

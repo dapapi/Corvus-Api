@@ -520,6 +520,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
         // 审批流
         $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
+        $api->get('/approval_instances/{instance}/chains', 'App\Http\Controllers\ApprovalFlowController@getMergeChains');
         $api->put('/approval_instances/{instance}/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
         $api->put('/approval_instances/{instance}/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');
         $api->put('/approval_instances/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');

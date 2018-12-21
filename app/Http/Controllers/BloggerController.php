@@ -408,20 +408,21 @@ class BloggerController extends Controller
                 unset($array['desc']);
             }
         }
-
         if ($request->has('avatar')) {
             $array['avatar'] = $payload['avatar'];
-
-            $operateAvatar = new OperateEntity([
-                'obj' => $blogger,
-                'title' => '头像',
-                'start' => null,
-                'end' => null,
-                'method' => OperateLogMethod::RENEWAL,
-            ]);
-            $arrayOperateLog[] = $operateAvatar;
+            if ($array['avatar'] != $blogger->avatar) {
+                $operateAvatar = new OperateEntity([
+                    'obj' => $blogger,
+                    'title' => '头像',
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::RENEWAL,
+                ]);
+                $arrayOperateLog[] = $operateAvatar;
+            } else {
+                unset($array['avatar']);
+            }
         }
-
         if ($request->has('gender')) {
             $array['gender'] = $payload['gender'];
             if ($array['gender'] != $blogger->gender) {
@@ -532,7 +533,6 @@ class BloggerController extends Controller
         try {
             if (count($array) == 0)
                 return $this->response->noContent();
-
             $blogger->update($array);
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
@@ -762,7 +762,8 @@ class BloggerController extends Controller
         $array['resourceable_type'] = 'blogger';
         $isblogger = TaskResource::where($array)->first();
         if(!isset($isblogger)){
-            return $this->response->errorInternal('这个任务不属于博主');
+            $data = ['data'=>''];
+            return $data;
         }
         $taskdata = Task::where('id',$task->id)->first(['title','end_at','creator_id','created_at']);
         $arr['name'] ='制作人视频评分-视频评分';

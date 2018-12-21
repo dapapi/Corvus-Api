@@ -187,6 +187,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
         //添加作品
         $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
+        //查询任务  是否有问卷
+        $api->get('/bloggers/{task}/taskblogger', 'App\Http\Controllers\BloggerController@taskBloggerProductionIndex');
         // 查看作品
         $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');

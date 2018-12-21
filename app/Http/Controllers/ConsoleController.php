@@ -394,17 +394,11 @@ class ConsoleController extends Controller
         $roleId = $role->id;
         if(!empty($payload)){
             $dataViewSql = "{\"rules\": [{\"field\" : \"created_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
+
             DB::beginTransaction();
             try {
                 foreach($payload as $key=>$value){
-
-                    //本人相关 本部门 部门下属 全部 直接update修改
-//                    $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->update(
-//                        ['data_view_id' => $value['scope']]
-//                    );
-
                     if (is_array($value)) {
-
                         $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
                         $array = [
                             'role_id'=>$roleId,
@@ -415,13 +409,15 @@ class ConsoleController extends Controller
                          $deparInfo = RoleDataView::create($array);
                         //创建 参与 所见 删除再添加
                         $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
-                        foreach ($value['manage'] as $mkey=>$mvalue){
-                            $array = [
-                                'role_id'=>$roleId,
-                                'resource_id'=>$value['resource_id'],
-                                'data_manage_id'=>$mvalue,
-                            ];
-                            $depar = RoleDataManage::create($array);
+                        if(!empty($value['manage'])){
+                            foreach ($value['manage'] as $mkey=>$mvalue){
+                                $array = [
+                                    'role_id'=>$roleId,
+                                    'resource_id'=>$value['resource_id'],
+                                    'data_manage_id'=>$mvalue,
+                                ];
+                                $depar = RoleDataManage::create($array);
+                            }
                         }
                     }
                 }

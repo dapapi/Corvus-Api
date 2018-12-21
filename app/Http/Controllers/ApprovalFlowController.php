@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
 use App\Http\Requests\ApprovalFlow\StoreFreeChainsRequest;
@@ -204,6 +205,10 @@ class ApprovalFlowController extends Controller
             else
                 $this->createOrUpdateHandler($num, $userId, 232);
 
+        } catch (ApprovalVerifyException $exception) {
+            DB::rollBack();
+            return $this->response->errorForbidden($exception->getMessage());
+
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -230,6 +235,9 @@ class ApprovalFlowController extends Controller
             $this->storeRecord($num, $userId, $now, 240, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 233);
+        } catch (ApprovalVerifyException $exception) {
+            DB::rollBack();
+            return $this->response->errorForbidden($exception->getMessage());
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -262,6 +270,9 @@ class ApprovalFlowController extends Controller
             $this->storeRecord($num, $userId, $now, 241, $comment);
 
             $this->createOrUpdateHandler($num, $nextId);
+        } catch (ApprovalVerifyException $exception) {
+            DB::rollBack();
+            return $this->response->errorForbidden($exception->getMessage());
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -316,7 +327,7 @@ class ApprovalFlowController extends Controller
 
         $currentStatus = Execute::where('form_instance_number', $num)->first();
         if ($currentStatus->flow_type_id == 231 or $currentStatus->flow_type_id == 235) {
-            return $this->response->errorForbidden('审批流程未开始，不可作废');
+            return $this->response->errorForbidden('审批流程未结束，不可作废');
         }
 
         $comment = $request->get('comment', null);
@@ -497,9 +508,9 @@ class ApprovalFlowController extends Controller
         $now = Execute::where('form_instance_number', $num)->first();
         if ($now->flow_type_id != 231)
             // todo 新建一个验证
-            throw new Exception('流程不正确');
+            throw new ApprovalVerifyException('流程不正确');
 
         if ($now->current_handler_id != $userId)
-            throw new Exception('非当前用户');
+            throw new ApprovalVerifyException('当前用户没权限进行该操作');
     }
 }

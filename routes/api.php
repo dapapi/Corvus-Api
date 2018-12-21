@@ -182,6 +182,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        $api->get('/bloggers/select', 'App\Http\Controllers\BloggerController@select');
         //获取类型
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
         //添加作品
@@ -310,6 +311,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //review
         //查看问题
+      //  $api->get('/tasks/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->get('/reviews/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
         //查看问劵

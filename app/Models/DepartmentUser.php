@@ -24,4 +24,8 @@ class DepartmentUser extends Model
     {
         return $this->hasManyThrough(User::class, DepartmentUser::class, 'department_id', 'id', 'id', 'user_id');
     }
+    public function bloggerusers()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 }

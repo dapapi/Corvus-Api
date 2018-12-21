@@ -10,12 +10,11 @@ class DepartmentUserTransformer extends TransformerAbstract
 
     public function transform(DepartmentUser $departmentUser)
     {
-        $array = [
+        return [
             'id' => hashid_encode($departmentUser->id),
             'name' => $departmentUser->name,
         ];
 
-        return $array;
     }
 
     public function includeDepartments(Department $department)

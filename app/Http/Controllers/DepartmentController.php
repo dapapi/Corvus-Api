@@ -196,8 +196,6 @@ class DepartmentController extends Controller
                     })->select('users.id', 'users.name')
                      ->where('department_user.department_id',$departmentId)
                     ->get();
-
-
         return $this->response->item($data, new DepartmentUserTransformer());
 
     }

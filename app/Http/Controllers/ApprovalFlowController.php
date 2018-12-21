@@ -106,6 +106,7 @@ class ApprovalFlowController extends Controller
                 'name' => $item->user->name,
                 'avatar' => null,
                 'change_at' => $item->change_at,
+                'comment' => $item->comment,
                 'change_state_obj' => [
                     'changed_state' => $item->dictionary->name,
                     'changed_icon' => $item->dictionary->icon,

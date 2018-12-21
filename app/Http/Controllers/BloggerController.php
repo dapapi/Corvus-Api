@@ -766,12 +766,16 @@ class BloggerController extends Controller
             return $data;
         }
         $taskdata = Task::where('id',$task->id)->first(['title','end_at','creator_id','created_at']);
-        $arr['name'] ='制作人视频评分-视频评分';
+        $arr['name'] =$taskdata->title;
         // $taskdata->title
         $arr['creator_id'] = $taskdata->creator_id;
         $arr['created_at'] = $taskdata->created_at;
         $arr['deadline'] = $taskdata->end_at;
         $taskselect = ReviewQuestionnaire::where($arr)->first();
+        if(!isset($taskselect)){
+            $data = ['data'=>''];
+            return $data;
+        }
         return $this->response->item($taskselect, new ReviewQuestionnaireShowTransformer());
     }
 }

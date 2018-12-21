@@ -25,6 +25,7 @@ class GetChainsRequest extends FormRequest
     public function rules()
     {
         return [
+            'form_id' => 'required',
             'change_type' => [
                 'nullable',
                 Rule::in([
@@ -32,7 +33,6 @@ class GetChainsRequest extends FormRequest
                     224,
                 ])
             ],
-            'control_id' => 'required_if:change_type,224',
             'value' => 'required_if:change_type,224'
         ];
     }

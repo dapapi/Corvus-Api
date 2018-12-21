@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProjectHistorie;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\DataDictionarie;
@@ -15,6 +16,7 @@ use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalForm\Participant;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\TemplateField;
+use App\Http\Transformers\ProjectHistoriesTransformer;
 
 
 use Illuminate\Support\Facades\Auth;
@@ -114,7 +116,7 @@ class ApprovalFormController extends Controller
         }
 
         $data = DB::table('approval_form_business as bu')
-             ->join('project_histories as hi',function($join){
+             ->join('projects as hi',function($join){
                  $join->on('bu.form_instance_number','=','hi.project_number');
              })
             ->join('users',function($join){
@@ -134,8 +136,8 @@ class ApprovalFormController extends Controller
         //return $this->response->item($data, new ProjectTransformer());
 
         foreach ($data['data'] as $key=>&$value){
-            $value->id = hashid_decode($value->id);
-            $value->creator_id = hashid_decode($value->creator_id);
+            $value->id = hashid_encode($value->id);
+            $value->creator_id = hashid_encode($value->creator_id);
 
         }
         return $data;
@@ -178,7 +180,7 @@ class ApprovalFormController extends Controller
                 $join->on('afe.current_handler_id','=','users.id');
             })
 
-            ->join('project_histories as ph',function($join){
+            ->join('projects as ph',function($join){
                 $join->on('ph.project_number','=','bu.form_instance_number');
             })
 
@@ -214,7 +216,7 @@ class ApprovalFormController extends Controller
                 $join->on('afe.change_id','=','users.id');
             })
 
-            ->join('project_histories as ph',function($join){
+            ->join('projects as ph',function($join){
                 $join->on('ph.project_number','=','bu.form_instance_number');
             })
 

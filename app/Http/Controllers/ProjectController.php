@@ -333,8 +333,6 @@ class ProjectController extends Controller
             }
 
         } catch (Exception $exception) {
-            echo hashid_encode(62);
-            dd($exception);
             DB::rollBack();
             Log::error($exception);
             return $this->response->errorInternal('创建失败');

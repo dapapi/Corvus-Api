@@ -10,7 +10,6 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithMappedCells;
 
 class ClientsImport implements  ToModel, WithBatchInserts, WithChunkReading, WithHeadingRow
 {
@@ -32,21 +31,20 @@ class ClientsImport implements  ToModel, WithBatchInserts, WithChunkReading, Wit
     public function model(array $row)
     {
         $user = Auth::guard('api')->user();
-        dd($row);
         try {
             $client = Client::create([
-                'type' => $row['client_type'],
-                'company' => $row['company'],
-                'grade' => $row['grade'] == '直客' ? 1 : 2,
-                'principal_id' => $this->principal($row['principal']),
+                'type' => $row[0],
+                'company' => $row[1],
+                'grade' => $row[2] == '直客' ? 1 : 2,
+                'principal_id' => $this->principal($row[3]),
                 'creator_id' => $user->id,
-                'size' => $row['size'] == '上市公司' ? 2 : 1,
+                'size' => $row[8] == '上市公司' ? 2 : 1,
             ]);
             $client->contacts()->create([
-                'name' => $row['name'],
-                'type' => $row['type'] == '否' ? 1 : 2,
-                'phone' => $row['phone'],
-                'position' => $row['position'],
+                'name' => $row[4],
+                'phone' => $row[5],
+                'type' => $row[6] == '否' ? 1 : 2,
+                'position' => $row[7],
             ]);
         } catch (Exception $exception) {
             throw $exception;

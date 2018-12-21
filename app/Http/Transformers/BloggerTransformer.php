@@ -31,7 +31,7 @@ class BloggerTransformer extends TransformerAbstract
             'sign_contract_at' => $blogger->sign_contract_at,//签约日期
             'level' => $blogger->level,//博主级别
             'hatch_star_at' => $blogger->hatch_star_at,//孵化期开始时间
-            'hatch_end_at' => $blogger->hatch_star_at,//孵化期结束时间
+            'hatch_end_at' => $blogger->hatch_end_at,//孵化期结束时间
             'sign_contract_status' => $blogger->sign_contract_status,//签约状态
             'icon' => $blogger->icon, // 头像
             'desc' => $blogger->desc,//描述/备注

@@ -13,6 +13,7 @@ use App\Http\Transformers\BloggerTransformer;
 use App\Http\Transformers\BloggerDepartmentUserTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\ProductionTransformer;
+use App\Http\Transformers\ReviewQuestionnaireShowTransformer;
 use App\Models\Blogger;
 use App\Models\Production;
 use App\Models\DepartmentUser;
@@ -25,6 +26,8 @@ use App\Models\StarXiaohongshuInfo;
 use App\Models\StarDouyinInfo;
 use App\Models\BloggerProducer;
 use App\Events\OperateLogEvent;
+use App\Models\Task;
+use App\Models\TaskResource;
 use App\Repositories\OperateLogRepository;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
@@ -752,5 +755,22 @@ class BloggerController extends Controller
         $producer_id = BloggerProducer::where($array)->get(['producer_id']);
         $stars = Production::wherein('id',$producer_id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($stars, new ProductionTransformer());
+    }
+    public function taskBloggerProductionIndex(Request $request,Task $task)
+    {
+        $array['task_id'] = $task->id;
+        $array['resourceable_type'] = 'blogger';
+        $isblogger = TaskResource::where($array)->first();
+        if(!isset($isblogger)){
+            return $this->response->errorInternal('这个任务不属于博主');
+        }
+        $taskdata = Task::where('id',$task->id)->first(['title','end_at','creator_id','created_at']);
+        $arr['name'] ='制作人视频评分-视频评分';
+        // $taskdata->title
+        $arr['creator_id'] = $taskdata->creator_id;
+        $arr['created_at'] = $taskdata->created_at;
+        $arr['deadline'] = $taskdata->end_at;
+        $taskselect = ReviewQuestionnaire::where($arr)->first();
+        return $this->response->item($taskselect, new ReviewQuestionnaireShowTransformer());
     }
 }

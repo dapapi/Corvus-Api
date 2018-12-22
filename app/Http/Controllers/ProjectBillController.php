@@ -47,8 +47,8 @@ class ProjectBillController extends Controller
         }
         if($array['expense_type'] != '支出') {
             $array['expense_type'] = '支出';
-          //  ProjectBill::where($array)->state = ProjectBill::where($array)->expendItureSum()->get();
-            ProjectBill::where($array)->Status = ProjectBill::where($array)->expendItureSum()->get();
+          //   ProjectBill::where($array)->expendItureSum()->get();
+            dd(ProjectBill::where($array)->expendItureSum()->first()->Status);
            // $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
         }else{
            // $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');

@@ -72,9 +72,13 @@ class ReviewQuestionnaireController extends Controller {
             $reviewquestionnairemodel->name = '制作人视频评分-视频评分';
             $reviewquestionnairemodel->creator_id = $array['creator_id'];
             //  $now = now()->toDateTimeString();
+
             $number = date("w",time());  //当时是周几
             $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
             $diff_day = $number - 6; //求到周一差几天
+            if($diff_day >= 0 ){
+                $diff_day = - (6 + $diff_day) ;
+            }
             $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
             $reviewquestionnairemodel->deadline = $deadline;
             $reviewquestionnairemodel->reviewable_id = $production->id;

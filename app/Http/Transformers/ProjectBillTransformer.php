@@ -15,6 +15,7 @@ class ProjectBillTransformer extends TransformerAbstract
     {
 
             $array = [
+
                 'project_bill_id' => hashid_encode($projectbill->project_bill_id),
                 'account_year' => $projectbill->account_year,
                 'account_period' => $projectbill->account_period,
@@ -29,7 +30,7 @@ class ProjectBillTransformer extends TransformerAbstract
                 'expense_type' => $projectbill->expense_type,
                 'apply_reason' => $projectbill->apply_reason,
                 'pay_rec_time' => $projectbill->pay_rec_time,
-                //'expendituresum'=> $projectbill->expendituresum
+                'expendituresum'=> $projectbill->Status
 
 
             ];

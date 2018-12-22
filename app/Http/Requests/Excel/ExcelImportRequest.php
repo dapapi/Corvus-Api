@@ -24,7 +24,7 @@ class ExcelImportRequest extends FormRequest
     public function rules()
     {
         return [
-            'file' => 'required|mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|mimes:xlsx|max:10000'
+            'file' => 'required|max:10000'
         ];
     }
 }

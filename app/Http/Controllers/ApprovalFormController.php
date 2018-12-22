@@ -130,7 +130,7 @@ class ApprovalFormController extends Controller
 
             ->where('hi.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
-            ->select('hi.*','bu.*','users.name')
+            ->select('hi.*','bu.*','users.name','hi.id')
             ->paginate($pageSize)->toArray();
 
         //return $this->response->item($data, new ProjectTransformer());

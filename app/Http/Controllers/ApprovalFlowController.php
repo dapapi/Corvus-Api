@@ -104,8 +104,9 @@ class ApprovalFlowController extends Controller
         $array = [];
         foreach (Change::where('form_instance_number', $num)->orderBy('change_at', 'asc')->cursor() as $item) {
             $array[] = [
+                'id' => hashid_encode($item->user->id),
                 'name' => $item->user->name,
-                'avatar' => null,
+                'avatar' => $item->user->avatar,
                 'change_at' => $item->change_at,
                 'comment' => $item->comment,
                 'change_state_obj' => [
@@ -121,8 +122,9 @@ class ApprovalFlowController extends Controller
             return $this->response->array(['data' => $array]);
         else
             $array[] = [
+                'id' => hashid_encode($now->person->id),
                 'name' => $now->person->name,
-                'avatar' => null,
+                'avatar' => $now->person->avatar,
                 'change_state_obj' => [
                     'changed_state' => $now->dictionary->name,
                     'changed_icon' => $now->dictionary->icon,
@@ -162,8 +164,9 @@ class ApprovalFlowController extends Controller
         }
         foreach ($chains as $chain) {
             $array[] = [
+                'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
-                'avatar' => null,
+                'avatar' => $chain->next->avatar,
                 'change_state_obj' => [
                     'changed_state' => '待审批',
                     'changed_icon' => null,

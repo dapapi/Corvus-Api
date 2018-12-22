@@ -29,15 +29,14 @@ class ProjectBillController extends Controller
             }else{
                 $array['expense_type'] = '';
             }
+        }else{
+            $array['expense_type'] = '';
         }
         if ($Blogger && $Blogger->id) {
-          //  $array['artist_name'] ='美豆爱厨房';
             $array['artist_name'] = $Blogger->nickname;
         } else if ($project && $project->id) {
-         //   $array['project_kd_name'] ='美豆爱厨房';
             $array['project_kd_name'] = $project->title;
         } else if ($star && $star->id) {
-            //   $array['project_kd_name'] ='美豆爱厨房';
             $array['project_kd_name'] = $star->name;
         }
         if($array['expense_type'] != '支出') {
@@ -53,7 +52,20 @@ class ProjectBillController extends Controller
         return $result;
     }
 
+    public function store(Request $request,Blogger $Blogger,Star $star,Project $project)
+    {
 
+        if ($Blogger && $Blogger->id) {
+            $array['artist_name'] = $Blogger->nickname;
+        } else if ($project && $project->id) {
+            $array['project_kd_name'] = $project->title;
+        } else if ($star && $star->id) {
+            $array['project_kd_name'] = $star->name;
+        }
+
+
+
+    }
 
 
 }

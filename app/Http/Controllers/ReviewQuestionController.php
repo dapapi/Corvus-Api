@@ -26,16 +26,20 @@ class ReviewQuestionController extends Controller
         $array['reviewquestionnaire_id'] = $reviewquestionnaire->id;
         $selectuser = ReviewUser::where($array)->get()->toarray();
         if(empty($selectuser)){
-            return $this->response->errorForbidden('用户不能查看本问卷');
+            $data = ['data'=>''];
+            return $data;
         }
         $due = $reviewquestionnaire->deadline;
         if($due < now()->toDateTimeString()){
-            return $this->response->errorMethodNotAllowed('问卷已过期');
+            $error = ['data'=>'问卷已过期'];
+
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $questions = ReviewQuestion::where('review_id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
        // $questions = $reviewquestionnaire->questions()->get()->paginate($pageSize);
-        return $this->response->paginator($questions, new ReviewQuestionTransformer());
+        $result = $this->response->paginator($questions, new ReviewQuestionTransformer());
+        $result->addMeta('error', $error);
+        return $result;
     }
 
 

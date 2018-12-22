@@ -48,8 +48,7 @@ class CommentLogController extends Controller
             default:
                 break;
         }
-//->where('parent_id',0)
-      //  dd(CommentLog::where('parent_id', 0));
+
         $commentLogs = $query->where('parent_id', 0)->createDesc()->paginate($pageSize);
         foreach ($commentLogs as $commentLog) {
             if ($commentLog->method == CommentLogMethod::UPDATE_PRIVACY) {

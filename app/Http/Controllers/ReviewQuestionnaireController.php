@@ -36,15 +36,18 @@ class ReviewQuestionnaireController extends Controller {
         $array['reviewquestionnaire_id'] = $reviewquestionnaire->id;
         $selectuser = ReviewUser::where($array)->get()->toarray();
         if(empty($selectuser)){
-            return $this->response->errorForbidden('用户不能查看本问卷');
+            $data = ['data'=>''];
+            return $data;
         }
         $due = $reviewquestionnaire->deadline;
         if($due < now()->toDateTimeString()){
-            return $this->response->errorMethodNotAllowed('问卷已过期');
+            $error = ['data'=>'问卷已过期'];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $reviews = ReviewQuestionnaire::where('id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
-        return $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());
+        $result = $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());
+        $result->addMeta('error', $error);
+        return $result;
     }
 
 
@@ -128,7 +131,7 @@ class ReviewQuestionnaireController extends Controller {
 
     }
 
-    public function storeExcellent(ReviewQuestionnaireStoreRequest $request, Production $production) {
+    public function storeExcellent(ReviewQuestionnaireStoreRequest $request, Production $production,ReviewQuestionnaire $reviewquestionnaire,ReviewQuestion $reviewquestion) {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $array['creator_id'] = $user->id;
@@ -182,6 +185,24 @@ class ReviewQuestionnaireController extends Controller {
                         $reviewuser->user_id = $val['user_id'];
                         $reviewuser->reviewquestionnaire_id = $reviewquestionnairemodel->id;
                         $reviewuseradd = $reviewuser->save();
+                    }
+
+                }
+                $issues =ReviewItemAnswer::getIssue();
+                $answer =ReviewItemAnswer::getAnswer();
+                foreach ($issues as $key => $value){
+                    $issue['title'] = $value['titles'];
+                    $issue['review_id'] = $reviewquestionnairemodel->id;
+                    $issue['sort'] = $reviewquestionnaire->questions()->count() + 1;;
+                    $reviewQuestion = ReviewQuestion::create($issue);
+                    $reviewQuestionId = $reviewQuestion->id;
+                    foreach ($answer[$key] as $key1 => $value1) {
+                        $arr = array();
+                        $arr['title'] = $value1['answer'];
+                        $arr['value'] = $value1['value'];
+                        $arr['review_question_id'] = $reviewQuestionId;
+                        $arr['sort'] = $reviewquestion->items()->count() + 1;
+                        $reviewQuestion = ReviewQuestionItem::create($arr);
                     }
 
                 }

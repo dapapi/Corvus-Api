@@ -19,7 +19,10 @@ use App\Models\Production;
 use App\Models\DepartmentUser;
 use App\Models\BloggerType;
 use App\Models\ModuleUser;
+use App\Models\ReviewQuestion;
+use App\Models\ReviewQuestionItem;
 use App\Models\ReviewUser;
+use App\ReviewItemAnswer;
 use App\Models\ReviewQuestionnaire;
 use App\Models\StarWeiboshuInfo;
 use App\Models\StarXiaohongshuInfo;
@@ -671,7 +674,7 @@ class BloggerController extends Controller
         return $this->response->accepted();
     }
 
-    public function productionStore(BloggerProductionRequest $request)
+    public function productionStore(BloggerProductionRequest $request,ReviewQuestionnaire $reviewquestionnaire,ReviewQuestion $reviewquestion)
     {
         $payload = $request->all();
         $blooger_id = $payload['blogger_id'];
@@ -708,6 +711,9 @@ class BloggerController extends Controller
                 $number = date("w",time());  //当时是周几
                 $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
                 $diff_day = $number - 6; //求到周一差几天
+                if($diff_day >= 0 ){
+                    $diff_day = - (7 + $diff_day) ;
+                }
                 $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
                 $reviewquestionnairemodel->deadline = $deadline;
                 $reviewquestionnairemodel->reviewable_id = $production->id;
@@ -723,6 +729,24 @@ class BloggerController extends Controller
                     }
 
                 }
+            }
+            $issues =ReviewItemAnswer::getIssue();
+            $answer =ReviewItemAnswer::getAnswer();
+            foreach ($issues as $key => $value){
+                $issue['title'] = $value['titles'];
+                $issue['review_id'] = $reviewquestionnairemodel->id;
+                $issue['sort'] = $reviewquestionnaire->questions()->count() + 1;;
+                $reviewQuestion = ReviewQuestion::create($issue);
+                $reviewQuestionId = $reviewQuestion->id;
+                foreach ($answer[$key] as $key1 => $value1) {
+                    $arr = array();
+                    $arr['title'] = $value1['answer'];
+                    $arr['value'] = $value1['value'];
+                    $arr['review_question_id'] = $reviewQuestionId;
+                    $arr['sort'] = $reviewquestion->items()->count() + 1;
+                    $reviewQuestion = ReviewQuestionItem::create($arr);
+                }
+
             }
 //            // 操作日志
 //            $operate = new OperateEntity([

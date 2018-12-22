@@ -131,6 +131,8 @@ class ApprovalFlowController extends Controller
             ];
 
         $next = $this->getChainNext($instance, $now->current_handler_id);
+        if ($next === 0)
+            return $this->response->array(['data' => $array]);
 
         $form = $instance->form;
         $formId = $instance->form_id;
@@ -400,6 +402,8 @@ class ApprovalFlowController extends Controller
 
             $this->getTransferNextChain($instance, $now);
         }
+        if ($chain->next_id === 0)
+            return 0;
 
         if ($chain->approver_type == 246) {
             $user = Auth::guard('api')->user();

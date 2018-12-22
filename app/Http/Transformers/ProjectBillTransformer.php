@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectBillTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['expendituresum'];
+  //  protected $availableIncludes = ['expendituresum'];
 
 
     public function transform(ProjectBill $projectbill)
@@ -36,11 +36,11 @@ class ProjectBillTransformer extends TransformerAbstract
 
         return $array;
     }
-    public function includeExpenditureSum(ProjectBill $projectbill)
-    {
-        $reviewanswer = $projectbill->expendituresum;
-        return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
-
-    }
+//    public function includeExpenditureSum(ProjectBill $projectbill)
+//    {
+//        $reviewanswer = $projectbill->expendituresum;
+//        return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
+//
+//    }
 
 }

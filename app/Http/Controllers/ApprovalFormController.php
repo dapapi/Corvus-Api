@@ -207,7 +207,7 @@ class ApprovalFormController extends Controller
             })
             ->where('afe.current_handler_id', $user->id)
             ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
-            ->select('afe.*','bu.*','users.name','ph.title','ph.created_at')
+            ->select('afe.*','bu.*','users.name','ph.title','ph.created_at','ph.id')
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key=>&$value){

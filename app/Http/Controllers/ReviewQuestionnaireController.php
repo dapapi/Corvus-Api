@@ -31,6 +31,17 @@ class ReviewQuestionnaireController extends Controller {
 
     public function show(Request $request,ReviewQuestionnaire $reviewquestionnaire) {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array['user_id'] = $user->id;
+        $array['reviewquestionnaire_id'] = $reviewquestionnaire->id;
+        $selectuser = ReviewUser::where($array)->get()->toarray();
+        if(empty($selectuser)){
+            return $this->response->errorBadRequest('用户不能查看本问卷');
+        }
+        $due = $reviewquestionnaire->deadline;
+        if($due < now()->toDateTimeString()){
+            return $this->response->errorBadRequest('问卷已过期');
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $reviews = ReviewQuestionnaire::where('id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());

@@ -769,9 +769,10 @@ class BloggerController extends Controller
         $arr['name'] =$taskdata->title;
         // $taskdata->title
         $arr['creator_id'] = $taskdata->creator_id;
-        $arr['created_at'] = $taskdata->created_at;
         $arr['deadline'] = $taskdata->end_at;
-        $taskselect = ReviewQuestionnaire::where($arr)->first();
+        $arr[] = ['created_at','=',$taskdata->created_at->toDatetimeString()];
+        $arr1[] = ['created_at','<',$taskdata->created_at->toDatetimeString()];
+        $taskselect = ReviewQuestionnaire::where($arr)->orwhere($arr1)->orderby('created_at','desc')->first();
         if(!isset($taskselect)){
             $data = ['data'=>''];
             return $data;

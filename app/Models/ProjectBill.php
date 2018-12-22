@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProjectBill extends Model
 {
-   protected $table = 'project_bill';
 
     protected $fillable = [
         'account_year',
@@ -33,12 +32,12 @@ class ProjectBill extends Model
     {
         return $query->orderBy('pay_rec_time', 'desc');
     }
-    public function expendituresum() {
+   // public function expendituresum() {
 
         // 总分
-        $sums =  $this->hasMany(project::class, 'title', 'project_kd_name')->select(DB::raw('sum(content) as sums'))->groupby('review_id')->get();
-dd($sums);
+       // $sums =  $this->hasMany(project::class, 'title', 'project_kd_name')->select(DB::raw('sum(content) as sums'))->groupby('review_id')->get();
+//dd($sums);
 
 
-    }
+   // }
 }

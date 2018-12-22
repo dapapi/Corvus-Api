@@ -123,7 +123,7 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'name' => $now->person->name,
                 'avatar' => null,
-                'change_state' => [
+                'change_state_obj' => [
                     'changed_state' => $now->dictionary->name,
                     'changed_icon' => $now->dictionary->icon,
                 ],
@@ -162,9 +162,9 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'name' => $chain->next->name,
                 'avatar' => null,
-                'change_state' => [
-                    'changed_state' => $now->dictionary->name,
-                    'changed_icon' => $now->dictionary->icon,
+                'change_state_obj' => [
+                    'changed_state' => '待审批',
+                    'changed_icon' => null,
                 ],
                 'approval_stage' => 'todo'
             ];
@@ -507,7 +507,6 @@ class ApprovalFlowController extends Controller
     {
         $now = Execute::where('form_instance_number', $num)->first();
         if ($now->flow_type_id != 231)
-            // todo 新建一个验证
             throw new ApprovalVerifyException('流程不正确');
 
         if ($now->current_handler_id != $userId)

@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ScheduleTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['calendar', 'material', 'creator', 'participants'];
+    protected $availableIncludes = ['calendar', 'material', 'creator', 'participants', 'affixes'];
 
     public function transform(Schedule $schedule)
     {
@@ -53,6 +53,11 @@ class ScheduleTransformer extends TransformerAbstract
         return $this->item($creator, new UserTransformer());
     }
 
+    public function includeAffixes(Schedule $schedule)
+    {
+        $affixes = $schedule->affixes()->createDesc()->get();
+        return $this->collection($affixes, new AffixTransformer());
+    }
     public function includeParticipants(Schedule $schedule)
     {
         $participants = $schedule->participants;

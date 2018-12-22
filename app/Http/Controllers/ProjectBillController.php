@@ -21,19 +21,20 @@ class ProjectBillController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $payload['expense_type']=2;
         if($request->has('expense_type')){
             if($payload['expense_type']==1){
 
                 $array['expense_type'] = '收入';
             }else if($payload['expense_type']==2){
                 $array['expense_type'] = '支出';
+
+
+
             }else{
                 $array['expense_type'] = '';
             }
 
         }
-
         if ($Blogger && $Blogger->id) {
           //  $array['artist_name'] ='美豆爱厨房';
             $array['artist_name'] = $Blogger->nickname;
@@ -44,7 +45,15 @@ class ProjectBillController extends Controller
             //   $array['project_kd_name'] ='美豆爱厨房';
             $array['project_kd_name'] = $star->name;
         }
-//       $sums =  ProjectBill::where($array)->select(DB::raw('sum(money) as sums'))->groupby('expense_type')->get();
+        if($array['expense_type'] != '支出') {
+            $array['expense_type'] = '支出';
+          //  ProjectBill::where($array)->state = ProjectBill::where($array)->expendItureSum()->get();
+            ProjectBill::where($array)->Status = ProjectBill::where($array)->expendItureSum()->get();
+           // $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
+        }else{
+           // $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
+        }
+
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
         return $this->response->paginator($projectbill, new ProjectBillTransformer());
     }

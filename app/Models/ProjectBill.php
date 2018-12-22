@@ -3,7 +3,6 @@
 namespace App\Models;
 
 
-use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -32,12 +31,17 @@ class ProjectBill extends Model
     {
         return $query->orderBy('pay_rec_time', 'desc');
     }
-   // public function expendituresum() {
+    public function scopeExpendItureSum($query)
+    {
+        return $query->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
 
-        // 总分
-       // $sums =  $this->hasMany(project::class, 'title', 'project_kd_name')->select(DB::raw('sum(content) as sums'))->groupby('review_id')->get();
-//dd($sums);
-
-
-   // }
+    }
+    public function getStatusAttribute($value)
+    {
+        $this->attributes['expendituresum'] = strtolower($value);
+    }
+    public function setStateAttribute($value)
+    {
+        $this->attributes['expendituresum'] = strtolower($value);
+    }
 }

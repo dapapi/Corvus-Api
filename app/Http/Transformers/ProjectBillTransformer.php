@@ -3,11 +3,12 @@
 namespace App\Http\Transformers;
 
 use App\Models\ProjectBill;
+use App\Models\Project;
 use League\Fractal\TransformerAbstract;
 
 class ProjectBillTransformer extends TransformerAbstract
 {
-  //  protected $availableIncludes = ['expendituresum'];
+    protected $availableIncludes = ['expendituresum'];
 
 
     public function transform(ProjectBill $projectbill)
@@ -23,12 +24,12 @@ class ProjectBillTransformer extends TransformerAbstract
                 'bill_number' => $projectbill->bill_number,
                 'expense_name' => $projectbill->expense_name,
                 'artist_name' => $projectbill->artist_name,
-                //'money' => $projectbill->money,
+                'money' => $projectbill->money,
                 'action_user' => $projectbill->action_user,
                 'expense_type' => $projectbill->expense_type,
                 'apply_reason' => $projectbill->apply_reason,
                 'pay_rec_time' => $projectbill->pay_rec_time,
-                'expendituresum'=> $projectbill->expendituresum
+                //'expendituresum'=> $projectbill->expendituresum
 
 
             ];
@@ -36,11 +37,5 @@ class ProjectBillTransformer extends TransformerAbstract
 
         return $array;
     }
-//    public function includeExpenditureSum(ProjectBill $projectbill)
-//    {
-//        $reviewanswer = $projectbill->expendituresum;
-//        return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
-//
-//    }
 
 }

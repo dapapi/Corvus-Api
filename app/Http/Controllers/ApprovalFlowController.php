@@ -312,7 +312,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 242);
+            $this->createOrUpdateHandler($num, $userId, 234);
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -472,6 +472,7 @@ class ApprovalFlowController extends Controller
             if ($execute)
                 $execute->update([
                     'current_handler_id' => $userId,
+                    'current_handler_type' => 245,
                     'flow_type_id' => $status,
                 ]);
             else
@@ -486,9 +487,7 @@ class ApprovalFlowController extends Controller
             if ($status != 231) {
                 $instance = $this->getInstance($num);
                 $instance->form_status = $status;
-                $instance->update([
-                    'form_status' => $status,
-                ]);
+                $instance->save();
             }
         } catch (Exception $exception) {
             throw $exception;

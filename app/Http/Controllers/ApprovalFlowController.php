@@ -223,7 +223,7 @@ class ApprovalFlowController extends Controller
         return $this->response->created();
     }
 
-    public function reject(Request $request, $instance)
+    public function refuse(Request $request, $instance)
     {
         $num = $instance->form_instance_number;
 
@@ -486,7 +486,7 @@ class ApprovalFlowController extends Controller
             if ($status != 231) {
                 $instance = $this->getInstance($num);
                 $instance->form_status = $status;
-                $status->save();
+                $instance->save();
             }
         } catch (Exception $exception) {
             throw $exception;

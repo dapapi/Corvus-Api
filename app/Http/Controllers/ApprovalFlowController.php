@@ -104,8 +104,9 @@ class ApprovalFlowController extends Controller
         $array = [];
         foreach (Change::where('form_instance_number', $num)->orderBy('change_at', 'asc')->cursor() as $item) {
             $array[] = [
+                'id' => hashid_encode($item->user->id),
                 'name' => $item->user->name,
-                'avatar' => null,
+                'avatar' => $item->user->avatar,
                 'change_at' => $item->change_at,
                 'comment' => $item->comment,
                 'change_state_obj' => [
@@ -121,9 +122,10 @@ class ApprovalFlowController extends Controller
             return $this->response->array(['data' => $array]);
         else
             $array[] = [
+                'id' => hashid_encode($now->person->id),
                 'name' => $now->person->name,
-                'avatar' => null,
-                'change_state' => [
+                'avatar' => $now->person->avatar,
+                'change_state_obj' => [
                     'changed_state' => $now->dictionary->name,
                     'changed_icon' => $now->dictionary->icon,
                 ],
@@ -131,6 +133,8 @@ class ApprovalFlowController extends Controller
             ];
 
         $next = $this->getChainNext($instance, $now->current_handler_id);
+        if ($next === 0)
+            return $this->response->array(['data' => $array]);
 
         $form = $instance->form;
         $formId = $instance->form_id;
@@ -160,11 +164,12 @@ class ApprovalFlowController extends Controller
         }
         foreach ($chains as $chain) {
             $array[] = [
+                'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
-                'avatar' => null,
-                'change_state' => [
-                    'changed_state' => $now->dictionary->name,
-                    'changed_icon' => $now->dictionary->icon,
+                'avatar' => $chain->next->avatar,
+                'change_state_obj' => [
+                    'changed_state' => '待审批',
+                    'changed_icon' => null,
                 ],
                 'approval_stage' => 'todo'
             ];
@@ -218,7 +223,7 @@ class ApprovalFlowController extends Controller
         return $this->response->created();
     }
 
-    public function reject(Request $request, $instance)
+    public function refuse(Request $request, $instance)
     {
         $num = $instance->form_instance_number;
 
@@ -400,6 +405,8 @@ class ApprovalFlowController extends Controller
 
             $this->getTransferNextChain($instance, $now);
         }
+        if ($chain->next_id === 0)
+            return 0;
 
         if ($chain->approver_type == 246) {
             $user = Auth::guard('api')->user();
@@ -479,7 +486,9 @@ class ApprovalFlowController extends Controller
             if ($status != 231) {
                 $instance = $this->getInstance($num);
                 $instance->form_status = $status;
-                $status->save();
+                $instance->update([
+                    'form_status' => $status,
+                ]);
             }
         } catch (Exception $exception) {
             throw $exception;
@@ -507,7 +516,6 @@ class ApprovalFlowController extends Controller
     {
         $now = Execute::where('form_instance_number', $num)->first();
         if ($now->flow_type_id != 231)
-            // todo 新建一个验证
             throw new ApprovalVerifyException('流程不正确');
 
         if ($now->current_handler_id != $userId)

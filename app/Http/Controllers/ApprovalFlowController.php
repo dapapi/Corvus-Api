@@ -486,7 +486,9 @@ class ApprovalFlowController extends Controller
             if ($status != 231) {
                 $instance = $this->getInstance($num);
                 $instance->form_status = $status;
-                $instance->save();
+                $instance->update([
+                    'form_status' => $status,
+                ]);
             }
         } catch (Exception $exception) {
             throw $exception;

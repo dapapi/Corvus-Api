@@ -477,6 +477,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
 
+        /*组织架构 职位管理*/
+        $api->get('/position', 'App\Http\Controllers\DepartmentController@positionList');
+        $api->post('/position', 'App\Http\Controllers\DepartmentController@positionStore');
+        $api->put('/position/{position}', 'App\Http\Controllers\DepartmentController@positionEdit');
+        $api->delete('/position/{position}', 'App\Http\Controllers\DepartmentController@positionDel');
+
 
         /*后台权限 分组 控制台*/
         $api->get('/console','App\Http\Controllers\ConsoleController@index');

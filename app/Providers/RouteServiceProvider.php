@@ -18,6 +18,10 @@ use App\Models\Announcement;
 use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Production;
+use App\Models\ProjectHistorie;
+use App\Models\Position;
+
+
 use App\Models\Draft;
 use App\Models\Repository;
 use App\Models\ReviewQuestionnaire;
@@ -449,6 +453,28 @@ class RouteServiceProvider extends ServiceProvider
             return $entity;
         });
 
+        Route::bind('historie', function ($value) {
+
+            try {
+                $id = hashid_decode($value);
+
+                $entity = ProjectHistorie::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('position', function ($value) {
+
+            try {
+                $id = hashid_decode($value);
+                $entity = Position::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
 
     }
 

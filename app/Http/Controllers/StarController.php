@@ -41,22 +41,22 @@ class StarController extends Controller
     {
         $payload = $request->all();
         $array = [];//查询条件
-        if($request->has('name')){//姓名
-          $array[] = ['name','like','%'.$payload['name'].'%'];
+        if ($request->has('name')) {//姓名
+            $array[] = ['name', 'like', '%' . $payload['name'] . '%'];
         }
-        if($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])){//签约状态
-          $array[] = ['sign_contract_status',$payload['sign_contract_status']];
+        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
+            $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
-        if($request->has('communication_status') && !empty($payload['communication_status'])){//沟通状态
-          $array[] = ['communication_status',$payload['communication_status']];
+        if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
+            $array[] = ['communication_status', $payload['communication_status']];
         }
-        if($request->has('source') && !empty($payload['source'])){//艺人来源
-          $array[] = ['source',$payload['source']];
+        if ($request->has('source') && !empty($payload['source'])) {//艺人来源
+            $array[] = ['source', $payload['source']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $stars = Star::createDesc()
-        ->where($array)//根据条件查询
-        ->paginate($pageSize);
+            ->where($array)//根据条件查询
+            ->paginate($pageSize);
         return $this->response->paginator($stars, new StarTransformer());
     }
 
@@ -145,6 +145,7 @@ class StarController extends Controller
         }
         DB::commit();
     }
+
     //update
     public function edit(StarUpdateRequest $request, Star $star)
     {
@@ -474,9 +475,9 @@ class StarController extends Controller
             }
         }
         //社交平台
-        if($request->has('platform') && !empty($payload['platform'])){
+        if ($request->has('platform') && !empty($payload['platform'])) {
             $array['platform'] = $payload['platform'];
-            if($array['platform'] != $star->platform){
+            if ($array['platform'] != $star->platform) {
                 $operatePlatform = new OperateEntity(
                     [
                         'obj' => $star,
@@ -490,9 +491,9 @@ class StarController extends Controller
             }
         }
         //微博url
-        if($request->has('weibo_url')){
+        if ($request->has('weibo_url')) {
             $array['weibo_url'] = $payload['weibo_url'];
-            if($array['weibo_url'] != $star->weibo_url){
+            if ($array['weibo_url'] != $star->weibo_url) {
                 $operateWeiboUrl = new OperateEntity(
                     [
                         'obj' => $star,
@@ -506,9 +507,9 @@ class StarController extends Controller
             }
         }
         //微博粉丝数
-        if($request->has('weibo_fans_num')){
+        if ($request->has('weibo_fans_num')) {
             $array['weibo_fans_num'] = $payload['weibo_fans_num'];
-            if($array['weibo_fans_num'] != $star->weibo_fans_num){
+            if ($array['weibo_fans_num'] != $star->weibo_fans_num) {
                 $operateWeiboFansNum = new OperateEntity(
                     [
                         'obj' => $star,
@@ -522,9 +523,9 @@ class StarController extends Controller
             }
         }
         //抖音id
-        if($request->has('douyin_id')){
+        if ($request->has('douyin_id')) {
             $array['douyin_id'] = $payload['douyin_id'];
-            if($array['douyin_id'] != $star->douyin_id){
+            if ($array['douyin_id'] != $star->douyin_id) {
                 $operateDouyinId = new OperateEntity(
                     [
                         'obj' => $star,
@@ -538,9 +539,9 @@ class StarController extends Controller
             }
         }
         //抖音粉丝数
-        if($request->has('douyin_fans_num')){
+        if ($request->has('douyin_fans_num')) {
             $array['douyin_fans_num'] = $payload['douyin_fans_num'];
-            if($array['douyin_fans_num'] != $star->douyin_fans_num){
+            if ($array['douyin_fans_num'] != $star->douyin_fans_num) {
                 $operateDouyinFansNum = new OperateEntity(
                     [
                         'obj' => $star,
@@ -554,10 +555,10 @@ class StarController extends Controller
             }
         }
         //其他url
-        if($request->has('qita_url')){
+        if ($request->has('qita_url')) {
             $array['qita_url'] = $payload['qita_url'];
-            if($array['qita_url'] != $star->qita_url){
-                $operateQitaUrl= new OperateEntity(
+            if ($array['qita_url'] != $star->qita_url) {
+                $operateQitaUrl = new OperateEntity(
                     [
                         'obj' => $star,
                         'title' => '其他url',
@@ -570,10 +571,10 @@ class StarController extends Controller
             }
         }
         //其他粉丝数
-        if($request->has('qita_fans_num')){
+        if ($request->has('qita_fans_num')) {
             $array['qita_fans_num'] = $payload['qita_fans_num'];
-            if($array['qita_fans_num'] != $star->qita_fans_num){
-                $operateQitaFansNum= new OperateEntity(
+            if ($array['qita_fans_num'] != $star->qita_fans_num) {
+                $operateQitaFansNum = new OperateEntity(
                     [
                         'obj' => $star,
                         'title' => '其他粉丝数',
@@ -586,10 +587,10 @@ class StarController extends Controller
             }
         }
         //星探
-        if($request->has('artist_scout_name')){
+        if ($request->has('artist_scout_name')) {
             $array['artist_scout_name'] = $payload['artist_scout_name'];
-            if($array['artist_scout_name'] != $star->artist_scout_name){
-                $operateArtistScoutName= new OperateEntity(
+            if ($array['artist_scout_name'] != $star->artist_scout_name) {
+                $operateArtistScoutName = new OperateEntity(
                     [
                         'obj' => $star,
                         'title' => '星探',
@@ -601,10 +602,10 @@ class StarController extends Controller
                 $arrayOperateLog[] = $operateArtistScoutName;
             }
         }
-        if($request->has('star_location')){
+        if ($request->has('star_location')) {
             $array['star_location'] = $payload['star_location'];
-            if($array['star_location'] != $star->star_location){
-                $operateStarLocation= new OperateEntity(
+            if ($array['star_location'] != $star->star_location) {
+                $operateStarLocation = new OperateEntity(
                     [
                         'obj' => $star,
                         'title' => '星探地区',
@@ -624,11 +625,11 @@ class StarController extends Controller
                     try {
                         //查找对应类型的附件是否存在
                         $affixmodel = Affix::where([
-                            ['type',$affix['type']],
-                            ['affixable_type',ModuleableType::STAR],
-                            ['affixable_id',$star->id]
+                            ['type', $affix['type']],
+                            ['affixable_type', ModuleableType::STAR],
+                            ['affixable_id', $star->id]
                         ]);
-                        if($affixmodel->id){//存在则删除
+                        if ($affixmodel->id) {//存在则删除
                             $affixmodel->delete();
                         }
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
@@ -637,10 +638,11 @@ class StarController extends Controller
                     }
                 }
             }
-            if (count($array) == 0)
-                return $this->response->noContent();
+//            if (count($array) == 0)
+//                return $this->response->noContent();
+            if (count($array) != 0)
+                $star->update($array);
 
-            $star->update($array);
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
 
@@ -716,28 +718,28 @@ class StarController extends Controller
      * @param Request $request
      * @param Star $star
      */
-    public function contract(Request $request,Star $star)
+    public function contract(Request $request, Star $star)
     {
         //设置签约状态为已签约
         $star->update([
-            'sign_contract_status'=>SignContractStatus::ALREADY_SIGN_CONTRACT,
-            'sign_contract_at'  =>  date('Y/m/d H:i:s')
+            'sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT,
+            'sign_contract_at' => date('Y/m/d H:i:s')
         ]);
-        return $this->response->item(Star::find($star->id),new StarTransformer());
+        return $this->response->item(Star::find($star->id), new StarTransformer());
     }
 
     /**解约
      * @param Request $request
      * @param Star $star
      */
-    public function terminateAgreement(Request $request,Star $star)
+    public function terminateAgreement(Request $request, Star $star)
     {
         //设置签约状态为解约
         $star->update([
-            'sign_contract_status'=>SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
-            'terminate_agreement_at'    =>  date('Y/m/d H:i:s')
+            'sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT,
+            'terminate_agreement_at' => date('Y/m/d H:i:s')
         ]);
-        return $this->response->item(Star::find($star->id),new StarTransformer());
+        return $this->response->item(Star::find($star->id), new StarTransformer());
     }
 
     /**
@@ -746,18 +748,19 @@ class StarController extends Controller
      */
     public function getStarFensi(Request $request)
     {
-        $star_id = $request->get('star_id','null');
+        $star_id = $request->get('star_id', 'null');
         $star_id = hashid_decode($star_id);
-        $starable_type = $request->get('starable_type',null);
+        $starable_type = $request->get('starable_type', null);
         $star_time = $request->get('start_time');
         $end_time = $request->get('end_time');
-        $report =  StarReportRepository::getFensiByStarId($star_id,$starable_type,$star_time,$end_time);
+        $report = StarReportRepository::getFensiByStarId($star_id, $starable_type, $star_time, $end_time);
         return $report->platforms();
     }
+
     /**
      * 获取截止在当前日期之前的5个完成中的项目和任务
      */
-    public function getFiveTaskAndProjejct(Request $request,Star $star)
+    public function getFiveTaskAndProjejct(Request $request, Star $star)
     {
 //        $projects = $star->project()
 //            ->where('end_at','<',Carbon::now()->toDateString())

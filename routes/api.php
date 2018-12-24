@@ -404,6 +404,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/personnel/entry/{user}', 'App\Http\Controllers\PersonnelManageController@entryDetail');//
         $api->get('/entry', 'App\Http\Controllers\PersonnelManageController@entry');//
         $api->put('/audit/{user}', 'App\Http\Controllers\PersonnelManageController@audit');//
+        $api->put('/personnel/position/{user}', 'App\Http\Controllers\PersonnelManageController@editPosition');//
 
 
         $api->post('/materials', 'App\Http\Controllers\MaterialController@store');

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ReviewQuestionStoreRequest;
-use App\Http\Requests\ReviewQuestionStoreAnswerRequest;
+
 use App\Http\Transformers\ProjectBillTransformer;
 use App\Models\Star;
 use App\Models\Blogger;
@@ -46,14 +45,20 @@ class ProjectBillController extends Controller
         if($array['expense_type'] != '支出') {
             $array['expense_type'] = '支出';
             $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+
         }else{
             $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         }
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
 
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
-        $result->addMeta('expendituresum', $expendituresum->expendituresum);
-        return $result;
+        if(isset($expendituresum)){
+            $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            return $result;
+        }else{
+            return $result;
+        }
+
     }
 
     public function store(Request $request,Blogger $Blogger,Star $star,Project $project)

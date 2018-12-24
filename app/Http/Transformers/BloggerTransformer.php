@@ -103,7 +103,7 @@ class BloggerTransformer extends TransformerAbstract
     public function includeOperateLogs(Blogger $blogger)
     {
         $tasks = $blogger->operateLogs()->createDesc()->limit(1)->get();
-        return $this->collection($tasks, new OperatelogTransformer());
+        return $this->collection($tasks, new OperateLogTransformer());
     }
     public function includeAffixes(Blogger $blogger)
     {

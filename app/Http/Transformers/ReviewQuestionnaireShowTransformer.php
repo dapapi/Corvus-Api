@@ -25,6 +25,8 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
             'name'=> $reviewquestionnaire->name,
             // 'creator_id'=> $reviewquestionnaire->creator_id,
             'deadline'=> $reviewquestionnaire->deadline,
+            'excellent'=> $reviewquestionnaire->excellent,
+            'excellent_sum'=> $reviewquestionnaire->excellent_sum,
            // 'reviewable_id'=> hashid_encode($reviewquestionnaire->reviewable_id),
           //  'reviewable_type'=> $reviewquestionnaire->reviewable_type,
             'auth_type'=> $reviewquestionnaire->auth_type,

@@ -10,6 +10,9 @@ use App\Models\Blogger;
 use App\Models\Project;
 use App\Models\ProjectBill;
 use App\Models\ProjectBillResource;
+use App\Models\OperateEntity;
+use App\OperateLogMethod;
+use App\Events\OperateLogEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -56,14 +59,49 @@ class ProjectBillController extends Controller
     public function store(Request $request,Blogger $Blogger,Star $star,Project $project)
     {
 
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        unset($payload['status']);
+        $payload['creator_id'] = $user->id;
+        $array = $payload;
         if ($Blogger && $Blogger->id) {
-            $array['artist_name'] = $Blogger->nickname;
+            $array['resourceable_id'] = $project->id;
+            $array['resourceable_title'] = $Blogger->nickname;
+            $array['resourceable_type'] = 'projects';
         } else if ($project && $project->id) {
-            $array['project_kd_name'] = $project->title;
+            $array['resourceable_id'] = $project->id;
+            $array['resourceable_title'] = $project->title;
+            $array['resourceable_type'] = 'projects';
+
         } else if ($star && $star->id) {
-            $array['project_kd_name'] = $star->name;
+            $array['resourceable_id'] = $project->id;
+            $array['resourceable_title'] = $star->name;
+            $array['resourceable_type'] = 'projects';
+
         }
-       // ProjectBillResource::
+            try {
+
+                $bill =  ProjectBillResource::create($array);
+                dd($bill);
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $bill,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            } catch (Exception $e) {
+            dd($e);
+                DB::rollBack();
+                Log::error($e);
+                return $this->response->errorInternal('创建失败');
+            }
+        DB::commit();
+
 
 
 

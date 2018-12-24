@@ -180,7 +180,9 @@ class ReviewQuestionnaireController extends Controller {
                 $diff_day = $number - 8; //求到周一差几天
                 $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
                 $reviewquestionnairemodel->deadline = $deadline;
+                $reviewquestionnairemodel->excellent_sum = $payload['excellent_sum'];
                 $reviewquestionnairemodel->reviewable_id = $production->id;
+                $reviewquestionnairemodel->excellent = $payload['excellent'];
                 $reviewquestionnairemodel->reviewable_type = 'production';
                 $reviewquestionnairemodel->auth_type = '2';
                 $reviewquestionnaireadd = $reviewquestionnairemodel->save();

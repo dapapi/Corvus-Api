@@ -4,11 +4,10 @@ namespace App\Models;
 
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class ProjectBillResource extends Model
 {
-
+    protected $tables = 'project_bills_resources';
     protected $fillable = [
         'expenses',
         'papi_divide',

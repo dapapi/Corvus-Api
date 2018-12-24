@@ -79,6 +79,7 @@ class User extends Authenticatable
 
     ];
 
+    const USER_STATUS_DEFAULT = 0; // 默认
     const USER_STATUS_TRIAL = 1; // 试用期
     const USER_STATUS_POSITIVE = 2; //转正
     const USER_STATUS_DEPARTUE = 3; //离职
@@ -95,8 +96,11 @@ class User extends Authenticatable
     const  USER_TYPE_DEPARTUE = 5; //离职
     const  USER_ENTRY_STATUS = 3; //hr审核状态已同意
 
+    const  USER_DEPARTMENT_DEFAULT = 10; //hr审核通过 默认职位未分配职位
 
-    const USER_PSWORD = '$2y$10$8D4nCQeQDaCVlPfCveE.2eT4aJyvzxRIQpvpunptdYzGmsQ9hWLJy';
+
+
+    const USER_PSWORD = '$2y$10$61FPobZVqUNUuaHlse2yFOlacwYA272Am0w/0x0Fv8vq1JfOzu3LK';
 
     /**
      * The attributes that should be hidden for arrays.
@@ -132,7 +136,11 @@ class User extends Authenticatable
 
     public function setPasswordAttribute($value)
     {
-        $this->attributes['password'] = Hash::make($value);
+        if(isset($value)){
+            $this->attributes['password'] = Hash::make($value);
+        }else{
+            $this->attributes['password'] = '';
+        }
     }
 
     public function getCompanyAttribute()

@@ -49,11 +49,13 @@ class PersonnelManageController extends Controller
                 $ehireShape = addslashes($request->input('hire_shape'));//聘用形式
 
                 if(!empty($status)) {
-                    $query->whereIn('status', $status);
+
+                    $query->where('status', $status);
                 }
 
                 if(!empty($positionType)) {
-                    $query->whereIn('position_type', $positionType);
+
+                    $query->where('position_type', $positionType);
                 }
                 if(!empty($ehireShape)) {
                     $query->where('hire_shape',$ehireShape);
@@ -62,10 +64,10 @@ class PersonnelManageController extends Controller
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
                 }
                 //不显示存档信息 禁用
-                $query->where('status','!=',User::USER_ARCHIVE)->where('disable',User::USER_TYPE_DISABLE);
+                $query->where('status','!=',User::USER_ARCHIVE)->where('disable','!=',User::USER_TYPE_DISABLE);
 
              })->paginate($pageSize);
-
+       
         $result = $this->response->paginator($user, new UserTransformer());
         $result->addMeta('date', $data);
         return $result;
@@ -225,19 +227,17 @@ class PersonnelManageController extends Controller
         if($status == 1){
             $array = [
                 'status' => User::USER_STATUS_POSITIVE,
-                'hire_shape' => User::HIRE_SHAPE_OFFICIAL,
             ];
         }
         //离职
         if($status == 2){
             $array = [
-                'status' => User::USER_STATUS_DEPARTUE,
-                'hire_shape' => User::HIRE_SHAPE_INTERN,
+                'position_type' => User::USER_DEPARTUE,
             ];
             $num = DB::table("role_users")->where('user_id',$user_id)->delete();
 
             //归档
-        }elseif($status == 6) {
+        }elseif($status == 5) {
             $array = [
                 'status' => User::USER_ARCHIVE,
                 'archive_time' => date('Y-m-d h:i:s',time()),
@@ -283,6 +283,9 @@ class PersonnelManageController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+
+
+
 
     //存档列表
     public function archiveList(Request $request)
@@ -670,6 +673,41 @@ class PersonnelManageController extends Controller
         return $this->response->item($user, new UserTransformer());
 
     }
+
+    public function editPosition(Request $request, User $user)
+    {
+
+        $payload = $request->all();
+        $userId = $user->id;
+
+        $array = [
+            'user_id'=>$userId,
+            'department_id'=>hashid_decode($payload['department_id']),
+        ];
+
+        DB::beginTransaction();
+        try {
+            $num = DB::table("department_user")->where('user_id',$userId)->where('type','!=',1)->delete();
+            DepartmentUser::create($array);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $user,
+                'title' => null,
+                'start' => $user->id,
+                'end' => $payload['department_id'],
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
 
 
 

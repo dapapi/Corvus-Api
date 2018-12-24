@@ -106,7 +106,7 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'id' => hashid_encode($item->user->id),
                 'name' => $item->user->name,
-                'avatar' => $item->user->avatar,
+                'avatar' => $item->user->icon_url,
                 'change_at' => $item->change_at,
                 'comment' => $item->comment,
                 'change_state_obj' => [
@@ -124,7 +124,7 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'id' => hashid_encode($now->person->id),
                 'name' => $now->person->name,
-                'avatar' => $now->person->avatar,
+                'avatar' => $now->person->icon_url,
                 'change_state_obj' => [
                     'changed_state' => $now->dictionary->name,
                     'changed_icon' => $now->dictionary->icon,
@@ -166,7 +166,7 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
-                'avatar' => $chain->next->avatar,
+                'avatar' => $chain->next->icon_url,
                 'change_state_obj' => [
                     'changed_state' => '待审批',
                     'changed_icon' => null,

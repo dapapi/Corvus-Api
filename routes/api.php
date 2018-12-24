@@ -346,6 +346,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
+        $api->get('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@indexReturnedMoney');
+        $api->post('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@addReturnedMoney');
+        $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
         //获取明星写的项目
         $api->get('/projects/starproject', 'App\Http\Controllers\ProjectController@getStarProject');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
@@ -386,7 +389,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // personnel
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
         $api->get('/archive', 'App\Http\Controllers\PersonnelManageController@archivelist');
-        $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+        $api->put('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@statusEdit');
         $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
         $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
         $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
@@ -401,6 +404,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/personnel/entry/{user}', 'App\Http\Controllers\PersonnelManageController@entryDetail');//
         $api->get('/entry', 'App\Http\Controllers\PersonnelManageController@entry');//
         $api->put('/audit/{user}', 'App\Http\Controllers\PersonnelManageController@audit');//
+        $api->put('/personnel/position/{user}', 'App\Http\Controllers\PersonnelManageController@editPosition');//
 
 
         $api->post('/materials', 'App\Http\Controllers\MaterialController@store');
@@ -484,6 +488,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/position', 'App\Http\Controllers\DepartmentController@positionStore');
         $api->put('/position/{position}', 'App\Http\Controllers\DepartmentController@positionEdit');
         $api->delete('/position/{position}', 'App\Http\Controllers\DepartmentController@positionDel');
+
+        //用户禁用列表
+        $api->get('/position/disable', 'App\Http\Controllers\DepartmentController@disableList');
+        $api->put('/position/disable/{user}', 'App\Http\Controllers\DepartmentController@disableEdit');
 
 
         /*后台权限 分组 控制台*/

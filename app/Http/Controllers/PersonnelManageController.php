@@ -40,28 +40,31 @@ class PersonnelManageController extends Controller
         $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS)->count();
         $data['departure'] = $user->where('position_type',2)->where('entry_status',User::USER_ENTRY_STATUS)->count();
 
-        $user = User::orderBy('entry_time','asc')
+        $user = User::orderBy('updated_at','DESC')
             ->where(function($query) use($request){
                 //检测关键字
 
                 $status = addslashes($request->input('status'));//状态
                 $positionType = addslashes($request->input('position_type'));//在职状态
-                $entryTime = addslashes($request->input('entry_time'));//入职日期
                 $ehireShape = addslashes($request->input('hire_shape'));//聘用形式
-                $position = addslashes($request->input('position'));//职位
-                $search = addslashes($request->input('search'));//职位
+                $search = addslashes($request->input('search'));//姓名 手机号
+                if(!empty($status)) {
 
+                    $query->where('status', $status);
+                }
 
+                if(!empty($positionType)) {
 
+                    $query->where('position_type', $positionType);
+                }
                 if(!empty($ehireShape)) {
-                    $query->where('ehire_shape',$ehireShape);
+                    $query->where('hire_shape',$ehireShape);
                 }
                 if(!empty($search)) {
-
-                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%');
+                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
                 }
-                //不显示存档信息
-                $query->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS);
+                //不显示存档信息 禁用
+                $query->where('status','!=',User::USER_ARCHIVE)->where('disable','!=',User::USER_TYPE_DISABLE);
 
              })->paginate($pageSize);
 
@@ -216,27 +219,24 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $status = $payload['status'];
         $user_id = $user->id;
-
         if ($user->status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
 
-        if($status == 1){
+
+        if($status == 2){
             $array = [
                 'status' => User::USER_STATUS_POSITIVE,
-                'hire_shape' => User::HIRE_SHAPE_OFFICIAL,
             ];
         }
         //离职
-        if($status == 2){
+        if($status == 3){
             $array = [
-                'status' => User::USER_STATUS_DEPARTUE,
-                'hire_shape' => User::HIRE_SHAPE_INTERN,
+                'position_type' => User::USER_STATUS_DEPARTUE,
             ];
             $num = DB::table("role_users")->where('user_id',$user_id)->delete();
-
             //归档
-        }elseif($status == 6) {
+        }elseif($status == 5) {
             $array = [
                 'status' => User::USER_ARCHIVE,
                 'archive_time' => date('Y-m-d h:i:s',time()),
@@ -246,26 +246,14 @@ class PersonnelManageController extends Controller
         try {
 
              if (!empty($array)) {
-                 if($status == 3){
-                     $operate = new OperateEntity([
-                         'obj' => $user,
-                         'title' => null,
-                         'start' => $user->status,
-                         'end' => $array['status'],
-                         'method' => OperateLogMethod::TRANSFER,
 
-                     ]);
-
-                 }else{
-                     $operate = new OperateEntity([
-                    'obj' => $user,
-                    'title' => null,
-                    'start' => $user->status,
-                    'end' => $array['status'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-
-                 }
+                 $operate = new OperateEntity([
+                     'obj' => $user,
+                     'title' => null,
+                     'start' => $user->status,
+                     'end' => $payload['status'],
+                     'method' => OperateLogMethod::TRANSFER,
+                 ]);
                 $user->update($array);
                  event(new OperateLogEvent([
                      $operate,
@@ -282,6 +270,9 @@ class PersonnelManageController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+
+
+
 
     //存档列表
     public function archiveList(Request $request)
@@ -669,6 +660,41 @@ class PersonnelManageController extends Controller
         return $this->response->item($user, new UserTransformer());
 
     }
+
+    public function editPosition(Request $request, User $user)
+    {
+
+        $payload = $request->all();
+        $userId = $user->id;
+
+        $array = [
+            'user_id'=>$userId,
+            'department_id'=>hashid_decode($payload['department_id']),
+        ];
+
+        DB::beginTransaction();
+        try {
+            $num = DB::table("department_user")->where('user_id',$userId)->where('type','!=',1)->delete();
+            DepartmentUser::create($array);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $user,
+                'title' => null,
+                'start' => $user->id,
+                'end' => $payload['department_id'],
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
 
 
 

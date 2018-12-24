@@ -62,7 +62,6 @@ class User extends Authenticatable
         'hire_shape',
         'archive_time',
         'position',
-        'department',
         'position_type',
         'entry_status',
         'high_school',
@@ -70,30 +69,35 @@ class User extends Authenticatable
         'jobs',
         'number',
         'work_email',
-        'department_id',
         'high_school',
         'age',
         'jobs',
         'number',
         'work_email',
+        'disable',
 
     ];
 
     const USER_STATUS_DEFAULT = 0; // 默认
-    const USER_STATUS_TRIAL = 1; // 试用期
+    //状态
+    const USER_STATUS_TRIAL = 1;    //试用期
     const USER_STATUS_POSITIVE = 2; //转正
     const USER_STATUS_DEPARTUE = 3; //离职
-    const USER_STATUS_INTERN = 4; //实习
-    const USER_STATUS_OUT = 5;    //外包
-    const  HIRE_SHAPE_OFFICIAL = 1;  //正式
-    const  HIRE_SHAPE_INTERN = 2;   //实习生
-    const  HIRE_SHAPE_GUANPEI = 3;   //管培生
-    const  HIRE_SHAPE_OUT = 4;      //外包
-    const  USER_POSITIVE = 1;//转正
+    const USER_STATUS_INTERN = 4;   //实习
+
+    //聘用形式
+    const  HIRE_SHAPE_OLABOR = 1;      // 劳务
+    const  HIRE_SHAPE_LOWE = 2;        // 劳动
+    const  HIRE_SHAPE_INTERNSHIP = 3;  // 实习
+    const  HIRE_SHAPE_OUT = 4;         // 外包
+
+    //状态 在职 离职 全部
+    const  USER_POSITIVE = 1;//在职
     const  USER_DEPARTUE = 2; //离职
-    const  USER_DTRANSFER = 3; //调岗
-    const  USER_ARCHIVE = 6; //存档
-    const  USER_TYPE_DEPARTUE = 5; //离职
+
+    const  USER_ARCHIVE = 5; //归档
+
+    const  USER_TYPE_DISABLE = 2; //禁用
     const  USER_ENTRY_STATUS = 3; //hr审核状态已同意
 
     const  USER_DEPARTMENT_DEFAULT = 10; //hr审核通过 默认职位未分配职位

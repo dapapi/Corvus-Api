@@ -4,19 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\AddRelateProjectRequest;
 use App\Http\Requests\Project\EditProjectRequest;
-use App\Http\Requests\Project\SearchProjectRequest;
+use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\Message;
-use App\Models\MessageState;
-use App\Models\ModuleUser;
+use App\Events\OperateLogEvent;
+use App\Models\OperateEntity;
+use App\OperateLogMethod;
+use App\Models\ProjectReturnedMoney;
+
 use App\Models\Project;
 use App\Models\ProjectRelate;
-use App\Models\Resource;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\TemplateField;
@@ -24,7 +27,6 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\Models\ProjectHistorie;
 use App\Models\FieldHistorie;
-
 use App\Models\User;
 use App\ModuleableType;
 use App\ModuleUserType;
@@ -676,5 +678,80 @@ class ProjectController extends Controller
         }
         DB::commit();
         return $this->response->accepted();
+    }
+    public function indexReturnedMoney(Request $request,Project $project)
+    {
+        $contract_id = 22;
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project->id,'p_id'=>0])->createDesc()->paginate($pageSize);
+        return $this->response->paginator($project, new ProjectReturnedMoneyTransformer());
+
+    }
+    public function addReturnedMoney(ReturnedMoneyRequest $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        unset($payload['status']);
+        $payload['creator_id'] = $user->id;
+        $array = $payload;
+        $array['project_id'] = $project->id;
+        if($request->has('principal_id')){
+            $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id']])->count() + 1;
+        DB::beginTransaction();
+        try {
+            $project = ProjectReturnedMoney::create($array);
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $project,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+    public function addProjectRecord(Request $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        unset($payload['status']);
+        $payload['creator_id'] = $user->id;
+        $array = $payload;
+        $array['project_id'] = $project->id;
+        $array['p_id'] = $projectReturnedMoney->id;
+        if($request->has('principal_id')){
+            $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
+        DB::beginTransaction();
+        try {
+            $project = ProjectReturnedMoney::create($array);
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $project,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
     }
 }

@@ -9,7 +9,7 @@ use App\Models\Star;
 use App\Models\Blogger;
 use App\Models\Project;
 use App\Models\ProjectBill;
-use App\Models\ProjectBillResource;
+use App\Models\ProjectBillsResource;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\Events\OperateLogEvent;
@@ -67,22 +67,28 @@ class ProjectBillController extends Controller
         if ($Blogger && $Blogger->id) {
             $array['resourceable_id'] = $project->id;
             $array['resourceable_title'] = $Blogger->nickname;
-            $array['resourceable_type'] = 'projects';
+            $array['resourceable_type'] = 'blogger';
+
         } else if ($project && $project->id) {
             $array['resourceable_id'] = $project->id;
             $array['resourceable_title'] = $project->title;
-            $array['resourceable_type'] = 'projects';
+            $array['resourceable_type'] = 'project';
 
         } else if ($star && $star->id) {
             $array['resourceable_id'] = $project->id;
             $array['resourceable_title'] = $star->name;
-            $array['resourceable_type'] = 'projects';
+            $array['resourceable_type'] = 'star';
 
+        }
+        $is_exist = ProjectBillsResource::where(['resourceable_id'=> $array['resourceable_id'],'resourceable_title'=> $array['resourceable_title'],'resourceable_type'=> $array['resourceable_type']])->first();
+
+        if(isset($is_exist)){
+            return $this->response->errorNotFound('已存在');
         }
             try {
 
-                $bill =  ProjectBillResource::create($array);
-                dd($bill);
+
+                $bill =  ProjectBillsResource::create($array);
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $bill,
@@ -95,7 +101,6 @@ class ProjectBillController extends Controller
                     $operate,
                 ]));
             } catch (Exception $e) {
-            dd($e);
                 DB::rollBack();
                 Log::error($e);
                 return $this->response->errorInternal('创建失败');

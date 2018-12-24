@@ -22,6 +22,7 @@ use App\Models\Trail;
 use App\Models\Repository;
 use App\Models\Work;
 use App\Models\GroupRoles;
+use App\Models\ProjectBillsResource;
 use App\Models\Role;
 use App\User;
 use App\ModuleableType;
@@ -137,6 +138,9 @@ class OperateLogEventListener
                 $type = ModuleableType::SCHEDULE;
                 $typeName = '日程';
             }else if($operate->obj instanceof GroupRoles){
+                $type = ModuleableType::GTOUPROLES;
+                $typeName = '分组';
+            }else if($operate->obj instanceof ProjectBillsResource){
                 $type = ModuleableType::GTOUPROLES;
                 $typeName = '分组';
             }else if($operate->obj instanceof Role) {

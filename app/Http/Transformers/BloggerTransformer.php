@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class BloggerTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs'];
 
     private $isAll;
 
@@ -100,7 +100,11 @@ class BloggerTransformer extends TransformerAbstract
         $tasks = $blogger->tasks()->createDesc()->get();
         return $this->collection($tasks, new TaskTransformer());
     }
-
+    public function includeOperateLogs(Blogger $blogger)
+    {
+        $tasks = $blogger->operateLogs()->createDesc()->limit(1)->get();
+        return $this->collection($tasks, new OperatelogTransformer());
+    }
     public function includeAffixes(Blogger $blogger)
     {
         $affixes = $blogger->affixes()->createDesc()->get();

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class ReviewQuestionnaire extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['name','creator_id', 'deadline', 'reviewable_id', 'reviewable_type', 'auth_type'];
+    protected $fillable = ['name','creator_id', 'deadline', 'reviewable_id','excellent','excellent_sum', 'reviewable_type', 'auth_type'];
 
 
     public function scopeCreateDesc($query)

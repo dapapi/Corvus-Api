@@ -5,9 +5,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ProjectBillResource extends Model
+class ProjectBillsResource extends Model
 {
-    protected $tables = 'project_bills_resources';
+
     protected $fillable = [
         'expenses',
         'papi_divide',

@@ -47,7 +47,7 @@ class PersonnelManageController extends Controller
                 $status = addslashes($request->input('status'));//状态
                 $positionType = addslashes($request->input('position_type'));//在职状态
                 $ehireShape = addslashes($request->input('hire_shape'));//聘用形式
-
+                $search = addslashes($request->input('search'));//姓名 手机号
                 if(!empty($status)) {
 
                     $query->where('status', $status);
@@ -67,7 +67,7 @@ class PersonnelManageController extends Controller
                 $query->where('status','!=',User::USER_ARCHIVE)->where('disable','!=',User::USER_TYPE_DISABLE);
 
              })->paginate($pageSize);
-       
+
         $result = $this->response->paginator($user, new UserTransformer());
         $result->addMeta('date', $data);
         return $result;

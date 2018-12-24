@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\ModuleableType;
 use App\ModuleUserType;
 use App\User;
 use App\Traits\OperateLogTrait;
@@ -45,7 +46,18 @@ class Blogger extends Model
 //隐藏字段
 //'contract_type',//合同类型
 //'divide_into_proportion',//分成比例
-
+    public function scopeSearchData($query)
+    {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $rules = (new ScopeRepository())->getDataViewUsers();
+        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhere(DB::raw("{$userid} in (
+            select u.id from bloggers as b 
+            left join module_users as mu on mu.moduleable_id = b.id and 
+            mu.moduleable_type='".ModuleableType::BLOGGER.
+            "' left join users as u on u.id = mu.user_id where b.id = stars.id
+        )"));
+    }
     public function scopeCreateDesc($query)
     {
         return $query->orderBy('created_at', 'desc');

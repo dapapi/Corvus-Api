@@ -23,6 +23,10 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrustProxies::class,
         \Barryvdh\Cors\HandleCors::class,
         \App\Http\Middleware\Permissions::class,
+//        \App\Http\Middleware\DataAuth\DataView::class,
+//        \App\Http\Middleware\DataAuth\DataManage::class
+//        \App\Http\Middleware\DataManage::class
+
 
     ];
 
@@ -68,6 +72,8 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'cors' => \Barryvdh\Cors\HandleCors::class,
 
-        'export' => ExcelExportSetResponseHeader::class
+        'export' => ExcelExportSetResponseHeader::class,
+        'datamanage'  =>  \App\Http\Middleware\DataAuth\DataManage::class,
+        'dataview'  =>  \App\Http\Middleware\DataAuth\DataView::class
     ];
 }

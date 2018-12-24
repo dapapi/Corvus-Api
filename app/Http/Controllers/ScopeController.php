@@ -32,25 +32,27 @@ use Illuminate\Support\Facades\DB;
 class ScopeController extends Controller
 {
 
+    //数据字典中parent_id查看数据范围
     //根据19-本人相关 20-本部门  21-本人及下属部门 22-全部 替换userIds
     //public function index(Request $request,User $user,Role $role,DataDictionarie $dataDictionarie,Department $department)
     public function index($userId,$operation)
     {
-       // $userId = $user->id;
-        $userId = hashid_decode($userId);
-
+        $userId = $userId->id;
+//        $userId = hashid_decode($userId);
+        //获取用户角色列表
         $roleIdList = RoleUser::where('user_id', $userId)->get()->toArray();
-        $operationId = hashid_decode($operation);
-
+//        $operationId = hashid_decode($operation);
+        $operationId = $operation->id;
         //根据子级模块id 查询父级模块id
         $resourceId = DataDictionarie::where('id',$operationId)->first()->parent_id;
         $arrviewSql = array();
+        //角色id 列表
         foreach ($roleIdList as $value){
             $arrRoleId[] = $value['role_id'];
         }
         //根据roleid数组查找所有对应的模块id取最大值
         $viewSql = RoleDataView::whereIn('role_id',$arrRoleId)->where('resource_id',$resourceId)->get()->toArray();
-
+        $dataDictionarie = [];
         foreach ($viewSql as $value){
             $dataDictionarie[] = $value['data_view_id'];
 
@@ -61,7 +63,7 @@ class ScopeController extends Controller
             if($dataDictionarieId == 19){
                 $dataArr = json_decode($viewSql[0]['data_view_sql'],true);
                 $arrayUserid = array();
-                $arrayUserid[] = $userId;
+                $arrayUserid[] = $userId; //只能查看自己
 
             //查询本部门 20
             }elseif($dataDictionarieId == 20){
@@ -71,7 +73,7 @@ class ScopeController extends Controller
 
                 $departmentUserArr = DepartmentUser::where('department_id',$departmentId)->get()->toArray();
                 foreach ($departmentUserArr as $key=>$value){
-                    $arrayUserid[] = $value['user_id'];
+                    $arrayUserid[] = $value['user_id'];//查看本部门下的所有人的
                 }
 
             //查询本部门及下属部门 21
@@ -81,12 +83,13 @@ class ScopeController extends Controller
                 $departmentIdArr = DepartmentUser::where('user_id',$userId)->where('type',0)->get()->toArray();
                 $departmentId = $departmentIdArr[0]['department_id'];
                 $result = $this->getSubdivision($departmentId);
-                $arrayUserid = array_keys($result);
+                $arrayUserid = array_keys($result);//查看下属部门
 
-            }elseif($dataDictionarieId == 22){
+            }elseif($dataDictionarieId == 22){//全部
                 return $array=['rules'=>array(array('field'=>'created_id','op'=>'in','value'=>''),array('field'=>'principal_id','op'=>'in','value'=>''),'op'=>'or')];;
             }
-            $array = ['rules'=>array(array('field'=>'created_id','op'=>'in','value'=>$arrayUserid),array('field'=>'principal_id','op'=>'in','value'=>$arrayUserid),'op'=>'or')];
+            //我创建的,我负责的 $arrayUserid能查看的用户列表
+//            $array = ['rules'=>array(array('field'=>'created_id','op'=>'in','value'=>$arrayUserid),array('field'=>'principal_id','op'=>'in','value'=>$arrayUserid),'op'=>'or')];
 
             $dataViewSql = RoleDataView::where('resource_id',$resourceId)->where('data_view_id',$dataDictionarieId)->get()->toArray();
 
@@ -95,6 +98,7 @@ class ScopeController extends Controller
                 $dataArr = json_decode($dataViewSql[0]['data_view_sql'],true);
                 $resArr = array();
                foreach ($dataArr as $value){
+                   dd($value);
                    if(is_array($value))
                    {
                    $resArr[0]['field']=$value[0]['field'];
@@ -120,7 +124,7 @@ class ScopeController extends Controller
             return $this->response->errorInternal('没有查询到该类型数据');
         }
 
-       return $array;
+       return $resArr;
     }
 
     public function getSubdivision($pid)
@@ -151,26 +155,28 @@ class ScopeController extends Controller
     //public function show(Request $request,User $user,DataDictionarie $dataDictionarie)
     public function show($userId,$operation)
     {
-        $userId = hashid_decode($userId);
-
+//        $userId = hashid_decode($userId);
+        $userId = $userId->id;
         //$roleId = RoleUser::where('user_id', $userId)->first()->role_id;
         $roleIdList = RoleUser::where('user_id', $userId)->get()->toArray();
         //模块id
-        $operationId = hashid_decode($operation);
-
+//        $operationId = hashid_decode($operation);
+        $operationId = $operation->id;
         $resourceId = DataDictionarie::where('id',$operationId)->first()->parent_id;
+//        dd($resourceId,$roleIdList,$userId);
         //dd($resourceId);
-
+        $arrRoleId = [];
+        //用户所属角色id列表
         foreach ($roleIdList as $value){
             $arrRoleId[] = $value['role_id'];
         }
 
         //根据roleid数组查找所有对应的模块id取最大值
+        //角色对应的
         $viewSql = RoleDataView::whereIn('role_id',$arrRoleId)->where('resource_id',$resourceId)->get()->toArray();
-
+        $dataDictionarie = [];
         foreach ($viewSql as $value){
             $dataDictionarie[] = $value['data_view_id'];
-
         }
         $dataDictionarieId = max($dataDictionarie);
        //根据模块最大的值 查询role_id
@@ -208,7 +214,7 @@ class ScopeController extends Controller
                 $departmentId = $departmentIdArr[0]['department_id'];
                 $result = $this->getSubdivision($departmentId);
                 $arrayUserid = array_keys($result);
-
+            //全部
             }elseif($dataDictionarieId == 22){
                 return $array=[];
             }

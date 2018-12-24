@@ -22,9 +22,6 @@ use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
-use App\Models\ProjectHistorie;
-use App\Models\FieldHistorie;
-
 use App\Models\User;
 use App\ModuleableType;
 use App\ModuleUserType;
@@ -58,6 +55,11 @@ class ProjectController extends Controller
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
+        //可查询的数据范围
+//        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+//        if($arrUserId === null){
+//            return $this->response->errorInternal("没有查看数据的权限");
+//        }
         $projects = Project::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
@@ -73,15 +75,30 @@ class ProjectController extends Controller
 
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-        })->searchData()
-            ->orderBy('created_at', 'desc')->paginate($pageSize);
+//            //限制查询数据范围
+//            if(count($arrUserId) > 0){
+//                $query->whereIn('creator_id',$arrUserId)
+//                ->orWhereIn('principal_id',$arrUserId);
+//            }
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-        $projects = Project::orderBy('created_at', 'desc')->searchData()->get();
+        //可查询的数据范围
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
+        $projects = Project::orderBy('created_at', 'desc')->where(function ($query)use ($arrUserId){
+            //限制查询数据范围
+            if(count($arrUserId) > 0){
+                $query->whereIn('creator_id',$arrUserId)
+                    ->orWhereIn('principal_id',$arrUserId);
+            }
+        })->get();
         return $this->response->collection($projects, new ProjectTransformer($isAll));
     }
 
@@ -192,7 +209,7 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
-    public function store(StoreProjectRequest $request)
+    public function store(Request $request)
     {
         // todo 可能涉及筛选可选线索
         $payload = $request->all();
@@ -217,24 +234,13 @@ class ProjectController extends Controller
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         DB::beginTransaction();
-        $payload['project_number'] = Project::getProjectNumber();
-
         try {
             $project = Project::create($payload);
             $projectId = $project->id;
 
-            $projectHistorie = ProjectHistorie::create($payload);
-            $approvalForm = new ApprovalFormController();
-            $approvalForm->store($payload['type'], $notice='',$payload['project_number']);
-
             if ($payload['type'] != 5) {
                 foreach ($payload['fields'] as $key => $val) {
                     FieldValue::create([
-                        'field_id' => hashid_decode((int)$key),
-                        'project_id' => $projectId,
-                        'value' => $val,
-                    ]);
-                    FieldHistorie::create([
                         'field_id' => hashid_decode((int)$key),
                         'project_id' => $projectId,
                         'value' => $val,
@@ -341,6 +347,13 @@ class ProjectController extends Controller
 
     public function edit(EditProjectRequest $request, Project $project)
     {
+        //获取项目的参与者
+        $res = $project->participants()->get();
+        //验证权限
+        $power = (new ScopeRepository())->checkMangePower($project->creator_id,$project->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有编辑该项目的权限");
+        }
         $payload = $request->all();
 
         if ($request->has('principal_id'))
@@ -358,6 +371,7 @@ class ProjectController extends Controller
                 }
             }
         }
+
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];
 
@@ -366,7 +380,6 @@ class ProjectController extends Controller
 
         DB::beginTransaction();
         try {
-
             $project->update($payload);
             $projectId = $project->id;
 
@@ -481,7 +494,6 @@ class ProjectController extends Controller
         DB::commit();
         DB::beginTransaction();
         try{
-
             $user = Auth::guard('api')->user();
             $title = $user->name."将你加入了项目";  //通知消息的标题
             $subheading = "副标题";
@@ -499,7 +511,6 @@ class ProjectController extends Controller
             ];
             $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
             $authorization = $request->header()['authorization'][0];
-
             (new MessageRepository())->addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$participant_ids);
             DB::commit();
         }catch (Exception $e){
@@ -511,6 +522,10 @@ class ProjectController extends Controller
 
     public function detail(Request $request, $project)
     {
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId == null || (count($arrUserId)!=0 && !in_array($project->creator_id,$arrUserId) && !in_array($project->principal_id,$arrUserId))){
+            return $this->response->errorInternal("你没有查看该项目的权限");
+        }
         $type = $project->type;
         $result = $this->response->item($project, new ProjectTransformer());
 
@@ -526,6 +541,17 @@ class ProjectController extends Controller
 
     public function delete(Request $request, Project $project)
     {
+        //获取项目的参与者
+        $res = $project->participants()->get();
+        //验证权限
+        $power = (new ScopeRepository())->checkMangePower($project->creator_id,$project->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有删除该项目的权限");
+        }
+        $arrUserId = (new ScopeRepository())->getUserIds();
+        if($arrUserId == null || (!in_array($project->creator_id,$arrUserId) && !in_array($project->principal_id,$arrUserId))){
+            return $this->response->errorInternal("你没有删除该项目状态的权限");
+        }
         try {
             $project->status = Project::STATUS_DEL;
             $project->save();
@@ -549,6 +575,16 @@ class ProjectController extends Controller
 
     public function changeStatus(Request $request, Project $project)
     {
+        //获取项目的参与者
+        $res = $project->participants()->get();
+        //验证权限
+        $power = (new ScopeRepository())->checkMangePower($project->creator_id,$project->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有改变该项目状态的权限");
+        }
+        if (!$request->has('status'))
+            return $this->response->errorBadRequest('参数错误');
+
         $status = $request->get('status');
         switch ($status) {
             case Project::STATUS_COMPLETE:
@@ -578,8 +614,12 @@ class ProjectController extends Controller
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $projects = Project::where(function ($query) use ($request, $payload) {
+        //可查询的数据范围
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
+        $projects = Project::where(function ($query) use ($request, $payload,$arrUserId) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
@@ -594,8 +634,12 @@ class ProjectController extends Controller
 
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+            //限制查询数据范围
+            if(count($arrUserId) > 0){
+                $query->whereIn('creator_id',$arrUserId)
+                    ->orWhereIn('principal_id',$arrUserId);
+            }
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
 
@@ -619,6 +663,10 @@ class ProjectController extends Controller
 
     public function getClientProject(Request $request, Client $client)
     {
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId == null || (count($arrUserId)!=0 && !in_array($client->creator_id,$arrUserId) && !in_array($client->principal_id,$arrUserId))){
+            return $this->response->errorInternal("你没有查看该客户的权限");
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $projects = Project::select('projects.*')->join('trails', function ($join) {

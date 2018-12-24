@@ -28,19 +28,41 @@ class ClientController extends Controller
     // todo 加日志
     public function index(Request $request)
     {
+        //可查询的数据范围
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $clients = Client::orderBy('created_at', 'desc')
-            ->searchData()
+            ->where(function ($query)use ($arrUserId){
+                //限制查询数据范围
+                if(count($arrUserId) > 0){
+                    $query->whereIn('creator_id',$arrUserId)
+                        ->orWhereIn('principal_id',$arrUserId);
+                }
+            })
             ->paginate($pageSize);
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
     public function all(Request $request)
     {
+        //可查询的数据范围
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $isAll = $request->get('all', false);
         $clients = Client::orderBy('created_at', 'desc')
-            ->searchData()
+            ->where(function ($query)use($arrUserId){
+                //限制查询数据范围
+                if(count($arrUserId) > 0){
+                    $query->whereIn('creator_id',$arrUserId)
+                        ->orWhereIn('principal_id',$arrUserId);
+                }
+            })
             ->get();
 
         return $this->response->collection($clients, new ClientTransformer($isAll));
@@ -102,6 +124,13 @@ class ClientController extends Controller
 
     public function edit(EditClientRequest $request, Client $client)
     {
+        //客户没有参与人
+        $res = [];
+        //验证权限
+        $power = (new ScopeRepository())->checkMangePower($client->creator_id,$client->principal_id,$res);
+        if(!$power){
+            return $this->response->errorInternal("你没有编辑该客户的权限");
+        }
         $payload = $request->all();
 
         if (array_key_exists('_url', $payload))
@@ -127,6 +156,13 @@ class ClientController extends Controller
 
     public function delete(Request $request, Client $client)
     {
+        //客户没有参与人
+        $res = [];
+        //验证权限
+        $power = (new ScopeRepository())->checkMangePower($client->creator_id,$client->principal_id,$res);
+        if(!$power){
+            return $this->response->errorInternal("你没有删除该客户的权限");
+        }
         try {
             $client->status = Client::STATUS_FROZEN;
             $client->save();
@@ -141,6 +177,13 @@ class ClientController extends Controller
 
     public function recover(Request $request, Client $client)
     {
+        //客户没有参与人
+        $res = [];
+        //验证权限
+        $power = (new ScopeRepository())->checkMangePower($client->creator_id,$client->principal_id,$res);
+        if(!$power){
+            return $this->response->errorInternal("你没有恢复该客户的权限");
+        }
         $client->restore();
         $client->status = Client::STATUS_NORMAL;
         $client->save();
@@ -150,19 +193,24 @@ class ClientController extends Controller
 
     public function detail(Request $request, Client $client)
     {
-        $client = $client->searchData()->find($client->id);
-        if($client == null){
-            return $this->response->errorInternal("你没有查看该数据的权限");
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId == null || (count($arrUserId)!=0 && !in_array($client->creator_id,$arrUserId) && !in_array($client->principal_id,$arrUserId))){
+            return $this->response->errorInternal("你没有查看该客户的权限");
         }
         return $this->response->item($client, new ClientTransformer());
     }
 
     public function filter(FilterClientRequest $request)
     {
+        //可查询的数据范围
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $clients = Client::where(function ($query) use ($request, $payload) {
+        $clients = Client::where(function ($query) use ($request, $payload,$arrUserId) {
             if ($request->has('keyword'))
                 $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('grade'))
@@ -174,8 +222,13 @@ class ClientController extends Controller
                 }
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
+                //限制查询数据范围
+                if(count($arrUserId) > 0){
+                    $query->whereIn('creator_id',$arrUserId)
+                        ->orWhereIn('principal_id',$arrUserId);
+                }
             }
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($clients, new ClientTransformer());
     }

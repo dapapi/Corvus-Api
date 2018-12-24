@@ -87,9 +87,9 @@ class User extends Authenticatable
 
     //聘用形式
     const  HIRE_SHAPE_OLABOR = 1;      // 劳务
-    const  HIRE_SHAPE_LOWE = 2;        //劳动
-    const  HIRE_SHAPE_INTERNSHIP = 3;  //管培生
-    const  HIRE_SHAPE_OUT = 4;         //外包
+    const  HIRE_SHAPE_LOWE = 2;        // 劳动
+    const  HIRE_SHAPE_INTERNSHIP = 3;  // 实习
+    const  HIRE_SHAPE_OUT = 4;         // 外包
 
     //状态 在职 离职 全部
     const  USER_POSITIVE = 1;//在职

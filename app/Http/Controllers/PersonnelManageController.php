@@ -224,15 +224,15 @@ class PersonnelManageController extends Controller
         $now = Carbon::now();
 
 
-        if($status == 1){
+        if($status == 2){
             $array = [
                 'status' => User::USER_STATUS_POSITIVE,
             ];
         }
         //离职
-        if($status == 2){
+        if($status == 3){
             $array = [
-                'position_type' => User::USER_DEPARTUE,
+                'position_type' => User::USER_STATUS_DEPARTUE,
             ];
             $num = DB::table("role_users")->where('user_id',$user_id)->delete();
             //归档

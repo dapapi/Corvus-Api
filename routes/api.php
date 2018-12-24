@@ -389,7 +389,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // personnel
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
         $api->get('/archive', 'App\Http\Controllers\PersonnelManageController@archivelist');
-        $api->put('/personnel/{user}/status', 'App\Http\Controllers\PersonnelManageController@statusEdit');
+        $api->put('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@statusEdit');
         $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
         $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
         $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
@@ -487,6 +487,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/position', 'App\Http\Controllers\DepartmentController@positionStore');
         $api->put('/position/{position}', 'App\Http\Controllers\DepartmentController@positionEdit');
         $api->delete('/position/{position}', 'App\Http\Controllers\DepartmentController@positionDel');
+
+        //用户禁用列表
+        $api->get('/position/disable', 'App\Http\Controllers\DepartmentController@disableList');
+        $api->put('/position/disable/{user}', 'App\Http\Controllers\DepartmentController@disableEdit');
 
 
         /*后台权限 分组 控制台*/

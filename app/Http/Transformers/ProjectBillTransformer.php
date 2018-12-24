@@ -30,7 +30,6 @@ class ProjectBillTransformer extends TransformerAbstract
                 'expense_type' => $projectbill->expense_type,
                 'apply_reason' => $projectbill->apply_reason,
                 'pay_rec_time' => $projectbill->pay_rec_time,
-                'expendituresum'=> $projectbill->Status
 
 
             ];

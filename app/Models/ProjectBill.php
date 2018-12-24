@@ -36,13 +36,5 @@ class ProjectBill extends Model
         return $query->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
 
     }
-    public function getStatusAttribute()
-    {
-        return $this;
-        //return  $this->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
-    }
-    public function setStateAttribute($value)
-    {
-        $this->attributes['expendituresum'] = strtolower($value);
-    }
+
 }

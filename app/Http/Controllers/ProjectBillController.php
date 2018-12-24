@@ -9,6 +9,7 @@ use App\Models\Star;
 use App\Models\Blogger;
 use App\Models\Project;
 use App\Models\ProjectBill;
+use App\Models\ProjectBillResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,42 +24,50 @@ class ProjectBillController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         if($request->has('expense_type')){
             if($payload['expense_type']==1){
-
                 $array['expense_type'] = '收入';
             }else if($payload['expense_type']==2){
                 $array['expense_type'] = '支出';
-
-
-
             }else{
                 $array['expense_type'] = '';
             }
-
+        }else{
+            $array['expense_type'] = '';
         }
         if ($Blogger && $Blogger->id) {
-          //  $array['artist_name'] ='美豆爱厨房';
             $array['artist_name'] = $Blogger->nickname;
         } else if ($project && $project->id) {
-         //   $array['project_kd_name'] ='美豆爱厨房';
             $array['project_kd_name'] = $project->title;
         } else if ($star && $star->id) {
-            //   $array['project_kd_name'] ='美豆爱厨房';
             $array['project_kd_name'] = $star->name;
         }
         if($array['expense_type'] != '支出') {
             $array['expense_type'] = '支出';
-          //   ProjectBill::where($array)->expendItureSum()->get();
-            dd(ProjectBill::where($array)->expendItureSum()->first()->Status);
-           // $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
+            $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         }else{
-           // $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type');
+            $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         }
-
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
-        return $this->response->paginator($projectbill, new ProjectBillTransformer());
+
+        $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
+        $result->addMeta('expendituresum', $expendituresum->expendituresum);
+        return $result;
     }
 
+    public function store(Request $request,Blogger $Blogger,Star $star,Project $project)
+    {
 
+        if ($Blogger && $Blogger->id) {
+            $array['artist_name'] = $Blogger->nickname;
+        } else if ($project && $project->id) {
+            $array['project_kd_name'] = $project->title;
+        } else if ($star && $star->id) {
+            $array['project_kd_name'] = $star->name;
+        }
+       // ProjectBillResource::
+
+
+
+    }
 
 
 }

@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Transformers\DepartmentTransformer;
 use App\Http\Transformers\DepartmentUserTransformer;
+use App\Http\Transformers\PositionTransformer;
+
 
 use App\Models\Department;
+use App\Models\Position;
 use App\Models\DepartmentUser;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
@@ -14,6 +17,8 @@ use App\Http\Transformers\UserTransformer;
 use App\Http\Requests\DepartmentRequest;
 use App\User;
 use Illuminate\Http\Request;
+use App\Http\Requests\PositionRequest;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -296,6 +301,97 @@ class DepartmentController extends Controller
         return $arr;
 
     }
+
+
+
+
+
+    public function positionList(Request $request)
+    {
+        $positions = Position::get();
+        return $this->response->collection($positions, new positionTransformer());
+    }
+
+
+    public function positionStore(PositionRequest $positionRequest)
+    {
+        $payload = $positionRequest->all();
+        DB::beginTransaction();
+        try {
+            $depar = Position::create($payload);
+            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $department,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
+    public function positionEdit(PositionRequest $positionRequest,Position $position)
+    {
+        $payload = $positionRequest->all();
+
+        $array = [
+            'name'=>$payload['name'],
+        ];
+
+        DB::beginTransaction();
+        try {
+            $position->update($array);
+            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $department,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
+    public function positionDel(Position $position)
+    {
+        DB::beginTransaction();
+        try {
+            $position->delete();
+            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $department,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
 
     /**
      * 按字母排序

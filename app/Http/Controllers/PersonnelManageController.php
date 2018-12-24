@@ -40,28 +40,29 @@ class PersonnelManageController extends Controller
         $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS)->count();
         $data['departure'] = $user->where('position_type',2)->where('entry_status',User::USER_ENTRY_STATUS)->count();
 
-        $user = User::orderBy('entry_time','asc')
+        $user = User::orderBy('updated_at','DESC')
             ->where(function($query) use($request){
                 //检测关键字
 
                 $status = addslashes($request->input('status'));//状态
                 $positionType = addslashes($request->input('position_type'));//在职状态
-                $entryTime = addslashes($request->input('entry_time'));//入职日期
                 $ehireShape = addslashes($request->input('hire_shape'));//聘用形式
-                $position = addslashes($request->input('position'));//职位
-                $search = addslashes($request->input('search'));//职位
 
+                if(!empty($status)) {
+                    $query->whereIn('status', $status);
+                }
 
-
+                if(!empty($positionType)) {
+                    $query->whereIn('position_type', $positionType);
+                }
                 if(!empty($ehireShape)) {
-                    $query->where('ehire_shape',$ehireShape);
+                    $query->where('hire_shape',$ehireShape);
                 }
                 if(!empty($search)) {
-
-                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%');
+                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
                 }
-                //不显示存档信息
-                $query->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS);
+                //不显示存档信息 禁用
+                $query->where('status','!=',User::USER_ARCHIVE)->where('disable',User::USER_TYPE_DISABLE);
 
              })->paginate($pageSize);
 

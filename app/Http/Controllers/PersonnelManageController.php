@@ -44,7 +44,6 @@ class PersonnelManageController extends Controller
             ->where(function($query) use($request){
                 //检测关键字
                 //$query->where('position_type',1)->count();
-
                 $status = addslashes($request->input('status'));//状态
                 $positionType = addslashes($request->input('position_type'));//在职状态
                 $entryTime = addslashes($request->input('entry_time'));//入职日期
@@ -64,7 +63,6 @@ class PersonnelManageController extends Controller
                     }
 
                 }else {
-
                     // 1 正式 2实习 3管培生 4外包
                     if (!empty($status)) {
                         if ($status == 1) {
@@ -84,7 +82,6 @@ class PersonnelManageController extends Controller
                         }
                     }
                 }
-
                 if(!empty($entryTime)) {
                     $query->whereDate('entry_time', '>=', $startDate.' 00:00:00')->whereDate('entry_time', '<=', $endDate.' 23:59:59');
                 }
@@ -105,9 +102,80 @@ class PersonnelManageController extends Controller
 
     }
 
+
+    public function show(Request $request,User $user)
+    {
+        $userId = 1199356938;
+        $operation = 1414069986;
+        $scope = new ScopeController();
+
+        $res =  $scope->index($userId,$operation);
+
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS)->count();
+        $data['departure'] = $user->where('position_type',2)->where('entry_status',User::USER_ENTRY_STATUS)->count();
+
+        if($res['rules'][0]['value'] ==''){
+            $usersId = '';
+        }else{
+
+            $usersId = $res['rules'][0]['value'];
+        }
+
+        $page = 1;
+        //$tasks = DB::table('tasks')->select('tasks.*');
+        // DB::connection()->enableQueryLog();
+//        $query = DB::table('users')->whereIn('users.id',$usersId)
+//
+//            ->join('department_user', function ($join) {
+//                $join->on('users.id', '=', 'department_user.user_id');
+//            })
+//
+//            ->join('departments', function ($join) {
+//                $join->on('department_user.department_id', '=', 'departments.id');
+//            })->forPage($page,200)->get(['users.*','departments.name as department_name']);
+        $tasks = User::where(function($query) use ($request, $payload,$usersId) {
+
+            if ($usersId!==''){
+                $query ->whereIn('users.id',$usersId);
+            }
+
+            $query->join('department_user', function ($join) {
+                $join->on('users.id', '=', 'department_user.user_id');
+            });
+
+            $query->join('departments', function ($join) {
+
+                $join->on('department_user.department_id', '=', 'departments.id');
+
+            })->get(['users.*','departments.name as department_name']);
+
+        })->paginate($pageSize);
+
+        return $this->response->paginator($tasks, new UserTransformer());
+//
+////        $result = $this->item($query, new UserTransformer());
+////        $result->addMeta('date', $data);
+
+
+    }
+
+    public function random_color(){
+        mt_srand((double)microtime()*1000000);
+        $c = '';
+        while(strlen($c)<6){
+            $c .= sprintf("%02X", mt_rand(0, 255));
+        }
+        return '#'.$c;
+    }
+
     public function store(Request $request,User $user)
     {
         $payload = $request->all();
+
+
         $user = Auth::guard('api')->user();
         $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
         $pageSize = config('api.page_size');
@@ -115,18 +183,30 @@ class PersonnelManageController extends Controller
         if(!empty($userPhone)){
             return $this->response->errorInternal('手机号已经注册！');
         }else{
-            if($payload['status_type']==1){
-                $payload['status'] =  User::USER_STATUS_TRIAL;
-            }elseif($payload['status_type']==2){
-                $payload['status'] =  User::USER_STATUS_POSITIVE;
-            }elseif($payload['status_type']==3){
-                $payload['status'] =  User::USER_STATUS_DEPARTUE;
-            }elseif($payload['status_type']==4){
-                $payload['status'] =  User::USER_STATUS_INTERN;
-            }else{
-                $payload['status'] =  User::USER_STATUS_OUT;
+
+            $color = $this->random_color();
+            if(!isset($payload['icon_url'])){
+
+                if(preg_match("/^[a-zA-Z\s]+$/",$payload['name'])){
+                    $icon_name  = strtoupper(substr($payload['name'],0,2));
+                }else{
+                    if(strlen($payload['name']) > 6){
+
+                        if (preg_match('/[a-zA-Z]/',$payload['name'])){
+                            $icon_name = mb_substr($payload['name'],0,2, 'utf-8');
+                        }else{
+                            $icon_name = substr($payload['name'],(strlen($payload['name'])-6));
+                        }
+                    }else{
+                        $icon_name = $payload['name'];
+                    }
+                }
+                $payload['icon_url'] = $color.'|'.$icon_name;
             }
-            $payload['password'] = '';
+
+            $payload['status'] = User::USER_STATUS_DEFAULT;
+            $payload['hire_shape'] = User::USER_STATUS_DEFAULT;
+            $payload['position_type'] = User::USER_STATUS_DEFAULT;
 
             DB::beginTransaction();
 
@@ -615,7 +695,7 @@ class PersonnelManageController extends Controller
     public function entry(Request $request, User $user)
     {
         $payload = $request->all();
-        $userInfo = $user->where('entry_status',$payload['entry_status'])->get();
+        $userInfo = $user->where('entry_status',$payload['entry_status'])->orderBy('created_at', 'desc')->get();
 
         return $this->response->collection($userInfo, new UserTransformer());
     }
@@ -634,6 +714,13 @@ class PersonnelManageController extends Controller
                 'entry_status' => $payload['entry_status'],
                 'password' => User::USER_PSWORD,
             ];
+
+            $departmentarray = [
+                'department_id' => User::USER_DEPARTMENT_DEFAULT,
+                'user_id' => $userid,
+            ];
+
+            DepartmentUser::create($departmentarray);
         }else{
             $array = [
                 'entry_status' => $payload['entry_status'],

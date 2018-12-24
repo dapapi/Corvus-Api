@@ -219,10 +219,10 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $status = $payload['status'];
         $user_id = $user->id;
-
         if ($user->status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
+
 
         if($status == 1){
             $array = [
@@ -235,7 +235,6 @@ class PersonnelManageController extends Controller
                 'position_type' => User::USER_DEPARTUE,
             ];
             $num = DB::table("role_users")->where('user_id',$user_id)->delete();
-
             //归档
         }elseif($status == 5) {
             $array = [
@@ -247,26 +246,14 @@ class PersonnelManageController extends Controller
         try {
 
              if (!empty($array)) {
-                 if($status == 3){
-                     $operate = new OperateEntity([
-                         'obj' => $user,
-                         'title' => null,
-                         'start' => $user->status,
-                         'end' => $array['status'],
-                         'method' => OperateLogMethod::TRANSFER,
 
-                     ]);
-
-                 }else{
-                     $operate = new OperateEntity([
-                    'obj' => $user,
-                    'title' => null,
-                    'start' => $user->status,
-                    'end' => $array['status'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-
-                 }
+                 $operate = new OperateEntity([
+                     'obj' => $user,
+                     'title' => null,
+                     'start' => $user->status,
+                     'end' => $payload['status'],
+                     'method' => OperateLogMethod::TRANSFER,
+                 ]);
                 $user->update($array);
                  event(new OperateLogEvent([
                      $operate,

@@ -46,8 +46,14 @@ class ReviewQuestionnaireController extends Controller {
         $pageSize = $request->get('page_size', config('app.page_size'));
         $reviews = ReviewQuestionnaire::where('id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
         $result = $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());
+
+        if(isset($error)){
+
         $result->addMeta('error', $error);
         return $result;
+        }else{
+            return $result;
+        }
     }
 
 

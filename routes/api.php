@@ -198,6 +198,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
          //账单
         $api->get('/bloggers/{blogger}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+        $api->get('/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+        $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         //考勤
         //提交申请

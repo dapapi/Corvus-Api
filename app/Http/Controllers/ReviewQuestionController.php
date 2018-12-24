@@ -38,8 +38,13 @@ class ReviewQuestionController extends Controller
         $questions = ReviewQuestion::where('review_id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
        // $questions = $reviewquestionnaire->questions()->get()->paginate($pageSize);
         $result = $this->response->paginator($questions, new ReviewQuestionTransformer());
-        $result->addMeta('error', $error);
-        return $result;
+        if(isset($error)){
+
+            $result->addMeta('error', $error);
+            return $result;
+        }else{
+            return $result;
+        }
     }
 
 

@@ -346,6 +346,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
+        $api->get('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@indexReturnedMoney');
+        $api->post('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@addReturnedMoney');
+        $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
         //获取明星写的项目
         $api->get('/projects/starproject', 'App\Http\Controllers\ProjectController@getStarProject');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');

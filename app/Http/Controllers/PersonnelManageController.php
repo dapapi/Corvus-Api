@@ -43,53 +43,22 @@ class PersonnelManageController extends Controller
         $user = User::orderBy('entry_time','asc')
             ->where(function($query) use($request){
                 //检测关键字
-                //$query->where('position_type',1)->count();
+
                 $status = addslashes($request->input('status'));//状态
                 $positionType = addslashes($request->input('position_type'));//在职状态
                 $entryTime = addslashes($request->input('entry_time'));//入职日期
                 $ehireShape = addslashes($request->input('hire_shape'));//聘用形式
-
                 $position = addslashes($request->input('position'));//职位
-
                 $search = addslashes($request->input('search'));//职位
 
-                $startDate = date('Y-'.$entryTime.'-01');
-                $endDate =  date('Y-m-d', strtotime("$startDate +1 month -1 day"));
 
-                if(!empty($positionType)) {
-                    if($positionType ==2){
-                        //dd(11);
-                        $query->where('position_type',$positionType);
-                    }
 
-                }else {
-                    // 1 正式 2实习 3管培生 4外包
-                    if (!empty($status)) {
-                        if ($status == 1) {
-                            $query->whereIn('status', [1, 2, 4]);
-                            $query->where('hire_shape', '!=', 4);
-
-                        } elseif ($status == 2) {
-                            $query->where('status', 1)->Where('hire_shape', 2);
-
-                        } elseif ($status == 3) {
-                            $query->where('status', 4)->Where('hire_shape', 3);
-
-                        } elseif ($status == 4) {
-
-                            $query->where('hire_shape', User::HIRE_SHAPE_OUT)->Where('status', User::USER_STATUS_OUT);
-
-                        }
-                    }
-                }
-                if(!empty($entryTime)) {
-                    $query->whereDate('entry_time', '>=', $startDate.' 00:00:00')->whereDate('entry_time', '<=', $endDate.' 23:59:59');
-                }
                 if(!empty($ehireShape)) {
                     $query->where('ehire_shape',$ehireShape);
                 }
                 if(!empty($search)) {
-                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%')->orWhere('department', 'like', '%'.$search.'%');
+
+                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->orWhere('position', 'like', '%'.$search.'%');
                 }
                 //不显示存档信息
                 $query->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS);
@@ -102,80 +71,32 @@ class PersonnelManageController extends Controller
 
     }
 
+    //随机颜色 名字
+    public function getColorName($name){
+        srand ((float) microtime() * 10000000);
+        $input = array('#F23E7C','#FF68E2','#FB8C00','#B53FAF','#27D3A8','#2CCCDA','#38BA5D','#3F51B5');
+        $rand_keys = array_rand ($input, 2);
 
-    public function show(Request $request,User $user)
-    {
-        $userId = 1199356938;
-        $operation = 1414069986;
-        $scope = new ScopeController();
-
-        $res =  $scope->index($userId,$operation);
-
-        $payload = $request->all();
-
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS)->count();
-        $data['departure'] = $user->where('position_type',2)->where('entry_status',User::USER_ENTRY_STATUS)->count();
-
-        if($res['rules'][0]['value'] ==''){
-            $usersId = '';
+        if(preg_match("/^[a-zA-Z\s]+$/",$name)){
+            $icon_name  = strtoupper(substr($name,0,2));
         }else{
+            if(strlen($name) > 6){
 
-            $usersId = $res['rules'][0]['value'];
-        }
-
-        $page = 1;
-        //$tasks = DB::table('tasks')->select('tasks.*');
-        // DB::connection()->enableQueryLog();
-//        $query = DB::table('users')->whereIn('users.id',$usersId)
-//
-//            ->join('department_user', function ($join) {
-//                $join->on('users.id', '=', 'department_user.user_id');
-//            })
-//
-//            ->join('departments', function ($join) {
-//                $join->on('department_user.department_id', '=', 'departments.id');
-//            })->forPage($page,200)->get(['users.*','departments.name as department_name']);
-        $tasks = User::where(function($query) use ($request, $payload,$usersId) {
-
-            if ($usersId!==''){
-                $query ->whereIn('users.id',$usersId);
+                if (preg_match('/[a-zA-Z]/',$name)){
+                    $icon_name = mb_substr($name,0,2, 'utf-8');
+                }else{
+                    $icon_name = substr($name,(strlen($name)-6));
+                }
+            }else{
+                $icon_name = $name;
             }
-
-            $query->join('department_user', function ($join) {
-                $join->on('users.id', '=', 'department_user.user_id');
-            });
-
-            $query->join('departments', function ($join) {
-
-                $join->on('department_user.department_id', '=', 'departments.id');
-
-            })->get(['users.*','departments.name as department_name']);
-
-        })->paginate($pageSize);
-
-        return $this->response->paginator($tasks, new UserTransformer());
-//
-////        $result = $this->item($query, new UserTransformer());
-////        $result->addMeta('date', $data);
-
-
-    }
-
-    public function random_color(){
-        mt_srand((double)microtime()*1000000);
-        $c = '';
-        while(strlen($c)<6){
-            $c .= sprintf("%02X", mt_rand(0, 255));
         }
-        return '#'.$c;
+        return $input[$rand_keys[0]].'|'.$icon_name;
     }
 
     public function store(Request $request,User $user)
     {
         $payload = $request->all();
-
-
         $user = Auth::guard('api')->user();
         $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
         $pageSize = config('api.page_size');
@@ -184,26 +105,11 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('手机号已经注册！');
         }else{
 
-            $color = $this->random_color();
             if(!isset($payload['icon_url'])){
 
-                if(preg_match("/^[a-zA-Z\s]+$/",$payload['name'])){
-                    $icon_name  = strtoupper(substr($payload['name'],0,2));
-                }else{
-                    if(strlen($payload['name']) > 6){
-
-                        if (preg_match('/[a-zA-Z]/',$payload['name'])){
-                            $icon_name = mb_substr($payload['name'],0,2, 'utf-8');
-                        }else{
-                            $icon_name = substr($payload['name'],(strlen($payload['name'])-6));
-                        }
-                    }else{
-                        $icon_name = $payload['name'];
-                    }
-                }
-                $payload['icon_url'] = $color.'|'.$icon_name;
+                $iconName = $this->getColorName($payload['name']);
+                $payload['icon_url'] = $iconName;
             }
-
             $payload['status'] = User::USER_STATUS_DEFAULT;
             $payload['hire_shape'] = User::USER_STATUS_DEFAULT;
             $payload['position_type'] = User::USER_STATUS_DEFAULT;

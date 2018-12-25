@@ -31,6 +31,7 @@ class ScheduleRepository
             ->where('s.end_at','>',$start_time)
             ->get();
 //        $sql = DB::getQueryLog();
+        $schedule_list = [];
         foreach ($result as $value){
             $start_at = Carbon::parse($value['start_at']);
             $end_at = Carbon::parse($value['end_at']);
@@ -42,7 +43,7 @@ class ScheduleRepository
             }
             $start_day = $start_at->dayOfYear;
             $end_day = $end_at->dayOfYear;
-            $schedule_list = [];
+
             for($day = $start_day;$day <= $end_day;$day++){
                 $curr_date = $start_time->addDay($start_day-$day);
                 $schedule_list[$curr_date->toDateString()] = $value;

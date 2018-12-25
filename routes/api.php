@@ -33,7 +33,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->get('/download', 'App\Http\Controllers\ExcelController@download');
-    $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
+    $api->group(['middleware' => ['auth:api', 'bindings','permissions',"datamanage",'dataview']], function ($api) {
+
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
 
@@ -435,7 +436,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //销售线索报表--线索新增
         $api->get("/reportfrom/newtrail","App\Http\Controllers\ReportFormController@newTrail");
         //销售线索报表--线索占比perTrail
-        $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
+//        $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
         $api->get("/reportfrom/salesFunnel", "App\Http\Controllers\ReportFormController@salesFunnel");
         //销售线索报表--行业分析
         $api->get("/reportfrom/industryanalysis", "App\Http\Controllers\ReportFormController@industryAnalysis");
@@ -455,14 +456,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //艺人线索分析
         $api->get("/reportfrom/startrailanalysis", "App\Http\Controllers\ReportFormController@starTrailAnalysis");
         //艺人项目分析
-        $api->get("/reportfrom/starprojectanalysis", "App\Http\Controllers\ReportFormController@starProjectAnalysis");
+//        $api->get("/reportfrom/starprojectanalysis", "App\Http\Controllers\ReportFormController@starProjectAnalysis");
         //博主报表
         $api->get("/reportfrom/bloggerreport", "App\Http\Controllers\ReportFormController@bloggerReport");
         //博主线索分析
-        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
-        //博主项目分析
-        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+//        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
+//        博主项目分析
+//        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+
         $api->get('/users', 'App\Http\Controllers\UserController@index');
+
 
         /*组织架构 部门管理*/
         //获取部门列表
@@ -530,9 +533,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //增加修改数据权限
         $api->post('/console/scope/{role}','App\Http\Controllers\ConsoleController@scopeStore');
+        $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
+        //获取数据权限
+        $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
+        $api->get('/scope/{user}/operation/{dictionaries}','App\Http\Controllers\ScopeController@show');
 
+        // 审批
         //我申请
         $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
         $api->get('/approvals_project/detail/{project}','App\Http\Controllers\ApprovalFormController@detail');
@@ -541,6 +549,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //我的审批 已审批
         $api->get('/approvals_project/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
+        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
+        $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
         // 审批流
         $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
         $api->get('/approval_instances/{instance}/chains', 'App\Http\Controllers\ApprovalFlowController@getMergeChains');
@@ -550,11 +560,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
         $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
 
+
         //获取消息
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
         $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
 
+        //数据字典
+        //列表
+        $api->get('/datadic/index','App\Http\Controllers\DataDictionaryController@index');
+        $api->post('/datadic/add','App\Http\Controllers\DataDictionaryController@store');
     });
 });

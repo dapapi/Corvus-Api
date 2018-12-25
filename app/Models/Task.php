@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use App\ModuleableType;
 use App\ModuleUserType;
+use App\Repositories\ScopeRepository;
+use App\Scopes\SearchDataScope;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Task extends Model
 {
@@ -27,7 +32,18 @@ class Task extends Model
         'stop_at',
         'deleted_at',
     ];
-
+    public function scopeSearchData($query)
+    {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $rules = (new ScopeRepository())->getDataViewUsers();
+        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhere(DB::raw("{$userid} in (
+            select u.id from tasks as t 
+            left join module_users as mu on mu.moduleable_id = t.id and 
+            mu.moduleable_type='".ModuleableType::TASK.
+            "' left join users as u on u.id = mu.user_id where t.id = tasks.id
+        )"));
+    }
     public function scopeCreateDesc($query)
     {
         return $query->orderBy('created_at', 'desc');

@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\ModuleableType;
 use App\OperateLogMethod;
+use App\Repositories\ScopeRepository;
+use App\Scopes\SearchDataScope;
 use App\Traits\OperateLogTrait;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Trail extends Model
 {
@@ -78,6 +82,14 @@ class Trail extends Model
     ];
 
     protected $dates = ['deleted_at'];
+
+    public function scopeSearchData($query)
+    {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $rules = (new ScopeRepository())->getDataViewUsers();
+        return (new SearchDataScope())->getCondition($query,$rules,$userid);
+    }
 
     public function scopeCompleted($query)
     {

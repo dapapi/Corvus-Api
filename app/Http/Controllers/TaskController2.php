@@ -152,6 +152,11 @@ class TaskController extends Controller
 
     public function recycleBin(Request $request)
     {
+        //获取可查询用户的数据
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有恢复任何数据的权限");
+        }
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -170,7 +175,13 @@ class TaskController extends Controller
         //参与人与创建人与参与人是当前用户的任务
         $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
             $join->on('tasks.id', '=', 'a.id');
-        })->searchData()
+        })->where(function ($query)use ($arrUserId){
+            //限制查询数据范围
+            if(count($arrUserId) > 0){
+                $query->whereIn('tasks.creator_id',$arrUserId)
+                    ->orWhereIn('tasks.principal_id',$arrUserId);
+            }
+        })
             ->mergeBindings($query)
             ->onlyTrashed()//只查询已删除的用户
             ->orderBy('a.created_at', 'desc')
@@ -243,6 +254,11 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+
+        if($arrUserId === null  || (count($arrUserId)!=0 && !in_array($task->creator_id,$arrUserId) && !in_array($task->principal_id,$arrUserId))){
+            return $this->response->errorInternal("你没有查看该任务的权限");
+        }
         // 操作日志
         $operate = new OperateEntity([
             'obj' => $task,
@@ -259,6 +275,12 @@ class TaskController extends Controller
 
     public function toggleStatus(TaskStatusRequest $request, Task $task)
     {
+        //获取项目的参与者
+        $res = $task->participants()->get();
+        $power = (new ScopeRepository())->checkMangePower($task->creator_id,$task->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有编辑该任务状态的权限");
+        }
         $payload = $request->all();
         $status = $payload['status'];
         if ($task->status == $status)
@@ -315,6 +337,12 @@ class TaskController extends Controller
 
     public function recoverRemove(Task $task)
     {
+        //获取项目的参与者
+        $res = $task->participants()->get();
+        $power = (new ScopeRepository())->checkMangePower($task->creator_id,$task->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有恢复该任务的权限");
+        }
         DB::beginTransaction();
         try {
             $deletedAt = $task->deleted_at;
@@ -361,6 +389,12 @@ class TaskController extends Controller
 
     public function remove(Task $task)
     {
+        //获取项目的参与者
+        $res = $task->participants()->get();
+        $power = (new ScopeRepository())->checkMangePower($task->creator_id,$task->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有删除该任务的权限");
+        }
         DB::beginTransaction();
         try {
             $deletedAt = $task->deleted_at;
@@ -412,6 +446,12 @@ class TaskController extends Controller
      */
     public function togglePrivacy(Task $task)
     {
+        //获取项目的参与者
+        $res = $task->participants()->get();
+        $power = (new ScopeRepository())->checkMangePower($task->creator_id,$task->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有设置该任务隐私的权限");
+        }
         DB::beginTransaction();
         try {
             $method = $task->privacy = !$task->privacy;
@@ -573,7 +613,7 @@ class TaskController extends Controller
                 $resource = Resource::where('type', $type)->first();
                 $array['resource_id'] = $resource->id;
 
-                $taskResource = TaskResource::where('task_id', $model->id)
+                $taskResource = TaskResource::where('task_id', $task->id)
                     ->where('resourceable_id', $array['resourceable_id'])
                     ->where('resourceable_type', $array['resourceable_type'])
                     ->where('resource_id', $resource->id)
@@ -606,6 +646,12 @@ class TaskController extends Controller
 
     public function deletePrincipal(Request $request, Task $task)
     {
+        //获取项目的参与者
+        $res = $task->participants()->get();
+        $power = (new ScopeRepository())->checkMangePower($task->creator_id,$task->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有删除该任务负责人的权限");
+        }
         $payload = $request->all();
         DB::beginTransaction();
         try {
@@ -637,6 +683,12 @@ class TaskController extends Controller
 
     public function cancelTime(TaskCancelTimeRequest $request, Task $task)
     {
+        //获取项目的参与者
+        $res = $task->participants()->get();
+        $power = (new ScopeRepository())->checkMangePower($task->creator_id,$task->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有取消该任务的权限");
+        }
         $payload = $request->all();
         $type = $payload['type'];
         DB::beginTransaction();
@@ -674,6 +726,14 @@ class TaskController extends Controller
 
     public function edit(TaskUpdateRequest $request, Task $task)
     {
+        dump($request->route("task"));
+        dd($task);
+        //获取项目的参与者
+        $res = $task->participants()->get();
+        $power = (new ScopeRepository())->checkMangePower($task->creator_id,$task->principal_id,array_column($res->toArray(),'id'));
+        if(!$power){
+            return $this->response->errorInternal("你没有编辑该任务的权限");
+        }
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 

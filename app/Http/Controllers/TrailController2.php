@@ -33,11 +33,16 @@ class TrailController extends Controller
 {
     public function index(FilterTrailRequest $request)
     {
+        //获取可查询用户的数据
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $trails = Trail::where(function ($query) use ($request, $payload) {
+        $trails = Trail::where(function ($query) use ($request, $payload,$arrUserId) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status') && !is_null($payload['status']))
@@ -50,15 +55,30 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+            //限制查询数据范围
+            if(count($arrUserId) > 0){
+                $query->whereIn('creator_id',$arrUserId)
+                    ->orWhereIn('principal_id',$arrUserId);
+            }
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
     public function all(Request $request)
     {
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $clients = Trail::orderBy('created_at', 'desc')
-            ->searchData()
+            ->where(function ($query)use ($arrUserId){
+                //限制查询数据范围
+                if(count($arrUserId) > 0){
+                    $query->whereIn('creator_id',$arrUserId)
+                        ->orWhereIn('principal_id',$arrUserId);
+                }
+            })
             ->get();
         return $this->response->collection($clients, new TrailTransformer());
     }
@@ -235,6 +255,14 @@ class TrailController extends Controller
     //todo 操作日志怎么记
     public function edit(EditTrailRequest $request, Trail $trail)
     {
+        //获取线索的参与者
+//        $res = $trail->participants()->get();
+        //线索没有参与者
+        //验证权限
+        $power = (new ScopeRepository())->checkMangePower($trail->creator_id,$trail->principal_id,[]);
+        if(!$power){
+            return $this->response->errorInternal("你没有编辑该线索的权限");
+        }
         $payload = $request->all();
 
         if ($request->has('principal_id') && !is_null($payload['principal_id']))
@@ -333,6 +361,11 @@ class TrailController extends Controller
 
     public function delete(Request $request, Trail $trail)
     {
+        $res = [];//线索没有参与人
+        $power = (new ScopeRepository())->checkMangePower($trail->creator_id,$trail->principal_id,$res);
+        if(!$power){
+            return $this->response->errorInternal("你没有删除该线索的权限");
+        }
         $trail->progress_status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
@@ -342,6 +375,12 @@ class TrailController extends Controller
 
     public function recover(Request $request, Trail $trail)
     {
+        //销售线索没有参与人
+        $res = [];
+        $power = (new ScopeRepository())->checkMangePower($trail->creator_id,$trail->principal_id,$res);
+        if(!$power){
+            return $this->response->errorInternal("你没有恢复该线索的权限");
+        }
         $trail->restore();
         $trail->progress_status = Trail::STATUS_UNCONFIRMED;
         $trail->save();
@@ -351,9 +390,10 @@ class TrailController extends Controller
 
     public function detail(Request $request, Trail $trail)
     {
-        $trail = $trail->searchData()->find($trail->id);
-        if($trail == null){
-            return $this->response->errorInternal("你没有查看该数据的权限");
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+
+        if($arrUserId === null  || (count($arrUserId)!=0 && !in_array($trail->creator_id,$arrUserId) && !in_array($trail->principal_id,$arrUserId))){
+            return $this->response->errorInternal("你没有查看该线索的权限");
         }
         // 操作日志
         $operate = new OperateEntity([
@@ -378,6 +418,11 @@ class TrailController extends Controller
 
     public function search(SearchTrailRequest $request)
     {
+        //获取可查询用户的数据
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $type = $request->get('type');
         $id = hashid_decode($request->get('id'));
 
@@ -386,7 +431,13 @@ class TrailController extends Controller
         switch ($type) {
             case 'clients':
                 $trails = Trail::where('client_id', $id)
-                    ->searchData()
+                    ->where(function($query)use ($arrUserId){
+                        //限制查询数据范围
+                        if(count($arrUserId) > 0){
+                            $query->whereIn('creator_id',$arrUserId)
+                                ->orWhereIn('principal_id',$arrUserId);
+                        }
+                    })
                     ->paginate($pageSize);
                 break;
             default:
@@ -399,10 +450,21 @@ class TrailController extends Controller
 
     public function type(TypeTrailReuqest $reuqest)
     {
+        //可查询的数据范围
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $type = $reuqest->get('type');
 
         $trails = Trail::where('type', $type)
-            ->searchData()
+            ->where(function ($query)use($arrUserId){
+                //限制查询数据范围
+                if(count($arrUserId) > 0){
+                    $query->whereIn('creator_id',$arrUserId)
+                        ->orWhereIn('principal_id',$arrUserId);
+                }
+            })
             ->get();
 
         return $this->response->collection($trails, new TrailTransformer());
@@ -454,11 +516,16 @@ class TrailController extends Controller
 
     public function filter(FilterTrailRequest $request)
     {
+        //可查询的数据范围
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $trails = Trail::where(function ($query) use ($request, $payload) {
+        $trails = Trail::where(function ($query) use ($request, $payload,$arrUserId) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status') && !is_null($payload['status']))
@@ -471,7 +538,12 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+            //限制查询数据范围
+            if(count($arrUserId) > 0){
+                $query->whereIn('creator_id',$arrUserId)
+                    ->orWhereIn('principal_id',$arrUserId);
+            }
+        })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }

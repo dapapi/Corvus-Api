@@ -759,12 +759,14 @@ class ProjectController extends Controller
         $payload = $request->all();
         $array = $payload;
         if($request->has('principal_id')){
+
             $array['principal_id'] = hashid_decode($payload['principal_id']);
         }
-
+        if($request->has('project_returned_money_type_id')){
+            $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
+        }
         try{
-
-                $projectReturnedMoney->update($payload);
+                $projectReturnedMoney->update($array);
              } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);

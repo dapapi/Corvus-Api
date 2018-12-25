@@ -38,7 +38,6 @@ class CalendarController extends Controller
     public function store(StoreCalendarRequest $request)
     {
         $payload = $request->all();
-
         $user = Auth::guard('api')->user();
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
@@ -52,14 +51,12 @@ class CalendarController extends Controller
             }
         }
 
-
         $payload['creator_id'] = $user->id;
 
         DB::beginTransaction();
         //todo 加参与人
         try {
             $calendar = Calendar::create($payload);
-
             if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
                 $payload['participant_ids'] = [];
 

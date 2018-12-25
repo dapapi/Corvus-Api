@@ -776,7 +776,8 @@ class BloggerController extends Controller
             $array[] = ['blogger_id',hashid_decode($blogger_id)];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $producer_id = BloggerProducer::where($array)->searchData()->get(['producer_id']);
+
+        $producer_id = BloggerProducer::where($array)->createDesc()->get(['producer_id']);
         $stars = Production::wherein('id',$producer_id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($stars, new ProductionTransformer());
     }

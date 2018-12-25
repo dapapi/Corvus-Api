@@ -18,6 +18,7 @@ use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
 use App\Models\DepartmentUser;
+use App\Models\Project;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -312,8 +313,11 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 242);
+            $this->createOrUpdateHandler($num, $userId, 234);
 
+            $project = Project::where('project_number',$num)->first();
+            if ($project)
+                $project->delete();
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);

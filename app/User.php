@@ -95,12 +95,12 @@ class User extends Authenticatable
     const  USER_POSITIVE = 1;//在职
     const  USER_DEPARTUE = 2; //离职
 
-    const  USER_ARCHIVE = 5; //归档
+    const   USER_ARCHIVE = 5; //归档
 
     const  USER_TYPE_DISABLE = 2; //禁用
     const  USER_ENTRY_STATUS = 3; //hr审核状态已同意
 
-    const  USER_DEPARTMENT_DEFAULT = 10; //hr审核通过 默认职位未分配职位
+    const  USER_DEPARTMENT_DEFAULT = 1; //hr审核通过 默认职位未分配职位
 
 
 

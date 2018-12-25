@@ -50,14 +50,16 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
     public function all(Request $request)
     {
-        $clients = Trail::orderBy('created_at', 'desc')->get();
+        $clients = Trail::orderBy('created_at', 'desc')
+            ->searchData()
+            ->get();
         return $this->response->collection($clients, new TrailTransformer());
     }
 
@@ -331,7 +333,6 @@ class TrailController extends Controller
 
     public function delete(Request $request, Trail $trail)
     {
-
         $trail->progress_status = Trail::STATUS_DELETE;
         $trail->save();
         $trail->delete();
@@ -350,6 +351,10 @@ class TrailController extends Controller
 
     public function detail(Request $request, Trail $trail)
     {
+        $trail = $trail->searchData()->find($trail->id);
+        if($trail == null){
+            return $this->response->errorInternal("你没有查看该数据的权限");
+        }
         // 操作日志
         $operate = new OperateEntity([
             'obj' => $trail,
@@ -380,7 +385,9 @@ class TrailController extends Controller
 
         switch ($type) {
             case 'clients':
-                $trails = Trail::where('client_id', $id)->paginate($pageSize);
+                $trails = Trail::where('client_id', $id)
+                    ->searchData()
+                    ->paginate($pageSize);
                 break;
             default:
                 return $this->response->noContent();
@@ -394,13 +401,19 @@ class TrailController extends Controller
     {
         $type = $reuqest->get('type');
 
-        $trails = Trail::where('type', $type)->get();
+        $trails = Trail::where('type', $type)
+            ->searchData()
+            ->get();
 
         return $this->response->collection($trails, new TrailTransformer());
     }
 
     public function refuse(RefuseTrailReuqest $request, Trail $trail)
     {
+        $power = (new ScopeRepository())->checkMangePower($trail->creator_id,$trail->principal_id,[]);
+        if(!$power){
+            return $this->response->errorInternal("你没有更改线索状态的权限");
+        }
         $type = $request->get('type');
         $reason = $request->get('reason');
 
@@ -458,7 +471,7 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }

@@ -70,13 +70,13 @@ class BloggerController extends Controller
             $array[] = ['communication_status',$payload['communication_status']];
         }
         // sign_contract_status   签约状态
-        $bloggers = Blogger::where($array)->createDesc()->paginate($pageSize);
+        $bloggers = Blogger::where($array)->searchData()->createDesc()->paginate($pageSize);
         return $this->response->paginator($bloggers, new BloggerTransformer());
     }
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-        $bloggers = Blogger::createDesc()->get();
+        $bloggers = Blogger::createDesc()->searchData()->get();
         return $this->response->collection($bloggers, new BloggerTransformer($isAll));
     }
     public function gettypename(Request $request)
@@ -107,7 +107,7 @@ class BloggerController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $blogger = Blogger::onlyTrashed()->paginate($pageSize);
+        $blogger = Blogger::onlyTrashed()->searchData()->paginate($pageSize);
         return $this->response->paginator($blogger, new BloggerTransformer());
     }
     public function remove(Blogger $blogger)
@@ -776,7 +776,8 @@ class BloggerController extends Controller
             $array[] = ['blogger_id',hashid_decode($blogger_id)];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $producer_id = BloggerProducer::where($array)->get(['producer_id']);
+
+        $producer_id = BloggerProducer::where($array)->createDesc()->get(['producer_id']);
         $stars = Production::wherein('id',$producer_id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($stars, new ProductionTransformer());
     }

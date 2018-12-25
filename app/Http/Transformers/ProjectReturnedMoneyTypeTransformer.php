@@ -14,7 +14,7 @@ class ProjectReturnedMoneyTypeTransformer extends TransformerAbstract
 
             $array = [
 
-              //  'id' => $projectReturnedMoneyType->id,
+                'id' => hashid_encode($projectReturnedMoneyType->id),
                 'type' => $projectReturnedMoneyType->type,
                 'plan_returned_money' => $projectReturnedMoneyType->name,
 

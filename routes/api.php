@@ -33,7 +33,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->get('/download', 'App\Http\Controllers\ExcelController@download');
-    $api->group(['middleware' => 'auth:api', 'bindings'], function ($api) {
+    $api->group(['middleware' => ['auth:api', 'bindings','permissions',"datamanage",'dataview']], function ($api) {
+
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
 
@@ -347,11 +348,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
         $api->get('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@indexReturnedMoney');
-        $api->get('projects/{projectreturnedmoney}/returned/money/show', 'App\Http\Controllers\ProjectController@showReturnedMoney');
-        $api->put('projects/{projectreturnedmoney}/returned/money/edit', 'App\Http\Controllers\ProjectController@editReturnedMoney');
+        $api->get('returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@showReturnedMoney');
+        $api->get('money/type', 'App\Http\Controllers\ProjectController@getMoneType');
+        $api->put('returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@editReturnedMoney');
         $api->post('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@addReturnedMoney');
         $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
-        $api->delete('projects/{projectreturnedmoney}/returned/money/delete', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
+        $api->delete('returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
+
         //获取明星写的项目
         $api->get('/projects/starproject', 'App\Http\Controllers\ProjectController@getStarProject');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
@@ -435,7 +438,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //销售线索报表--线索新增
         $api->get("/reportfrom/newtrail","App\Http\Controllers\ReportFormController@newTrail");
         //销售线索报表--线索占比perTrail
-        $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
+//        $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
         $api->get("/reportfrom/salesFunnel", "App\Http\Controllers\ReportFormController@salesFunnel");
         //销售线索报表--行业分析
         $api->get("/reportfrom/industryanalysis", "App\Http\Controllers\ReportFormController@industryAnalysis");
@@ -455,14 +458,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //艺人线索分析
         $api->get("/reportfrom/startrailanalysis", "App\Http\Controllers\ReportFormController@starTrailAnalysis");
         //艺人项目分析
-        $api->get("/reportfrom/starprojectanalysis", "App\Http\Controllers\ReportFormController@starProjectAnalysis");
+//        $api->get("/reportfrom/starprojectanalysis", "App\Http\Controllers\ReportFormController@starProjectAnalysis");
         //博主报表
         $api->get("/reportfrom/bloggerreport", "App\Http\Controllers\ReportFormController@bloggerReport");
         //博主线索分析
-        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
-        //博主项目分析
-        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+//        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
+//        博主项目分析
+//        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+
         $api->get('/users', 'App\Http\Controllers\UserController@index');
+
 
         /*组织架构 部门管理*/
         //获取部门列表
@@ -530,8 +535,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //增加修改数据权限
         $api->post('/console/scope/{role}','App\Http\Controllers\ConsoleController@scopeStore');
+        $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
+        //获取数据权限
+        $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
+        $api->get('/scope/{user}/operation/{dictionaries}','App\Http\Controllers\ScopeController@show');
 
         // 审批
         //我申请
@@ -553,11 +562,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
         $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
 
+
         //获取消息
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
         $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
 
+        //数据字典
+        //列表
+        $api->get('/datadic/index','App\Http\Controllers\DataDictionaryController@index');
+        $api->post('/datadic/add','App\Http\Controllers\DataDictionaryController@store');
     });
 });

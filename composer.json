@@ -6,7 +6,7 @@
     "type": "project",
     "require": {
         "php": "^7.1.3",
-        "barryvdh/laravel-cors": "^0.11.0",
+        "barryvdh/laravel-cors": "^0.11.2",
         "dingo/api": "v1.0.0-beta8",
         "doctrine/dbal": "^2.8",
         "elfsundae/laravel-hashid": "^1.2",

@@ -157,12 +157,21 @@ class ApprovalFormController extends Controller
     public function detail(Request $request, Project $project)
     {
         $payload = $request->all();
-
         $payload['type'] = isset($payload['type']) ? $payload['type'] : 1;
 
         $result = $this->response->item($project, new ProjectTransformer());
 
         $data = TemplateField::where('status', $payload['type'])->get();
+
+        $participant = DB::table('approval_form_participants as afp')
+            ->join('users', function ($join) {
+                $join->on('afp.notice_id', '=', 'users.id');
+            })->select('users.name','users.icon_url','afp.notice_id')
+            ->where('afp.form_instance_number',$project->project_number)->get()->toArray();
+
+        foreach($participant as &$value){
+            $value->notice_id = hashid_encode($value->notice_id);
+        }
 
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
 
@@ -186,6 +195,7 @@ class ApprovalFormController extends Controller
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $project);
+        $result->addMeta('participant', $participant);
 
         return $result;
     }

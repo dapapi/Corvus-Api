@@ -55,15 +55,16 @@ class StarController extends Controller
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $stars = Star::createDesc()
-            ->where($array)//根据条件查询
-            ->paginate($pageSize);
+            ->searchData()
+        ->where($array)//根据条件查询
+        ->paginate($pageSize);
         return $this->response->paginator($stars, new StarTransformer());
     }
 
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-        $stars = Star::createDesc()->get();
+        $stars = Star::createDesc()->searchData()->get();
 
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
@@ -89,7 +90,7 @@ class StarController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $stars = Star::onlyTrashed()->paginate($pageSize);
+        $stars = Star::onlyTrashed()->searchData()->paginate($pageSize);
 
         return $this->response->paginator($stars, new StarTransformer());
     }
@@ -623,13 +624,14 @@ class StarController extends Controller
                 $affixes = $request->get('affix');
                 foreach ($affixes as $affix) {
                     try {
+                        $affixmodel = null;
                         //查找对应类型的附件是否存在
                         $affixmodel = Affix::where([
-                            ['type', $affix['type']],
-                            ['affixable_type', ModuleableType::STAR],
-                            ['affixable_id', $star->id]
-                        ]);
-                        if ($affixmodel->id) {//存在则删除
+                            ['type',$affix['type']],
+                            ['affixable_type',ModuleableType::STAR],
+                            ['affixable_id',$star->id]
+                        ])->first();
+                        if($affixmodel){//存在则删除
                             $affixmodel->delete();
                         }
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
@@ -640,19 +642,17 @@ class StarController extends Controller
             }
 //            if (count($array) == 0)
 //                return $this->response->noContent();
+
             if (count($array) != 0)
                 $star->update($array);
-
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
-
+            DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('修改失败');
         }
-        DB::commit();
-
         return $this->response->accepted();
 
     }

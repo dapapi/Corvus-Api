@@ -27,6 +27,7 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\ModuleUserRepository;
+use App\Repositories\ScopeRepository;
 use App\ResourceType;
 use App\TaskPriorityStatus;
 use App\TaskStatus;
@@ -64,7 +65,8 @@ class TaskController extends Controller
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-        })->orderBy('created_at', 'desc')->paginate($pageSize);
+
+        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
@@ -72,7 +74,9 @@ class TaskController extends Controller
     public function tasksAll(Request $request,Task $task)
     {
         $payload = $request->all();
-        $data = $task->get()->toArray();
+        $data = $task->get()
+            ->searchData()
+            ->toArray();
         $dataArr = array();
         if(!empty($data)){
             foreach ($data as $k=>$value){
@@ -151,8 +155,10 @@ class TaskController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
+        //负责人和创建人是当前登录用户的任务
         $tasks = DB::table('tasks')->select('tasks.*')->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
+
+        //参与人是当前用户的任务
         $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
             $join->on('module_users.moduleable_id', '=', 'tasks.id')
                 ->where('module_users.moduleable_type', ModuleableType::TASK)
@@ -161,11 +167,12 @@ class TaskController extends Controller
             ->union($tasks);
 
         $querySql = $query->toSql();
+        //参与人与创建人与参与人是当前用户的任务
         $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
             $join->on('tasks.id', '=', 'a.id');
-        })
+        })->searchData()
             ->mergeBindings($query)
-            ->onlyTrashed()
+            ->onlyTrashed()//只查询已删除的用户
             ->orderBy('a.created_at', 'desc')
             ->paginate($pageSize);
 
@@ -520,10 +527,10 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         DB::beginTransaction();
-        if (!$task->task_pid) {//子任务不能关联资源
+        if (!$model->task_pid) {//子任务不能关联资源
             try {
                 $array = [
-                    'task_id' => $task->id,
+                    'task_id' => $model->id,
                 ];
 
                 $type = 0;
@@ -566,7 +573,7 @@ class TaskController extends Controller
                 $resource = Resource::where('type', $type)->first();
                 $array['resource_id'] = $resource->id;
 
-                $taskResource = TaskResource::where('task_id', $task->id)
+                $taskResource = TaskResource::where('task_id', $model->id)
                     ->where('resourceable_id', $array['resourceable_id'])
                     ->where('resourceable_type', $array['resourceable_type'])
                     ->where('resource_id', $resource->id)
@@ -856,6 +863,12 @@ class TaskController extends Controller
         }
 
         if ($pTask->id) {
+            //获取项目的参与者
+            $res = $pTask->participants()->get();
+            $power = (new ScopeRepository())->checkMangePower($pTask->creator_id,$pTask->principal_id,array_column($res->toArray(),'id'));
+            if(!$power){
+                return $this->response->errorInternal("你没有给该任务增加子任务的权限");
+            }
             if ($pTask->task_pid)
                 return $this->response->errorBadRequest('子任务不支持多级子任务');
             $payload['task_pid'] = $pTask->id;
@@ -967,17 +980,27 @@ class TaskController extends Controller
 
     public function filter(FilterTaskRequest $request)
     {
+        //获取可查询用户的数据
+        $arrUserId = (new ScopeRepository())->getDataViewUsers();
+        if($arrUserId === null){
+            return $this->response->errorInternal("没有查看数据的权限");
+        }
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $tasks = Task::where(function($query) use ($request, $payload) {
+        $tasks = Task::where(function($query) use ($request, $payload,$arrUserId) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
+            //限制查询数据范围
+            if(count($arrUserId) > 0){
+                $query->whereIn('creator_id',$arrUserId)
+                    ->orWhereIn('principal_id',$arrUserId);
+            }
         })->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($tasks, new TaskTransformer());

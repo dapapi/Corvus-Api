@@ -265,7 +265,7 @@ class ConsoleController extends Controller
 
         $roleId = $role->id;
 
-        $depatments = DataDictionarie::where('parent_id', 1)->get();
+        $depatments = DataDictionarie::where('parent_id', 1)->get();//获取功能模块列表
         $roleInfo = RoleResource::where('role_id', $roleId)->get()->toArray();
 
         $tree_data=array();
@@ -322,16 +322,14 @@ class ConsoleController extends Controller
     public function scope(Request $request,Role $role,RoleUser $roleUser,RoleResource $roleResource,User $user,RoleDataView $roleDataView,RoleDataManage $roleDataManage)
     {
 
-
-        $dataDictionarie = DataDictionarie::where('code', 1)->get()->toArray();
-        $roleId = $role->id;
+        $dataDictionarie = DataDictionarie::where('code', 1)->get()->toArray();//获取功能模块列表
+        $roleId = 1;
         $tree_data = array();
         $res = array();
         foreach ($dataDictionarie as $key=>$value){
 
             //本人相关 本部门 部门下属 全部
-            $reoureInfo = RoleResourceView::where('resource_id', $value['id'])->get()->toArray();
-
+            $reoureInfo = RoleResourceView::where('resource_id', $value['id'])->get()->toArray();//获取查看功能的列表
             $info = array_column($reoureInfo, 'data_view_id');
 
             $res = DataDictionarie::whereIn('id', $info)->get()->toArray();
@@ -383,14 +381,12 @@ class ConsoleController extends Controller
             );
 
         }
-
         return $tree_data;
     }
 
     public function scopeStore(Request $request,Role $role,RoleResourceView $roleResourceView)
     {
         $payload = $request->all();
-
         $roleId = $role->id;
         if(!empty($payload)){
             $dataViewSql = "{\"rules\": [{\"field\" : \"created_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";

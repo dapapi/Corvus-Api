@@ -12,8 +12,10 @@ use App\Http\Transformers\ClientTransformer;
 use App\Imports\ClientsImport;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\Message;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\Repositories\ScopeRepository;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,14 +30,18 @@ class ClientController extends Controller
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $clients = Client::orderBy('created_at', 'desc')->paginate($pageSize);
+        $clients = Client::orderBy('created_at', 'desc')
+            ->searchData()
+            ->paginate($pageSize);
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-        $clients = Client::orderBy('created_at', 'desc')->get();
+        $clients = Client::orderBy('created_at', 'desc')
+            ->searchData()
+            ->get();
 
         return $this->response->collection($clients, new ClientTransformer($isAll));
     }
@@ -144,13 +150,16 @@ class ClientController extends Controller
 
     public function detail(Request $request, Client $client)
     {
+        $client = $client->searchData()->find($client->id);
+        if($client == null){
+            return $this->response->errorInternal("你没有查看该数据的权限");
+        }
         return $this->response->item($client, new ClientTransformer());
     }
 
     public function filter(FilterClientRequest $request)
     {
         $payload = $request->all();
-
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $clients = Client::where(function ($query) use ($request, $payload) {
@@ -166,7 +175,7 @@ class ClientController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($clients, new ClientTransformer());
     }

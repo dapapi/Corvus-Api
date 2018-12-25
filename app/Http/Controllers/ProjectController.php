@@ -11,12 +11,14 @@ use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
+use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\Message;
 use App\Events\OperateLogEvent;
 use App\Models\OperateEntity;
+use App\Models\ProjectReturnedMoneyType;
 use App\OperateLogMethod;
 use App\Models\ProjectReturnedMoney;
 
@@ -35,6 +37,7 @@ use App\ModuleUserType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
+use App\Repositories\ScopeRepository;
 use Dingo\Api\Facade\Route;
 use Exception;
 use Illuminate\Http\Request;
@@ -61,7 +64,6 @@ class ProjectController extends Controller
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $projects = Project::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
@@ -77,17 +79,15 @@ class ProjectController extends Controller
 
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-        })->orderBy('created_at', 'desc')->paginate($pageSize);
-
-
+        })->searchData()
+            ->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-
-        $projects = Project::orderBy('created_at', 'desc')->get();
+        $projects = Project::orderBy('created_at', 'desc')->searchData()->get();
         return $this->response->collection($projects, new ProjectTransformer($isAll));
     }
 
@@ -155,7 +155,6 @@ class ProjectController extends Controller
         })->mergeBindings($query)
             ->orderBy('a.created_at', 'desc')
             ->paginate($pageSize);
-
         return $this->response->paginator($result, new ProjectTransformer());
     }
 
@@ -493,7 +492,7 @@ class ProjectController extends Controller
             $title = $user->name."将你加入了项目";  //通知消息的标题
             $subheading = "副标题";
             $module = Message::PROJECT;
-            $link = URL::action("ProjectController@edit",["project"=>$project->id]);
+            $link = URL::action("ProjectController@detail",["project"=>$project->id]);
             $data = [];
             $data[] = [
                 "title" =>  '项目名称', //通知消息中的消息内容标题
@@ -516,7 +515,7 @@ class ProjectController extends Controller
         return $this->response->accepted();
     }
 
-    public function detail(Request $request, Project $project)
+    public function detail(Request $request, $project)
     {
         $type = $project->type;
         $result = $this->response->item($project, new ProjectTransformer());
@@ -556,9 +555,6 @@ class ProjectController extends Controller
 
     public function changeStatus(Request $request, Project $project)
     {
-        if (!$request->has('status'))
-            return $this->response->errorBadRequest('参数错误');
-
         $status = $request->get('status');
         switch ($status) {
             case Project::STATUS_COMPLETE:
@@ -604,7 +600,8 @@ class ProjectController extends Controller
 
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-        })->orderBy('created_at', 'desc')->paginate($pageSize);
+
+        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
 
@@ -619,10 +616,8 @@ class ProjectController extends Controller
     {
         $star_id = $request->get('star_id', null);
         $star_id = hashid_decode($star_id);
-        DB::connection()->enableQueryLog();
         $result = ProjectRepository::getProjectBySatrId($star_id);
-        $sql = DB::getQueryLog();
-        dd($sql);
+
         //todo 这里的返回值status没有返回数字，返回的是中文所以用不了transfromer
 //        return $this->response->collection($result, new ProjectTransformer());
         return $result;
@@ -640,6 +635,12 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
+    /**
+     * 项目关联项目 关联任务
+     * @param AddRelateProjectRequest $request
+     * @param Project $project
+     * @return \Dingo\Api\Http\Response|void
+     */
     public function addRelates(AddRelateProjectRequest $request, Project $project)
     {
         DB::beginTransaction();
@@ -681,6 +682,12 @@ class ProjectController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+    public function getMoneType(Request $request)
+    {
+
+        $type = ProjectReturnedMoneyType::get();
+        return $this->response->collection($type, new ProjectReturnedMoneyTypeTransformer());
+    }
     public function indexReturnedMoney(Request $request,Project $project)
     {
         $contract_id = 22;
@@ -711,6 +718,9 @@ class ProjectController extends Controller
         $array['project_id'] = $project->id;
         if($request->has('principal_id')){
             $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+        if($request->has('project_returned_money_type_id')){
+            $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
       //  $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>0])->count() + 1;
         DB::beginTransaction();
@@ -746,9 +756,17 @@ class ProjectController extends Controller
     }
     public function editReturnedMoney(EditEeturnedMoneyRequest $request,ProjectReturnedMoney $projectReturnedMoney)
     {
+        $payload = $request->all();
+        $array = $payload;
+        if($request->has('principal_id')){
+
+            $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+        if($request->has('project_returned_money_type_id')){
+            $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
+        }
         try{
-                $palyload = $request->all();
-                $projectReturnedMoney->update($palyload);
+                $projectReturnedMoney->update($array);
              } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -783,6 +801,9 @@ class ProjectController extends Controller
         $array['p_id'] = $projectReturnedMoney->id;
         if($request->has('principal_id')){
             $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+        if($request->has('project_returned_money_type_id')){
+            $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
        // $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
         DB::beginTransaction();

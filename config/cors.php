@@ -10,7 +10,8 @@ $allowedOriginList = [
     'http://*.papitube.com',
     'http://*.mttop.cn',
     'https://*.mttop.cn',
-    'https://*.papitube.com'
+    'https://*.papitube.com',
+    'http://localhost:8080'
 ];
 if (env('API_DEBUG')) {
     $allowedOriginList = ['*'];

@@ -57,8 +57,8 @@ class UserTransformer extends TransformerAbstract
             'jobs'=> $user->jobs,//'岗位',
             'number'=> $user->number,//'工号',
             'work_email'=> $user->work_email,//'工作邮箱',
-            'department_id'=> $user->department_id,//'工作邮箱',
             'is_department_principal' => $user->is_department_principal,
+            'disable'=>$user->disable,
 
 
         ];
@@ -68,6 +68,7 @@ class UserTransformer extends TransformerAbstract
             $array['company'] = $user->company->name;
             $array['company_id'] = hashid_encode($user->company->id);
         }
+
         return $array;
     }
 

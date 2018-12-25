@@ -604,18 +604,20 @@ class PersonnelManageController extends Controller
     //审核人员信息
     public function audit(Request $request, User $user)
     {
+
         $payload = $request->all();
+
         $status = $payload['entry_status'];
         if ($user->entry_status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
         $userid = $user->id;
+
         if($status == 3){
             $array = [
                 'entry_status' => $payload['entry_status'],
                 'password' => User::USER_PSWORD,
             ];
-
             $departmentarray = [
                 'department_id' => User::USER_DEPARTMENT_DEFAULT,
                 'user_id' => $userid,

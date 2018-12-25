@@ -3,6 +3,8 @@
 namespace App\Models;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\Repositories\ScopeRepository;
+use App\Scopes\SearchDataScope;
 use App\User;
 use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;

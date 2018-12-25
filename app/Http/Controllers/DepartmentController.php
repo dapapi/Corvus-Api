@@ -200,6 +200,7 @@ class DepartmentController extends Controller
                         $join->on('department_user.user_id', '=', 'users.id');
                     })->select('users.id', 'users.name')
                      ->where('department_user.department_id',$departmentId)
+                    ->where('department_user.type',0)
                     ->get();
         return $this->response->item($data, new DepartmentUserTransformer());
 
@@ -213,7 +214,9 @@ class DepartmentController extends Controller
         $departmentId = $department->id;
 
         $departmentPid = $department->department_pid;
+
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
+
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
 
         DB::beginTransaction();

@@ -248,7 +248,7 @@ class ApprovalFormController extends Controller
             })
             ->where('afe.change_id', $user->id)
             ->whereNotIn( 'afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP,DataDictionarie::FIOW_TYPE_DSP])
-            ->select('afe.*','ph.title','bu.*','users.name','ph.created_at')
+            ->select('afe.*','ph.title','bu.*','users.name','ph.created_at','ph.id')
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key=>&$value){

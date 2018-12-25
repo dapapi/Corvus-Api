@@ -65,7 +65,7 @@ class PersonnelManageController extends Controller
                     $query->where('hire_shape',$ehireShape);
                 }
                 if(!empty($search)) {
-                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
+                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%')->where('entry_status',User::USER_ENTRY_STATUS);
                 }
                 //不显示存档信息 禁用
                 $query->where('status','!=',User::USER_ARCHIVE)->where('disable','!=',User::USER_TYPE_DISABLE)->where('entry_status',User::USER_ENTRY_STATUS);

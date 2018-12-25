@@ -166,8 +166,12 @@ class ApprovalFormController extends Controller
         $participant = DB::table('approval_form_participants as afp')
             ->join('users', function ($join) {
                 $join->on('afp.notice_id', '=', 'users.id');
-            })->select('users.name','afp.notice_id')
+            })->select('users.name','users.icon_url','afp.notice_id')
             ->where('afp.form_instance_number',$project->project_number)->get()->toArray();
+
+        foreach($participant as &$value){
+            $value->notice_id = hashid_encode($value->notice_id);
+        }
 
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
 

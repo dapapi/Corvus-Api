@@ -152,14 +152,14 @@ class ApprovalFlowController extends Controller
         $chains = ChainFixed::where('form_id', $formId)
             ->where('condition_id', $condition)
             ->where('next_id', '!=', 0)
-            ->where('sort_number', '>',$nextChain->sort_number)
+            ->where('sort_number', '>=',$nextChain->sort_number)
             ->orderBy('sort_number')
             ->get();
         if ($form->change_type === 223) {
             $nextChain = ChainFree::where('next_id', $next)->where('form_id', $formId)->first();
             $chains = ChainFree::where('form_number', $num)
                 ->where('next_id', '!=', 0)
-                ->where('sort_number', '>', $nextChain->sort_number)
+                ->where('sort_number', '>=', $nextChain->sort_number)
                 ->orderBy('sort_number')
                 ->get();
         }

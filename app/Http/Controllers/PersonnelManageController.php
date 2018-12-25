@@ -70,7 +70,7 @@ class PersonnelManageController extends Controller
                 //不显示存档信息 禁用
                 $query->where('status','!=',User::USER_ARCHIVE)->where('disable','!=',User::USER_TYPE_DISABLE)->where('entry_status',User::USER_ENTRY_STATUS);
 
-             })->paginate($pageSize);
+             })->where('entry_status',User::USER_ENTRY_STATUS)->paginate($pageSize);
 
         $result = $this->response->paginator($user, new UserTransformer());
         $result->addMeta('date', $data);
@@ -604,6 +604,7 @@ class PersonnelManageController extends Controller
     //审核人员信息
     public function audit(Request $request, User $user)
     {
+
         $payload = $request->all();
 
         $status = $payload['entry_status'];
@@ -613,24 +614,21 @@ class PersonnelManageController extends Controller
         $userid = $user->id;
 
         if($status == 3){
-
             $array = [
                 'entry_status' => $payload['entry_status'],
                 'password' => User::USER_PSWORD,
             ];
-
             $departmentarray = [
                 'department_id' => User::USER_DEPARTMENT_DEFAULT,
                 'user_id' => $userid,
             ];
 
-           // DepartmentUser::create($departmentarray);
+            DepartmentUser::create($departmentarray);
         }else{
             $array = [
                 'entry_status' => $payload['entry_status'],
             ];
         }
-
         try {
 //                // 操作日志
                 $operate = new OperateEntity([

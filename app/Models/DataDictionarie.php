@@ -32,6 +32,9 @@ class DataDictionarie extends Model
     //审批表单状态
     const FIOW_TYPE_TJSP = 237; // 提交审批
     const FIOW_TYPE_DSP = 238;  //  待审批
+    //知会人类型
+    const NOTICE_TYPE_TEAN = 245;  //  团队
+
 
 
 

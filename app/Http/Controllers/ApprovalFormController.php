@@ -44,6 +44,7 @@ class ApprovalFormController extends Controller
 
     public function store($formId, $notice='',$projectNumber)
     {
+
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         if($projectNumber){
@@ -78,7 +79,8 @@ class ApprovalFormController extends Controller
                     foreach ($notice as $value){
                         $participantsArray = [
                             'form_instance_number'=>$projectNumber,
-                            'notice_id'=>$value['id'],
+                            'notice_id'=>hashid_decode($value),
+                            'notice_type'=>DataDictionarie::NOTICE_TYPE_TEAN,
                             'created_at'=>date("Y-m-d H:i:s",time()),
                         ];
                         Participant::create($participantsArray);

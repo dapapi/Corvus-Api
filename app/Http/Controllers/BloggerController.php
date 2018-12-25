@@ -76,7 +76,11 @@ class BloggerController extends Controller
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-        $bloggers = Blogger::createDesc()->searchData()->get();
+        $array = [];//查询条件
+        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
+            $array[] = ['sign_contract_status', $payload['sign_contract_status']];
+        }
+        $bloggers = Blogger::createDesc()->searchData()->where($array)->get();
         return $this->response->collection($bloggers, new BloggerTransformer($isAll));
     }
     public function gettypename(Request $request)

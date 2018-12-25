@@ -37,8 +37,12 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS)->count();
-        $data['departure'] = $user->where('position_type',2)->where('entry_status',User::USER_ENTRY_STATUS)->count();
+        //在职，聘用形式等于劳动和实习，且状态等于非已离职；
+        $hire_shape = array(User::HIRE_SHAPE_LOWE,User::HIRE_SHAPE_INTERNSHIP);
+       
+        $data['onjob'] = $user->whereIn('hire_shape',$hire_shape)->where('status','!=',User::USER_STATUS_DEPARTUE)->where('entry_status',User::USER_ENTRY_STATUS)->count(); //在职
+        //离职，聘用形式等于劳动和实习，且状态等于已离职
+        $data['departure'] = $user->whereIn('hire_shape',$hire_shape)->where('status',User::USER_STATUS_DEPARTUE)->where('entry_status',User::USER_ENTRY_STATUS)->count(); //离职
 
         $user = User::orderBy('updated_at','DESC')
             ->where(function($query) use($request){

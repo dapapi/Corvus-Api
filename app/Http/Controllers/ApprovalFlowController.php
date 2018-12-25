@@ -312,7 +312,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 242);
+            $this->createOrUpdateHandler($num, $userId, 234);
 
         } catch (Exception $exception) {
             DB::rollBack();

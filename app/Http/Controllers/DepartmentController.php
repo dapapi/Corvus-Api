@@ -264,6 +264,7 @@ class DepartmentController extends Controller
     public function show(Request $request,User $user)
     {
         $data = $user->get()->toArray();
+
         $targetKey = 'name';
         $data = array_map(function ($item) use ($targetKey) {
             return array_merge($item, [
@@ -469,7 +470,7 @@ class DepartmentController extends Controller
     public function getFirstChar($s){
 
         $s0 = mb_substr($s,0,3); //获取名字的姓
-        $s = iconv('UTF-8','gb2312', $s0); //将UTF-8转换成GB2312编码
+        $s = iconv("UTF-8", "GBK//IGNORE", $s0);
         if (ord($s0)>128) { //汉字开头，汉字没有以U、V开头的
             $asc=ord($s{0})*256+ord($s{1})-65536;
             if($asc>=-20319 and $asc<=-20284)return "A";

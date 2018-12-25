@@ -684,10 +684,22 @@ class ProjectController extends Controller
     public function indexReturnedMoney(Request $request,Project $project)
     {
         $contract_id = 22;
+        $project_id = $project->id;
+        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id,'p_id'=>0])->createDesc()->get();
+        $contractReturnedMoney = 10000000000;
+        $alreadyReturnedMoney = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id])->wherein('project_returned_money_type_id',[1,2,3,4])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
+        $notReturnedMoney =  $contractReturnedMoney - $alreadyReturnedMoney->toArray()['alreadysum'];
+        $alreadyinvoice = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id])->wherein('project_returned_money_type_id',[5,6])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
 
-        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project->id,'p_id'=>0])->createDesc()->get();
-        return $this->response->collection($project, new ProjectReturnedMoneyTransformer());
 
+        $result = $this->response->collection($project, new ProjectReturnedMoneyTransformer());
+
+        $result->addMeta('contractReturnedMoney', $contractReturnedMoney);
+        $result->addMeta('alreadyReturnedMoney', $alreadyReturnedMoney->alreadysum);
+        $result->addMeta('notReturnedMoney', $notReturnedMoney);
+        $result->addMeta('alreadyinvoice', $alreadyinvoice->alreadysum);
+
+        return $result;
     }
     public function addReturnedMoney(ReturnedMoneyRequest $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)
     {

@@ -59,7 +59,7 @@ class Blogger extends Model
             select u.id from bloggers as b 
             left join module_users as mu on mu.moduleable_id = b.id and 
             mu.moduleable_type='".ModuleableType::BLOGGER.
-            "' left join users as u on u.id = mu.user_id where b.id = stars.id
+            "' left join users as u on u.id = mu.user_id where b.id = bloggers.id
         )"));
     }
     public function scopeCreateDesc($query)

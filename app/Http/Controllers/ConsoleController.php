@@ -387,7 +387,6 @@ class ConsoleController extends Controller
     public function scopeStore(Request $request,Role $role,RoleResourceView $roleResourceView)
     {
         $payload = $request->all();
-        dd($payload);
         $roleId = $role->id;
         if(!empty($payload)){
             $dataViewSql = "{\"rules\": [{\"field\" : \"created_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";

@@ -614,12 +614,10 @@ class PersonnelManageController extends Controller
         $userid = $user->id;
 
         if($status == 3){
-
             $array = [
                 'entry_status' => $payload['entry_status'],
                 'password' => User::USER_PSWORD,
             ];
-
             $departmentarray = [
                 'department_id' => User::USER_DEPARTMENT_DEFAULT,
                 'user_id' => $userid,

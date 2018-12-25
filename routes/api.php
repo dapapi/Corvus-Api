@@ -530,6 +530,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
+        // 审批
+        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@index');
         //我申请
         $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
         $api->get('/approvals_project/detail/{project}','App\Http\Controllers\ApprovalFormController@detail');

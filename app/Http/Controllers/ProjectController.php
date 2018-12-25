@@ -230,7 +230,7 @@ class ProjectController extends Controller
 
             $projectHistorie = ProjectHistorie::create($payload);
             $approvalForm = new ApprovalFormController();
-            $approvalForm->store($payload['type'], $notice='',$payload['project_number']);
+            $approvalForm->projectStore($payload['type'], $notice='',$payload['project_number']);
 
             if ($payload['type'] != 5) {
                 foreach ($payload['fields'] as $key => $val) {

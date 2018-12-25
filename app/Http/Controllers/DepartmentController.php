@@ -223,7 +223,7 @@ class DepartmentController extends Controller
                 $num = DB::table('department_user')
                     ->where('department_id',$departmentId)
                     ->where('type','!=',1)
-                    ->update(['department_id'=>10]);
+                    ->update(['department_id'=>1]);
 
                 foreach ($payload['user'] as $key=>$value){
                     $userId = hashid_decode($value);
@@ -391,6 +391,57 @@ class DepartmentController extends Controller
         }
         DB::commit();
     }
+
+
+
+    public function disableList(Request $request)
+    {
+        $search = addslashes($request->input('search'));//姓名 手机号
+
+        $userInfo = User::where('disable', 1)->get();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $userInfo = User::orderBy('updated_at','DESC')
+            ->where(function($query) use($request,$search){
+                $query->where('disable',1);
+                if(!empty($search)) {
+                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
+                }
+            })->paginate($pageSize);
+        
+        return $this->response->paginator($userInfo, new UserTransformer());
+    }
+
+
+    public function disableEdit(Request $request, User $user)
+    {
+        $payload = $request->all();
+        $userId = $user->id;
+
+        $array = [
+            'disable'=>$payload['disable'],
+        ];
+        DB::beginTransaction();
+        try {
+            $user->update($array);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $user,
+                'title' => null,
+                'start' => $user->disable,
+                'end' => $payload['disable'],
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
 
 
     /**

@@ -6,8 +6,10 @@ use App\Http\Requests\Project\AddRelateProjectRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
@@ -230,7 +232,7 @@ class ProjectController extends Controller
 
             $projectHistorie = ProjectHistorie::create($payload);
             $approvalForm = new ApprovalFormController();
-            $approvalForm->projectStore($payload['type'], $notice='',$payload['project_number']);
+            $approvalForm->projectStore($payload['type'], $payload['notice'],$payload['project_number']);
 
             if ($payload['type'] != 5) {
                 foreach ($payload['fields'] as $key => $val) {
@@ -682,10 +684,22 @@ class ProjectController extends Controller
     public function indexReturnedMoney(Request $request,Project $project)
     {
         $contract_id = 22;
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project->id,'p_id'=>0])->createDesc()->paginate($pageSize);
-        return $this->response->paginator($project, new ProjectReturnedMoneyTransformer());
+        $project_id = $project->id;
+        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id,'p_id'=>0])->createDesc()->get();
+        $contractReturnedMoney = 10000000000;
+        $alreadyReturnedMoney = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id])->wherein('project_returned_money_type_id',[1,2,3,4])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
+        $notReturnedMoney =  $contractReturnedMoney - $alreadyReturnedMoney->toArray()['alreadysum'];
+        $alreadyinvoice = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id])->wherein('project_returned_money_type_id',[5,6])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
 
+
+        $result = $this->response->collection($project, new ProjectReturnedMoneyTransformer());
+
+        $result->addMeta('contractReturnedMoney', $contractReturnedMoney);
+        $result->addMeta('alreadyReturnedMoney', $alreadyReturnedMoney->alreadysum);
+        $result->addMeta('notReturnedMoney', $notReturnedMoney);
+        $result->addMeta('alreadyinvoice', $alreadyinvoice->alreadysum);
+
+        return $result;
     }
     public function addReturnedMoney(ReturnedMoneyRequest $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)
     {
@@ -698,7 +712,7 @@ class ProjectController extends Controller
         if($request->has('principal_id')){
             $array['principal_id'] = hashid_decode($payload['principal_id']);
         }
-        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id']])->count() + 1;
+      //  $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>0])->count() + 1;
         DB::beginTransaction();
         try {
             $project = ProjectReturnedMoney::create($array);
@@ -720,6 +734,44 @@ class ProjectController extends Controller
         }
         DB::commit();
     }
+    public function showReturnedMoney(Request $request,ProjectReturnedMoney $projectReturnedMoney)
+    {
+
+         if($projectReturnedMoney->p_id == 0){
+        return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyTransformer());
+      }else{
+
+        return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyShowTransformer());
+         }
+    }
+    public function editReturnedMoney(EditEeturnedMoneyRequest $request,ProjectReturnedMoney $projectReturnedMoney)
+    {
+        try{
+                $palyload = $request->all();
+                $projectReturnedMoney->update($palyload);
+             } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败,' . $exception->getMessage());
+            }
+            DB::commit();
+        return $this->response->accepted();
+    }
+    public function deleteReturnedMoney(ProjectReturnedMoney $projectReturnedMoney)
+    {
+
+        try {
+
+
+            $projectReturnedMoney->delete();
+        } catch (Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('删除失败');
+        }
+
+        return $this->response->noContent();
+
+    }
     public function addProjectRecord(Request $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)
     {
         $payload = $request->all();
@@ -732,7 +784,7 @@ class ProjectController extends Controller
         if($request->has('principal_id')){
             $array['principal_id'] = hashid_decode($payload['principal_id']);
         }
-        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
+       // $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
         DB::beginTransaction();
         try {
             $project = ProjectReturnedMoney::create($array);

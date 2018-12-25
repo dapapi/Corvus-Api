@@ -89,8 +89,9 @@ class ApprovalFormController extends Controller
                     foreach ($notice as $value) {
                         $participantsArray = [
                             'form_instance_number' => $projectNumber,
-                            'notice_id' => $value['id'],
                             'created_at' => date("Y-m-d H:i:s", time()),
+                            'notice_id'=>hashid_decode($value),
+                            'notice_type'=>DataDictionarie::NOTICE_TYPE_TEAN,
                         ];
                         Participant::create($participantsArray);
                     }
@@ -233,7 +234,7 @@ class ApprovalFormController extends Controller
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $query = DB::table('approval_flow_change as afe')//
+        $data = DB::table('approval_flow_change as afe')//
 
         ->join('approval_form_business as bu', function ($join) {
             $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
@@ -250,11 +251,16 @@ class ApprovalFormController extends Controller
                 }
             })
             ->where('afe.change_id', $user->id)
-            ->whereNotIn('afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP, DataDictionarie::FIOW_TYPE_DSP])
-            ->select('afe.*', 'bu.*', 'users.name', 'users.id', 'ph.created_at')
-            ->paginate($pageSize);
+            ->whereNotIn( 'afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP,DataDictionarie::FIOW_TYPE_DSP])
+            ->select('afe.*','ph.title','bu.*','users.name','ph.created_at','ph.id')
+            ->paginate($pageSize)->toArray();
 
-        return $query;
+        foreach ($data['data'] as $key=>&$value){
+            $value->id = hashid_encode($value->id);
+            $value->change_id = hashid_encode($value->change_id);
+        }
+
+        return $data;
     }
 
     public function notify(Request $request)

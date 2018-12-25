@@ -9,6 +9,8 @@ class Participant extends Model
 {
     protected $table = 'approval_form_participants';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'form_instance_number',
         'notice_id',

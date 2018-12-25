@@ -39,6 +39,7 @@ class ProjectBillController extends Controller
             $array['artist_name'] = $Blogger->nickname;
         } else if ($project && $project->id) {
             $array['project_kd_name'] = $project->title;
+            $projectbillresource = ProjectBillsResource::where(['resourceable_id'=>$project->id,'resourceable_title'=>$project->title])->first(['expenses','papi_divide','bigger_divide','my_divide']);
         } else if ($star && $star->id) {
             $array['project_kd_name'] = $star->name;
         }
@@ -54,6 +55,10 @@ class ProjectBillController extends Controller
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
         if(isset($expendituresum)){
             $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            $result->addMeta('expenses', $projectbillresource->expenses);
+            $result->addMeta('papi_divide', $projectbillresource->papi_divide);
+            $result->addMeta('bigger_divide', $projectbillresource->bigger_divide);
+            $result->addMeta('my_divide', $projectbillresource->my_divide);
             return $result;
         }else{
             return $result;

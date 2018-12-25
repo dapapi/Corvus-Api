@@ -22,7 +22,7 @@ class ProjectReturnedMoneyTransformer extends TransformerAbstract
                 'principal_id' => hashid_encode($projectReturnedMoney->principal_id),
                 'issue_name' => '第'.$projectReturnedMoney->issue_name.'期',
                 'plan_returned_money' => $projectReturnedMoney->plan_returned_money,
-                'plan_returned_time' => $projectReturnedMoney->plan_returned_time,
+                'plan_returned_time' =>  date('Y-m-d',strtotime($projectReturnedMoney->plan_returned_time)),
           //      'project_returned_money_type_id' => $projectReturnedMoney->project_returned_money_type_id,
                 'desc' => $projectReturnedMoney->desc,
                 'created_at'=> $projectReturnedMoney->created_at->toDateTimeString(),

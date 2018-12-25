@@ -31,7 +31,7 @@ class DataView
             $operation = preg_replace('/\\d+/', '{id}', $path);
             //根据子级模块id 查询父级模块id
             $resource = DataDictionarie::where([['val',"/".$operation],['code',$method]])->select('parent_id')->first();
-            if($resource == null){
+            if($resource == null){ //访问url在数据字典不存在则不限制权限
                 return $next($request);
 //                throw new NoRoleException("你访问的模块不存在");
             }

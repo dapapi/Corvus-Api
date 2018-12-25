@@ -31,21 +31,23 @@ class DataManage
     {
         //非get即为修改数据
         if($request->method() != "GET" && $request->route()->uri != "datadic/add"){
-            $this->checkHasUri();//检查uri是否存在
-            $res = $this->isNeedDataManage();//检查是否需要数据权限
-            if($res != null){
-                $this->checkHasRole();//检查用户角色
-                $this->checkRolePower();//检查角色权限
-                $preg = "/{.*}/";
-                $uri = $request->route()->uri;
-                if(preg_match($preg,$uri,$model)){
-                    $model = $model[0];
-                    $model = trim($model,"{");
-                    $model = trim($model,"}");
-                    $model = $request->$model;
-                    $this->checkDatPower($model);//检查用户对数据权限
+            if($this->checkHasUri()){//检查uri是否存在
+                $res = $this->isNeedDataManage();//检查是否需要数据权限
+                if($res != null){
+                    $this->checkHasRole();//检查用户角色
+                    $this->checkRolePower();//检查角色权限
+                    $preg = "/{.*}/";
+                    $uri = $request->route()->uri;
+                    if(preg_match($preg,$uri,$model)){
+                        $model = $model[0];
+                        $model = trim($model,"{");
+                        $model = trim($model,"}");
+                        $model = $request->$model;
+                        $this->checkDatPower($model);//检查用户对数据权限
+                    }
                 }
             }
+
         }
 
 
@@ -80,11 +82,12 @@ class DataManage
         $operation = preg_replace('/\\d+/', '{id}', $path);
         //根据子级模块id 查询父级模块id
         $resource = DataDictionarie::where([['val',"/".$operation],['code',$method]])->select('parent_id')->first();
-        if($resource == null) {//如果请求资源不存在
-            throw new NoRoleException("请求资源不存在");
+        if($resource == null) {//请求地址不在数据字典中则不限制权限
+            return false;
         }
         $this->module_id = $resource->parent_id;
         $this->operation = $operation;
+        return true;
     }
     /**
      * 检查是否需要数据权限验证

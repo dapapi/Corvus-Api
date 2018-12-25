@@ -315,7 +315,9 @@ class ApprovalFlowController extends Controller
 
             $this->createOrUpdateHandler($num, $userId, 234);
 
-            Project::where('project_number',$num)->first()->delete();
+            $project = Project::where('project_number',$num)->first();
+            if ($project)
+                $project->delete();
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);

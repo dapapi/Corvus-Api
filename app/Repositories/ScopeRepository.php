@@ -66,6 +66,7 @@ class ScopeRepository
 
         //查询本人相关 19
         $arrayUserid = [];
+
         if($dataDictionarieId == 19){
 //                $dataArr = json_decode($viewSql[0]['data_view_sql'],true);
             $arrayUserid = array();

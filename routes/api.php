@@ -34,6 +34,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
     $api->get('/download', 'App\Http\Controllers\ExcelController@download');
     $api->group(['middleware' => ['auth:api', 'bindings','permissions',"datamanage",'dataview']], function ($api) {
+
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
 
@@ -462,7 +463,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 //        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
 //        博主项目分析
 //        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
+
         $api->get('/users', 'App\Http\Controllers\UserController@index');
+
 
         /*组织架构 部门管理*/
         //获取部门列表
@@ -556,6 +559,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_instances/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
         $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
         $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
+
 
         //获取消息
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');

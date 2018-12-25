@@ -22,8 +22,8 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\TrustProxies::class,
         \Barryvdh\Cors\HandleCors::class,
+
 //        \App\Http\Middleware\Permissions::class,
-//        \Barryvdh\Cors\HandleCors::class,
 //        \App\Http\Middleware\DataAuth\DataView::class,
 //        \App\Http\Middleware\DataAuth\DataManage::class
 //        \App\Http\Middleware\DataManage::class
@@ -77,6 +77,7 @@ class Kernel extends HttpKernel
         'datamanage'  =>  \App\Http\Middleware\DataAuth\DataManage::class,
         'permissions' => \App\Http\Middleware\Permissions::class,
         'dataview'  =>  \App\Http\Middleware\DataAuth\DataView::class
+
 
     ];
 }

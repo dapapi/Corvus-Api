@@ -642,6 +642,7 @@ class StarController extends Controller
             }
 //            if (count($array) == 0)
 //                return $this->response->noContent();
+
             if (count($array) != 0)
                 $star->update($array);
             // 操作日志

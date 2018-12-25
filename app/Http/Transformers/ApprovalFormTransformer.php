@@ -18,7 +18,6 @@ class ApprovalFormTransformer extends TransformerAbstract
 
     public function transform(ApprovalForm $form)
     {
-        dd($form);
         return [
             'form_id' => hashid_encode($form->form_id),
             'name' => $form->name,

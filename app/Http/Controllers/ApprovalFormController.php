@@ -6,6 +6,8 @@ use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
 use App\Models\ApprovalForm\ApprovalForm;
+use App\Http\Transformers\FormControlTransformer;
+use App\Models\ApprovalForm\Group;
 use App\Models\ProjectHistorie;
 use Illuminate\Http\Request;
 use App\Models\Project;
@@ -39,7 +41,7 @@ class ApprovalFormController extends Controller
         if ($type == 0)
             $forms = ApprovalForm::where('group_id', 2)->orderBy('sort_number')->get();
         else
-            $forms = ApprovalForm::whereNotIn('group_id', [1,2])->orderBy('sort_number')->get();
+            $forms = ApprovalForm::whereNotIn('group_id', [1, 2])->orderBy('sort_number')->get();
 
         return $this->response->collection($forms, new ApprovalFormTransformer());
     }
@@ -298,9 +300,29 @@ class ApprovalFormController extends Controller
         return $data;
     }
 
+    // 获取一般审批表单
+    public function getForm(Request $request, ApprovalForm $approval)
+    {
+        $controls = $approval->controls;
+
+        return $this->response->item($approval, new ApprovalFormTransformer());
+//        return $this->response->collection($controls, new FormControlTransformer());
+    }
+
+    // 获取group里的form_ids
+    public function getForms(GetFormIdsRequest $request)
+    {
+        $type = $request->get('type');
+        if ($type)
+            $forms = ApprovalForm::whereNotIn('group_id', [1,2])->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
+        else
+            $forms = ApprovalForm::where('group_id', 2)->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
+
+        return $this->response->collection($forms, new ApprovalFormTransformer());
+    }
+
     public function instanceStore(InstanceStoreRequest $request)
     {
 
     }
-
 }

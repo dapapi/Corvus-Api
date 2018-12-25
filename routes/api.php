@@ -531,7 +531,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
 
         // 审批
-        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@index');
         //我申请
         $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
         $api->get('/approvals_project/detail/{project}','App\Http\Controllers\ApprovalFormController@detail');
@@ -540,6 +539,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //我的审批 已审批
         $api->get('/approvals_project/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
+        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
+        $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
         // 审批流
         $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
         $api->get('/approval_instances/{instance}/chains', 'App\Http\Controllers\ApprovalFlowController@getMergeChains');

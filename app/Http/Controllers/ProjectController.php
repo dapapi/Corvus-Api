@@ -11,12 +11,14 @@ use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
+use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\Message;
 use App\Events\OperateLogEvent;
 use App\Models\OperateEntity;
+use App\Models\ProjectReturnedMoneyType;
 use App\OperateLogMethod;
 use App\Models\ProjectReturnedMoney;
 
@@ -680,6 +682,12 @@ class ProjectController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+    public function getMoneType(Request $request)
+    {
+
+        $type = ProjectReturnedMoneyType::get();
+        return $this->response->collection($type, new ProjectReturnedMoneyTypeTransformer());
+    }
     public function indexReturnedMoney(Request $request,Project $project)
     {
         $contract_id = 22;
@@ -710,6 +718,9 @@ class ProjectController extends Controller
         $array['project_id'] = $project->id;
         if($request->has('principal_id')){
             $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+        if($request->has('project_returned_money_type_id')){
+            $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
       //  $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>0])->count() + 1;
         DB::beginTransaction();
@@ -745,9 +756,15 @@ class ProjectController extends Controller
     }
     public function editReturnedMoney(EditEeturnedMoneyRequest $request,ProjectReturnedMoney $projectReturnedMoney)
     {
+        $payload = $request->all();
+        $array = $payload;
+        if($request->has('principal_id')){
+            $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+
         try{
-                $palyload = $request->all();
-                $projectReturnedMoney->update($palyload);
+
+                $projectReturnedMoney->update($payload);
              } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -782,6 +799,9 @@ class ProjectController extends Controller
         $array['p_id'] = $projectReturnedMoney->id;
         if($request->has('principal_id')){
             $array['principal_id'] = hashid_decode($payload['principal_id']);
+        }
+        if($request->has('project_returned_money_type_id')){
+            $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
        // $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
         DB::beginTransaction();

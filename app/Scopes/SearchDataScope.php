@@ -33,6 +33,9 @@ class SearchDataScope implements Scope
         $userid = $user->id;
         $condition = [];
         $rules = (new ScopeRepository())->getDataViewUsers();
+        if(count($rules) == 0){
+            return $query;
+        }
         $this->getCondition($query,$rules,$userid);
     }
     /**
@@ -40,7 +43,9 @@ class SearchDataScope implements Scope
      */
     public function getCondition($query,$rules,$userid)
     {
-
+        if(count($rules) == 0){
+            return $query;
+        }
 //        $op_list = ['>','>=','<','<=','like','in'];
         //"{"rules":[{"field":"created_id","op":"in","value":[1,16,2]},{"field":"principal_id","op":"in","value":[1,16,2]}],"op":"or"}"
 

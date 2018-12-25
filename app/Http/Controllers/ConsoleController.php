@@ -389,7 +389,7 @@ class ConsoleController extends Controller
         $payload = $request->all();
         $roleId = $role->id;
         if(!empty($payload)){
-            $dataViewSql = "{\"rules\": [{\"field\" : \"created_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
+            $dataViewSql = "{\"rules\": [{\"field\" : \"creator_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
 
             DB::beginTransaction();
             try {

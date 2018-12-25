@@ -68,7 +68,7 @@ class DataView
     {
         $model = $model->searchData()->find($model->id);
         if($model == null){
-            return $this->response->errorInternal("你没有查看该数据的权限");
+            throw new NoRoleException("你没有查看该数据的权限");
         }
     }
 }

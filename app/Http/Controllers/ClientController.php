@@ -29,7 +29,6 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $clients = Client::orderBy('created_at', 'desc')
             ->searchData()
             ->paginate($pageSize);

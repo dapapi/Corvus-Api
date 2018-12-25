@@ -605,12 +605,15 @@ class PersonnelManageController extends Controller
     public function audit(Request $request, User $user)
     {
         $payload = $request->all();
+
         $status = $payload['entry_status'];
         if ($user->entry_status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
         $userid = $user->id;
+
         if($status == 3){
+
             $array = [
                 'entry_status' => $payload['entry_status'],
                 'password' => User::USER_PSWORD,
@@ -621,12 +624,13 @@ class PersonnelManageController extends Controller
                 'user_id' => $userid,
             ];
 
-            DepartmentUser::create($departmentarray);
+           // DepartmentUser::create($departmentarray);
         }else{
             $array = [
                 'entry_status' => $payload['entry_status'],
             ];
         }
+
         try {
 //                // 操作日志
                 $operate = new OperateEntity([

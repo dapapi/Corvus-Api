@@ -604,6 +604,7 @@ class PersonnelManageController extends Controller
     //审核人员信息
     public function audit(Request $request, User $user)
     {
+
         $payload = $request->all();
 
         $status = $payload['entry_status'];
@@ -624,13 +625,12 @@ class PersonnelManageController extends Controller
                 'user_id' => $userid,
             ];
 
-           // DepartmentUser::create($departmentarray);
+            DepartmentUser::create($departmentarray);
         }else{
             $array = [
                 'entry_status' => $payload['entry_status'],
             ];
         }
-
         try {
 //                // 操作日志
                 $operate = new OperateEntity([

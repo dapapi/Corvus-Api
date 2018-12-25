@@ -348,11 +348,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
         $api->get('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@indexReturnedMoney');
-        $api->get('projects/{projectreturnedmoney}/returned/money/show', 'App\Http\Controllers\ProjectController@showReturnedMoney');
-        $api->put('projects/{projectreturnedmoney}/returned/money/edit', 'App\Http\Controllers\ProjectController@editReturnedMoney');
+        $api->get('projects/returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@showReturnedMoney');
+        $api->put('projects/returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@editReturnedMoney');
         $api->post('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@addReturnedMoney');
         $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
-        $api->delete('projects/{projectreturnedmoney}/returned/money/delete', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
+        $api->delete('projects/returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
         //获取明星写的项目
         $api->get('/projects/starproject', 'App\Http\Controllers\ProjectController@getStarProject');
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');

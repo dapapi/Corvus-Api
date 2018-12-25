@@ -16,10 +16,10 @@ class ProjectReturnedMoneyTransformer extends TransformerAbstract
             $array = [
 
                 'id' => hashid_encode($projectReturnedMoney->id),
-//                'contract_id' => hashid_encode($projectReturnedMoney->contract_id),
-//                'project_id' => hashid_encode($projectReturnedMoney->project_id),
+                'contract_id' => hashid_encode($projectReturnedMoney->contract_id),
+                'project_id' => hashid_encode($projectReturnedMoney->project_id),
 //                'creator_id' => hashid_encode($projectReturnedMoney->creator_id),
-//                'principal_id' => hashid_encode($projectReturnedMoney->principal_id),
+                'principal_id' => hashid_encode($projectReturnedMoney->principal_id),
                 'issue_name' => '第'.$projectReturnedMoney->issue_name.'期',
                 'plan_returned_money' => $projectReturnedMoney->plan_returned_money,
                 'plan_returned_time' => $projectReturnedMoney->plan_returned_time,

@@ -684,9 +684,9 @@ class ProjectController extends Controller
     public function indexReturnedMoney(Request $request,Project $project)
     {
         $contract_id = 22;
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project->id,'p_id'=>0])->createDesc()->paginate($pageSize);
-        return $this->response->paginator($project, new ProjectReturnedMoneyTransformer());
+
+        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project->id,'p_id'=>0])->createDesc()->get();
+        return $this->response->collection($project, new ProjectReturnedMoneyTransformer());
 
     }
     public function addReturnedMoney(ReturnedMoneyRequest $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)

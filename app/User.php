@@ -104,7 +104,7 @@ class User extends Authenticatable
 
 
 
-    const USER_PSWORD = '$2y$10$61FPobZVqUNUuaHlse2yFOlacwYA272Am0w/0x0Fv8vq1JfOzu3LK';
+    const USER_PSWORD = '123456';
 
     /**
      * The attributes that should be hidden for arrays.

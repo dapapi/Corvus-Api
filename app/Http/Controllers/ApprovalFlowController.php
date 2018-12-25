@@ -106,7 +106,7 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'id' => hashid_encode($item->user->id),
                 'name' => $item->user->name,
-                'avatar' => $item->user->icon_url,
+                'avatar' => $item->user->avatar,
                 'change_at' => $item->change_at,
                 'comment' => $item->comment,
                 'change_state_obj' => [
@@ -124,7 +124,7 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'id' => hashid_encode($now->person->id),
                 'name' => $now->person->name,
-                'avatar' => $now->person->icon_url,
+                'avatar' => $now->person->avatar,
                 'change_state_obj' => [
                     'changed_state' => $now->dictionary->name,
                     'changed_icon' => $now->dictionary->icon,
@@ -166,7 +166,7 @@ class ApprovalFlowController extends Controller
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
-                'avatar' => $chain->next->icon_url,
+                'avatar' => $chain->next->avatar,
                 'change_state_obj' => [
                     'changed_state' => '待审批',
                     'changed_icon' => null,
@@ -312,7 +312,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 234);
+            $this->createOrUpdateHandler($num, $userId, 242);
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -399,11 +399,10 @@ class ApprovalFlowController extends Controller
         } else {
             throw new Exception('审批流转不存在');
         }
-
         if (is_null($chain)) {
             $now = Carbon::now();
 
-            $this->getTransferNextChain($instance, $now);
+            return $this->getTransferNextChain($instance, $now);
         }
         if ($chain->next_id === 0)
             return 0;

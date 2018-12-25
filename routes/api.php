@@ -348,6 +348,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
         $api->get('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@indexReturnedMoney');
         $api->get('projects/{projectreturnedmoney}/returned/money/show', 'App\Http\Controllers\ProjectController@showReturnedMoney');
+        $api->put('projects/{projectreturnedmoney}/returned/money/edit', 'App\Http\Controllers\ProjectController@editReturnedMoney');
         $api->post('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@addReturnedMoney');
         $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
         $api->delete('projects/{projectreturnedmoney}/returned/money/delete', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');

@@ -6,6 +6,7 @@ use App\Http\Requests\Project\AddRelateProjectRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
@@ -731,15 +732,18 @@ class ProjectController extends Controller
         return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyShowTransformer());
          }
     }
-    public function editReturnedMoney(Request $request,ProjectReturnedMoney $projectReturnedMoney)
+    public function editReturnedMoney(EditEeturnedMoneyRequest $request,ProjectReturnedMoney $projectReturnedMoney)
     {
-
-        if($projectReturnedMoney->p_id == 0){
-            return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyTransformer());
-        }else{
-
-            return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyShowTransformer());
-        }
+        try{
+                $palyload = $request->all();
+                $projectReturnedMoney->update($palyload);
+             } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败,' . $exception->getMessage());
+            }
+            DB::commit();
+        return $this->response->accepted();
     }
     public function deleteReturnedMoney(ProjectReturnedMoney $projectReturnedMoney)
     {

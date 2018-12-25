@@ -246,7 +246,7 @@ class ApprovalFormController extends Controller
                     $query->where('afe.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
                 }
             })
-            ->where('afe.change_id', 46)
+            ->where('afe.change_id', $user->id)
             ->whereNotIn( 'afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP,DataDictionarie::FIOW_TYPE_DSP])
             ->select('afe.*','ph.title','bu.*','users.name','ph.created_at','ph.id')
             ->paginate($pageSize)->toArray();

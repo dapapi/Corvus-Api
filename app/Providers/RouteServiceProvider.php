@@ -10,6 +10,7 @@ use App\Models\ApprovalGroup;
 use App\Models\Blogger;
 use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
+use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
 use App\Models\Project;
 use App\Models\Report;
@@ -86,7 +87,15 @@ class RouteServiceProvider extends ServiceProvider
             }
             return $entity;
         });
-
+        Route::bind('projectreturnedmoney', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = ProjectReturnedMoney::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
         Route::bind('client', function ($value) {
             try {
                 $id = hashid_decode($value);

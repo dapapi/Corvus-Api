@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectBillTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['expendituresum'];
+    protected $availableIncludes = [];
 
 
     public function transform(ProjectBill $projectbill)

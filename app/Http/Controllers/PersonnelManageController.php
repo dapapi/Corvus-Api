@@ -37,8 +37,12 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $data['onjob'] = $user->where('position_type',1)->where('status','!=',User::USER_ARCHIVE)->where('entry_status',User::USER_ENTRY_STATUS)->count();
-        $data['departure'] = $user->where('position_type',2)->where('entry_status',User::USER_ENTRY_STATUS)->count();
+        //在职，聘用形式等于劳动和实习，且状态等于非已离职；
+        $hire_shape = array(User::HIRE_SHAPE_LOWE,User::HIRE_SHAPE_INTERNSHIP);
+       
+        $data['onjob'] = $user->whereIn('hire_shape',$hire_shape)->where('status','!=',User::USER_STATUS_DEPARTUE)->where('entry_status',User::USER_ENTRY_STATUS)->count(); //在职
+        //离职，聘用形式等于劳动和实习，且状态等于已离职
+        $data['departure'] = $user->whereIn('hire_shape',$hire_shape)->where('status',User::USER_STATUS_DEPARTUE)->where('entry_status',User::USER_ENTRY_STATUS)->count(); //离职
 
         $user = User::orderBy('updated_at','DESC')
             ->where(function($query) use($request){
@@ -64,7 +68,7 @@ class PersonnelManageController extends Controller
                     $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
                 }
                 //不显示存档信息 禁用
-                $query->where('status','!=',User::USER_ARCHIVE)->where('disable','!=',User::USER_TYPE_DISABLE);
+                $query->where('status','!=',User::USER_ARCHIVE)->where('disable','!=',User::USER_TYPE_DISABLE)->where('entry_status',User::USER_ENTRY_STATUS);
 
              })->paginate($pageSize);
 
@@ -219,23 +223,22 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $status = $payload['status'];
         $user_id = $user->id;
-
         if ($user->status == $status)
             return $this->response->noContent();
         $now = Carbon::now();
 
-        if($status == 1){
+
+        if($status == 2){
             $array = [
                 'status' => User::USER_STATUS_POSITIVE,
             ];
         }
         //离职
-        if($status == 2){
+        if($status == 3){
             $array = [
-                'position_type' => User::USER_DEPARTUE,
+                'position_type' => User::USER_STATUS_DEPARTUE,
             ];
             $num = DB::table("role_users")->where('user_id',$user_id)->delete();
-
             //归档
         }elseif($status == 5) {
             $array = [
@@ -247,26 +250,14 @@ class PersonnelManageController extends Controller
         try {
 
              if (!empty($array)) {
-                 if($status == 3){
-                     $operate = new OperateEntity([
-                         'obj' => $user,
-                         'title' => null,
-                         'start' => $user->status,
-                         'end' => $array['status'],
-                         'method' => OperateLogMethod::TRANSFER,
 
-                     ]);
-
-                 }else{
-                     $operate = new OperateEntity([
-                    'obj' => $user,
-                    'title' => null,
-                    'start' => $user->status,
-                    'end' => $array['status'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-
-                 }
+                 $operate = new OperateEntity([
+                     'obj' => $user,
+                     'title' => null,
+                     'start' => $user->status,
+                     'end' => $payload['status'],
+                     'method' => OperateLogMethod::TRANSFER,
+                 ]);
                 $user->update($array);
                  event(new OperateLogEvent([
                      $operate,

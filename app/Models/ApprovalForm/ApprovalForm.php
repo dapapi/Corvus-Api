@@ -2,6 +2,7 @@
 
 namespace App\Models\ApprovalForm;
 
+use App\Models\DataDictionary;
 use Illuminate\Database\Eloquent\Model;
 
 class ApprovalForm extends Model
@@ -23,4 +24,19 @@ class ApprovalForm extends Model
         'updated_at',
         'order_by',
     ];
+
+    public function changeTypeDetail()
+    {
+        return $this->belongsTo(DataDictionary::class, 'change_type', 'id');
+    }
+
+    public function modifiedDetail()
+    {
+        return $this->belongsTo(DataDictionary::class, 'modified', 'id');
+    }
+
+    public function controls()
+    {
+        return $this->hasMany(Control::class, 'form_id', 'form_id')->orderBy('sort_number');
+    }
 }

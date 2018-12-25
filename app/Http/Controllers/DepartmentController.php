@@ -200,6 +200,7 @@ class DepartmentController extends Controller
                         $join->on('department_user.user_id', '=', 'users.id');
                     })->select('users.id', 'users.name')
                      ->where('department_user.department_id',$departmentId)
+                    ->where('department_user.type',0)
                     ->get();
         return $this->response->item($data, new DepartmentUserTransformer());
 
@@ -213,7 +214,9 @@ class DepartmentController extends Controller
         $departmentId = $department->id;
 
         $departmentPid = $department->department_pid;
+
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
+
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
 
         DB::beginTransaction();
@@ -223,7 +226,7 @@ class DepartmentController extends Controller
                 $num = DB::table('department_user')
                     ->where('department_id',$departmentId)
                     ->where('type','!=',1)
-                    ->update(['department_id'=>10]);
+                    ->update(['department_id'=>1]);
 
                 foreach ($payload['user'] as $key=>$value){
                     $userId = hashid_decode($value);
@@ -261,6 +264,7 @@ class DepartmentController extends Controller
     public function show(Request $request,User $user)
     {
         $data = $user->get()->toArray();
+
         $targetKey = 'name';
         $data = array_map(function ($item) use ($targetKey) {
             return array_merge($item, [
@@ -393,6 +397,57 @@ class DepartmentController extends Controller
     }
 
 
+
+    public function disableList(Request $request)
+    {
+        $search = addslashes($request->input('search'));//姓名 手机号
+
+        $userInfo = User::where('disable', 1)->get();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $userInfo = User::orderBy('updated_at','DESC')
+            ->where(function($query) use($request,$search){
+                $query->where('disable',1);
+                if(!empty($search)) {
+                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
+                }
+            })->paginate($pageSize);
+        
+        return $this->response->paginator($userInfo, new UserTransformer());
+    }
+
+
+    public function disableEdit(Request $request, User $user)
+    {
+        $payload = $request->all();
+        $userId = $user->id;
+
+        $array = [
+            'disable'=>$payload['disable'],
+        ];
+        DB::beginTransaction();
+        try {
+            $user->update($array);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $user,
+                'title' => null,
+                'start' => $user->disable,
+                'end' => $payload['disable'],
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
+
+
     /**
      * 按字母排序
      * @param  array  $data
@@ -415,7 +470,7 @@ class DepartmentController extends Controller
     public function getFirstChar($s){
 
         $s0 = mb_substr($s,0,3); //获取名字的姓
-        $s = iconv('UTF-8','gb2312', $s0); //将UTF-8转换成GB2312编码
+        $s = iconv("UTF-8", "GBK//IGNORE", $s0);
         if (ord($s0)>128) { //汉字开头，汉字没有以U、V开头的
             $asc=ord($s{0})*256+ord($s{1})-65536;
             if($asc>=-20319 and $asc<=-20284)return "A";

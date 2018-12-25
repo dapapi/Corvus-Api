@@ -43,6 +43,7 @@ class ScheduleRepository
             }
             $start_day = $start_at->dayOfYear;
             $end_day = $end_at->dayOfYear;
+
             for($day = $start_day;$day <= $end_day;$day++){
                 $curr_date = $start_time->addDay($start_day-$day);
                 $schedule_list[$curr_date->toDateString()] = $value;

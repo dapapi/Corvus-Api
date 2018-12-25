@@ -13,4 +13,5 @@ class ControlProperty extends Model
         'property_id',
         'property_value',
     ];
+
 }

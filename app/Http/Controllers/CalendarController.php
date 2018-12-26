@@ -36,7 +36,7 @@ class CalendarController extends Controller
                 ->where('mu.moduleable_type',ModuleableType::CALENDAR);
         })->select('mu.user_id')->where(DB::raw("c.id=calendars.id"));
 
-            $calendars = Calendar::where('privacy',Calendar::OPEN)->orWhere([['creator_id',$user->id],['privacy',Calendar::SECRET]])->orWhere(function ($query)use ($user,$subquery){
+            $calendars = Calendar::where('privacy',Calendar::OPEN)->orWhere('creator_id',$user->id)->orWhere(function ($query)use ($user,$subquery){
                 $query->where('privacy',Calendar::SECRET)->where(DB::raw("{$user->id} in ({$subquery->toSql()})"));
             })->mergeBindings($subquery)
                 ->get();

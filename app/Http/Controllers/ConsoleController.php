@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\DataAuth\DataView;
 use App\Http\Transformers\UserTransformer;
 use App\Http\Transformers\GroupRolesTransformer;
 use App\Http\Transformers\RoleTransformer;
@@ -388,13 +389,26 @@ class ConsoleController extends Controller
         $payload = $request->all();
         $roleId = $role->id;
         if(!empty($payload)){
-            $dataViewSql = "{\"rules\": [{\"field\" : \"creator_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
-
+//            $dataViewSql = "{\"rules\": [{\"field\" : \"creator_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
             DB::beginTransaction();
             try {
+                //首先清空角色对应的数据管理权限和数据查看权限
+                RoleDataView::where('role_id',$roleId)->delete();
+                RoleDataManage::where('role_id',$roleId)->delete();
                 foreach($payload as $key=>$value){
                     if (is_array($value)) {
-                        $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
+                        //删除原先的查看数据的权限
+//                        $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
+                        $dataViewSql = RoleDataView::DATA_VIEW_SQL;
+                        if(DataDictionarie::STAR == $value['resource_id']){ //如果是模块是艺人增加对应的搜索条件
+                            $dataViewSql = RoleDataView::STAR_DATA_VIEW_SQL;
+                        }
+                        if(DataDictionarie::BLOGGER ==  $value['resource_id']){//如果是模块是博主增加对应的搜索条件
+                            $dataViewSql = RoleDataView::BLOGGER_DATA_VIEW_SQL;
+                        }
+                        if(DataDictionarie::TASK ==  $value['resource_id']){//如果是模块是任务增加对应的搜索条件
+                            $dataViewSql = RoleDataView::TASK_DATA_VIEW_SQL;
+                        }
                         $array = [
                             'role_id'=>$roleId,
                             'resource_id'=>$value['resource_id'],
@@ -402,8 +416,8 @@ class ConsoleController extends Controller
                             'data_view_sql'=>$dataViewSql,
                         ];
                          $deparInfo = RoleDataView::create($array);
-                        //创建 参与 所见 删除再添加
-                        $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
+                        //创建 参与 所见 删除再添加  删除原先的数据管理权限
+//                        $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
                         if(!empty($value['manage'])){
                             foreach ($value['manage'] as $mkey=>$mvalue){
                                 $array = [
@@ -427,13 +441,12 @@ class ConsoleController extends Controller
     //            event(new OperateLogEvent([
     //                $operate,
     //            ]));
-
+                DB::commit();
             } catch (Exception $e) {
                 DB::rollBack();
                 Log::error($e);
                 return $this->response->errorInternal('创建失败');
             }
-            DB::commit();
             return $this->response->accepted();
 //
         }else{

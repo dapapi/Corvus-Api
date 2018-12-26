@@ -38,7 +38,7 @@ class ScheduleController extends Controller
     public function index(IndexScheduleRequest $request)
     {
         $payload = $request->all();
-
+        $user = Auth::guard("api")->user();
         if ($request->has('material_ids')) {
             foreach ($payload['material_ids'] as &$id) {
                 $id = hashid_decode($id);
@@ -52,6 +52,7 @@ class ScheduleController extends Controller
             }
             unset($id);
         }
+
         $payload['start_date'] = $payload['start_date'].' 00:00:00';
         $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
         $schedules = Schedule::where(function ($query) use ($payload) {
@@ -70,6 +71,21 @@ class ScheduleController extends Controller
             if ($request->has('calendar_ids'))
                 $query->whereIn('calendar_id', $payload['calendar_ids']);
         });
+
+        //对查询进行限制
+        //日程仅参与人可见
+        $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
+            $join->on('mu.moduleable_id','s.id')
+                ->where('mu.moduleable_type',ModuleableType::SCHEDULE);
+        })->select('mu.user_id')->where(DB::raw("s.id=schedules.id"));
+
+        $schedules->where('privacy',Schedule::OPEN)
+            ->orWhere([['creator_id',$user->id],['privacy',Calendar::SECRET]])
+            ->orWhere(function ($query) use ($user,$subquery){
+//            $query->where('privacy',Schedule::SECRET)
+                $query->where(DB::raw("{$user->id} in ({$subquery->toSql()})"));
+        })->mergeBindings($subquery);
+
         $schedules = $schedules->get();
 
         return $this->response->collection($schedules, new ScheduleTransformer());
@@ -84,7 +100,12 @@ class ScheduleController extends Controller
 
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
-
+        $calendar = Calendar::find($payload['calendar_id']);
+        if(!$calendar)
+            $this->response->errorInternal("日历不存在");
+        $participants = array_column($calendar->participants()->get()->toArray(),'id');
+        if($user->id != $calendar->id && !in_array($user->id,$participants))
+            $this->response->errorInternal("你没有权限添加日程");
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
 
@@ -140,13 +161,17 @@ class ScheduleController extends Controller
 
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
-        $payload = $request->all();
 
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
         if ($request->has('calendar_id')) {
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
             $calendar = Calendar::find($payload['calendar_id']);
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
+            $participants = array_column($calendar->participants()->get()->toArray(),'id');
+            if($user->id != $calendar->id && !in_array($user->id,$participants))
+                $this->response->errorInternal("你没有权限添加日程");
         }
 
         if ($request->has('material_id') && $payload['material_id']) {
@@ -185,12 +210,22 @@ class ScheduleController extends Controller
 
     public function delete(Request $request, Schedule $schedule)
     {
+        $calendar = $calendar = Calendar::find($schedule->calendar_id);
+        $user = Auth::guard("api")->user();
+        $participants = array_column($calendar->participants()->get()->toArray(),'id');
+        if($user->id != $calendar->id && !in_array($user->id,$participants))
+            $this->response->errorInternal("你没有权限删除日程");
         $schedule->delete();
         return $this->response->noContent();
     }
 
     public function recover(Request $request, Schedule $schedule)
     {
+        $calendar = $calendar = Calendar::find($schedule->calendar_id);
+        $user = Auth::guard("api")->user();
+        $participants = array_column($calendar->participants()->get()->toArray(),'id');
+        if($user->id != $calendar->id && !in_array($user->id,$participants))
+            $this->response->errorInternal("你没有权限恢复日程");
         $schedule->restore();
         return $this->response->item($schedule, new ScheduleTransformer());
     }

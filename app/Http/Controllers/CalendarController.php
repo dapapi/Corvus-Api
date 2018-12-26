@@ -30,7 +30,17 @@ class CalendarController extends Controller
     public function all(Request $request)
     {
         // todo 按权限筛选
-        $calendars = Calendar::get();
+        $user = Auth::guard("api")->user();
+        $subquery = DB::table("calendars as c")->leftJoin('module_users as mu',function ($join){
+            $join->on('mu.moduleable_id','c.id')
+                ->where('mu.moduleable_type',ModuleableType::CALENDAR);
+        })->select('mu.user_id')->where(DB::raw("c.id=calendars.id"));
+
+            $calendars = Calendar::where('privacy',Calendar::OPEN)->orWhere([['creator_id',$user->id],['privacy',Calendar::SECRET]])->orWhere(function ($query)use ($user,$subquery){
+                $query->where('privacy',Calendar::SECRET)->where(DB::raw("{$user->id} in ({$subquery->toSql()})"));
+            })->mergeBindings($subquery)
+                ->get();
+
 
         return $this->response->collection($calendars, new CalendarTransformer());
     }
@@ -73,12 +83,19 @@ class CalendarController extends Controller
 
     public function edit(EditCalendarRequest $request, Calendar $calendar)
     {
+        //todo 日历权限硬编码
+        $user = Auth::guard('api')->user();
+        //获取参与人列表
+        $participants = array_column($calendar->participants()->get()->toArray(),'id');
+        if($calendar->creator_id != $user->id && !in_array($user->id,$participants)){
+            return $this->response->errorInternal("你没有编辑日历的权限");
+        }
         $payload = $request->all();
 
-        $user = Auth::guard('api')->user();
+
+
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
-
             //todo 暂时为硬编码
             if ($user->company->name != '泰洋川禾') {
                 $payload['starable_type'] = ModuleableType::BLOGGER;
@@ -107,11 +124,21 @@ class CalendarController extends Controller
 
     public function detail(Request $request, Calendar $calendar)
     {
+        $user = Auth::guard('api')->user();
+        //参与者
+        $participants = array_column($calendar->participants()->get()->toArray(),'id');
+        if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
+            return $this->response->errorInternal("你没有查看该日历的权限");
+        }
         return $this->response->item($calendar, new CalendarTransformer());
     }
 
     public function delete(Request $request, Calendar $calendar)
     {
+        $user = Auth::guard('api')->user();
+        if($calendar->creator_id != $user->id){
+            return $this->response->errorInternal("你没有该日历的权限");
+        }
         $calendar->status = Calendar::STATUS_FROZEN;//关闭
         $calendar->save();
         $calendar->delete();
@@ -120,6 +147,10 @@ class CalendarController extends Controller
 
     public function recover(Request $request, Calendar $calendar)
     {
+        $user = Auth::guard('api')->user();
+        if($calendar->creator_id != $user->id){
+            return $this->response->errorInternal("你没有恢复该日历的权限");
+        }
         $calendar->restore();
         $calendar->status = Calendar::STATUS_NORMAL;
         $calendar->save();
@@ -129,6 +160,10 @@ class CalendarController extends Controller
 
     public function forceDelete(Request $request, Calendar $calendar)
     {
+        $user = Auth::guard('api')->user();
+        if($calendar->creator_id != $user->id){
+            return $this->response->errorInternal("你妹有没有该日历的权限");
+        }
         $calendar->forceDelete();
         return $this->response->noContent();
     }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Approval;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Dingo\Api\Http\FormRequest;
 
 class InstanceStoreRequest extends FormRequest
 {
@@ -13,7 +13,7 @@ class InstanceStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,10 @@ class InstanceStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'values' => 'required|array',
+            'values.*.key' => 'required|numeric',
+            'values.*.value' => 'required',
+            'values.*.type' => 'nullable'
         ];
     }
 }

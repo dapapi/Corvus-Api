@@ -554,6 +554,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
         $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
         $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
+        $api->post('/approvals/{approval}', 'App\Http\Controllers\ApprovalFormController@instanceStore');
         // 审批流
         $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
         $api->get('/approval_instances/{instance}/chains', 'App\Http\Controllers\ApprovalFlowController@getMergeChains');

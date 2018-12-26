@@ -27,12 +27,17 @@ class FormControlTransformer extends TransformerAbstract
             'control_title' => $control->title,
             'control_placeholder' => $control->placeholder,
             'control_value' => $control->value($this->num),
+            'control_source' => $control->source,
         ];
         if ($control->format)
             $arr['control_data_select_format'] = $control->format;
 
         if (in_array($control->control_id, [82,84,85]))
             $arr['control_enums'] = $control->enum;
+
+        if ($control->control_id == 391) {
+            $arr['control_enums'] = $control->enum;
+        }
 
         return $arr;
     }

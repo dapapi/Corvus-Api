@@ -141,6 +141,6 @@ class DataManage
 
             }
         }
-        throw new NoRoleException("你没有操作该数据的权限");
+        throw new NoRoleException("你没有操作该数据的权限!!");
     }
 }

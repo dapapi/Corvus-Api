@@ -70,7 +70,12 @@ class SearchDataScope implements Scope
                     foreach ($rules['rules'] as $key => $value){
                         switch ($value['op']){
                             case 'in':
-                                $condition[] = $query->orWhereIn($value['field'],$value['value']);
+                                if($value['value'] == null){
+                                    $condition[] = $query->orWhere(DB::raw("{$value['field']} in (null)"));
+                                }else{
+                                    $condition[] = $query->orWhereIn($value['field'],$value['value']);
+                                }
+
                                 break;
                             case '>':
                             case '>=':
@@ -88,7 +93,11 @@ class SearchDataScope implements Scope
                     foreach ($rules['rules'] as $key => $value){
                         switch ($value['op']){
                             case 'in':
-                                $condition[] = $query->WhereIn($value['field'],$value['value']);
+                                if($value['value'] == null){
+                                    $condition[] = $query->where(DB::raw("{$value['field']} in (null)"));
+                                }else{
+                                    $condition[] = $query->whereIn($value['field'],$value['value']);
+                                }
                                 break;
                             case '>':
                             case '>=':

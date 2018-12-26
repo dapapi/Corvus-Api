@@ -21,7 +21,7 @@ use App\Models\OperateEntity;
 use App\Models\ProjectReturnedMoneyType;
 use App\OperateLogMethod;
 use App\Models\ProjectReturnedMoney;
-
+use App\Models\ProjectBill;
 use App\Models\Project;
 use App\Models\ProjectRelate;
 use App\Models\Star;
@@ -522,10 +522,18 @@ class ProjectController extends Controller
         $result = $this->response->item($project, new ProjectTransformer());
 
         $data = TemplateField::where('module_type', $type)->get();
+
+        $array['project_kd_name'] = $project->title;
+        $array['expense_type'] = '支出';
+        $contractmoney = 100000000;
+        $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-
+        if(isset($expendituresum)) {
+            $result->addMeta('contractmoney', $contractmoney);
+            $result->addMeta('expendituresum', $expendituresum->expendituresum);
+        }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
 
         return $result;

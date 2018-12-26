@@ -18,7 +18,7 @@ class ApprovalFormTransformer extends TransformerAbstract
 
     public function transform(ApprovalForm $form)
     {
-        return [
+        $arr = [
             'form_id' => hashid_encode($form->form_id),
             'name' => $form->name,
             'modified' => [
@@ -27,12 +27,16 @@ class ApprovalFormTransformer extends TransformerAbstract
             ],
             'description' => $form->description,
             'icon' => $form->icon,
-            // todo 两个数据字典
             'change_type' => [
                 'id' => $form->changeTypeDetail->id,
                 'name' => $form->changeTypeDetail->name,
-            ]
+            ],
         ];
+
+        if ($form->condition_control)
+            $arr['condition'] = $form->condition_control;
+
+        return $arr;
     }
 
     public function includeApprovalFormControls(ApprovalForm $form)

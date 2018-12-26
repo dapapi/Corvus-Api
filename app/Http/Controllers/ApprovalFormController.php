@@ -45,7 +45,7 @@ class ApprovalFormController extends Controller
     protected $company;
     protected $type;
 
-    public function __construct(Generator $generator)
+    public function __construct(Generator $generator = null)
     {
         $this->generator = $generator;
     }

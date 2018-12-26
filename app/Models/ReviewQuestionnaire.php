@@ -23,13 +23,19 @@ class ReviewQuestionnaire extends Model
     public function sum() {
 
          // 总分
-     $sums =  $this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('review_id',DB::raw('sum(content) as sums'))->groupby('review_id')->get();
+       $sums =  $this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('review_id',DB::raw('sum(content) as sums'))->groupby('review_id')->get();
+       if(!empty($sums->toArray())){
+           // 参与人数
+           $count =  count($this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
 
-        // 参与人数
-     $count =  count($this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
+           $data =  $this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('*',DB::raw('TRUNCATE('.$sums[0]->sums.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
 
-        $data =  $this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('*',DB::raw('TRUNCATE('.$sums[0]->sums.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
-     //->select('*',DB::raw('sum(content) as counts'))->groupby('review_id'),
+       }else{
+
+           $count =  count($this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
+           $data =  $this->hasMany(ReviewAnswer::class, 'review_id', 'id')->select('*',DB::raw('TRUNCATE(1.'.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
+       }
+
         return $data;
     }
 

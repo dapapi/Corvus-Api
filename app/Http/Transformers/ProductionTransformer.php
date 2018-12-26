@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProductionTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer'];
+    protected $availableIncludes = ['creator','principal', 'tasks', 'affixes', 'producer'];
 
     private $isAll;
 
@@ -42,7 +42,7 @@ class ProductionTransformer extends TransformerAbstract
 
 
 //    public function includeProducer(Blogger $blogger)
-//    {
+//    {`
 //        $producer = $blogger->producer;
 //        if (!$producer)
 //            return null;

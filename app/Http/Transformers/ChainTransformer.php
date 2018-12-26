@@ -15,7 +15,7 @@ class ChainTransformer extends TransformerAbstract
         $instance = $chain->next;
 
         $array['name'] = $instance->name;
-        $array['avatar'] = $instance->avatar;
+        $array['icon_url'] = $instance->icon_url;
 
         return $array;
     }

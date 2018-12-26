@@ -35,6 +35,19 @@ class DataDictionarie extends Model
     //知会人类型
     const NOTICE_TYPE_TEAN = 245;  //  团队
 
+    const BLOGGER = 3;//博主
+    const PROJECT = 4;//项目
+    const STAR = 5;//艺人
+    const CLIENT = 6;//客户
+    const TRAIL = 7;//销售线索
+    const TASK = 8;//任务
+//    const xxx = 9;//合同
+    const REPORTFROM = 10;//报表
+    const CALENDAR = 11;//日历
+    const ATTENDANCE = 12;//考勤
+    const APPROVAL = 13;//审批
+    const MESSAGE = 14;//消息
+    //。。。。
 
 
 

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UpdateContractNo extends Migration
+class CreateContractNos extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class UpdateContractNo extends Migration
      */
     public function up()
     {
-        Schema::table('contract_nos', function (Blueprint $table) {
-            $table->softDeletes();
+        Schema::table('constract_nos', function (Blueprint $table) {
+            //
         });
     }
 
@@ -25,7 +25,7 @@ class UpdateContractNo extends Migration
      */
     public function down()
     {
-        Schema::table('contract_nos', function (Blueprint $table) {
+        Schema::table('constract_nos', function (Blueprint $table) {
             //
         });
     }

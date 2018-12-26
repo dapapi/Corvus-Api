@@ -48,11 +48,11 @@ class ScheduleController extends Controller
         //查当前登录用户在日程参与人但不在日历参与人的日程列表
         $sql = "SELECT cc.id,cc.participant_ids,ss.id as schedule_id,ss.participant_ids as schedule_participant_ids  from
 	(
-	SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids from calendars as c LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar' GROUP BY c.id
+	SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids,c.deleted_at from calendars as c LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar'  GROUP BY c.id
 	) as cc
 	LEFT JOIN (
-		SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids from schedules as s left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule' GROUP BY s.id
-		) as ss on ss.calendar_id = cc.id where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) and FIND_IN_SET({$user->id},ss.participant_ids)";
+		SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
+		) as ss on ss.calendar_id = cc.id where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
         $schedules_list = array_column(DB::select($sql),'schedule_id');
         if ($request->has('calendar_ids')) {
             foreach ($payload['calendar_ids'] as &$id) {
@@ -84,19 +84,18 @@ class ScheduleController extends Controller
         //日程仅参与人可见
         $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
             $join->on('mu.moduleable_id','s.id')
-                ->where('mu.moduleable_type',ModuleableType::SCHEDULE);
+                ->where(DB::raw("mu.moduleable_type='".ModuleableType::SCHEDULE."'"));
         })->select('mu.user_id')->where(DB::raw("s.id=schedules.id"));
 
-        $schedules->where('privacy',Schedule::OPEN)
-            ->orWhere('creator_id',$user->id)
-            ->orWhere(function ($query) use ($user,$subquery){
-//            $query->where('privacy',Schedule::SECRET)
-                $query->where(DB::raw("{$user->id} in ({$subquery->toSql()})"));
-        })->mergeBindings($subquery);
+         $schedules->where(function ($query)use ($user,$subquery){
+             $query->where('privacy',Schedule::OPEN);
+             $query->orWhere('creator_id',$user->id);
+             $query->orWhere('privacy',Schedule::SECRET)->where(DB::raw("$user->id in ({$subquery->toSql()})"));
+         })->mergeBindings($subquery);
 
-        $schedules->orWhereIn('id',$schedules_list);
 
         $schedules = $schedules->get();
+
 
         return $this->response->collection($schedules, new ScheduleTransformer());
     }

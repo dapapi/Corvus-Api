@@ -135,7 +135,8 @@ class DataManage
 
             }elseif($value['data_manage_id'] == 27){//27 我可见的
                 $arrUserId = (new ScopeRepository())->getUserIds($this->user_id,"/".$this->operation,\request()->method(),true);//获取有查看权限的用户
-                if($arrUserId != null && (in_array($this->user_id,$arrUserId) || count($arrUserId) == 0)){
+                //$arrUserId为空数组表示全部数据可见，所以可以操作全部数据
+                if(($arrUserId != null && (in_array($this->user_id,$arrUserId)) || count($arrUserId) == 0)){
                     return true;
                 }
 

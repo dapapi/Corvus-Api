@@ -197,6 +197,9 @@ class TaskController extends Controller
             case 3://我负责
                 $query->where('principal_id', $user->id);
                 break;
+            case 4://我分配
+                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                break;
             case 1://我创建
             default:
                 $query->where('creator_id', $user->id);

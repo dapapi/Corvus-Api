@@ -483,6 +483,16 @@ class RouteServiceProvider extends ServiceProvider
             return $entity;
         });
 
+        Route::bind('project_approve', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Project::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
     }
 
     /**

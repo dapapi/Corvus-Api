@@ -546,7 +546,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // 审批
         //我申请
         $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
-        $api->get('/approvals_project/detail/{project}','App\Http\Controllers\ApprovalFormController@detail');
+        $api->get('/approvals_project/detail/{project_approve}','App\Http\Controllers\ApprovalFormController@detail');
         //我的审批 待审批
         $api->get('/approvals_project/approval','App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批

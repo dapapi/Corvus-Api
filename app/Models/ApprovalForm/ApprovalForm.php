@@ -2,6 +2,7 @@
 
 namespace App\Models\ApprovalForm;
 
+use App\Models\ApprovalFlow\Condition;
 use App\Models\DataDictionary;
 use Illuminate\Database\Eloquent\Model;
 
@@ -38,5 +39,19 @@ class ApprovalForm extends Model
     public function controls()
     {
         return $this->hasMany(Control::class, 'form_id', 'form_id')->orderBy('sort_number');
+    }
+
+    public function getConditionControlAttribute()
+    {
+        $controlIds = Condition::where('form_id', $this->form_id)->value('form_control_id');
+        if (is_null($controlIds))
+            return null;
+
+        $controlArr = explode('|', $controlIds);
+        foreach ($controlArr as &$control) {
+            $control = hashid_encode($control);
+        }
+        unset($control);
+        return implode('|', $controlArr);
     }
 }

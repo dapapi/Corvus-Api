@@ -42,14 +42,26 @@ class ApprovalFlowController extends Controller
 
         $conditionId = null;
 
-        if ($changeType === 224 && $value)
-            $conditionId = $this->getCondition($formId, $value);
+        try {
+            if ($changeType === 224 && $value) {
+                // 数值控件做条件的处理
+                $formControlId = Condition::where('form_id', $formId)->value('form_control_id');
+                $controlId = Control::find($formControlId)->control_id;
+                if ($controlId == 83)
+                    $value = $this->numberForCondition($formId, $value);
 
-        $chains = ChainFixed::where('form_id', $formId)
-            ->where('condition_id', $conditionId)
-            ->where('next_id', '!=', 0)
-            ->orderBy('sort_number')
-            ->get();
+                $conditionId = $this->getCondition($formId, $value);
+            }
+
+            $chains = ChainFixed::where('form_id', $formId)
+                ->where('condition_id', $conditionId)
+                ->where('next_id', '!=', 0)
+                ->orderBy('sort_number')
+                ->get();
+        } catch (Exception $exception) {
+            Log::error($exception);
+            return $this->response->error($exception);
+        }
 
         return $this->response->collection($chains, new ChainTransformer());
     }
@@ -138,18 +150,17 @@ class ApprovalFlowController extends Controller
         $formId = $instance->form_id;
         $condition = null;
         if ($form->change_type === 224) {
+            // todo 拼value
             $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
-            $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $formControlId)->select('form_control_value')->first()->form_control_value;
+            $value = $this->getValuesForCondition($formControlId, $num);
             $condition = $this->getCondition($formId, $value);
         }
 
-
-        // todo 找到具体到链
         $nextChain = ChainFixed::where('next_id', $next)->where('form_id', $formId)->first();
         $chains = ChainFixed::where('form_id', $formId)
             ->where('condition_id', $condition)
             ->where('next_id', '!=', 0)
-            ->where('sort_number', '>=',$nextChain->sort_number)
+            ->where('sort_number', '>=', $nextChain->sort_number)
             ->orderBy('sort_number')
             ->get();
         if ($form->change_type === 223) {
@@ -312,7 +323,7 @@ class ApprovalFlowController extends Controller
 
             $this->createOrUpdateHandler($num, $userId, 234);
 
-            $project = Project::where('project_number',$num)->first();
+            $project = Project::where('project_number', $num)->first();
             if ($project)
                 $project->delete();
         } catch (Exception $exception) {
@@ -393,8 +404,8 @@ class ApprovalFlowController extends Controller
             $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->first();
         } else if ($changeType === 224) {
             // 分支流程
-            $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
-            $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $formControlId)->select('form_control_value')->first()->form_control_value;
+            $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
+            $value = $this->getValuesForCondition($formControlIds, $num);
             $conditionId = $this->getCondition($instance->form_id, $value);
             $chain = ChainFixed::where('form_id', $instance->form_id)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
         } else {
@@ -437,31 +448,11 @@ class ApprovalFlowController extends Controller
      */
     private function getCondition($formId, $value)
     {
-        $formControl = Control::where('form_id', $formId)->first();
-        $arr = [
-            82,
-            84
-        ];
-        if (in_array($formControl->control_id, $arr)) {
-            $condition = Condition::where('form_id', $formId)->where('form_control_id', $formControl->control_id)->where('condition', $value)->first();
-        } else if ($formControl->control_id === 83) {
-            $condition = null;
-            foreach (Condition::where('form_id', $formId)->where('form_control_id', $formControl->form_control_id)->orderBy('condition', 'asc')->cursor() as $item) {
-                if ($value > $item->condition)
-                    continue;
-                else {
-                    $condition = $item;
-                    break;
-                }
-            }
+        $result = Condition::where('form_id', $formId)->where('condition', $value)->value('flow_condition_id');
+        if (is_null($result))
+            throw new Exception('未找到对应条件');
 
-            if (is_null($condition))
-                $condition = Condition::where('form_id', $formId)->where('form_control_id', $formControl->form_control_id)->orderBy('condition', 'desc')->first();
-        } else {
-            throw new Exception('该字段类型不在可配置分支条件中');
-        }
-
-        return $condition->flow_condition_id;
+        return $result;
 
     }
 
@@ -519,5 +510,36 @@ class ApprovalFlowController extends Controller
 
         if ($now->current_handler_id != $userId)
             throw new ApprovalVerifyException('当前用户没权限进行该操作');
+    }
+
+    private function getValuesForCondition($formControlIds, $num, $value = null)
+    {
+        $formControlIdArr = explode('|', $formControlIds);
+        if (count($formControlIdArr) == 1) {
+            $control = Control::where('form_control_id', $formControlIdArr[0])->first();
+            $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $control->form_control_id)->value('form_control_value');
+            if ($control->form_control_id == 83)
+                return $this->numberForCondition($control->form_id, $value);
+        }
+
+        $resultArr = [];
+        foreach ($formControlIdArr as $control) {
+            $resultArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $control)->value('form_control_value');
+        }
+        return implode('|', $resultArr);
+    }
+
+    private function numberForCondition($formId, $value)
+    {
+        $result = 0;
+        foreach (Condition::where('form_id', $formId)->orderBy('sort_number', 'desc')->cursor() as $item) {
+            if ($value > $item->condition) {
+                $result = $item->condition;
+                break;
+            } else {
+                continue;
+            }
+        }
+        return $result;
     }
 }

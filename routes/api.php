@@ -65,7 +65,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/trails/{trail}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/bloggers/{blogger}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+
         //任务关联资源
+
         $api->post('/projects/{project}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/projects/{project}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         $api->post('/clients/{client}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');

@@ -723,7 +723,7 @@ class ProjectController extends Controller
         if($request->has('project_returned_money_type_id')){
             $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
-      //  $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>0])->count() + 1;
+        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>0])->count() + 1;
         DB::beginTransaction();
         try {
             $project = ProjectReturnedMoney::create($array);
@@ -806,7 +806,7 @@ class ProjectController extends Controller
         if($request->has('project_returned_money_type_id')){
             $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
-       // $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
+        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
         DB::beginTransaction();
         try {
             $project = ProjectReturnedMoney::create($array);

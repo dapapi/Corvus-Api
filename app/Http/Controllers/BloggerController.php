@@ -296,7 +296,6 @@ class BloggerController extends Controller
             }
         }
 
-
         if ($request->has('level')) {
             $array['level'] = $payload['level'];
             if ($array['level'] != $blogger->level) {

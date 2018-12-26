@@ -65,7 +65,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/trails/{trail}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/bloggers/{blogger}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+
         //任务关联资源
+
         $api->post('/projects/{project}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
         $api->delete('/projects/{project}/tasks/{task}/resource_relieve', 'App\Http\Controllers\TaskController@relieveResource');
         $api->post('/clients/{client}/tasks/{task}/resource', 'App\Http\Controllers\TaskController@relevanceResource');
@@ -546,7 +548,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // 审批
         //我申请
         $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
-        $api->get('/approvals_project/detail/{project}','App\Http\Controllers\ApprovalFormController@detail');
+        $api->get('/approvals_project/detail/{project_approve}','App\Http\Controllers\ApprovalFormController@detail');
         //我的审批 待审批
         $api->get('/approvals_project/approval','App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批

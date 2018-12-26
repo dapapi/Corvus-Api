@@ -24,7 +24,7 @@ class DataDictionaryController extends Controller
     public function index(Request $request)
     {
         $parent_id = $request->get('parent_id',0);
-        return DataDictionarie::where('parent_id',$parent_id)->select('id','code','val','name','description','created_by','created_at')->get();
+        return DataDictionarie::where('parent_id',$parent_id)->select('id','code','val','icon','name','description','created_by','created_at')->get();
     }
 
     /**

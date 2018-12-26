@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Support\Facades\DB;
 class ProjectReturnedMoney extends Model
 {
     use SoftDeletes;
@@ -35,8 +35,18 @@ class ProjectReturnedMoney extends Model
     {
         return $this->belongsTo(ProjectReturnedMoneyType::class, 'project_returned_money_type_id', 'id');
     }
-//    public function type()
-//    {
-//        return $this->belongsTo(ProjectReturnedMoneyType::class);
-//    }
+    public function practicalSum() {
+
+        // 总分
+        $type_id =ProjectReturnedMoneyType::where('type',1)->get(['id']);
+        $practicalsums =  $this->hasMany(ProjectReturnedMoney::class, 'p_id', 'id')->wherein('project_returned_money_type_id',$type_id)->select('*',DB::raw('sum(plan_returned_money) as practicalsums'));
+        return $practicalsums;
+    }
+    public function invoiceSum() {
+
+        // 总分
+        $type_id =ProjectReturnedMoneyType::where('type',2)->get(['id']);
+        $practicalsums =  $this->hasMany(ProjectReturnedMoney::class, 'p_id', 'id')->wherein('project_returned_money_type_id',$type_id)->select('*',DB::raw('sum(plan_returned_money) as practicalsums'));
+        return $practicalsums;
+    }
 }

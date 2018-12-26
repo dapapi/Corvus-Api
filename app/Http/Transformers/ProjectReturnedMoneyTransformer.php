@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectReturnedMoneyTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['money','type'];
+    protected $availableIncludes = ['money','type','practicalsum','invoicesum'];
 
 
     public function transform(ProjectReturnedMoney $projectReturnedMoney)
@@ -37,5 +37,18 @@ class ProjectReturnedMoneyTransformer extends TransformerAbstract
         $project = $projectReturnedMoney->money()->createDesc()->get();
         return $this->collection($project, new ProjectReturnedMoneyShowTransformer());
     }
+    public function includePracticalSum(ProjectReturnedMoney $projectReturnedMoney)
+    {
+        $reviewanswer = $projectReturnedMoney->practicalsum;
+        return $this->collection($reviewanswer, new ProjectReturnedMoneyPracticalTransformer());
 
+    }
+
+    public function includeInvoiceSum(ProjectReturnedMoney $projectReturnedMoney)
+    {
+
+        $reviewanswer = $projectReturnedMoney->invoiceSum;
+        return $this->collection($reviewanswer, new ProjectReturnedMoneyInvoiceTransformer());
+
+    }
 }

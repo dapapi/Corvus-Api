@@ -36,13 +36,15 @@ class ProjectBillController extends Controller
             $array['expense_type'] = '';
         }
         if ($Blogger && $Blogger->id) {
-            $array['artist_name'] = $Blogger->nickname;
+            $array['action_user'] = $Blogger->nickname;
+
         } else if ($project && $project->id) {
             $array['project_kd_name'] = $project->title;
             $projectbillresource = ProjectBillsResource::where(['resourceable_id'=>$project->id,'resourceable_title'=>$project->title])->first(['expenses','papi_divide','bigger_divide','my_divide']);
         } else if ($star && $star->id) {
-            $array['project_kd_name'] = $star->name;
-        }
+            $array['artist_name'] = $star->name;
+          }
+
         if($array['expense_type'] != '支出') {
             $array['expense_type'] = '支出';
             $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
@@ -50,15 +52,17 @@ class ProjectBillController extends Controller
         }else{
             $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         }
-        $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
 
+        $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
         if(isset($expendituresum)){
             $result->addMeta('expendituresum', $expendituresum->expendituresum);
-            $result->addMeta('expenses', $projectbillresource->expenses);
-            $result->addMeta('papi_divide', $projectbillresource->papi_divide);
-            $result->addMeta('bigger_divide', $projectbillresource->bigger_divide);
-            $result->addMeta('my_divide', $projectbillresource->my_divide);
+            if(isset($projectbillresource)) {
+                $result->addMeta('expenses', $projectbillresource->expenses);
+                $result->addMeta('papi_divide', $projectbillresource->papi_divide);
+                $result->addMeta('bigger_divide', $projectbillresource->bigger_divide);
+                $result->addMeta('my_divide', $projectbillresource->my_divide);
+            }
             return $result;
         }else{
             return $result;

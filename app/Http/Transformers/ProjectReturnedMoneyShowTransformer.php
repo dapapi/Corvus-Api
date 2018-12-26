@@ -19,7 +19,7 @@ class ProjectReturnedMoneyShowTransformer extends TransformerAbstract
                 'plan_returned_money' => $projectReturnedMoney->plan_returned_money,
                 'plan_returned_time' => date('Y-m-d',strtotime($projectReturnedMoney->plan_returned_time)),
              //   'project_returned_money_type_id' => $projectReturnedMoney->project_returned_money_type_id,
-
+                'desc' => $projectReturnedMoney->desc,
 
             ];
 

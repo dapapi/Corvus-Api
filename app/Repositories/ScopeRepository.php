@@ -86,7 +86,8 @@ class ScopeRepository
         }elseif($dataDictionarieId == 21){
             //根据userid 查部门及一下部门
             $arrayUserid = array();
-            $departmentIdArr = DepartmentUser::where('user_id',$userId)->where('type',0)->get()->toArray();
+            $departmentIdArr = DepartmentUser::where('user_id',$userId)->get()->toArray();
+
             $departmentId = $departmentIdArr[0]['department_id'];
             $result = $this->getSubdivision($departmentId);
             $arrayUserid = array_keys($result);//查看下属部门

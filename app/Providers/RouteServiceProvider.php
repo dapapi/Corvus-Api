@@ -10,6 +10,7 @@ use App\Models\ApprovalGroup;
 use App\Models\Blogger;
 use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
+use App\Models\DataDictionary;
 use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
 use App\Models\Project;
@@ -481,6 +482,16 @@ class RouteServiceProvider extends ServiceProvider
                 abort(404);
             }
             return $entity;
+        });
+
+        Route::bind('pid', function ($value) {
+
+            try {
+                $entity = DataDictionary::findOrFail($value);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $value;
         });
 
         Route::bind('project_approve', function ($value) {

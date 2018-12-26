@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\Generator;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
@@ -11,6 +12,7 @@ use App\Models\ApprovalForm\Group;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
 use App\Models\Contract;
+use App\Models\DataDictionary;
 use App\Models\ProjectHistorie;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,6 +40,16 @@ use League\Fractal\Serializer\DataArraySerializer;
 
 class ApprovalFormController extends Controller
 {
+    protected $generator;
+
+    protected $company;
+    protected $type;
+
+    public function __construct(Generator $generator = null)
+    {
+        $this->generator = $generator;
+    }
+
     public function index(GetFormIdsRequest $request)
     {
         $type = $request->get('type');
@@ -169,10 +181,10 @@ class ApprovalFormController extends Controller
         $participant = DB::table('approval_form_participants as afp')
             ->join('users', function ($join) {
                 $join->on('afp.notice_id', '=', 'users.id');
-            })->select('users.name','users.icon_url','afp.notice_id')
-            ->where('afp.form_instance_number',$project->project_number)->get()->toArray();
+            })->select('users.name', 'users.icon_url', 'afp.notice_id')
+            ->where('afp.form_instance_number', $project->project_number)->get()->toArray();
 
-        foreach($participant as &$value){
+        foreach ($participant as &$value) {
             $value->notice_id = hashid_encode($value->notice_id);
         }
 
@@ -342,17 +354,51 @@ class ApprovalFormController extends Controller
 
     public function instanceStore(InstanceStoreRequest $request, ApprovalForm $approval)
     {
+        // 生成instance num
         $num = date("Ymd", time()) . rand(100000000, 999999999);
+
         $controlValues = $request->get('values');
+
+        $chains = $request->get('chains', null);
+
+        // 添加知会人
+        $notice = $request->get('notice', null);
+
+        // 区分合同还是普通审批
         if ($approval->group_id === 2)
             $type = 1;
         else
             $type = 0;
 
+        // 按合同规定艺人or博主
+        if (in_array($approval->form_id, [5, 6, 10]))
+            $this->starType = 'bloggers';
+
+        if (in_array($approval->form_id, [7, 8, 9]))
+            $this->starType = 'stars';
+
         $user = Auth::guard('api')->user();
 
         DB::beginTransaction();
         try {
+            // 一般审批可以自定义
+            if (!$type && $chains) {
+                $flow = new ApprovalFlowController();
+                $flow->storeFreeChains($chains, $num);
+            }
+
+            if (!empty($notice)) {
+                foreach ($notice as $value) {
+                    $participantsArray = [
+                        'form_instance_number' => $num,
+                        'created_at' => date("Y-m-d H:i:s", time()),
+                        'notice_id' => hashid_decode($value),
+                        'notice_type' => DataDictionarie::NOTICE_TYPE_TEAN,
+                    ];
+                    Participant::create($participantsArray);
+                }
+            }
+
             if ($type) {
                 $contract = Contract::create([
                     'form_instance_number' => $num,
@@ -360,14 +406,14 @@ class ApprovalFormController extends Controller
                     'creator_name' => $user->name,
                 ]);
 
-                Business::create([
+                $instance = Business::create([
                     'form_id' => $approval->form_id,
                     'form_instance_number' => $num,
                     'form_status' => 231,
                     'business_type' => 'contracts'
                 ]);
             } else {
-                Instance::create([
+                $instance = Instance::create([
                     'form_id' => $approval->form_id,
                     'form_instance_number' => $num,
                     'apply_id' => $user->id,
@@ -381,9 +427,14 @@ class ApprovalFormController extends Controller
                 $this->instanceValueStore($num, $value['key'], $value['value'], $value['type']);
             }
 
+            if ($type) {
+                $contractNumber = $this->generator->generatorBrokerId($this->formatContractStr($approval->form_id));
+                $contract->update(['contract_number' => $contractNumber]);
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
+            return $this->response->error('新建审批失败');
         }
 
         DB::commit();
@@ -394,18 +445,91 @@ class ApprovalFormController extends Controller
     {
         try {
             $key = hashid_decode($key);
+            list($value, $ids) = $this->formatValue($value);
             InstanceValue::create([
                 'form_instance_number' => $num,
                 'form_control_id' => $key,
                 'form_control_value' => $value,
             ]);
-            if ($type)
-                $contract->update([
-                    $type => $value
-                ]);
+            if ($type) {
+                if ($type == 'contract_number') {
+                    $this->company = $this->getCompanyCode($value);
+                } else {
+                    if ($type === 'type')
+                        $this->type = $this->formatType($value);
+
+                    if ($type === 'stars')
+                        $contract->update([
+                            'star_type' => $this->starType
+                        ]);
+
+                    if (in_array($type, ['project_id', 'client_id', 'stars']))
+                        $contract->update([
+                            $type => $ids
+                        ]);
+                    else
+                        $contract->update([
+                            $type => $value
+                        ]);
+                }
+            }
         } catch (Exception $exception) {
             throw $exception;
         }
 
+    }
+
+    private function formatValue($value)
+    {
+        if (!is_array($value))
+            return [$value];
+
+        foreach ($value['id'] as &$id) {
+            $id = hashid_decode($id);
+        }
+        unset($id);
+        $names = implode('|', $value['name']);
+        $ids = implode('|', $value['id']);
+        return [$names, $ids];
+    }
+
+    private function formatContractStr($form_id)
+    {
+        switch ($form_id) {
+            case 5:
+            case 6:
+                $string = 'BZJJ';
+                break;
+            case 7:
+            case 8:
+                $string = 'YRJJ';
+                break;
+            case 9:
+            case 10:
+                $string = $this->company . $this->type;
+                break;
+            default:
+                throw new Exception('合同编号生成错误');
+                break;
+        }
+
+        return $string;
+    }
+
+    private function formatType($type)
+    {
+        if (strpos($type, '收入') !== false)
+            $this->type = 'SR';
+        elseif (strpos($type, '成本') !== false)
+            $this->type = 'ZC';
+        elseif (strpos($type, '无金额') !== false)
+            $this->type = 'W';
+        else
+            $this->type = null;
+    }
+
+    private function getCompanyCode($value)
+    {
+        return DataDictionary::where('name', $value)->whereIn('parent_id', [136, 177])->value('code');
     }
 }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
-use App\Http\Requests\ApprovalFlow\StoreFreeChainsRequest;
 use App\Http\Transformers\ChainTransformer;
 use App\Models\ApprovalFlow\ChainFixed;
 use App\Models\ApprovalFlow\ChainFree;
@@ -55,31 +54,29 @@ class ApprovalFlowController extends Controller
         return $this->response->collection($chains, new ChainTransformer());
     }
 
-    public function storeFreeChains(StoreFreeChainsRequest $request, $formNumber)
+    public function storeFreeChains($chains, $formNumber)
     {
-        $chains = $request->get('chains');
-
         $user = Auth::guard('api')->user();
 
         DB::beginTransaction();
         try {
             foreach ($chains as $key => &$chain) {
-                $chain['id'] = hashid_decode($chain['id']);
+                $chain = hashid_decode($chain);
                 if ($key)
-                    $preId = $chains[$key - 1]['id'];
+                    $preId = $chains[$key - 1];
                 else
                     $preId = 0;
 
                 ChainFree::create([
                     'form_number' => $formNumber,
                     'pre_id' => $preId,
-                    'next_id' => $chain['id'],
+                    'next_id' => $chain,
                     'sort_number' => $key + 1
                 ]);
             }
             ChainFree::create([
                 'form_number' => $formNumber,
-                'pre_id' => $chains[count($chains) - 1]['id'],
+                'pre_id' => $chains[count($chains) - 1],
                 'next_id' => 0,
                 'sort_number' => count($chains) + 1,
             ]);
@@ -87,7 +84,7 @@ class ApprovalFlowController extends Controller
 
             $this->storeRecord($formNumber, $user->id, $now, 237);
 
-            $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 231);
+            $this->createOrUpdateHandler($formNumber, $chains[0], 231);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;

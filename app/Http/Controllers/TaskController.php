@@ -74,9 +74,9 @@ class TaskController extends Controller
     public function tasksAll(Request $request,Task $task)
     {
         $payload = $request->all();
-        $data = $task->get()
+        $data = $task
             ->searchData()
-            ->toArray();
+            ->get()->toArray();
         $dataArr = array();
         if(!empty($data)){
             foreach ($data as $k=>$value){

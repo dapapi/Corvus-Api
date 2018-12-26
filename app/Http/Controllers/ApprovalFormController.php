@@ -8,7 +8,11 @@ use App\Http\Transformers\ApprovalFormTransformer;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Http\Transformers\FormControlTransformer;
 use App\Models\ApprovalForm\Group;
+use App\Models\ApprovalForm\Instance;
+use App\Models\ApprovalForm\InstanceValue;
+use App\Models\Contract;
 use App\Models\ProjectHistorie;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\DataDictionarie;
@@ -22,7 +26,6 @@ use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalForm\Participant;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\TemplateField;
-use App\Http\Transformers\ProjectHistoriesTransformer;
 
 
 use Illuminate\Support\Facades\Auth;
@@ -90,8 +93,8 @@ class ApprovalFormController extends Controller
                         $participantsArray = [
                             'form_instance_number' => $projectNumber,
                             'created_at' => date("Y-m-d H:i:s", time()),
-                            'notice_id'=>hashid_decode($value),
-                            'notice_type'=>DataDictionarie::NOTICE_TYPE_TEAN,
+                            'notice_id' => hashid_decode($value),
+                            'notice_type' => DataDictionarie::NOTICE_TYPE_TEAN,
                         ];
                         Participant::create($participantsArray);
                     }
@@ -261,11 +264,11 @@ class ApprovalFormController extends Controller
                 }
             })
             ->where('afe.change_id', $user->id)
-            ->whereNotIn( 'afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP,DataDictionarie::FIOW_TYPE_DSP])
-            ->select('afe.*','ph.title','bu.*','users.name','ph.created_at','ph.id')
+            ->whereNotIn('afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP, DataDictionarie::FIOW_TYPE_DSP])
+            ->select('afe.*', 'ph.title', 'bu.*', 'users.name', 'ph.created_at', 'ph.id')
             ->paginate($pageSize)->toArray();
 
-        foreach ($data['data'] as $key=>&$value){
+        foreach ($data['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);
             $value->change_id = hashid_encode($value->change_id);
         }
@@ -330,15 +333,79 @@ class ApprovalFormController extends Controller
     {
         $type = $request->get('type');
         if ($type)
-            $forms = ApprovalForm::whereNotIn('group_id', [1,2])->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
+            $forms = ApprovalForm::whereNotIn('group_id', [1, 2])->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
         else
             $forms = ApprovalForm::where('group_id', 2)->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
 
         return $this->response->collection($forms, new ApprovalFormTransformer());
     }
 
-    public function instanceStore(InstanceStoreRequest $request)
+    public function instanceStore(InstanceStoreRequest $request, ApprovalForm $approval)
     {
+        $num = date("Ymd", time()) . rand(100000000, 999999999);
+        $controlValues = $request->get('values');
+        if ($approval->group_id === 2)
+            $type = 1;
+        else
+            $type = 0;
+
+        $user = Auth::guard('api')->user();
+
+        DB::beginTransaction();
+        try {
+            if ($type) {
+                $contract = Contract::create([
+                    'form_instance_number' => $num,
+                    'creator_id' => $user->id,
+                    'creator_name' => $user->name,
+                ]);
+
+                Business::create([
+                    'form_id' => $approval->form_id,
+                    'form_instance_number' => $num,
+                    'form_status' => 231,
+                    'business_type' => 'contracts'
+                ]);
+            } else {
+                Instance::create([
+                    'form_id' => $approval->form_id,
+                    'form_instance_number' => $num,
+                    'apply_id' => $user->id,
+                    'form_status' => 231,
+                    'create_by' => $user->name,
+                    'create_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+            foreach ($controlValues as $value) {
+                $this->instanceValueStore($num, $value['key'], $value['value'], $value['type']);
+            }
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+        }
+
+        DB::commit();
+        return $this->response->created();
+    }
+
+    private function instanceValueStore($num, $key, $value, $type = null, $contract = null)
+    {
+        try {
+            $key = hashid_decode($key);
+            InstanceValue::create([
+                'form_instance_number' => $num,
+                'form_control_id' => $key,
+                'form_control_value' => $value,
+            ]);
+            if ($type)
+                $contract->update([
+                    $type => $value
+                ]);
+        } catch (Exception $exception) {
+            throw $exception;
+        }
 
     }
 }

@@ -63,6 +63,14 @@ class Control extends Model
         return null;
     }
 
+    public function getSourceAttribute()
+    {
+        $property_value = $this->properties()->where('property_id', 389)->select('property_value')->first();
+        if ($property_value)
+            return json_decode($property_value->property_value);
+        return null;
+    }
+
     public function enum()
     {
         return $this->hasMany(ControlEnums::class, 'form_control_id', 'form_control_id')->orderBy('sort_number')->select('enum_value');

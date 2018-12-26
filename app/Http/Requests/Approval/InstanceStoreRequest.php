@@ -27,7 +27,9 @@ class InstanceStoreRequest extends FormRequest
             'values' => 'required|array',
             'values.*.key' => 'required|numeric',
             'values.*.value' => 'required',
-            'values.*.type' => 'nullable'
+            'values.*.type' => 'nullable',
+            'chains' => 'nullable|array',
+            'notice' => 'nullable|array',
         ];
     }
 }

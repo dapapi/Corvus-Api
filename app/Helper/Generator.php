@@ -18,15 +18,10 @@ class Generator
             ContractNo::insert(['key'=>$key,'year'=>$year,'no'=>$no]);
         }else{
             $no = intval($constract_no->no)+1;
-            print intval($constract_no->no);
             if($no < $this->boundary){
                 $no = substr($no+$this->boundary,1,4);
             }
             $constract_no->no = $no;
-            DB::connection()->enableQueryLog();
-            $constract_no->save();
-            $sql = DB::getQueryLog();
-            var_dump($sql);
         }
         return $key."-".date('Ymd')."-".$no;
     }

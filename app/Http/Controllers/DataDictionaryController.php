@@ -10,7 +10,9 @@ namespace App\Http\Controllers;
 
 
 use App\Models\DataDictionarie;
+use App\Models\DataDictionary;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -38,11 +40,23 @@ class DataDictionaryController extends Controller
         DB::beginTransaction();
         try{
             DataDictionarie::create($payload);
-            DB::commit();
             return $this->response->noContent();
         }catch (\Exception $e){
             DB::rollBack();
             return $this->response->errorInternal("数据字典添加失败");
         }
+        DB::commit();
+    }
+
+    /**
+     * 合同主体选择专用
+     * @param Request $request
+     * @param $pid
+     * @return Collection
+     */
+    public function company(Request $request, $pid)
+    {
+        $collection = DataDictionary::where('parent_id', $pid)->selectRaw(DB::raw('`name` as enum_value'))->get();
+        return $collection;
     }
 }

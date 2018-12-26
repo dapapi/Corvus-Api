@@ -554,6 +554,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
         $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
         $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
+        // 合同和普通审批新建
         $api->post('/approvals/{approval}', 'App\Http\Controllers\ApprovalFormController@instanceStore');
         // 审批流
         $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
@@ -575,5 +576,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //列表
         $api->get('/datadic/index','App\Http\Controllers\DataDictionaryController@index');
         $api->post('/datadic/add','App\Http\Controllers\DataDictionaryController@store');
+
+        $api->get('data_dictionary/{pid}', 'App\Http\Controllers\DataDictionaryController@company');
     });
 });

@@ -321,7 +321,6 @@ class ConsoleController extends Controller
 
     public function scope(Request $request,Role $role,RoleUser $roleUser,RoleResource $roleResource,User $user,RoleDataView $roleDataView,RoleDataManage $roleDataManage)
     {
-
         $dataDictionarie = DataDictionarie::where('code', 1)->get()->toArray();//获取功能模块列表
         $roleId = 1;
         $tree_data = array();

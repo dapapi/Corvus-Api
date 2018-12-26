@@ -57,6 +57,7 @@ class StarTransformer extends TransformerAbstract
             'star_location' =>  $star->star_location,
             // 日志内容
             'last_updated_user' => $star->last_updated_user,
+            'last_updated_at'   =>  $star->last_updated_at,
             'last_follow_up_at' => $star->last_follow_up_at,
 
         ];

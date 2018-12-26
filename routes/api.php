@@ -84,6 +84,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/schedules/{schedule}/affix', 'App\Http\Controllers\AffixController@index');
         $api->post('/schedules/{schedule}/affix', 'App\Http\Controllers\AffixController@add');
+        $api->delete('/schedules/{schedule}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->get('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@index');
         $api->post('/announcements/{announcement}/affix', 'App\Http\Controllers\AffixController@add');
         $api->get('/tasks/{task}/affix', 'App\Http\Controllers\AffixController@index');

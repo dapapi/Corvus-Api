@@ -13,4 +13,18 @@ class ControlEnums extends Model
         'enum_value',
         'sort_number'
     ];
+
+    public function getEnumValueAttribute($value)
+    {
+        if (strpos($value, ':') === false) {
+            return $value;
+        } else {
+            $enum = explode(':', $value);
+            $result = [
+                'column' => $enum[0],
+                'list' => explode('|', $enum[1]),
+            ];
+            return $result;
+        }
+    }
 }

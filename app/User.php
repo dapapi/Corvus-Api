@@ -4,6 +4,8 @@ namespace App;
 
 use App\Models\Affix;
 use App\Models\Department;
+use App\Models\RoleUser;
+
 use App\Models\PersonalSkills;
 use App\Models\PersonalDetail;
 use App\Models\PersonalJob;
@@ -236,6 +238,11 @@ class User extends Authenticatable
     public function FamilyData()
     {
         return $this->hasMany(FamilyData::class, 'user_id', 'id');
+    }
+
+    public function RoleUser()
+    {
+        return $this->hasMany(RoleUser::class, 'user_id', 'id');
     }
 
     public function operateLogs()

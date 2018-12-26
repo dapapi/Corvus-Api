@@ -21,6 +21,7 @@ class UserTransformer extends TransformerAbstract
         'training',
         'record',
         'familyData',
+        'roleUser',
     ];
    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
@@ -59,6 +60,7 @@ class UserTransformer extends TransformerAbstract
             'work_email'=> $user->work_email,//'工作邮箱',
             'is_department_principal' => $user->is_department_principal,
             'disable'=>$user->disable,
+            'entry_status'=>$user->entry_status,
 
 
         ];
@@ -148,6 +150,12 @@ class UserTransformer extends TransformerAbstract
         $familyData = $user->familyData;
 
         return $this->collection($familyData, new FamilyDataTransformer());
+    }
+    public function includeRoleUser(User $user)
+    {
+        $roleUserData = $user->roleUser;
+
+        return $this->collection($roleUserData, new RoleUserTransformer());
     }
 
 }

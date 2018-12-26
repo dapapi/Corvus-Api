@@ -20,11 +20,9 @@ class ChainFixed extends Model implements ChainInterface
 
     public function next()
     {
-        if ($this->approver_type == 245)
-            return $this->hasOne(User::class, 'id', 'next_id');
-        else if ($this->approvel_type == 246 or $this->approvel_type == 247)
+        if  ($this->approver_type == 246 or $this->approver_type == 247)
             return $this->hasOne(Role::class, 'id', 'next_id');
         else
-            return null;
+            return $this->hasOne(User::class, 'id', 'next_id');
     }
 }

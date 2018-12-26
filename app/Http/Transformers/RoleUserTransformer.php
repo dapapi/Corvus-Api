@@ -12,15 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class RoleUserTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = [
-
-    ];
+    //protected $availableIncludes = ['users'];
     protected $defaultIncludes = ['users'];
     public function transform(RoleUser $roleUser)
     {
         $array = [
             'role_id' => hashid_encode($roleUser->role_id),
-            'user_id' => $roleUser->user_id,
+            'user_id' => hashid_encode($roleUser->user_id),
 
         ];
         return $array;

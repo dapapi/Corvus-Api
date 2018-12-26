@@ -323,7 +323,7 @@ class ConsoleController extends Controller
     public function scope(Request $request,Role $role,RoleUser $roleUser,RoleResource $roleResource,User $user,RoleDataView $roleDataView,RoleDataManage $roleDataManage)
     {
         $dataDictionarie = DataDictionarie::where('code', 1)->get()->toArray();//获取功能模块列表
-        $roleId = 1;
+        $roleId = $role->id;
         $tree_data = array();
         $res = array();
         foreach ($dataDictionarie as $key=>$value){
@@ -415,7 +415,7 @@ class ConsoleController extends Controller
                             'data_view_id'=>$value['scope'],
                             'data_view_sql'=>$dataViewSql,
                         ];
-                         $deparInfo = RoleDataView::create($array);
+                         $deparInfo = RoleDataView::insert($array);
                         //创建 参与 所见 删除再添加  删除原先的数据管理权限
 //                        $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
                         if(!empty($value['manage'])){
@@ -425,7 +425,7 @@ class ConsoleController extends Controller
                                     'resource_id'=>$value['resource_id'],
                                     'data_manage_id'=>$mvalue,
                                 ];
-                                $depar = RoleDataManage::create($array);
+                                $depar = RoleDataManage::insert($array);
                             }
                         }
                     }

@@ -63,12 +63,12 @@ class Star extends Model
         $user = Auth::guard("api")->user();
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers();
-        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhere(DB::raw("{$userid} in (
+        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from stars as s 
             left join module_users as mu on mu.moduleable_id = s.id and 
             mu.moduleable_type='".ModuleableType::STAR.
             "' left join users as u on u.id = mu.user_id where s.id = stars.id
-        )"));
+        )");
     }
 
     //按创建时间倒叙

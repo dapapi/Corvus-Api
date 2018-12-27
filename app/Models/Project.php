@@ -85,13 +85,17 @@ class Project extends Model
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers();
 
-        return (new SearchDataScope())->getCondition($query, $rules, $userid)->orWhere(DB::raw("{$userid} in (
-            select u.id from projects as p 
-            left join module_users as mu on mu.moduleable_id = p.id and 
+        return (new SearchDataScope())->getCondition($query, $rules, $userid)->orWhereRaw("{$userid} in (
+            select mu.user_id from projects as p
+            left join module_users as mu on mu.moduleable_id = p.id and
             mu.moduleable_type='" . ModuleableType::PROJECT .
 
-            "' left join users as u on u.id = mu.user_id where p.id = projects.id
-        )"));
+            "' where p.id = projects.id
+        )");
+//        return (new SearchDataScope())->getCondition($query, $rules, $userid)->leftJoin('module_users as mu',function ($join){
+//            $join->on('mu.moduleable_id','projects.id')
+//                ->where('mu.moduleable_type',ModuleableType::PROJECT);
+//        })->orWhere('mu.user_id',$user->id);
     }
 
     public function principal()

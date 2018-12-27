@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants', 'relate_tasks', 'relate_projects'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants', 'relate_tasks', 'relate_projects','relate_project_courses'];
 
     private  $isAll = true;
 
@@ -99,5 +99,10 @@ class ProjectTransformer extends TransformerAbstract
     {
         $projects = $project->relateProjects;
         return $this->collection($projects, new ProjectTransformer());
+    }
+    public function includeRelateProjectCourses(Project $project)
+    {
+        $projects = $project->relateProjectCourse->get();
+        return $this->collection($projects, new ProjectCourseTransformer());
     }
 }

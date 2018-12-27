@@ -186,7 +186,7 @@ class ApprovalFlowController extends Controller
                 'icon_url' => $chain->next->icon_url,
                 'change_state_obj' => [
                     'changed_state' => '待审批',
-                    'changed_icon' => null,
+                    'changed_icon' => 'icon-tongguo|#e0e0e0',
                 ],
                 'approval_stage' => 'todo'
             ];

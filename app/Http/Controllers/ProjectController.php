@@ -12,10 +12,12 @@ use App\Http\Transformers\TemplateFieldTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
+use App\Http\Transformers\ProjectCourseTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\FieldValue;
 use App\Models\Message;
+use App\Models\ProjectStatusLogs;
 use App\Events\OperateLogEvent;
 use App\Models\OperateEntity;
 use App\Models\ProjectReturnedMoneyType;
@@ -62,7 +64,6 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $payload = $request->all();
-
         $pageSize = $request->get('page_size', config('app.page_size'));
         $projects = Project::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
@@ -561,10 +562,78 @@ class ProjectController extends Controller
 
         return $this->response->item($project, new ProjectTransformer());
     }
+    public function course(Request $request, Project $project)
+    {
+        $status = $request->get('status');
+        $user = Auth::guard('api')->user();
+        $array['user_id'] = $user->id;
+        switch ($status) {
+            case Project::STATUS_EVALUATINGACCOMPLISH:
 
+                $status1 = $status;
+
+                break;
+            case Project::STATUS_CONTRACT:
+
+                $status1 = $status;
+
+                break;
+            case Project::STATUS_CONTRACTACCOMPLISH:
+                $status1 = $status;
+
+                break;
+            case Project::STATUS_EXECUTION:
+                $status1 = $status;
+
+                break;
+            case Project::STATUS_EXECUTIONACCOMPLISH:
+                $status1 = $status;
+
+                break;
+            case Project::STATUS_RETURNEDMONEY:
+                $status1 = $status;
+
+                break;
+            case Project::STATUS_RETURNEDMONEYACCOMPLISH:
+                $status1 = $status;
+
+                break;
+            case Project::STATUS_BEEVALUATING:
+                $status1 = $status;
+
+                break;
+            default:
+                break;
+        }
+        $array['logable_id'] = $project->id;
+        $array['logable_type'] = 'project';
+        $array['content'] = $status1;
+        DB::beginTransaction();
+        try {
+
+               if(ProjectStatusLogs::where($array)->first() == true){
+                   return $this->response->errorForbidden('该状态已存在');
+               }
+
+            ProjectStatusLogs::create($array);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('失败');
+        }
+        DB::commit();
+
+    }
+    public function allCourse(Request $request, Project $project)
+    {
+        $projects = ProjectStatusLogs::where('logable_id',$project->id)->CreateDesc()->get();
+        return $this->response->collection($projects, new ProjectCourseTransformer());
+    }
     public function changeStatus(Request $request, Project $project)
     {
         $status = $request->get('status');
+
         switch ($status) {
             case Project::STATUS_COMPLETE:
                 $project->complete_at = now();
@@ -583,7 +652,8 @@ class ProjectController extends Controller
                 break;
         }
 
-        $project->save();
+            $project->save();
+
 
         return $this->response->item($project, new ProjectTransformer());
     }

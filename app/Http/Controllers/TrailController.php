@@ -57,7 +57,9 @@ class TrailController extends Controller
 
     public function all(Request $request)
     {
-        $clients = Trail::orderBy('created_at', 'desc')
+        $type = $request->get('type', '1,2,3,4,5');
+        $typeArr = explode(',', $type);
+        $clients = Trail::whereIn('type', $typeArr)->orderBy('created_at', 'desc')
             ->searchData()
             ->get();
         return $this->response->collection($clients, new TrailTransformer());
@@ -352,7 +354,7 @@ class TrailController extends Controller
     public function detail(Request $request, Trail $trail)
     {
         $trail = $trail->searchData()->find($trail->id);
-        if($trail == null){
+        if ($trail == null) {
             return $this->response->errorInternal("你没有查看该数据的权限");
         }
         // 操作日志
@@ -410,8 +412,8 @@ class TrailController extends Controller
 
     public function refuse(RefuseTrailReuqest $request, Trail $trail)
     {
-        $power = (new ScopeRepository())->checkMangePower($trail->creator_id,$trail->principal_id,[]);
-        if(!$power){
+        $power = (new ScopeRepository())->checkMangePower($trail->creator_id, $trail->principal_id, []);
+        if (!$power) {
             return $this->response->errorInternal("你没有更改线索状态的权限");
         }
         $type = $request->get('type');
@@ -552,7 +554,7 @@ class TrailController extends Controller
 
     public function export(Request $request)
     {
-        $file = '当前线索导出'. date('YmdHis', time()).'.xlsx';
+        $file = '当前线索导出' . date('YmdHis', time()) . '.xlsx';
         return (new TrailsExport())->download($file);
     }
 }

@@ -20,7 +20,7 @@ use App\Models\Project;
 use App\Models\DataDictionarie;
 use App\User;
 use App\Http\Transformers\ProjectTransformer;
-
+use App\Models\RoleUser;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalFlow\ChainFixed;
@@ -256,6 +256,20 @@ class ApprovalFormController extends Controller
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        $executeInfo = DB::table('approval_flow_execute')->get()->toArray();
+        $user = array();
+        foreach($executeInfo as $value){
+            if($value->current_handler_type == 245){
+                $user[] = (int)$value->current_handler_id;
+            }else{
+                $roleInfo = RoleUser::where('user_id',$userId)->where('role_id',$value->current_handler_id)->get()->toArray();
+                foreach ($roleInfo as $rvalue){
+                    $user[] = $rvalue['role_id'];
+                }
+            }
+        }
+
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
@@ -275,7 +289,7 @@ class ApprovalFormController extends Controller
                     $query->where('afe.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
                 }
             })
-            ->where('afe.change_id', $user->id)
+            ->whereIn('afe.change_id', $user)
             ->whereNotIn('afe.change_state', [DataDictionarie::FIOW_TYPE_TJSP, DataDictionarie::FIOW_TYPE_DSP])
             ->select('afe.*', 'ph.title', 'bu.*', 'users.name', 'ph.created_at', 'ph.id')
             ->paginate($pageSize)->toArray();

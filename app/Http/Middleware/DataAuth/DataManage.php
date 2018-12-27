@@ -20,6 +20,7 @@ class DataManage
     private $manageSql;
     private $user_id;
     private $operation;
+    private $resource;
     /**
      * Handle an incoming request.
      *
@@ -89,6 +90,7 @@ class DataManage
         }
         $this->module_id = $resource->parent_id;
         $this->operation = $operation;
+        $this->resource = $resource;
         return true;
     }
     /**
@@ -145,6 +147,7 @@ class DataManage
 
             }
         }
-        throw new NoRoleException("你没有操作该数据的权限!!");
+        $model = DataDictionarie::find($this->module_id)->first();
+        throw new NoRoleException("你没有{$model->name}的权限!!");
     }
 }

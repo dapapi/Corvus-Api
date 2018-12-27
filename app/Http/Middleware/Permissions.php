@@ -42,7 +42,7 @@ class Permissions
                 if (!empty($featureInfo)) {
                     return $next($request);
                 } else {
-                    throw new NoRoleException("您没有访问权限,请联系管理员");
+                    throw new NoRoleException("您没有访问{$featureArr[0]['name']}权限,请联系管理员");
                 }
             } else {
                 return $next($request);//请求地址不在数据字典存在则不控制权限

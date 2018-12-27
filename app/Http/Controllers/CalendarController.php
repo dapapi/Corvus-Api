@@ -84,7 +84,7 @@ class CalendarController extends Controller
         $user = Auth::guard('api')->user();
         //获取参与人列表
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($calendar-privacy == Calendar::SECRET && ($calendar->creator_id != $user->id && !in_array($user->id,$participants))){
+        if($calendar->privacy == Calendar::SECRET && ($calendar->creator_id != $user->id && !in_array($user->id,$participants))){
             return $this->response->errorInternal("你没有编辑日历的权限");
         }
         $payload = $request->all();

@@ -12,45 +12,61 @@ class TrailTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations', 'expectations', 'project'];
 
+    private $isAll = true;
+
+    public function __construct($isAll = true)
+    {
+        $this->isAll = $isAll;
+    }
+
+
     public function transform(Trail $trail)
     {
-        $array = [
-            'id' => hashid_encode($trail->id),
-            'title' => $trail->title,
-            'brand' => $trail->brand,
-            'industry_id' => hashid_encode($trail->industry->id),
-            'industry' => $trail->industry->name,
-            'resource_type' => $trail->resource_type,
-            'type' => $trail->type,
-            'fee' => $trail->fee,
-            'priority' => $trail->priority,
-            'status' => $trail->status,
-            'progress_status' => $trail->progress_status,
-            'cooperation_type' => $trail->cooperation_type,
-            'desc' => $trail->desc,
-            'lock_status' => $trail->lock_status,
-            // 日志内容
-            'last_follow_up_at' => $trail->last_follow_up_at,
-            'last_updated_user' => $trail->last_updated_user,
-            'last_updated_at' => $trail->last_updated_at,
-            'refused_at' => $trail->refused_at,
-            'refused_user' => $trail->refused_user,
-            'created_at' => $trail->created_at->toDateTimeString(),
-            'creator' => $trail->creator->name,
-        ];
+        if ($this->isAll) {
+            $array = [
+                'id' => hashid_encode($trail->id),
+                'title' => $trail->title,
+                'brand' => $trail->brand,
+                'industry_id' => hashid_encode($trail->industry->id),
+                'industry' => $trail->industry->name,
+                'resource_type' => $trail->resource_type,
+                'type' => $trail->type,
+                'fee' => $trail->fee,
+                'priority' => $trail->priority,
+                'status' => $trail->status,
+                'progress_status' => $trail->progress_status,
+                'cooperation_type' => $trail->cooperation_type,
+                'desc' => $trail->desc,
+                'lock_status' => $trail->lock_status,
+                // 日志内容
+                'last_follow_up_at' => $trail->last_follow_up_at,
+                'last_updated_user' => $trail->last_updated_user,
+                'last_updated_at' => $trail->last_updated_at,
+                'refused_at' => $trail->refused_at,
+                'refused_user' => $trail->refused_user,
+                'created_at' => $trail->created_at->toDateTimeString(),
+                'creator' => $trail->creator->name,
+            ];
 
-        if (is_numeric($trail->resource)) {
-            $resource = User::where('id', $trail->resource)->first();
-            if ($resource) {
-                $array['resource'] = [
-                    'id' => hashid_encode($resource->id),
-                    'name' => $resource->name,
-                ];
+            if (is_numeric($trail->resource)) {
+                $resource = User::where('id', $trail->resource)->first();
+                if ($resource) {
+                    $array['resource'] = [
+                        'id' => hashid_encode($resource->id),
+                        'name' => $resource->name,
+                    ];
+                } else {
+                    $array['resource'] = $trail->resource;
+                }
             } else {
                 $array['resource'] = $trail->resource;
             }
         } else {
-            $array['resource'] = $trail->resource;
+            $array = [
+                'id' => hashid_encode($trail->id),
+                'title' => $trail->title,
+                'brand' => $trail->brand,
+            ];
         }
 
         return $array;
@@ -87,7 +103,7 @@ class TrailTransformer extends TransformerAbstract
     public function includeRecommendations(Trail $trail)
     {
         $recommendations = $trail->bloggerRecommendations;
-        if (count($recommendations) <=0) {
+        if (count($recommendations) <= 0) {
             $recommendations = $trail->recommendations;
             return $this->collection($recommendations, new StarTransformer());
         } else {
@@ -99,8 +115,8 @@ class TrailTransformer extends TransformerAbstract
     public function includeExpectations(Trail $trail)
     {
         $expectations = $trail->bloggerExpectations;
-        if (count($expectations) <=0) {
-            $expectations= $trail->expectations;
+        if (count($expectations) <= 0) {
+            $expectations = $trail->expectations;
             return $this->collection($expectations, new StarTransformer());
         } else {
             return $this->collection($expectations, new BloggerTransformer());

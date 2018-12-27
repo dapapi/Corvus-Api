@@ -4,6 +4,7 @@ namespace App\Models\ApprovalForm;
 
 use App\Models\ApprovalFlow\Condition;
 use App\Models\DataDictionary;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class ApprovalForm extends Model
@@ -25,6 +26,11 @@ class ApprovalForm extends Model
         'updated_at',
         'order_by',
     ];
+
+    public function application()
+    {
+        return $this->belongsTo(User::class, 'apply_id', 'id');
+    }
 
     public function changeTypeDetail()
     {

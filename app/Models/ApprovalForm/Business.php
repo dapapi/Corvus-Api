@@ -2,6 +2,7 @@
 
 namespace App\Models\ApprovalForm;
 
+use App\Models\DataDictionary;
 use Illuminate\Database\Eloquent\Model;
 
 class Business extends Model
@@ -22,4 +23,8 @@ class Business extends Model
         return $this->belongsTo(ApprovalForm::class, 'form_id', 'form_id');
     }
 
+    public function dictionary()
+    {
+        return $this->belongsTo(DataDictionary::class, 'form_status', 'id');
+    }
 }

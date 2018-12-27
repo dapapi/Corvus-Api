@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ApprovalFormTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['applicant', 'approval_form_controls'];
+    protected $availableIncludes = ['approval_form_controls'];
 
     protected $num = null;
 
@@ -36,6 +36,9 @@ class ApprovalFormTransformer extends TransformerAbstract
         if ($form->condition_control)
             $arr['condition'] = $form->condition_control;
 
+        if ($this->num)
+            $arr['form_instance_number'] = $this->num;
+
         return $arr;
     }
 
@@ -44,4 +47,5 @@ class ApprovalFormTransformer extends TransformerAbstract
         $controls = $form->controls()->orderBy('sort_number')->get();
         return $this->collection($controls, new FormControlTransformer($this->num));
     }
+
 }

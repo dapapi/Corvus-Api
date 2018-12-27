@@ -141,7 +141,7 @@ class Project extends Model
     }
     public function relateProjectCourse()
     {
-        return $this->belongsTo(projectstatuslogs::class, 'id', 'logable_id');
+        return $this->belongsTo(ProjectStatusLogs::class, 'id', 'logable_id');
        // return $this->morphedByMany(project::class, 'logable', 'project_status_logs');
     }
 }

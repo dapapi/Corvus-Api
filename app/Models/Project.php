@@ -29,6 +29,20 @@ class Project extends Model
     const TYPE_PAPI = 4; // papi项目
     const TYPE_BASE = 5; // 基础项目
 
+    const STATUS_BEEVALUATING = 1; //评估中
+    const STATUS_EVALUATINGACCOMPLISH = 2; //评估完成
+    const STATUS_CONTRACT = 3; //签约中
+    const STATUS_CONTRACTACCOMPLISH = 4; //签约完成
+    const STATUS_EXECUTION = 5; //执行中
+    const STATUS_EXECUTIONACCOMPLISH = 6; //执行完成
+    const STATUS_RETURNEDMONEY = 7; //回款中
+    const STATUS_RETURNEDMONEYACCOMPLISH = 8; //回款完成
+
+
+
+
+
+
     const STATUS_NORMAL = 1; // 进行中
     const STATUS_COMPLETE = 2; // 完成
     const STATUS_FROZEN = 3; // 终止
@@ -124,5 +138,10 @@ class Project extends Model
     public function relateTasks()
     {
         return $this->morphedByMany(Task::class, 'moduleable', 'project_relates');
+    }
+    public function relateProjectCourse()
+    {
+        return $this->belongsTo(projectstatuslogs::class, 'id', 'logable_id');
+       // return $this->morphedByMany(project::class, 'logable', 'project_status_logs');
     }
 }

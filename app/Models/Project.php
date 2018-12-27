@@ -144,4 +144,9 @@ class Project extends Model
       //  return $this->belongsTo(ProjectStatusLogs::class, 'id', 'logable_id');
         return $this->morphMany(ProjectStatusLogs::class, 'logable');
     }
+    public function relateProjectBillsResource()
+    {
+
+        return $this->morphMany(ProjectBillsResource::class, 'resourceable');
+    }
 }

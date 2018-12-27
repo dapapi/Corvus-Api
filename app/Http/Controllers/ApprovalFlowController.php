@@ -425,7 +425,7 @@ class ApprovalFlowController extends Controller
             return $this->getTransferNextChain($instance, $now);
         }
         if ($chain->next_id === 0)
-            return 0;
+            return [0, 245];
 
 
         $next = $chain->next;

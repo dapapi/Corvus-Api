@@ -39,6 +39,7 @@ class DataManage
                         $preg = "/{.*}/";
                         $uri = $request->route()->uri;
                         if(preg_match($preg,$uri,$model)){//放过了没有携带model的访问，例如新增
+//                            dd($model);
                             $model = $model[0];
                             $model = trim($model,"{");
                             $model = trim($model,"}");

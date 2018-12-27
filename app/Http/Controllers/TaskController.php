@@ -983,28 +983,18 @@ class TaskController extends Controller
 
     public function filter(FilterTaskRequest $request)
     {
-        //获取可查询用户的数据
-        $arrUserId = (new ScopeRepository())->getDataViewUsers();
-        if($arrUserId === null){
-            return $this->response->errorInternal("没有查看数据的权限");
-        }
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $tasks = Task::where(function($query) use ($request, $payload,$arrUserId) {
+        $tasks = Task::where(function($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-            //限制查询数据范围
-            if(count($arrUserId) > 0){
-                $query->whereIn('creator_id',$arrUserId)
-                    ->orWhereIn('principal_id',$arrUserId);
-            }
-        })->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }

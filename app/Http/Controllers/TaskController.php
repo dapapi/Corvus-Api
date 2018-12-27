@@ -144,6 +144,7 @@ class TaskController extends Controller
             $join->on('tasks.id', '=', 'a.id');
         })
             ->mergeBindings($query)
+            ->searchData()
             ->orderBy('a.created_at', 'desc')
             ->paginate($pageSize);
 

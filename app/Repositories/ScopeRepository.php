@@ -197,20 +197,62 @@ class ScopeRepository
     /**
      * 判断用户对某接口是否有权限
      * @param $api
+     * @param $uri
      * @param $method
      * @param $role_id 角色数组
      * @param $user_id
      */
-    public function checkPower($api,$method,$role_ids,$user_id)
+    public function checkPower($request,$role_ids)
     {
+        $path = request()->path();
+        $api = preg_replace('/\\d+/', '{id}', $path);
+        $method = request()->getMethod();
+        $uri = $request->route()->uri;
         //1.获取接口在数据字典中的id
         $resource= DataDictionarie::where('val', '/'.$api)->where('code', $method)->first();
-        $resource_id = $resource->id;
-        //2.检查功能权限
-        $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource_id)->get()->toArray();
-        if(empty($featureInfo)){//如果为空则表示没有权限
-            return false;
+        if($resource != null){//请求地址在数据字典不存在则不进行权限控制
+            $resource_id = $resource->id;
+            //2.检查功能权限
+            $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource_id)->get()->toArray();
+            if(empty($featureInfo)){//如果为空则表示没有权限
+                return false;
+            }
+            //如果是get请求则检查role_data_view表中是检查用户对该接口的权限
+            if($method == "GET"){
+                $model_id = $resource->parent_id;//获取接口所在的模块
+                //检查访问模块是否在role_resource_view表中，只限制配置了查看范围的模块
+                $res = RoleResourceView::where('resource_id',$model_id)->first();
+                if($res != null){//检查访问模块是否在role_resource_view表中，则进行权限限制
+                    //检查role_data_view表中的权限
+                    //用户和角色是多对多的关系，所以可能一个用户对同一个模块有多重权限
+                    $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
+                    if(count($viewSql) != 0){//没有对应模块的权限记录，则不进行权限控制
+                        //如果接口中传进了模型，则对模型进行权限控制
+                        $preg = "/{[a-z]+}/";
+                        if(preg_match($preg,$uri,$model)){
+                            $model = $model[0];
+                            $model = trim($model,"{");
+                            $model = trim($model,"}");
+                            $model = $request->$model;
+                            $this->checkDataViewPower($model);//检查用户对数据权限
+                        }
+                    }
+
+                }
+            }
+            //如果method是post
+            if($method == "POST"){
+
+            }
+
+        }
+
+    }
+    private function checkDataViewPower($model)
+    {
+        $model = $model->searchData()->find($model->id);
+        if($model == null){
+            throw new NoRoleException("你没有查看该数据的权限");
         }
     }
-
 }

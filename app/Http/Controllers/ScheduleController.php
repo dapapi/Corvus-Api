@@ -64,6 +64,7 @@ class ScheduleController extends Controller
 
         $payload['start_date'] = $payload['start_date'].' 00:00:00';
         $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
+        $arr = [];
 
         $schedules = Schedule::where(function ($query) use ($payload) {
             $query->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
@@ -98,7 +99,7 @@ class ScheduleController extends Controller
 
         $schedules_list2 = array_column($schedules->get()->toarray(),'id');
 
-        $schedules_list = array_unique(array_merge($schedules_list2,$schedules_list2));
+        $schedules_list = array_unique(array_merge($schedules_list1,$schedules_list2));
         $schedules = Schedule::whereIn('id',$schedules_list)->get();
         return $this->response->collection($schedules, new ScheduleTransformer());
     }

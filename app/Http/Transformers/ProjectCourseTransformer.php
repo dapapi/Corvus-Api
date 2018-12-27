@@ -19,7 +19,7 @@ class ProjectCourseTransformer extends TransformerAbstract
 
             $array = [
                 'id' => hashid_encode($projectStatusLogs->id),
-                'user_id' =>  $projectStatusLogs->user_id,
+                'user' =>  $projectStatusLogs->creator->name,
                 'content' => $projectStatusLogs->content,
                 'status' => boolval($projectStatusLogs->status),
                 'created_at' => $projectStatusLogs->created_at->toDatetimeString(),
@@ -30,12 +30,12 @@ class ProjectCourseTransformer extends TransformerAbstract
 
         return $array;
     }
-    public function includeUsers(ProjectStatusLogs $projectStatusLogs)
-    {
-        $user = $projectStatusLogs->creator;
-        if (!$user)
-            return null;
-        return $this->item($user, new UserTransformer());
-    }
+//    public function includeUsers(ProjectStatusLogs $projectStatusLogs)
+//    {
+//        $user = $projectStatusLogs->creator;
+//        if (!$user)
+//            return null;
+//        return $this->item($user, new UserTransformer());
+//    }
 
 }

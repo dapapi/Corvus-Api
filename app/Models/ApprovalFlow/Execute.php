@@ -22,7 +22,7 @@ class Execute extends Model
 
     public function person()
     {
-        if ($this->current_handler_type == 247)
+        if ($this->current_handler_type == 247 or $this->current_handler_type == 246)
             return $this->belongsTo(Role::class, 'current_handler_id', 'id');
         else
             return $this->belongsTo(User::class, 'current_handler_id', 'id');

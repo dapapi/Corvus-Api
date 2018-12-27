@@ -21,6 +21,7 @@ class ProjectTransformer extends TransformerAbstract
         if ($this->isAll) {
             $array = [
                 'id' => hashid_encode($project->id),
+                'project_number' => $project->project_number,
                 'title' => $project->title,
                 'type' => $project->type,
                 'privacy' => $project->privacy,

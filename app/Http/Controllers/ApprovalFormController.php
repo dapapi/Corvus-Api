@@ -88,7 +88,7 @@ class ApprovalFormController extends Controller
                     'form_instance_number' => $projectNumber,
                     'current_handler_id' => $executeInfo[0]['next_id'],
                     // todo 角色处理
-                    'current_handler_type' => 245,
+                    'current_handler_type' => $executeInfo[0]['approver_type'],
                     'flow_type_id' => DataDictionarie::FORM_STATE_DSP
                 ];
 
@@ -334,10 +334,7 @@ class ApprovalFormController extends Controller
     // 获取一般审批表单
     public function getForm(Request $request, ApprovalForm $approval)
     {
-        $controls = $approval->controls;
-
         return $this->response->item($approval, new ApprovalFormTransformer());
-//        return $this->response->collection($controls, new FormControlTransformer());
     }
 
     // 获取group里的form_ids

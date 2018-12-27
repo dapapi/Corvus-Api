@@ -96,7 +96,7 @@ class ApprovalFlowController extends Controller
 
             $this->storeRecord($formNumber, $user->id, $now, 237);
 
-            $this->createOrUpdateHandler($formNumber, $chains[0], 231);
+            $this->createOrUpdateHandler($formNumber, $chains[0], 245, 231);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -130,20 +130,28 @@ class ApprovalFlowController extends Controller
         $now = Execute::where('form_instance_number', $num)->first();
         if ($now->flow_type_id != 231)
             return $this->response->array(['data' => $array]);
-        else
+        else {
+            $person = $now->person;
+            // todo 把主管换成人
+            if ($now->current_handler_type == 246) {
+                $header = $this->departmentHeaderToUser($num);
+                if ($header)
+                    $person = $header;
+            }
             $array[] = [
-                'id' => hashid_encode($now->person->id),
-                'name' => $now->person->name,
-                'icon_url' => $now->person->icon_url,
+                'id' => hashid_encode($person->id),
+                'name' => $person->name,
+                'icon_url' => $person->icon_url,
                 'change_state_obj' => [
                     'changed_state' => $now->dictionary->name,
                     'changed_icon' => $now->dictionary->icon,
                 ],
                 'approval_stage' => 'doing'
             ];
+        }
 
-        $next = $this->getChainNext($instance, $now->current_handler_id);
-        if ($next === 0)
+        list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);
+        if ($nextId === 0)
             return $this->response->array(['data' => $array]);
 
         $form = $instance->form;
@@ -156,7 +164,7 @@ class ApprovalFlowController extends Controller
             $condition = $this->getCondition($formId, $value);
         }
 
-        $nextChain = ChainFixed::where('next_id', $next)->where('form_id', $formId)->first();
+        $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->first();
         $chains = ChainFixed::where('form_id', $formId)
             ->where('condition_id', $condition)
             ->where('next_id', '!=', 0)
@@ -164,7 +172,7 @@ class ApprovalFlowController extends Controller
             ->orderBy('sort_number')
             ->get();
         if ($form->change_type === 223) {
-            $nextChain = ChainFree::where('next_id', $next)->where('form_id', $formId)->first();
+            $nextChain = ChainFree::where('next_id', $nextId)->where('form_id', $formId)->first();
             $chains = ChainFree::where('form_number', $num)
                 ->where('next_id', '!=', 0)
                 ->where('sort_number', '>=', $nextChain->sort_number)
@@ -211,13 +219,13 @@ class ApprovalFlowController extends Controller
         DB::beginTransaction();
         try {
             $this->verifyHandler($num, $userId);
-            $nextId = $this->getChainNext($this->getInstance($num), $userId);
+            list($nextId, $type) = $this->getChainNext($this->getInstance($num), $userId);
             $this->storeRecord($num, $userId, $now, 239, $comment);
 
             if ($nextId)
-                $this->createOrUpdateHandler($num, $nextId);
+                $this->createOrUpdateHandler($num, $nextId, $type);
             else
-                $this->createOrUpdateHandler($num, $userId, 232);
+                $this->createOrUpdateHandler($num, $userId, $type,232);
 
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
@@ -248,7 +256,7 @@ class ApprovalFlowController extends Controller
             $this->verifyHandler($num, $userId);
             $this->storeRecord($num, $userId, $now, 240, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 233);
+            $this->createOrUpdateHandler($num, $userId, 245, 233);
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -283,7 +291,7 @@ class ApprovalFlowController extends Controller
             $this->verifyHandler($num, $userId);
             $this->storeRecord($num, $userId, $now, 241, $comment);
 
-            $this->createOrUpdateHandler($num, $nextId);
+            $this->createOrUpdateHandler($num, $nextId, 245);
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -306,7 +314,7 @@ class ApprovalFlowController extends Controller
 
         $instance = $this->getInstance($num);
 
-        $nextId = $this->getChainNext($instance, 0);
+        list($nextId, $type) = $this->getChainNext($instance, 0);
 
         $currentStatus = Execute::where('form_instance_number', $num)->first();
         if ($currentStatus->flow_type_id != 231 || $currentStatus->current_handler_id != $nextId) {
@@ -321,7 +329,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 234);
+            $this->createOrUpdateHandler($num, $userId, 245,234);
 
             $project = Project::where('project_number', $num)->first();
             if ($project)
@@ -355,7 +363,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 243, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 235);
+            $this->createOrUpdateHandler($num, $userId, 245, 235);
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -382,7 +390,7 @@ class ApprovalFlowController extends Controller
     /**
      * @param $instance
      * @param $preId
-     * @return int $nextId
+     * @return array [int $nextId, int $type]
      * @throws Exception
      */
     private function getChainNext($instance, $preId)
@@ -419,25 +427,22 @@ class ApprovalFlowController extends Controller
         if ($chain->next_id === 0)
             return 0;
 
-        if ($chain->approver_type == 246) {
-            $user = Auth::guard('api')->user();
-            $department = $user->department()->first();
-            $departmentHead = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
 
-            $nextId = $departmentHead->user_id;
-        } else {
-            $nextId = $chain->next->id;
-        }
+        $next = $chain->next;
 
-        return $nextId;
+        $type = $chain->approver_type;
+        if (is_null($type))
+            $type = 245;
+
+        return [$next->id, $type];
     }
 
     private function getTransferNextChain($instance, $dateTime)
     {
         $lastRecord = Change::where('form_instance_number', $instance->form_instance_number)->where('change_at', '<', $dateTime)->orderBy('change_at', 'desc')->first();
-        $nextId = $this->getChainNext($instance, $lastRecord->change_id);
+        $arr = $this->getChainNext($instance, $lastRecord->change_id);
 
-        return $nextId;
+        return $arr;
     }
 
     /**
@@ -456,21 +461,21 @@ class ApprovalFlowController extends Controller
 
     }
 
-    private function createOrUpdateHandler($num, $userId, $status = 231)
+    private function createOrUpdateHandler($num, $nextId, $type, $status = 231)
     {
         try {
             $execute = Execute::where('form_instance_number', $num)->first();
             if ($execute)
                 $execute->update([
-                    'current_handler_id' => $userId,
-                    'current_handler_type' => 245,
+                    'current_handler_id' => $nextId,
+                    'current_handler_type' => $type,
                     'flow_type_id' => $status,
                 ]);
             else
                 Execute::create([
                     'form_instance_number' => $num,
-                    'current_handler_id' => $userId,
-                    'current_handler_type' => 245,
+                    'current_handler_id' => $nextId,
+                    'current_handler_type' => $type,
                     'flow_type_id' => $status,
                 ]);
 
@@ -508,8 +513,13 @@ class ApprovalFlowController extends Controller
         if ($now->flow_type_id != 231)
             throw new ApprovalVerifyException('流程不正确');
 
-        if ($now->current_handler_id != $userId)
-            throw new ApprovalVerifyException('当前用户没权限进行该操作');
+        $now->cuttent_handler_type;
+        if ($now->current_handler_id != $userId) {
+            $user = User::find($userId);
+            $role = $user->roles()->where('role_id', $now->current_handler_id)->first();
+            if (is_null($role))
+                throw new ApprovalVerifyException('当前用户没权限进行该操作');
+        }
     }
 
     private function getValuesForCondition($formControlIds, $num, $value = null)
@@ -541,5 +551,17 @@ class ApprovalFlowController extends Controller
             }
         }
         return $result;
+    }
+
+    private function departmentHeaderToUser($num)
+    {
+        $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
+        $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
+        $headerId = DepartmentUser::where('department_id', $departmentId)->where('type', 1)->value('user_id');
+
+        if ($headerId)
+            return User::find($headerId);
+        else
+            return null;
     }
 }

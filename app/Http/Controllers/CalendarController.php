@@ -31,21 +31,14 @@ class CalendarController extends Controller
     {
         // todo 按权限筛选
         $user = Auth::guard("api")->user();
-        $subquery = DB::table("calendars as c")->leftJoin('module_users as mu',function ($join){
-            $join->on('mu.moduleable_id','c.id')
-                ->where('mu.moduleable_type',ModuleableType::CALENDAR);
-        })->select('mu.user_id')->where(DB::raw("c.id=calendars.id"));
-
-            $calendars = Calendar::where(function ($query)use($user,$subquery) {
-                $query->where('privacy',Calendar::OPEN);
-                $query->orWhere('creator_id',$user->id);
-                $query->orWhere(function ($query)use ($user,$subquery){
-                    $query->where('privacy',Calendar::SECRET)->where(DB::raw("{$user->id} in ({$subquery->toSql()})"));
-            });
-            })->mergeBindings($subquery)
-                ->get();
-
-
+        $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.*','mu.user_id')->leftJoin('module_users as mu',function ($join){
+            $join->on('moduleable_id','calendars.id')
+                ->where('moduleable_type',ModuleableType::CALENDAR);
+        })->where(function ($query)use ($user){
+            $query->where('calendars.creator_id',$user->id);//创建人
+            $query->orWhere([['mu.user_id',$user->id],['calendars.privacy',Calendar::SECRET]]);//参与人
+            $query->orwhere('calendars.privacy',Calendar::OPEN);
+        })->get();
         return $this->response->collection($calendars, new CalendarTransformer());
     }
 
@@ -166,7 +159,7 @@ class CalendarController extends Controller
     {
         $user = Auth::guard('api')->user();
         if($calendar->creator_id != $user->id){
-            return $this->response->errorInternal("你妹有没有该日历的权限");
+            return $this->response->errorInternal("你没有该日历的权限");
         }
         $calendar->forceDelete();
         return $this->response->noContent();

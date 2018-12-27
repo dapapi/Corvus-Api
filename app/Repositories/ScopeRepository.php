@@ -63,7 +63,6 @@ class ScopeRepository
         $dataDictionarieId = max(array_column($viewSql,'data_view_id'));//获取用户对要访问的模块最大的权限
 
         $dataViewSql = RoleDataView::where('resource_id',$resourceId)->where('data_view_id',$dataDictionarieId)->get()->toArray();
-
         //查询本人相关 19
         $arrayUserid = null;
         if($dataDictionarieId == 19){

@@ -43,7 +43,10 @@ class SearchDataScope implements Scope
      */
     public function getCondition($query,$rules,$userid)
     {
-        if(count($rules) == 0){
+        if($rules == null){
+            return $query->where(DB::raw('0 = 1')); //不查询任何数据
+        }
+        if($rules != null && count($rules) == 0){
             return $query;
         }
 //        $op_list = ['>','>=','<','<=','like','in'];

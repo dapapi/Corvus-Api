@@ -33,7 +33,7 @@ class CalendarController extends Controller
         $user = Auth::guard("api")->user();
         $subquery = DB::table("calendars as c")->leftJoin('module_users as mu',function ($join){
             $join->on('mu.moduleable_id','c.id')
-                ->where('mu.moduleable_type',ModuleableType::CALENDAR);
+                ->where(DB::raw("mu.moduleable_type='".ModuleableType::CALENDAR."'"));
         })->select('mu.user_id')->where(DB::raw("c.id=calendars.id"));
 
             $calendars = Calendar::where(function ($query)use($user,$subquery) {
@@ -44,8 +44,6 @@ class CalendarController extends Controller
             });
             })->mergeBindings($subquery)
                 ->get();
-
-
         return $this->response->collection($calendars, new CalendarTransformer());
     }
 

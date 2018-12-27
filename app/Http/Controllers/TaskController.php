@@ -114,9 +114,9 @@ class TaskController extends Controller
                 break;
         }
 
-        $tasks->Where(function ($query) use ($user) {
-            $query->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
-        });
+//        $tasks->Where(function ($query) use ($user) {
+//            $query->where('creator_id', $user->id)->orWhere('principal_id', $user->id);
+//        });
 
         $query = DB::table('tasks')->select('tasks.*')->join('module_users', function ($join) use ($user) {
             $join->on('module_users.moduleable_id', '=', 'tasks.id')

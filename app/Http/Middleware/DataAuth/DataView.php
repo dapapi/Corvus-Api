@@ -47,8 +47,8 @@ class DataView
                 $roleIdList = array_column($roleIdList,'role_id');
                 //用户和角色是多对多的关系，所以可能一个用户对同一个模块有多重权限
                 $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$roleIdList)->where('resource_id',$resourceId)->get()->toArray();
-                if(count($viewSql) == 0){//没有对应模块的权限
-                    throw new NoRoleException("你没有该模块的权限");
+                if(count($viewSql) == 0){//没有对应模块的权限记录，则不进行权限控制
+                    return $next($request);
                 }
                 $preg = "/{.*}/";
                 $uri = $request->route()->uri;

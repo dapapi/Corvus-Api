@@ -166,7 +166,7 @@ class CalendarController extends Controller
     {
         $user = Auth::guard('api')->user();
         if($calendar->creator_id != $user->id){
-            return $this->response->errorInternal("你妹有没有该日历的权限");
+            return $this->response->errorInternal("你没有该日历的权限");
         }
         $calendar->forceDelete();
         return $this->response->noContent();

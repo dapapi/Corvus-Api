@@ -116,7 +116,7 @@ class ScheduleController extends Controller
         if(!$calendar)
             $this->response->errorInternal("日历不存在");
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->id && !in_array($user->id,$participants))
+        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
             $this->response->errorInternal("你没有权限添加日程");
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
@@ -182,7 +182,7 @@ class ScheduleController extends Controller
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
             $participants = array_column($calendar->participants()->get()->toArray(),'id');
-            if($user->id != $calendar->id && !in_array($user->id,$participants))
+            if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
                 $this->response->errorInternal("你没有权限添加日程");
         }
 
@@ -225,7 +225,7 @@ class ScheduleController extends Controller
         $calendar = $calendar = Calendar::find($schedule->calendar_id);
         $user = Auth::guard("api")->user();
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->id && !in_array($user->id,$participants))
+        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
             $this->response->errorInternal("你没有权限删除日程");
         $schedule->delete();
         return $this->response->noContent();
@@ -236,7 +236,7 @@ class ScheduleController extends Controller
         $calendar = $calendar = Calendar::find($schedule->calendar_id);
         $user = Auth::guard("api")->user();
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->id && !in_array($user->id,$participants))
+        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
             $this->response->errorInternal("你没有权限恢复日程");
         $schedule->restore();
         return $this->response->item($schedule, new ScheduleTransformer());

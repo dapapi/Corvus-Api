@@ -1000,10 +1000,10 @@ class TaskController extends Controller
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 
-            if(count($arrUserId) > 0){
-                $query->whereIn('creator_id',$arrUserId)
-                      ->WhereIn('principal_id',$arrUserId);
-            }
+//            if(count($arrUserId) > 0){
+//                $query->whereIn('creator_id',$arrUserId)
+//                      ->WhereIn('principal_id',$arrUserId);
+//            }
         })->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($tasks, new TaskTransformer());
     }

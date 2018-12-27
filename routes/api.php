@@ -43,6 +43,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
+        $api->get('/tasks/mylist', 'App\Http\Controllers\TaskController@myList');
+
         $api->get('/tasks/my_all', 'App\Http\Controllers\TaskController@myAll');
         $api->get('/tasks/recycle_bin', 'App\Http\Controllers\TaskController@recycleBin');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
@@ -558,6 +560,18 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
         $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
         $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
+
+        /*合同列表*/
+        //我申请列表
+        $api->get('/approvals_contract/my','App\Http\Controllers\ApprovalContractController@myApply');
+        //我审批的 待审批
+        $api->get('/approvals_contract/approval','App\Http\Controllers\ApprovalContractController@myApproval');
+        //我审批的 已审批
+        $api->get('/approvals_contract/thenapproval','App\Http\Controllers\ApprovalContractController@myThenApproval');
+        //知会我的
+        $api->get('/approvals_contract/notify','App\Http\Controllers\ApprovalContractController@notify');
+
+
         // 获取审批实例
         $api->get('/approvals/{approval}/approval_instances/{instance}', 'App\Http\Controllers\ApprovalFormController@getInstance');
         // 合同和普通审批新建

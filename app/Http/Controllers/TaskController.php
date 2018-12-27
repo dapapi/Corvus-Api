@@ -155,6 +155,59 @@ class TaskController extends Controller
         return $this->response->paginator($result, new TaskTransformer());
     }
 
+    public function myList(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', 0);
+        $type = $request->get('type', 1);
+
+        $query = Task::select('tasks.*');
+
+        switch ($type) {
+            case 2://我参与
+                $query = $user->participantTasks();
+                break;
+            case 3://我负责
+                $query->where('principal_id', $user->id);
+                break;
+            case 4://我分配
+                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                break;
+            case 1://我创建
+            default:
+                $query->where('creator_id', $user->id);
+                break;
+        }
+        switch ($status) {
+            case 1://进行中
+                $query->where('status', TaskStatus::NORMAL);
+                break;
+            case 2://完成
+                $query->where('status', TaskStatus::COMPLETE);
+                break;
+            case 3://终止
+                $query->where('status', TaskStatus::TERMINATION);
+                break;
+            default:
+                break;
+        }
+
+        if ($request->has('keyword'))
+            $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+        if ($request->has('type_id'))
+            $query->where('type_id',hashid_decode($payload['type_id']));
+
+
+        // $tasks = $query->createDesc()->paginate($pageSize);
+
+        $tasks = $query->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);;
+
+        return $this->response->paginator($tasks, new TaskTransformer());
+    }
+
+
     public function recycleBin(Request $request)
     {
         $payload = $request->all();

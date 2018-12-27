@@ -105,6 +105,7 @@ class DataManage
     {
         //获取角色管理数据范围
         $manageSql = RoleDataManage::whereIn('role_id',$this->role_list)->where('resource_id',$this->module_id)->get()->toArray();
+        dd($manageSql);
         if(count($manageSql) == 0){//如果权限管理表中没有记录不进行权限控制
             return false;
         }

@@ -39,8 +39,6 @@ class ApprovalFlowController extends Controller
 
         $changeType = $request->get('change_type', null);
         $value = $request->get('value', null);
-        if ($value)
-            $value = implode(',', $value);
 
         $conditionId = null;
 

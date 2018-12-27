@@ -983,17 +983,20 @@ class TaskController extends Controller
 
     public function filter(FilterTaskRequest $request)
     {
-        $payload = $request->all();
 
+
+        $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $tasks = Task::where(function($query) use ($request, $payload) {
+
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
-                $query->where('type_id', hashid_decode($payload['type_id']));
+                $query->where('type_id',hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
+
         })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($tasks, new TaskTransformer());

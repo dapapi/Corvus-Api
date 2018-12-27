@@ -629,7 +629,7 @@ class ProjectController extends Controller
     {
         $projects = ProjectStatusLogs::where('logable_id',$project->id)->CreateDesc()->get();
 
-        return $this->response->item($projects, new ProjectCourseTransformer());
+        return $this->response->collection($projects, new ProjectCourseTransformer());
     }
     public function changeStatus(Request $request, Project $project)
     {

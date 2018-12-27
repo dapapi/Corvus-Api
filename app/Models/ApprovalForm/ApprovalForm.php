@@ -53,11 +53,11 @@ class ApprovalForm extends Model
         if (is_null($controlIds))
             return null;
 
-        $controlArr = explode('|', $controlIds);
+        $controlArr = explode(',', $controlIds);
         foreach ($controlArr as &$control) {
             $control = hashid_encode($control);
         }
         unset($control);
-        return implode('|', $controlArr);
+        return $controlArr;
     }
 }

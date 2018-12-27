@@ -17,11 +17,13 @@ class Generator
             $no = $this->init_number;
             ContractNo::insert(['key'=>$key,'year'=>$year,'no'=>$no]);
         }else{
+            var_dump( $constract_no->no);
             $no = intval($constract_no->no)+1;
             if($no < $this->boundary){
                 $no = substr($no+$this->boundary,1,4);
             }
             $constract_no->no = $no;
+            $constract_no->save();
         }
         return $key."-".date('Ymd')."-".$no;
     }

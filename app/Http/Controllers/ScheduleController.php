@@ -45,6 +45,12 @@ class ScheduleController extends Controller
             }
             unset($id);
         }
+        if ($request->has('calendar_ids')) {
+            foreach ($payload['calendar_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+        }
         //查当前登录用户在日程参与人但不在日历参与人的日程列表
         $sql = "SELECT cc.id,cc.participant_ids,ss.id as schedule_id,ss.participant_ids as schedule_participant_ids  from
                 (
@@ -52,19 +58,22 @@ class ScheduleController extends Controller
                   LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar'  GROUP BY c.id
                 ) as cc
 	            LEFT JOIN (
-		          SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s 
+		          SELECT s.id,s.calendar_id,s.start_at,s.end_at,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s 
 		          left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
 		        ) as ss on ss.calendar_id = cc.id
 		         where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) 
 		         and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
+        $where = " and ss.start_at > '".$payload['start_date']."' and ss.end_at < '".$payload['end_date']."'";
+        if ($request->has('material_ids'))
+            $where .= " and ss.material_id in (".implode($payload['material_ids'],",").")";
+
+//        if ($request->has('calendar_ids'))  不应该限制日历
+//            $where .= " and ss.calendar_id in (".implode($payload['calendar_ids'],",").")";
+        $sql .= $where;
+        dd($sql);
         $schedules_list1 = array_column(DB::select($sql),'schedule_id');
 
-        if ($request->has('calendar_ids')) {
-            foreach ($payload['calendar_ids'] as &$id) {
-                $id = hashid_decode($id);
-            }
-            unset($id);
-        }
+
 
         $payload['start_date'] = $payload['start_date'].' 00:00:00';
         $payload['end_date'] = $payload['end_date'] . ' 23:59:59';

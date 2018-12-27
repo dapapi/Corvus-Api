@@ -39,6 +39,8 @@ class ApprovalFlowController extends Controller
 
         $changeType = $request->get('change_type', null);
         $value = $request->get('value', null);
+        if ($value)
+            $value = implode(',', $value);
 
         $conditionId = null;
 
@@ -524,7 +526,7 @@ class ApprovalFlowController extends Controller
 
     private function getValuesForCondition($formControlIds, $num, $value = null)
     {
-        $formControlIdArr = explode('|', $formControlIds);
+        $formControlIdArr = explode(',', $formControlIds);
         if (count($formControlIdArr) == 1) {
             $control = Control::where('form_control_id', $formControlIdArr[0])->first();
             $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $control->form_control_id)->value('form_control_value');
@@ -536,7 +538,7 @@ class ApprovalFlowController extends Controller
         foreach ($formControlIdArr as $control) {
             $resultArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $control)->value('form_control_value');
         }
-        return implode('|', $resultArr);
+        return implode(',', $resultArr);
     }
 
     private function numberForCondition($formId, $value)

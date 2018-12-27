@@ -33,7 +33,7 @@ class GetChainsRequest extends FormRequest
                     224,
                 ])
             ],
-            'value' => 'required_if:change_type,224'
+            'value' => 'required_if:change_type,224|array'
         ];
     }
 }

@@ -352,10 +352,9 @@ class ApprovalFormController extends Controller
         return $this->response->item($approval, new ApprovalFormTransformer());
     }
 
-    public function getInstance(Request $request, ApprovalForm $approval, $instance)
+    public function getInstance(Request $request, $instance)
     {
-        $num = $instance->form_instance_number;
-        return $this->response->item($approval, new ApprovalFormTransformer($num));
+        return $this->response->item($instance, new ApprovalFormTransformer());
     }
     // 获取group里的form_ids
     public function getForms(GetFormIdsRequest $request)
@@ -514,8 +513,8 @@ class ApprovalFormController extends Controller
             $id = hashid_decode($id);
         }
         unset($id);
-        $names = implode('|', $value['name']);
-        $ids = implode('|', $value['id']);
+        $names = implode(',', $value['name']);
+        $ids = implode(',', $value['id']);
         return [$names, $ids];
     }
 

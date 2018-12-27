@@ -50,7 +50,7 @@ class DataView
                 if(count($viewSql) == 0){//没有对应模块的权限记录，则不进行权限控制
                     return $next($request);
                 }
-                $preg = "/{.*}/";
+                $preg = "/{[a-z]+}/";
                 $uri = $request->route()->uri;
                 if(preg_match($preg,$uri,$model)){
                     $model = $model[0];

@@ -36,10 +36,9 @@ class DataManage
                 if($res != null){
                     $this->checkHasRole();//检查用户角色
                     if($this->checkRolePower()) {//检查角色权限,角色有该模块的权限才进行前线控制
-                        $preg = "/{.*}/";
+                        $preg = "/{[a-z]+}/";
                         $uri = $request->route()->uri;
                         if(preg_match($preg,$uri,$model)){//放过了没有携带model的访问，例如新增
-//                            dd($model);
                             $model = $model[0];
                             $model = trim($model,"{");
                             $model = trim($model,"}");

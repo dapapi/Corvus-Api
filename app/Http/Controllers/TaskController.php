@@ -866,12 +866,6 @@ class TaskController extends Controller
         }
 
         if ($pTask->id) {
-            //获取项目的参与者
-            $res = $pTask->participants()->get();
-            $power = (new ScopeRepository())->checkMangePower($pTask->creator_id,$pTask->principal_id,array_column($res->toArray(),'id'));
-            if(!$power){
-                return $this->response->errorInternal("你没有给该任务增加子任务的权限");
-            }
             if ($pTask->task_pid)
                 return $this->response->errorBadRequest('子任务不支持多级子任务');
             $payload['task_pid'] = $pTask->id;

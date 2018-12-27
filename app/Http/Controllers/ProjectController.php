@@ -615,7 +615,7 @@ class ProjectController extends Controller
                    return $this->response->errorForbidden('该状态已存在');
                }
 
-            ProjectStatusLogs::create($array);
+            $projects = ProjectStatusLogs::create($array);
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -623,12 +623,13 @@ class ProjectController extends Controller
             return $this->response->errorInternal('失败');
         }
         DB::commit();
-
+        return $this->response->item($projects, new ProjectCourseTransformer());
     }
     public function allCourse(Request $request, Project $project)
     {
         $projects = ProjectStatusLogs::where('logable_id',$project->id)->CreateDesc()->get();
-        return $this->response->collection($projects, new ProjectCourseTransformer());
+
+        return $this->response->item($projects, new ProjectCourseTransformer());
     }
     public function changeStatus(Request $request, Project $project)
     {

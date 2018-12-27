@@ -194,4 +194,23 @@ class ScopeRepository
 
     }
 
+    /**
+     * 判断用户对某接口是否有权限
+     * @param $api
+     * @param $method
+     * @param $role_id 角色数组
+     * @param $user_id
+     */
+    public function checkPower($api,$method,$role_ids,$user_id)
+    {
+        //1.获取接口在数据字典中的id
+        $resource= DataDictionarie::where('val', '/'.$api)->where('code', $method)->first();
+        $resource_id = $resource->id;
+        //2.检查功能权限
+        $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource_id)->get()->toArray();
+        if(empty($featureInfo)){//如果为空则表示没有权限
+            return false;
+        }
+    }
+
 }

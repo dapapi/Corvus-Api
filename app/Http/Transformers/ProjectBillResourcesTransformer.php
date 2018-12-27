@@ -16,7 +16,7 @@ class ProjectBillResourcesTransformer extends TransformerAbstract
 
             $array = [
 
-                'project_bill_id' => hashid_encode($projectBillsResource->project_bill_id),
+                'id' => hashid_encode($projectBillsResource->id),
                 'expenses' => $projectBillsResource->expenses,
                 'papi_divide' => $projectBillsResource->papi_divide,
                 'bigger_divide' => $projectBillsResource->bigger_divide,

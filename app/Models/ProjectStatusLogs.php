@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 
@@ -23,5 +23,8 @@ class ProjectStatusLogs extends Model
         return $query->orderBy('created_at');
 
     }
-
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 }

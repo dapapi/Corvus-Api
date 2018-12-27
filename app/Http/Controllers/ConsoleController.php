@@ -454,4 +454,5 @@ class ConsoleController extends Controller
             return $this->response->errorInternal('数据提交错误');
         }
     }
+
 }

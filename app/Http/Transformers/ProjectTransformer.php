@@ -107,7 +107,7 @@ class ProjectTransformer extends TransformerAbstract
             if($projects == null){
 
             }else{
-                    return $this->item($projects, new ProjectCourseTransformer());
+                    return $this->collection($projects, new ProjectCourseTransformer());
                 }
 
 

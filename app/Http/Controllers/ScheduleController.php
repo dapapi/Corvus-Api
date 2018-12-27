@@ -70,7 +70,6 @@ class ScheduleController extends Controller
 //        if ($request->has('calendar_ids'))  不应该限制日历
 //            $where .= " and ss.calendar_id in (".implode($payload['calendar_ids'],",").")";
         $sql .= $where;
-        dd($sql);
         $schedules_list1 = array_column(DB::select($sql),'schedule_id');
 
 

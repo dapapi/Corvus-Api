@@ -31,7 +31,7 @@ class CalendarController extends Controller
     {
         // todo 按权限筛选
         $user = Auth::guard("api")->user();
-        $calendars  = Calendar::select('calendars.*','mu.user_id')->leftJoin('module_users as mu',function ($join){
+        $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.*','mu.user_id')->leftJoin('module_users as mu',function ($join){
             $join->on('moduleable_id','calendars.id')
                 ->where('moduleable_type',ModuleableType::CALENDAR);
         })->where(function ($query)use ($user){

@@ -42,6 +42,6 @@ class ApprovalFormTransformer extends TransformerAbstract
     public function includeApprovalFormControls(ApprovalForm $form)
     {
         $controls = $form->controls()->orderBy('sort_number')->get();
-        return $this->collection($controls, new FormControlTransformer());
+        return $this->collection($controls, new FormControlTransformer($this->num));
     }
 }

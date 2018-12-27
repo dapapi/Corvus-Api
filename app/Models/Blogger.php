@@ -55,12 +55,12 @@ class Blogger extends Model
         $user = Auth::guard("api")->user();
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers();
-        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhere(DB::raw("{$userid} in (
+        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from bloggers as b 
             left join module_users as mu on mu.moduleable_id = b.id and 
             mu.moduleable_type='".ModuleableType::BLOGGER.
             "' left join users as u on u.id = mu.user_id where b.id = bloggers.id
-        )"));
+        )");
     }
     public function scopeCreateDesc($query)
     {

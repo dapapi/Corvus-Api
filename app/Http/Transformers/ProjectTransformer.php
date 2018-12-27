@@ -102,7 +102,13 @@ class ProjectTransformer extends TransformerAbstract
     }
     public function includeRelateProjectCourses(Project $project)
     {
-        $projects = $project->relateProjectCourse->get();
-        return $this->collection($projects, new ProjectCourseTransformer());
+        $projects = $project->relateProjectCourse;
+            if($projects == null){
+
+            }else{
+                    return $this->item($projects, new ProjectCourseTransformer());
+                }
+
+
     }
 }

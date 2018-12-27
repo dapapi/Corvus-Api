@@ -5,11 +5,13 @@ namespace App\Http\Transformers;
 use App\Models\ProjectStatusLogs;
 
 use League\Fractal\TransformerAbstract;
-use phpDocumentor\Reflection\Types\Boolean;
+
 
 class ProjectCourseTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = [];
+
+
+
 
 
     public function transform(ProjectStatusLogs $projectStatusLogs)

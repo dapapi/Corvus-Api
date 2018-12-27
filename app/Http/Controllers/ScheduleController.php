@@ -51,26 +51,30 @@ class ScheduleController extends Controller
             }
             unset($id);
         }
-        //查当前登录用户在日程参与人但不在日历参与人的日程列表
-        $sql = "SELECT cc.id,cc.participant_ids,ss.id as schedule_id,ss.participant_ids as schedule_participant_ids  from
+        $schedules_list1 = [];
+        if($request->has('material_ids')){
+            //查当前登录用户在日程参与人但不在日历参与人的日程列表
+            $sql = "SELECT cc.id,cc.participant_ids,ss.id as schedule_id,ss.participant_ids as schedule_participant_ids  from
                 (
                   SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids,c.deleted_at from calendars as c 
                   LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar'  GROUP BY c.id
                 ) as cc
 	            LEFT JOIN (
-		          SELECT s.id,s.calendar_id,s.start_at,s.end_at,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s 
+		          SELECT s.id,s.calendar_id,s.start_at,s.end_at,material_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s 
 		          left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
 		        ) as ss on ss.calendar_id = cc.id
 		         where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) 
 		         and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
-        $where = " and ss.start_at > '".$payload['start_date']."' and ss.end_at < '".$payload['end_date']."'";
-        if ($request->has('material_ids'))
-            $where .= " and ss.material_id in (".implode($payload['material_ids'],",").")";
+            $where = " and ss.start_at > '".$payload['start_date']."' and ss.end_at < '".$payload['end_date']."'";
+            if ($request->has('material_ids'))
+                $where .= " and ss.material_id in (".implode($payload['material_ids'],",").")";
 
 //        if ($request->has('calendar_ids'))  不应该限制日历
 //            $where .= " and ss.calendar_id in (".implode($payload['calendar_ids'],",").")";
-        $sql .= $where;
-        $schedules_list1 = array_column(DB::select($sql),'schedule_id');
+            $sql .= $where;
+            $schedules_list1 = array_column(DB::select($sql),'schedule_id');
+        }
+
 
 
 
@@ -135,9 +139,101 @@ class ScheduleController extends Controller
             $payload['material_id'] = hashid_decode($payload['material_id']);
 
         $module = Module::where('code', 'schedules')->first();
+
+        $end   = date("Y",time())."-12-31";
+        if ($payload['is_allday'] == 1) {
+            // 开始时间   Ymd 格式
+            $stime = date('Y-m-d',strtotime($payload['start_at']));
+            $etime = date('Y-m-d',strtotime($payload['end_at']));
+            $ntime = date('Y-m-d',strtotime(now()));
+
+        } else {
+
+            $sstime = date('Y-m-d H:i:s',strtotime($payload['start_at']));
+
+            $eetime = date('Y-m-d H:i:s',strtotime($payload['end_at']));
+
+            $ntime = date('Y-m-d H:i:s',strtotime(now()));
+        }
+
         DB::beginTransaction();
         try {
-            $schedule = Schedule::create($payload);
+
+             if($payload['is_allday'] == 1){
+                 if($payload['repeat'] == 1){
+                     $timestamp = strtotime($end)-strtotime($etime);
+                     $onedaytimestamp = 60*60*24;
+                     $sumtimestamp = $timestamp/$onedaytimestamp;
+                     for ($i=0;$i<$sumtimestamp+1;$i++){
+                         $start_time = date('Y-m-d',strtotime($stime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($etime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+                 }else if($payload['repeat'] == 2){
+                     $timestamp = strtotime($end)-strtotime($etime);
+                     $onedaytimestamp = 60*60*24*7;
+                     $sumtimestamp = $timestamp/$onedaytimestamp;
+                     for ($i=0;$i<$sumtimestamp+1;$i++){
+                         $start_time = date('Y-m-d',strtotime($stime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($etime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }else if($payload['repeat'] == 3){
+                     $timestamp = strtotime($end)-strtotime($etime);
+                     $onedaytimestamp = 60*60*24*7*31;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp;$i++){
+                         $start_time = date('Y-m-d',strtotime($stime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($etime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }
+             }else{
+                 if($payload['repeat'] == 1){
+                     $timestamp = strtotime($end)-strtotime($eetime);
+                     $onedaytimestamp = 60*60*24;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp+1;$i++){
+                         $start_time = date('Y-m-d H:i:s',strtotime($sstime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d H:i:s',strtotime($eetime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+                 }else if($payload['repeat'] == 2){
+                     $timestamp = strtotime($end)-strtotime($eetime);
+                     $onedaytimestamp = 60*60*24*7;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp-1;$i++){
+                         $start_time = date('Y-m-d',strtotime($sstime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($eetime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }else if($payload['repeat'] == 3){
+                     $timestamp = strtotime($end)-strtotime($eetime);
+                     $onedaytimestamp = 60*60*24*7*31;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp;$i++){
+                         $start_time = date('Y-m-d',strtotime($sstime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($eetime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }
+             }
             if ($request->has('participant_ids') && is_array($payload['participant_ids']))
 
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $schedule, ModuleUserType::PARTICIPANT);
@@ -230,9 +326,24 @@ class ScheduleController extends Controller
 
     public function detail(Request $request, Schedule $schedule)
     {
-
+        $users = [];//记录可以查看日程的用户id
+        //日程的创建者，
+        $users[] = $schedule->creator_id;
+        //参与者可以删除
+        $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
+        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
+        if($schedule->privacy == Schedule::OPEN){
+            $calendar = Calendar::find($schedule->calendar_id);
+            if($calendar != null){
+                $users[] = $calendar->creator_id;
+                $users = array_merge($users,array_column($calendar->participants()->get()->toArray(),'id'));
+            }
+        }
         $user = Auth::guard("api")->user();
-
+        if(!in_array($user->id,$users)) {
+            $schedule = $schedule->select('id', 'start_at', 'end_at', 'material_id', 'creator_id')->first();
+            return $this->response->item($schedule, new ScheduleTransformer());
+        }
         return $this->response->item($schedule, new ScheduleTransformer());
     }
 

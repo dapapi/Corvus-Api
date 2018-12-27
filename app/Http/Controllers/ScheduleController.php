@@ -135,9 +135,101 @@ class ScheduleController extends Controller
             $payload['material_id'] = hashid_decode($payload['material_id']);
 
         $module = Module::where('code', 'schedules')->first();
+
+        $end   = date("Y",time())."-12-31";
+        if ($payload['is_allday'] == 1) {
+            // 开始时间   Ymd 格式
+            $stime = date('Y-m-d',strtotime($payload['start_at']));
+            $etime = date('Y-m-d',strtotime($payload['end_at']));
+            $ntime = date('Y-m-d',strtotime(now()));
+
+        } else {
+
+            $sstime = date('Y-m-d H:i:s',strtotime($payload['start_at']));
+
+            $eetime = date('Y-m-d H:i:s',strtotime($payload['end_at']));
+
+            $ntime = date('Y-m-d H:i:s',strtotime(now()));
+        }
+
         DB::beginTransaction();
         try {
-            $schedule = Schedule::create($payload);
+
+             if($payload['is_allday'] == 1){
+                 if($payload['repeat'] == 1){
+                     $timestamp = strtotime($end)-strtotime($etime);
+                     $onedaytimestamp = 60*60*24;
+                     $sumtimestamp = $timestamp/$onedaytimestamp;
+                     for ($i=0;$i<$sumtimestamp+1;$i++){
+                         $start_time = date('Y-m-d',strtotime($stime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($etime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+                 }else if($payload['repeat'] == 2){
+                     $timestamp = strtotime($end)-strtotime($etime);
+                     $onedaytimestamp = 60*60*24*7;
+                     $sumtimestamp = $timestamp/$onedaytimestamp;
+                     for ($i=0;$i<$sumtimestamp+1;$i++){
+                         $start_time = date('Y-m-d',strtotime($stime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($etime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }else if($payload['repeat'] == 3){
+                     $timestamp = strtotime($end)-strtotime($etime);
+                     $onedaytimestamp = 60*60*24*7*31;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp;$i++){
+                         $start_time = date('Y-m-d',strtotime($stime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($etime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }
+             }else{
+                 if($payload['repeat'] == 1){
+                     $timestamp = strtotime($end)-strtotime($eetime);
+                     $onedaytimestamp = 60*60*24;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp+1;$i++){
+                         $start_time = date('Y-m-d H:i:s',strtotime($sstime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d H:i:s',strtotime($eetime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+                 }else if($payload['repeat'] == 2){
+                     $timestamp = strtotime($end)-strtotime($eetime);
+                     $onedaytimestamp = 60*60*24*7;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp-1;$i++){
+                         $start_time = date('Y-m-d',strtotime($sstime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($eetime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }else if($payload['repeat'] == 3){
+                     $timestamp = strtotime($end)-strtotime($eetime);
+                     $onedaytimestamp = 60*60*24*7*31;
+                     $sumtimestamp = ceil($timestamp/$onedaytimestamp);
+                     for ($i=0;$i<$sumtimestamp;$i++){
+                         $start_time = date('Y-m-d',strtotime($sstime) + $onedaytimestamp * $i);
+                         $end_time = date('Y-m-d',strtotime($eetime) + $onedaytimestamp * $i);
+                         $payload['start_at'] =   $start_time;
+                         $payload['end_at'] =   $end_time;
+                         $schedule = Schedule::create($payload);
+                     }
+
+                 }
+             }
             if ($request->has('participant_ids') && is_array($payload['participant_ids']))
 
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $schedule, ModuleUserType::PARTICIPANT);

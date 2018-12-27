@@ -44,6 +44,7 @@ class ApprovalFormController extends Controller
 
     protected $company;
     protected $type;
+    protected $contract;
 
     public function __construct(Generator $generator = null)
     {
@@ -421,6 +422,7 @@ class ApprovalFormController extends Controller
                     'creator_id' => $user->id,
                     'creator_name' => $user->name,
                 ]);
+                $this->contract = $contract;
 
                 $instance = Business::create([
                     'form_id' => $approval->form_id,
@@ -457,7 +459,7 @@ class ApprovalFormController extends Controller
         return $this->response->created();
     }
 
-    private function instanceValueStore($num, $key, $value, $type = null, $contract = null)
+    private function instanceValueStore($num, $key, $value, $type = null)
     {
         try {
             $key = hashid_decode($key);
@@ -475,16 +477,16 @@ class ApprovalFormController extends Controller
                         $this->type = $this->formatType($value);
 
                     if ($type === 'stars')
-                        $contract->update([
+                        $this->contract->update([
                             'star_type' => $this->starType
                         ]);
 
                     if (in_array($type, ['project_id', 'client_id', 'stars']))
-                        $contract->update([
+                        $this->contract->update([
                             $type => $ids
                         ]);
                     else
-                        $contract->update([
+                        $this->contract->update([
                             $type => $value
                         ]);
                 }
@@ -498,7 +500,12 @@ class ApprovalFormController extends Controller
     private function formatValue($value)
     {
         if (!is_array($value))
-            return [$value];
+            return [$value, ''];
+
+        if (!is_array($value['id'])) {
+            $value['id'] = hashid_decode($value['id']);
+            return [$value['name'], $value['id']];
+        }
 
         foreach ($value['id'] as &$id) {
             $id = hashid_decode($id);

@@ -47,12 +47,16 @@ class ScheduleController extends Controller
         }
         //查当前登录用户在日程参与人但不在日历参与人的日程列表
         $sql = "SELECT cc.id,cc.participant_ids,ss.id as schedule_id,ss.participant_ids as schedule_participant_ids  from
-	(
-	SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids,c.deleted_at from calendars as c LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar'  GROUP BY c.id
-	) as cc
-	LEFT JOIN (
-		SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
-		) as ss on ss.calendar_id = cc.id where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
+                (
+                  SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids,c.deleted_at from calendars as c 
+                  LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar'  GROUP BY c.id
+                ) as cc
+	            LEFT JOIN (
+		          SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s 
+		          left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
+		        ) as ss on ss.calendar_id = cc.id
+		         where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) 
+		         and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
         $schedules_list1 = array_column(DB::select($sql),'schedule_id');
 
         if ($request->has('calendar_ids')) {
@@ -117,7 +121,7 @@ class ScheduleController extends Controller
         if(!$calendar)
             $this->response->errorInternal("日历不存在");
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
+        if($calendar->privacy == Calendar::SECRET && ($user->id != $calendar->creator_id && !in_array($user->id,$participants)))
             $this->response->errorInternal("你没有权限添加日程");
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);

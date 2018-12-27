@@ -337,6 +337,11 @@ class ApprovalFormController extends Controller
         return $this->response->item($approval, new ApprovalFormTransformer());
     }
 
+    public function getInstance(Request $request, ApprovalForm $approval, $instance)
+    {
+        $num = $instance->form_instance_number;
+        return $this->response->item($approval, new ApprovalFormTransformer($num));
+    }
     // 获取group里的form_ids
     public function getForms(GetFormIdsRequest $request)
     {

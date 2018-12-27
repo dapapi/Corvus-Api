@@ -558,6 +558,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
         $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
         $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
+        // 获取审批实例
+        $api->get('/approvals/{approval}/approval_instances/{instance}', 'App\Http\Controllers\ApprovalFormController@getInstance');
         // 合同和普通审批新建
         $api->post('/approvals/{approval}', 'App\Http\Controllers\ApprovalFormController@instanceStore');
         // 审批流

@@ -2,6 +2,7 @@
 
 namespace App\Http\Transformers;
 
+use App\Models\ApprovalForm\Business;
 use App\Models\Project;
 use League\Fractal\TransformerAbstract;
 

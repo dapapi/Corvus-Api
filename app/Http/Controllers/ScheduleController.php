@@ -48,12 +48,13 @@ class ScheduleController extends Controller
         //查当前登录用户在日程参与人但不在日历参与人的日程列表
         $sql = "SELECT cc.id,cc.participant_ids,ss.id as schedule_id,ss.participant_ids as schedule_participant_ids  from
 	(
-	SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids from calendars as c LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar' GROUP BY c.id
+	SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids,c.deleted_at from calendars as c LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar'  GROUP BY c.id
 	) as cc
 	LEFT JOIN (
-		SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids from schedules as s left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule' GROUP BY s.id
-		) as ss on ss.calendar_id = cc.id where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) and FIND_IN_SET({$user->id},ss.participant_ids)";
-        $schedules_list = array_column(DB::select($sql),'schedule_id');
+		SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
+		) as ss on ss.calendar_id = cc.id where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
+        $schedules_list1 = array_column(DB::select($sql),'schedule_id');
+
         if ($request->has('calendar_ids')) {
             foreach ($payload['calendar_ids'] as &$id) {
                 $id = hashid_decode($id);
@@ -63,6 +64,7 @@ class ScheduleController extends Controller
 
         $payload['start_date'] = $payload['start_date'].' 00:00:00';
         $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
+
         $schedules = Schedule::where(function ($query) use ($payload) {
             $query->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
         });
@@ -84,20 +86,20 @@ class ScheduleController extends Controller
         //日程仅参与人可见
         $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
             $join->on('mu.moduleable_id','s.id')
-                ->where('mu.moduleable_type',ModuleableType::SCHEDULE);
+                ->where(DB::raw("mu.moduleable_type='".ModuleableType::SCHEDULE."'"));
         })->select('mu.user_id')->where(DB::raw("s.id=schedules.id"));
 
-        $schedules->where('privacy',Schedule::OPEN)
-            ->orWhere('creator_id',$user->id)
-            ->orWhere(function ($query) use ($user,$subquery){
-//            $query->where('privacy',Schedule::SECRET)
-                $query->where(DB::raw("{$user->id} in ({$subquery->toSql()})"));
-        })->mergeBindings($subquery);
+         $schedules->where(function ($query)use ($user,$subquery){
+             $query->where('privacy',Schedule::OPEN);
+             $query->orWhere('creator_id',$user->id);
+             $query->orWhere('privacy',Schedule::SECRET)->where(DB::raw("$user->id in ({$subquery->toSql()})"));
+         })->mergeBindings($subquery);
 
-        $schedules->orWhereIn('id',$schedules_list);
 
-        $schedules = $schedules->get();
+        $schedules_list2 = array_column($schedules->get()->toarray(),'id');
 
+        $schedules_list = array_unique(array_merge($schedules_list2,$schedules_list2));
+        $schedules = Schedule::whereIn('id',$schedules_list)->get();
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 
@@ -114,7 +116,7 @@ class ScheduleController extends Controller
         if(!$calendar)
             $this->response->errorInternal("日历不存在");
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->id && !in_array($user->id,$participants))
+        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
             $this->response->errorInternal("你没有权限添加日程");
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
@@ -180,7 +182,7 @@ class ScheduleController extends Controller
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
             $participants = array_column($calendar->participants()->get()->toArray(),'id');
-            if($user->id != $calendar->id && !in_array($user->id,$participants))
+            if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
                 $this->response->errorInternal("你没有权限添加日程");
         }
 
@@ -223,7 +225,7 @@ class ScheduleController extends Controller
         $calendar = $calendar = Calendar::find($schedule->calendar_id);
         $user = Auth::guard("api")->user();
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->id && !in_array($user->id,$participants))
+        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
             $this->response->errorInternal("你没有权限删除日程");
         $schedule->delete();
         return $this->response->noContent();
@@ -234,7 +236,7 @@ class ScheduleController extends Controller
         $calendar = $calendar = Calendar::find($schedule->calendar_id);
         $user = Auth::guard("api")->user();
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->id && !in_array($user->id,$participants))
+        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
             $this->response->errorInternal("你没有权限恢复日程");
         $schedule->restore();
         return $this->response->item($schedule, new ScheduleTransformer());

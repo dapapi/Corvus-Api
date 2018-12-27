@@ -221,6 +221,19 @@ class ApprovalFormController extends Controller
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        $executeInfo = DB::table('approval_flow_execute')->get()->toArray();
+        $user = array();
+        foreach($executeInfo as $value){
+            if($value->current_handler_type == 245){
+                $user[] = (int)$value->current_handler_id;
+            }else{
+                $roleInfo = RoleUser::where('user_id',$userId)->where('role_id',$value->current_handler_id)->get()->toArray();
+                foreach ($roleInfo as $rvalue){
+                    $user[] = $rvalue['role_id'];
+                }
+            }
+        }
 
         $pageSize = $request->get('page_size', config('app.page_size'));
         $data = DB::table('approval_flow_execute as afe')//
@@ -239,7 +252,7 @@ class ApprovalFormController extends Controller
                     $query->where('afe.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
                 }
             })
-            ->where('afe.current_handler_id', $user->id)
+            ->whereIn('afe.current_handler_id', $user)
             ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
             ->select('afe.*', 'bu.*', 'users.name', 'ph.title', 'ph.created_at', 'ph.id')
             ->paginate($pageSize)->toArray();
@@ -270,7 +283,6 @@ class ApprovalFormController extends Controller
                 }
             }
         }
-
 
         $pageSize = $request->get('page_size', config('app.page_size'));
 
@@ -352,10 +364,9 @@ class ApprovalFormController extends Controller
         return $this->response->item($approval, new ApprovalFormTransformer());
     }
 
-    public function getInstance(Request $request, ApprovalForm $approval, $instance)
+    public function getInstance(Request $request, $instance)
     {
-        $num = $instance->form_instance_number;
-        return $this->response->item($approval, new ApprovalFormTransformer($num));
+        return $this->response->item($instance, new ApprovalFormTransformer());
     }
     // 获取group里的form_ids
     public function getForms(GetFormIdsRequest $request)
@@ -514,8 +525,8 @@ class ApprovalFormController extends Controller
             $id = hashid_decode($id);
         }
         unset($id);
-        $names = implode('|', $value['name']);
-        $ids = implode('|', $value['id']);
+        $names = implode(',', $value['name']);
+        $ids = implode(',', $value['id']);
         return [$names, $ids];
     }
 

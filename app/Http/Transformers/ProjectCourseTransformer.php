@@ -10,7 +10,7 @@ use League\Fractal\TransformerAbstract;
 class ProjectCourseTransformer extends TransformerAbstract
 {
 
-
+    protected $availableIncludes = ['users'];
 
 
 
@@ -29,6 +29,13 @@ class ProjectCourseTransformer extends TransformerAbstract
 
 
         return $array;
+    }
+    public function includeUsers(ProjectStatusLogs $projectStatusLogs)
+    {
+        $user = $projectStatusLogs->creator;
+        if (!$user)
+            return null;
+        return $this->item($user, new UserTransformer());
     }
 
 }

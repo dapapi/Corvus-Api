@@ -334,10 +334,7 @@ class ApprovalFormController extends Controller
     // 获取一般审批表单
     public function getForm(Request $request, ApprovalForm $approval)
     {
-        $controls = $approval->controls;
-
         return $this->response->item($approval, new ApprovalFormTransformer());
-//        return $this->response->collection($controls, new FormControlTransformer());
     }
 
     // 获取group里的form_ids

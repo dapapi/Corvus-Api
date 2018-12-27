@@ -19,6 +19,7 @@ class ProjectTransformer extends TransformerAbstract
 
     public function transform(Project $project)
     {
+        $business = Business::where('form_instance_number', $project->project_number)->first();
         if ($this->isAll) {
             $array = [
                 'id' => hashid_encode($project->id),
@@ -40,6 +41,11 @@ class ProjectTransformer extends TransformerAbstract
                 'last_updated_at' => $project->last_updated_at,
 
             ];
+            if ($business)
+                $array['approval_status'] = [
+                    'id' => $business->dictionary->id,
+                    'name' => $business->dictionary->name,
+                ];
         } else {
             $array = [
                 'id' => hashid_encode($project->id),

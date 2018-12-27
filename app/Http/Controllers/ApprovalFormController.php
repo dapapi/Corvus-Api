@@ -88,7 +88,7 @@ class ApprovalFormController extends Controller
                     'form_instance_number' => $projectNumber,
                     'current_handler_id' => $executeInfo[0]['next_id'],
                     // todo 角色处理
-                    'current_handler_type' => 245,
+                    'current_handler_type' => $executeInfo[0]['approver_type'],
                     'flow_type_id' => DataDictionarie::FORM_STATE_DSP
                 ];
 

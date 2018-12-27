@@ -103,8 +103,6 @@ class ApprovalContractController extends Controller
                 }
             }
         }
-
-
         $pageSize = $request->get('page_size', config('app.page_size'));
         $data = DB::table('approval_flow_execute as afe')//
 
@@ -124,7 +122,7 @@ class ApprovalContractController extends Controller
             })
             ->whereIn('afe.current_handler_id', $user)
             ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
-            ->select('afe.*', 'bu.*', 'users.name', 'cs.title', 'cs.created_at', 'cs.id')
+            ->select('afe.*', 'bu.*', 'users.name', 'cs.created_at', 'cs.id')
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key => &$value) {

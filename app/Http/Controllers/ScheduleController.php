@@ -53,7 +53,8 @@ class ScheduleController extends Controller
 	LEFT JOIN (
 		SELECT s.id,s.calendar_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
 		) as ss on ss.calendar_id = cc.id where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null) and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
-        $schedules_list = array_column(DB::select($sql),'schedule_id');
+        $schedules_list1 = array_column(DB::select($sql),'schedule_id');
+
         if ($request->has('calendar_ids')) {
             foreach ($payload['calendar_ids'] as &$id) {
                 $id = hashid_decode($id);
@@ -63,6 +64,7 @@ class ScheduleController extends Controller
 
         $payload['start_date'] = $payload['start_date'].' 00:00:00';
         $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
+
         $schedules = Schedule::where(function ($query) use ($payload) {
             $query->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
         });
@@ -94,9 +96,10 @@ class ScheduleController extends Controller
          })->mergeBindings($subquery);
 
 
-        $schedules = $schedules->get();
+        $schedules_list2 = array_column($schedules->get()->toarray(),'id');
 
-
+        $schedules_list = array_unique(array_merge($schedules_list2,$schedules_list2));
+        $schedules = Schedule::whereIn('id',$schedules_list)->get();
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 

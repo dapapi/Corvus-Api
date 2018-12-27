@@ -985,6 +985,7 @@ class TaskController extends Controller
     {
         //获取可查询用户的数据
         $arrUserId = (new ScopeRepository())->getDataViewUsers();
+
         if($arrUserId === null){
             return $this->response->errorInternal("没有查看数据的权限");
         }

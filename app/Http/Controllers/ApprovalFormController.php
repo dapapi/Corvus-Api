@@ -449,6 +449,9 @@ class ApprovalFormController extends Controller
                 $contractNumber = $this->generator->generatorBrokerId($this->formatContractStr($approval->form_id));
                 $contract->update(['contract_number' => $contractNumber]);
             }
+
+            $this->instanceStoreInit($instance->form_id, $num, $user->id);
+
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -554,5 +557,34 @@ class ApprovalFormController extends Controller
     private function getCompanyCode($value)
     {
         return DataDictionary::where('name', $value)->whereIn('parent_id', [136, 177])->value('code');
+    }
+
+    private function instanceStoreInit($formId, $num, $userId)
+    {
+        try {
+
+            $executeInfo = ChainFixed::where('form_id', $formId)->get()->toArray();
+
+            $executeArray = [
+                'form_instance_number' => $num,
+                'current_handler_id' => $executeInfo[0]['next_id'],
+                // todo 角色处理
+                'current_handler_type' => $executeInfo[0]['approver_type'],
+                'flow_type_id' => DataDictionarie::FORM_STATE_DSP
+            ];
+
+            Execute::create($executeArray);
+            $changeArray = [
+                'form_instance_number' => $num,
+                'change_id' => $userId,
+                'change_at' => date("Y-m-d H:i:s", time()),
+                'change_state' => DataDictionarie::FIOW_TYPE_TJSP
+            ];
+            Change::create($changeArray);
+
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+
     }
 }

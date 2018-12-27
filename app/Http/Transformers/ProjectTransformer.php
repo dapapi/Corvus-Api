@@ -23,7 +23,6 @@ class ProjectTransformer extends TransformerAbstract
             $array = [
                 'id' => hashid_encode($project->id),
                 'project_number' => $project->project_number,
-                'approval_status' => Business::where('form_instance_number', $project->project_number)->value('form_status'),
                 'title' => $project->title,
                 'type' => $project->type,
                 'privacy' => $project->privacy,

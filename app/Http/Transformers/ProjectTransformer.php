@@ -42,10 +42,7 @@ class ProjectTransformer extends TransformerAbstract
 
             ];
             if ($business)
-                $array['approval_status'] = [
-                    'id' => $business->dictionary->id,
-                    'name' => $business->dictionary->name,
-                ];
+                $array['approval_status'] = $business->dictionary->id;
         } else {
             $array = [
                 'id' => hashid_encode($project->id),

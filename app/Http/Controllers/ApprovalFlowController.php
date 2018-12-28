@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
@@ -58,9 +59,12 @@ class ApprovalFlowController extends Controller
                 ->where('next_id', '!=', 0)
                 ->orderBy('sort_number')
                 ->get();
+        } catch (ApprovalConditionMissException $exception) {
+            Log::error($exception);
+            return $this->response->errorBadRequest($exception->getMessage());
         } catch (Exception $exception) {
             Log::error($exception);
-            return $this->response->error($exception);
+            return $this->response->errorInternal($exception);
         }
 
         return $this->response->collection($chains, new ChainTransformer());
@@ -231,7 +235,6 @@ class ApprovalFlowController extends Controller
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
-
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -456,7 +459,7 @@ class ApprovalFlowController extends Controller
     {
         $result = Condition::where('form_id', $formId)->where('condition', $value)->value('flow_condition_id');
         if (is_null($result))
-            throw new Exception('未找到对应条件');
+            throw new ApprovalConditionMissException('未找到对应条件');
 
         return $result;
 

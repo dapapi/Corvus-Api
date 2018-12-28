@@ -154,11 +154,10 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
-            DB::connection()->enableQueryLog();
+
             $schedules = Schedule::where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
                 ->whereIn('material_id', $payload['material_ids'])->get();
-            $sql = DB::getQueryLog();
-            dd($sql);
+
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 

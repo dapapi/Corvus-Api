@@ -44,6 +44,16 @@ class WorkController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $operate = new OperateEntity([
+            'obj' => $star,
+            'title' => $work->name,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::ADD_WORK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
       }catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

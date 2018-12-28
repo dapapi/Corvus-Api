@@ -209,7 +209,7 @@ class ApprovalFormController extends Controller
                 $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
             ->where('afe.flow_type_id',231)->where('afe.current_handler_type',247)->where('u.id',221)
-            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title', 'u.name', 'ph.created_at')->get();
+            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title', 'u.name', 'ph.created_at')->get()->toArray();
         //->paginate($pageSize)->toArray();
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//
@@ -220,9 +220,40 @@ class ApprovalFormController extends Controller
                 $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
             ->where('afe.flow_type_id',231)->where('afe.current_handler_type',245)->where('u.id',221)
-            ->select('afe.*', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get();
+            ->select('afe.*', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get()->toArray();
+
+        //部门负责人
+        $dataPrincipal = DB::table('approval_flow_execute as afe')//
+        ->join('approval_form_business as bu', function ($join) {
+            $join->on('afe.form_instance_number', '=','bu.form_instance_number');
+        })
+            ->join('approval_flow_change as recode', function ($join) {
+                $join->on('afe.form_instance_number', '=','recode.form_instance_number')->where('recode.change_state','=',237);
+            })
+            ->join('users as creator', function ($join) {
+                $join->on('recode.change_id', '=','creator.id');
+            })
+            ->join('department_user as du', function ($join) {
+                $join->on('creator.id', '=', 'du.user_id');
+            })
+            ->join('department_principal as dp', function ($join) {
+                $join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type','=',246);
+            })
+            ->join('project_histories as ph', function ($join) {
+                $join->on('ph.project_number', '=','bu.form_instance_number');
+            })
+            ->where('dp.user_id',18)
+
+            ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
+
+        $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
+
         $arr = array();
-        $arr['data'] = $dataRole;
+        $arr['data'] = $resArr;
+
+        foreach ($arr['data'] as $key => &$value) {
+            $value->id = hashid_encode($value->id);
+        }
         return $arr;
     }
 
@@ -355,12 +386,12 @@ class ApprovalFormController extends Controller
     }
 
     // todo 拆成两个
-    private function getProject($request, Project $project)
+    private function getProject(Request $request, ProjectHistorie $project)
     {
         $payload = $request->all();
         $payload['type'] = isset($payload['type']) ? $payload['type'] : 1;
 
-        $result = $this->response->item($project, new ProjectTransformer());
+        $result = $this->response->item($project, new ProjectHistoriesTransformer());
 
         $data = TemplateField::where('status', $payload['type'])->get();
 
@@ -374,7 +405,7 @@ class ApprovalFormController extends Controller
             $value->notice_id = hashid_encode($value->notice_id);
         }
 
-        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldHistoriesTransformer($project->id));
 
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());

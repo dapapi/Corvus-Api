@@ -39,12 +39,7 @@ class ScheduleController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard("api")->user();
-//        if ($request->has('material_ids')) {
-//            foreach ($payload['material_ids'] as &$id) {
-//                $id = hashid_decode($id);
-//            }
-//            unset($id);
-//        }
+
 //        if ($request->has('calendar_ids')) {
 //            foreach ($payload['calendar_ids'] as &$id) {
 //                $id = hashid_decode($id);
@@ -133,14 +128,12 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
-        }
-        DB::connection()->enableQueryLog();
-        //日程仅参与人可见
-        $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
-            $join->on('mu.moduleable_id','s.id')
-                ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'");
-        })->select('mu.user_id')->whereRaw("s.id=schedules.id");
-        $schedules = Schedule::where(function ($query)use ($payload,$user,$subquery){
+            //日程仅参与人可见
+            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','s.id')
+                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'");
+            })->select('mu.user_id')->whereRaw("s.id=schedules.id");
+            $schedules = Schedule::where(function ($query)use ($payload,$user,$subquery){
                 $query->where(function ($query)use ($payload){
                     $query->where('privacy',Schedule::OPEN);
                     $query->whereIn('calendar_id',$payload['calendar_ids']);
@@ -152,12 +145,20 @@ class ScheduleController extends Controller
                     });
                 });
             })->mergeBindings($subquery)
-            ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-            ->get();
-        $sql = DB::getQueryLog();
-//        dd($sql);
-//        dd($schedules);
-        return $this->response->collection($schedules, new ScheduleTransformer());
+                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+                ->get();
+            return $this->response->collection($schedules, new ScheduleTransformer());
+        }
+        if ($request->has('material_ids')) {
+            foreach ($payload['material_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+            $schedules = Schedule::where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+                ->whereIn('material_id', $payload['material_ids'])->get();
+            return $this->response->collection($schedules, new ScheduleTransformer());
+        }
+
 
     }
 

@@ -160,7 +160,10 @@ class ScheduleController extends Controller
         try {
 
              if($payload['is_allday'] == 1){
-                 if($payload['repeat'] == 1){
+                 if($payload['repeat'] == 0){
+                     $schedule = Schedule::create($payload);
+
+                 }else if($payload['repeat'] == 1){
                      $timestamp = strtotime($end)-strtotime($etime);
                      $onedaytimestamp = 60*60*24;
                      $sumtimestamp = $timestamp/$onedaytimestamp;
@@ -197,7 +200,11 @@ class ScheduleController extends Controller
 
                  }
              }else{
-                 if($payload['repeat'] == 1){
+                 if($payload['repeat'] == 0){
+
+                     $schedule = Schedule::create($payload);
+
+                 }else if($payload['repeat'] == 1){
                      $timestamp = strtotime($end)-strtotime($eetime);
                      $onedaytimestamp = 60*60*24;
                      $sumtimestamp = ceil($timestamp/$onedaytimestamp);

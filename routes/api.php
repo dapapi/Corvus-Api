@@ -33,7 +33,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->get('/download', 'App\Http\Controllers\ExcelController@download');
-    $api->group(['middleware' => ['auth:api', 'bindings','permissions',"datamanage",'dataview']], function ($api) {
+    $api->group(['middleware' => ['auth:api', 'bindings','checkpower']], function ($api) {
 
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');

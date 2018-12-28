@@ -221,8 +221,11 @@ class ApprovalFormController extends Controller
             ->join('project_histories as ph', function ($join) {
                 $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
+            ->join('users as us', function ($join) {
+                $join->on('ph.creator_id', '=','us.id');
+            })
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
-            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title', 'u.name', 'ph.created_at')->get()->toArray();
+            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
         //->paginate($pageSize)->toArray();
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//

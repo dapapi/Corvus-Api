@@ -331,9 +331,13 @@ class ScheduleController extends Controller
 
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
-
-        $payload = $request->all();
+        $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
+        if(!in_array($user->id,$users)) {
+            return $this->response->errorInternal("你没有编辑该日程的权限");
+        }
+        $payload = $request->all();
+
         if ($request->has('calendar_id')) {
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
             $calendar = Calendar::find($payload['calendar_id']);
@@ -375,19 +379,7 @@ class ScheduleController extends Controller
 
     public function detail(Request $request, Schedule $schedule)
     {
-        $users = [];//记录可以查看日程的用户id
-        //日程的创建者，
-        $users[] = $schedule->creator_id;
-        //参与者可以删除
-        $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
-        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
-        if($schedule->privacy == Schedule::OPEN){
-            $calendar = Calendar::find($schedule->calendar_id);
-            if($calendar != null){
-                $users[] = $calendar->creator_id;
-                $users = array_merge($users,array_column($calendar->participants()->get()->toArray(),'id'));
-            }
-        }
+        $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
         if(!in_array($user->id,$users)) {
             $schedule = $schedule->select('id', 'start_at', 'end_at', 'material_id', 'creator_id')->first();
@@ -398,23 +390,12 @@ class ScheduleController extends Controller
 
     public function delete(Request $request, Schedule $schedule)
     {
-        $users = [];//记录可以查看日程的用户id
-        //日程的创建者，
-        $users[] = $schedule->creator_id;
-        //参与者可以删除
-        $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
-        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
-        if($schedule->privacy == Schedule::OPEN){
-            $calendar = Calendar::find($schedule->calendar_id);
-            if($calendar != null){
-                $users[] = $calendar->creator_id;
-                $users = array_merge($users,array_column($calendar->participants()->get()->toArray(),'id'));
-            }
-        }
+        $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
-
-        if(!in_array($user->id,$users))
+        if(!in_array($user->id,$users)) {
             $this->response->errorInternal("你没有权限删除日程");
+        }
+
         $schedule->delete();
         return $this->response->noContent();
     }
@@ -438,5 +419,23 @@ class ScheduleController extends Controller
         $date = $request->get('date', null);
         $calendar = ScheduleRepository::selectCalendar($starable_type, $starable_id, $date);
         return $calendar;
+    }
+
+    private function getPowerUsers($schedule)
+    {
+        $users = [];//记录可以查看日程的用户id
+        //日程的创建者，
+        $users[] = $schedule->creator_id;
+        //参与者
+        $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
+        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
+        if($schedule->privacy == Schedule::OPEN){
+            $calendar = Calendar::find($schedule->calendar_id);
+            if($calendar != null){
+                $users[] = $calendar->creator_id;
+                $users = array_merge($users,array_column($calendar->participants()->get()->toArray(),'id'));
+            }
+        }
+        return $users;
     }
 }

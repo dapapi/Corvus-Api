@@ -688,7 +688,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * 获取明星下的项目
+     * 获取明星下的项目3个
      * @param Request $request
      * @return mixed
      */

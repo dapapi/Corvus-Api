@@ -17,9 +17,13 @@ use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
+use App\Models\Blogger;
+use App\Models\Contract;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Project;
+use App\Models\Star;
+use App\SignContractStatus;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -231,7 +235,7 @@ class ApprovalFlowController extends Controller
             if ($nextId)
                 $this->createOrUpdateHandler($num, $nextId, $type);
             else
-                $this->createOrUpdateHandler($num, $userId, $type,232);
+                $this->createOrUpdateHandler($num, $userId, $type, 232);
 
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
@@ -333,7 +337,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 245,234);
+            $this->createOrUpdateHandler($num, $userId, 245, 234);
 
             $project = Project::where('project_number', $num)->first();
             if ($project)
@@ -487,6 +491,7 @@ class ApprovalFlowController extends Controller
                 $instance = $this->getInstance($num);
                 $instance->form_status = $status;
                 $instance->save();
+                $this->changeRelateStatus($instance, $status);
             }
         } catch (Exception $exception) {
             throw $exception;
@@ -568,5 +573,23 @@ class ApprovalFlowController extends Controller
             return User::find($headerId);
         else
             return null;
+    }
+
+    private function changeRelateStatus($instance, $status)
+    {
+        $num = $instance->form_instance_number;
+        $contract = Contract::where('form_instance_number', $num)->first();
+        if (is_null($contract))
+            return null;
+
+        if ($contract->star_type && $status == 232) {
+            $starArr = explode(',', $contract->stars);
+            DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
+        }
+
+        if ($contract->project_id) {
+            if ($status != 232)
+            $contract->project->delete();
+        }
     }
 }

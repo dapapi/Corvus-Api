@@ -344,7 +344,8 @@ class ApprovalFormController extends Controller
         if ($department)
             $approval = [
                 'name' => $user->name,
-                'department_name' => $user->department,
+                'department_name' => $department->name,
+                'position' => $user->position,
                 'created_at' => $approvalStart->change_at
             ];
 

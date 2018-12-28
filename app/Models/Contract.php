@@ -19,4 +19,9 @@ class Contract extends Model
         'updater_id',
         'updater_name',
     ];
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id', 'id');
+    }
 }

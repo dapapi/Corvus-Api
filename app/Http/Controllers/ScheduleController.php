@@ -154,13 +154,11 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
-            DB::connection()->enableQueryLog();
             $schedules = Schedule::select('schedules.*')->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-                ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增减的连接查询
+                ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
                     ->whereRaw('c.deleted_at is null')
                 ->whereIn('material_id', $payload['material_ids'])->get();
-            $sql = DB::getQueryLog();
-            dd($sql);
+
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 

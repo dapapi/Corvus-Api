@@ -51,7 +51,6 @@ class ModuleUserRepository
     }
     //TODO 还有其他类型
     $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('type', $type)->get();
-    dd($participantDeleteIds);
     $participantDeleteIds = array_unique($participantDeleteIds);//去除数组中的重复值
     foreach ($participantDeleteIds as $key => &$participantDeleteId) {
         try {
@@ -99,24 +98,9 @@ class ModuleUserRepository
             'type' => $type,
         ];
 
-        if ($model instanceof Task && $model->id) {
-            $array['moduleable_id'] = $model->id;
-            $array['moduleable_type'] = ModuleableType::TASK;
-        } else if ($model instanceof Project && $model->id) {
-            $array['moduleable_id'] = $model->id;
-            $array['moduleable_type'] = ModuleableType::PROJECT;
-        } else if ($model instanceof Star && $model->id) {
-            $array['moduleable_id'] = $model->id;
-            $array['moduleable_type'] = ModuleableType::STAR;
-        } else if ($model instanceof Calendar && $model->id) {
-            $array['moduleable_id'] = $model->id;
-            $array['moduleable_type'] = ModuleableType::CALENDAR;
-        } else if ($model instanceof Schedule && $model->id) {
-            $array['moduleable_id'] = $model->id;
+
             $array['moduleable_type'] = ModuleableType::SCHEDULE;
-        } else {
-            throw new Exception('ModuleUserRepository@addModuleUser#1(没有处理这个类型)');
-        }
+
         //TODO 还有其他类型
         foreach ($particalendarsIds as $key => $value)
         {
@@ -140,8 +124,8 @@ class ModuleUserRepository
             }
         }
 
-
         $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
+
         foreach ($participantIds as $key => &$participantId) {
             try {
                 $participantId = hashid_decode($participantId);

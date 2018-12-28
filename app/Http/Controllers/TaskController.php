@@ -1064,13 +1064,13 @@ class TaskController extends Controller
             ];
 
             $recives = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;//参与人
-            $recives[] = $task->creator_id;//创建人
-            $recives[] = $task->principal_id;//负责人
+            $recives[] = hashid_encode($task->creator_id);//创建人
+            $recives[] = $payload['principal_id'];//负责人
             $authorization = $request->header()['authorization'][0];
 
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
         }catch (Exception $e){
-
+            dd($e);
         }
         return $this->response->item(Task::find($task->id), new TaskTransformer());
 //        return $this->response->created();

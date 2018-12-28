@@ -9,6 +9,7 @@ use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
 use App\Http\Transformers\ControlTransformer;
+use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Http\Transformers\FormControlTransformer;
 use App\Models\ApprovalForm\Control;
@@ -176,49 +177,15 @@ class ApprovalFormController extends Controller
 
     }
 
-    public function detail(Request $request, Project $project)
+    public function detail(Request $request,ApprovalInstanceInterface $instance)
     {
-        $payload = $request->all();
-        $payload['type'] = isset($payload['type']) ? $payload['type'] : 1;
-
-        $result = $this->response->item($project, new ProjectTransformer());
-
-        $data = TemplateField::where('status', $payload['type'])->get();
-
-        $participant = DB::table('approval_form_participants as afp')
-            ->join('users', function ($join) {
-                $join->on('afp.notice_id', '=', 'users.id');
-            })->select('users.name', 'users.icon_url', 'afp.notice_id')
-            ->where('afp.form_instance_number', $project->project_number)->get()->toArray();
-
-        foreach ($participant as &$value) {
-            $value->notice_id = hashid_encode($value->notice_id);
+        $type = $instance->bussiness_type;
+        if ($type == 'projects') {
+            $project = Project::where('project_number', $instance->form_instance_number)->first();
+            $result = $this->getProject($request, $project);
+        } else {
+            $result = $this->getInstance($instance);
         }
-
-        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
-
-        $manager = new Manager();
-        $manager->setSerializer(new DataArraySerializer());
-
-        $project = DB::table('projects')
-            ->join('approval_form_business as bu', function ($join) {
-                $join->on('projects.project_number', '=', 'bu.form_instance_number');
-            })
-            ->join('users', function ($join) {
-                $join->on('projects.creator_id', '=', 'users.id');
-            })
-            ->join('department_user', function ($join) {
-                $join->on('department_user.user_id', '=', 'users.id');
-            })
-            ->join('departments', function ($join) {
-                $join->on('departments.id', '=', 'department_user.department_id');
-            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at')
-            ->where('projects.project_number', $project->project_number)->get();
-
-        $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $result->addMeta('approval', $project);
-        $result->addMeta('participant', $participant);
-
         return $result;
     }
 
@@ -358,7 +325,7 @@ class ApprovalFormController extends Controller
         return $this->response->item($approval, new ApprovalFormTransformer());
     }
 
-    public function getInstance(Request $request, $instance)
+    private function getInstance($instance)
     {
         $num = $instance->form_instance_number;
         $result = $this->response->item($instance, new ApprovalInstanceTransformer());
@@ -383,6 +350,53 @@ class ApprovalFormController extends Controller
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $approval);
+
+        return $result;
+    }
+
+    // todo 拆成两个
+    private function getProject($request, Project $project)
+    {
+        $payload = $request->all();
+        $payload['type'] = isset($payload['type']) ? $payload['type'] : 1;
+
+        $result = $this->response->item($project, new ProjectTransformer());
+
+        $data = TemplateField::where('status', $payload['type'])->get();
+
+        $participant = DB::table('approval_form_participants as afp')
+            ->join('users', function ($join) {
+                $join->on('afp.notice_id', '=', 'users.id');
+            })->select('users.name', 'users.icon_url', 'afp.notice_id')
+            ->where('afp.form_instance_number', $project->project_number)->get()->toArray();
+
+        foreach ($participant as &$value) {
+            $value->notice_id = hashid_encode($value->notice_id);
+        }
+
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+
+        $project = DB::table('projects')
+            ->join('approval_form_business as bu', function ($join) {
+                $join->on('projects.project_number', '=', 'bu.form_instance_number');
+            })
+            ->join('users', function ($join) {
+                $join->on('projects.creator_id', '=', 'users.id');
+            })
+            ->join('department_user', function ($join) {
+                $join->on('department_user.user_id', '=', 'users.id');
+            })
+            ->join('departments', function ($join) {
+                $join->on('departments.id', '=', 'department_user.department_id');
+            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at')
+            ->where('projects.project_number', $project->project_number)->get();
+
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $result->addMeta('approval', $project);
+        $result->addMeta('participant', $participant);
 
         return $result;
     }

@@ -7,7 +7,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectHistoriesTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants', 'relate_tasks', 'relate_projects'];
+    protected $availableIncludes = ['principal', 'creator', 'trail', 'participants', 'relate_tasks', 'relate_projects'];
 
     private  $isAll = true;
 
@@ -69,7 +69,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
     {
         $fields = $project->fields;
 
-        return $this->collection($fields, new FieldValueTransformer());
+        return $this->collection($fields, new FieldValueHistoriesTransformer());
     }
 
     public function includeTrail(ProjectHistorie $project)

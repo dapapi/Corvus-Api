@@ -59,7 +59,8 @@ class ModuleUserController extends Controller
                 foreach ($participantIds as $key => $participantId) {
                     try {
                         $participantUser = User::findOrFail($participantId);//查询出所有经纪人或者宣传人
-                        $start .= $participantUser->name . ' 部门【'.implode(",",array_column($participantUser->department()->get()->toArray(),'name'))."】";
+                        $departments = implode(",",array_column($participantUser->department()->get()->toArray(),'name'));
+                        $start .= $participantUser->name . " 部门【".$departments."】";
                     } catch (Exception $e) {
                     }
                 }

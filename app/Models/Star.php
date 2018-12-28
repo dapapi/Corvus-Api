@@ -6,6 +6,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
+use App\TaskStatus;
 use App\Traits\OperateLogTrait;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
@@ -94,7 +95,7 @@ class Star extends Model
 
     public function tasks()
     {
-        return $this->morphToMany(Task::class, 'resourceable','task_resources');
+        return $this->morphToMany(Task::class, 'resourceable','task_resources')->where('status',TaskStatus::NORMAL)->orderBy('created_at','desc')->limit(3);
     }
 
     public function broker()

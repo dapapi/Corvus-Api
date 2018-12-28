@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
@@ -43,10 +44,10 @@ class ApprovalFlowController extends Controller
         $conditionId = null;
 
         try {
-            if ($changeType === 224 && $value) {
+            if ($changeType == 224 && $value) {
                 // 数值控件做条件的处理
                 $formControlId = Condition::where('form_id', $formId)->value('form_control_id');
-                $controlId = Control::find($formControlId)->control_id;
+                $controlId = Control::where('form_control_id', $formControlId)->first()->control_id;
                 if ($controlId == 83)
                     $value = $this->numberForCondition($formId, $value);
 
@@ -58,9 +59,12 @@ class ApprovalFlowController extends Controller
                 ->where('next_id', '!=', 0)
                 ->orderBy('sort_number')
                 ->get();
+        } catch (ApprovalConditionMissException $exception) {
+            Log::error($exception);
+            return $this->response->errorBadRequest($exception->getMessage());
         } catch (Exception $exception) {
             Log::error($exception);
-            return $this->response->error($exception);
+            return $this->response->errorInternal($exception);
         }
 
         return $this->response->collection($chains, new ChainTransformer());
@@ -218,8 +222,9 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->verifyHandler($num, $userId);
-            list($nextId, $type) = $this->getChainNext($this->getInstance($num), $userId);
+            $currentHandlerId = $this->verifyHandler($num, $userId);
+            list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+
             $this->storeRecord($num, $userId, $now, 239, $comment);
 
             if ($nextId)
@@ -230,7 +235,6 @@ class ApprovalFlowController extends Controller
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
-
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -455,7 +459,7 @@ class ApprovalFlowController extends Controller
     {
         $result = Condition::where('form_id', $formId)->where('condition', $value)->value('flow_condition_id');
         if (is_null($result))
-            throw new Exception('未找到对应条件');
+            throw new ApprovalConditionMissException('未找到对应条件');
 
         return $result;
 
@@ -520,6 +524,8 @@ class ApprovalFlowController extends Controller
             if (is_null($role))
                 throw new ApprovalVerifyException('当前用户没权限进行该操作');
         }
+
+        return $now->current_handler_id;
     }
 
     private function getValuesForCondition($formControlIds, $num, $value = null)

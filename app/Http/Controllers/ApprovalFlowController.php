@@ -584,7 +584,11 @@ class ApprovalFlowController extends Controller
 
         if ($contract->star_type && $status == 232) {
             $starArr = explode(',', $contract->stars);
-            DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
+            if (in_array($instance->form_id, [5, 7]))
+                DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
+
+            if (in_array($instance->form_id, [6, 8]))
+                DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT]);
         }
 
         if ($contract->project_id) {

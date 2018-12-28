@@ -229,66 +229,33 @@ class ApprovalFormController extends Controller
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $executeInfo = DB::table('approval_flow_execute')->get()->toArray();
-        $user = array();
-        foreach($executeInfo as $value){
-            if($value->current_handler_type == 245){
-                $user[] = (int)$value->current_handler_id;
-                //246 部门负责人
-            }elseif($value->current_handler_type == 246){
-                $changeInfo[] = DB::table('approval_flow_change')->where('form_instance_number',$value->form_instance_number)->where('change_state',237)->first()->change_id;
-            }
-        }
-        $changeArr = array_unique($changeInfo);
-        //查询申请人所在的部门
-        $departmentInfo = DB::table('department_user')->select('department_id')->whereIn('user_id',$changeArr)->get()->toArray();
-
-        foreach ($departmentInfo as $dValue){
-            $departmentRes[] = $dValue->department_id;
-        }
-        $departmentArr = array_unique($departmentRes);
-
-        $data = DB::table('approval_flow_execute as afe')//
-
-        ->join('approval_form_business as bu', function ($join) {
-            $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
+        //查询角色
+        $dataRole = DB::table('approval_flow_execute as afe')//
+        ->join('role_users as ru', function ($join) {
+            $join->on('afe.current_handler_id', '=', 'ru.role_id');
         })
-            ->join('users', function ($join) {
-                $join->on('afe.current_handler_id', '=','users.id')->where('afe.current_handler_type','=',245);
+            ->join('users as u', function ($join) {
+                $join->on('ru.user_id', '=','u.id');
             })
-            ->join('approval_flow_change as recode', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state',237);
+            ->join('project_histories as ph', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
-
-            ->join('users as creator', function ($join) {
-                $join->on('recode.change_id', '=', 'creator.id');
+            ->where('afe.flow_type_id',231)->where('afe.current_handler_type',247)->where('u.id',221)
+            ->select('afe.*', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get();
+        //->paginate($pageSize)->toArray();
+        //查询个人
+        $dataUser = DB::table('approval_flow_execute as afe')//
+        ->join('users as u', function ($join) {
+            $join->on('afe.current_handler_type', '=','u.id');
+        })
+            ->join('project_histories as ph', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
-
-            ->join('department_user as du', function ($join) {
-                $join->on('creator.id', '=', 'du.user_id');
-            })
-            ->join('department_principal as dp', function ($join) {
-                $join->on('dp.department_id', '=', 'du.department_id' )->where('afe.current_handler_type',246);
-            })
-            ->join('projects as ph', function ($join) {
-                $join->on('ph.project_number', '=','bu.form_instance_number');
-            })
-            ->where(function ($query) use ($payload, $request) {
-                if ($request->has('keyword')) {
-                    $query->where('ph.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'].'%');
-                }
-            })
-            ->whereIn('du.department_id', $departmentArr)
-            // ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
-            ->select('afe.*', 'ph.title', 'bu.*', 'users.name', 'ph.created_at', 'ph.id')
-            ->paginate($pageSize)->toArray();
-
-        foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->current_handler_id = hashid_encode($value->current_handler_id);
-        }
-
-        return $data;
+            ->where('afe.flow_type_id',231)->where('afe.current_handler_type',245)->where('u.id',221)
+            ->select('afe.*', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get();
+        $arr = array();
+        $arr['data'] = $dataRole;
+        return $arr;
     }
 
     public function myThenApproval(Request $request)

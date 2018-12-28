@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Calendar\EditCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarRequest;
-use App\Http\Requests\CalendarDateRequest;
+use App\Http\Requests\Calendar\EditModelUserCalendarRequest;
 use App\Http\Transformers\CalendarTransformer;
 use App\Models\Calendar;
 use App\ModuleableType;
@@ -119,7 +119,6 @@ class CalendarController extends Controller
 
         return $this->response->accepted();
     }
-
     public function detail(Request $request, Calendar $calendar)
     {
         $user = Auth::guard('api')->user();

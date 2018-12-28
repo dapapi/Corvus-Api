@@ -12,6 +12,7 @@ use App\Models\OperateLog;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Report;
+use App\Models\Calendar;
 use App\Models\Task;
 use App\Models\Schedule;
 use App\Models\PersonalJob;
@@ -137,6 +138,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Schedule){
                 $type = ModuleableType::SCHEDULE;
                 $typeName = '日程';
+            }else if($operate->obj instanceof Calendar){
+                $type = ModuleableType::CALENDAR;
+                $typeName = '日历';
             }else if($operate->obj instanceof GroupRoles){
                 $type = ModuleableType::GTOUPROLES;
                 $typeName = '分组';

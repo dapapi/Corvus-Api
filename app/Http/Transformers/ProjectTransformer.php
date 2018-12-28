@@ -2,6 +2,7 @@
 
 namespace App\Http\Transformers;
 
+use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalForm\Business;
 use App\Models\Project;
 use League\Fractal\TransformerAbstract;
@@ -20,6 +21,7 @@ class ProjectTransformer extends TransformerAbstract
     public function transform(Project $project)
     {
         $business = Business::where('form_instance_number', $project->project_number)->first();
+        $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
         if ($this->isAll) {
             $array = [
                 'id' => hashid_encode($project->id),
@@ -43,6 +45,12 @@ class ProjectTransformer extends TransformerAbstract
             ];
             if ($business)
                 $array['approval_status'] = $business->dictionary->id;
+
+            if ($count > 1)
+                $array['approval_begin'] = 1;
+            else
+                $array['approval_begin'] = 0;
+
         } else {
             $array = [
                 'id' => hashid_encode($project->id),

@@ -201,7 +201,6 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request)
     {
-
         // todo 可能涉及筛选可选线索
         $payload = $request->all();
 
@@ -215,10 +214,11 @@ class ProjectController extends Controller
                     return $this->response->errorBadRequest('字段与项目类型匹配错误');
                 }
             }
-            if ($payload['trail'])
+            if (count($payload['trail']) > 0) {
                 $payload['trail_id'] = hashid_decode($payload['trail']['id']);
-
-            unset($payload['trail']);
+                unset($payload['trail']['id']);
+            }
+            $payload['project_number'] = Project::getProjectNumber();
         }
 
         $user = Auth::guard('api')->user();
@@ -227,17 +227,16 @@ class ProjectController extends Controller
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         DB::beginTransaction();
-        $payload['project_number'] = Project::getProjectNumber();
 
         try {
             $project = Project::create($payload);
             $projectId = $project->id;
 
-            $projectHistorie = ProjectHistorie::create($payload);
-            $approvalForm = new ApprovalFormController();
-            $approvalForm->projectStore($payload['type'], $payload['notice'], $payload['project_number']);
 
             if ($payload['type'] != 5) {
+                $projectHistorie = ProjectHistorie::create($payload);
+                $approvalForm = new ApprovalFormController();
+                $approvalForm->projectStore($payload['type'], $payload['notice'], $payload['project_number']);
                 foreach ($payload['fields'] as $key => $val) {
                     FieldValue::create([
                         'field_id' => hashid_decode((int)$key),

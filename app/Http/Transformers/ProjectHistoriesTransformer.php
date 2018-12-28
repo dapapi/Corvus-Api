@@ -2,7 +2,7 @@
 
 namespace App\Http\Transformers;
 
-use App\Models\Project;
+use App\Models\ProjectHistorie;
 use League\Fractal\TransformerAbstract;
 
 class ProjectHistoriesTransformer extends TransformerAbstract
@@ -16,7 +16,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
         $this->isAll = $isAll;
     }
 
-    public function transform(Project $project)
+    public function transform(ProjectHistorie $project)
     {
         if ($this->isAll) {
             $array = [
@@ -47,7 +47,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
         return $array;
     }
 
-    public function includePrincipal(Project $project)
+    public function includePrincipal(ProjectHistorie $project)
     {
         $principal = $project->principal;
         if (!$principal)
@@ -56,7 +56,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
         return $this->item($principal, new UserTransformer());
     }
 
-    public function includeCreator(Project $project)
+    public function includeCreator(ProjectHistorie $project)
     {
         $creator = $project->creator;
         if (!$creator)
@@ -65,14 +65,14 @@ class ProjectHistoriesTransformer extends TransformerAbstract
         return $this->item($creator, new UserTransformer());
     }
 
-    public function includeFields(Project $project)
+    public function includeFields(ProjectHistorie $project)
     {
         $fields = $project->fields;
 
         return $this->collection($fields, new FieldValueTransformer());
     }
 
-    public function includeTrail(Project $project)
+    public function includeTrail(ProjectHistorie $project)
     {
         $trail = $project->trail;
         if (!$trail)
@@ -80,20 +80,20 @@ class ProjectHistoriesTransformer extends TransformerAbstract
         return $this->item($trail, new TrailTransformer());
     }
 
-    public function includeParticipants(Project $project)
+    public function includeParticipants(ProjectHistorie $project)
     {
         $participants = $project->participants;
 
         return $this->collection($participants, new UserTransformer());
     }
 
-    public function includeRelateTasks(Project $project)
+    public function includeRelateTasks(ProjectHistorie $project)
     {
         $tasks = $project->relateTasks;
         return $this->collection($tasks, new TaskTransformer());
     }
 
-    public function includeRelateProjects(Project $project)
+    public function includeRelateProjects(ProjectHistorie $project)
     {
         $projects = $project->relateProjects;
         return $this->collection($projects, new ProjectTransformer());

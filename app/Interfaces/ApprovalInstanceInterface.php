@@ -2,13 +2,13 @@
 /**
  * Created by PhpStorm.
  * User: xiao
- * Date: 2018/12/18
- * Time: 下午12:01
+ * Date: 2018/12/28
+ * Time: 下午15:37
  */
 
 namespace App\Interfaces;
 
-interface ChainInterface
+interface ApprovalInstanceInterface
 {
-    public function next();
+    public function fields();
 }

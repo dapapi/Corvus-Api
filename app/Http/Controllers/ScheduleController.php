@@ -133,7 +133,7 @@ class ScheduleController extends Controller
                 $join->on('mu.moduleable_id','s.id')
                     ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'");
             })->select('mu.user_id')->whereRaw("s.id=schedules.id");
-            $schedules = Schedule::where(function ($query)use ($payload,$user,$subquery){
+            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery){
                 $query->where(function ($query)use ($payload){
                     $query->where('privacy',Schedule::OPEN);
                     $query->whereIn('calendar_id',$payload['calendar_ids']);
@@ -154,8 +154,10 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
+
             $schedules = Schedule::where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
                 ->whereIn('material_id', $payload['material_ids'])->get();
+
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 
@@ -381,7 +383,7 @@ class ScheduleController extends Controller
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
         if(!in_array($user->id,$users)) {
-            $schedule = $schedule->select('id', 'start_at', 'end_at', 'material_id', 'creator_id')->first();
+            $schedule = $schedule->select('id', 'start_at', 'end_at', 'material_id','calendar_id', 'creator_id')->first();
             return $this->response->item($schedule, new ScheduleTransformer());
         }
         return $this->response->item($schedule, new ScheduleTransformer());

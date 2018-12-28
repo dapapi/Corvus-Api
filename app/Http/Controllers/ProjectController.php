@@ -492,7 +492,7 @@ class ProjectController extends Controller
 
             $user = Auth::guard('api')->user();
             $title = $user->name."将你加入了项目";  //通知消息的标题
-            $subheading = "副标题";
+            $subheading = $user->name."将你加入了项目";
             $module = Message::PROJECT;
             $link = URL::action("ProjectController@detail",["project"=>$project->id]);
             $data = [];

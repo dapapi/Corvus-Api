@@ -241,7 +241,7 @@ class ApprovalFormController extends Controller
                 $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
             ->where('afe.flow_type_id',231)->where('afe.current_handler_type',247)->where('u.id',221)
-            ->select('afe.*', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get();
+            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title', 'u.name', 'ph.created_at')->get();
         //->paginate($pageSize)->toArray();
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//

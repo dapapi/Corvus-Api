@@ -360,14 +360,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
         $api->delete('returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
 
-        //获取明星写的项目
-        $api->get('/projects/starproject', 'App\Http\Controllers\ProjectController@getStarProject');
+
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
         $api->get('/projects/{project}/course', 'App\Http\Controllers\ProjectController@allCourse');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
         $api->put('/projects/{project}/course', 'App\Http\Controllers\ProjectController@course');
         $api->put('/projects/{project}/status', 'App\Http\Controllers\ProjectController@changeStatus');
         $api->delete('/projects/{project}', 'App\Http\Controllers\ProjectController@delete');
+        //获取明星写的项目
+        $api->get('/projects/star/{star}', 'App\Http\Controllers\ProjectController@getStarProject');
 
         // template field
         $api->get('/project_fields', 'App\Http\Controllers\TemplateFieldController@getFields');

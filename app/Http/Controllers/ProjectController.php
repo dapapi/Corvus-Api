@@ -692,11 +692,9 @@ class ProjectController extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function getStarProject(Request $request)
+    public function getStarProject(Star $star)
     {
-        $star_id = $request->get('star_id', null);
-        $star_id = hashid_decode($star_id);
-        $result = ProjectRepository::getProjectBySatrId($star_id);
+        $result = ProjectRepository::getProjectBySatrId($star->id);
 
         //todo 这里的返回值status没有返回数字，返回的是中文所以用不了transfromer
 //        return $this->response->collection($result, new ProjectTransformer());

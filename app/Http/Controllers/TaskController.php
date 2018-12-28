@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AffixType;
 use App\Events\OperateLogEvent;
+use App\Models\Message;
 use App\Http\Requests\Task\AddRelateTaskRequest;
 use App\Http\Requests\Task\FilterTaskRequest;
 use App\Http\Requests\TaskCancelTimeRequest;
@@ -26,6 +27,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
+use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScopeRepository;
 use App\ResourceType;
@@ -1041,6 +1043,34 @@ class TaskController extends Controller
             return $this->response->errorInternal('创建失败!');
         }
         DB::commit();
+        DB::beginTransaction();
+        try {
+
+            $user = Auth::guard('api')->user();
+            $title = $user->name . "将你加入了项目";  //通知消息的标题
+            $subheading = $user->name . "将你加入了项目";
+            $module = Message::TASK;
+            $link = URL::action("TaskController@show", ["task" => $task->id]);
+            $data = [];
+            $data[] = [
+                "title" => '任务名称', //通知消息中的消息内容标题
+                'value' => $task->title,  //通知消息内容对应的值
+            ];
+            $principal = User::findOrFail($task->principal_id);
+            $data[] = [
+                'title' => '负责人',
+                'value' => $principal->name
+            ];
+
+            $recives = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;//参与人
+            $recives[] = $task->creator_id;//创建人
+            $recives[] = $task->principal_id;//负责人
+            $authorization = $request->header()['authorization'][0];
+
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
+        }catch (Exception $e){
+
+        }
         return $this->response->item(Task::find($task->id), new TaskTransformer());
 //        return $this->response->created();
     }

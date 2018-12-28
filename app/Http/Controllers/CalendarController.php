@@ -149,6 +149,7 @@ class CalendarController extends Controller
     {
         $user = Auth::guard('api')->user();
         //参与者
+
         $participants = array_column($calendar->participants()->get()->toArray(),'id');
         if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
             return $this->response->errorInternal("你没有查看该日历的权限");

@@ -6,8 +6,11 @@ use App\Helper\Generator;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
+use App\Http\Transformers\ApprovalInstanceTransformer;
+use App\Http\Transformers\ControlTransformer;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Http\Transformers\FormControlTransformer;
+use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Group;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
@@ -389,7 +392,15 @@ class ApprovalFormController extends Controller
 
     public function getInstance(Request $request, $instance)
     {
-        return $this->response->item($instance, new ApprovalFormTransformer());
+        $result = $this->response->item($instance, new ApprovalInstanceTransformer());
+        $data = Control::where('form_id', $instance->form_id)->orderBy('sort_number')->get();
+        $resource = new Fractal\Resource\Collection($data, new ControlTransformer($instance->form_instance_number));
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+
+        return $result;
     }
     // 获取group里的form_ids
     public function getForms(GetFormIdsRequest $request)

@@ -10,6 +10,7 @@ class ApprovalInstanceTransformer extends TransformerAbstract
     public function transform(ApprovalInstanceInterface $instance)
     {
         $arr = [
+            'title' => $instance->form->name,
             'form_instance_number' => $instance->form_instance_number,
         ];
         if ($instance->status) {

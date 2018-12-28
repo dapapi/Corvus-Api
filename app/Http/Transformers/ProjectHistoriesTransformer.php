@@ -18,6 +18,8 @@ class ProjectHistoriesTransformer extends TransformerAbstract
 
     public function transform(ProjectHistorie $project)
     {
+        $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
+
         if ($this->isAll) {
             $array = [
                 'id' => hashid_encode($project->id),
@@ -43,6 +45,10 @@ class ProjectHistoriesTransformer extends TransformerAbstract
                 'title' => $project->title,
             ];
         }
+        if ($count > 1)
+            $array['approval_begin'] = 1;
+        else
+            $array['approval_begin'] = 0;
 
         return $array;
     }

@@ -3,6 +3,8 @@
 namespace App\Http\Transformers;
 
 use App\Models\ProjectHistorie;
+use App\Models\ApprovalFlow\Change;
+
 use League\Fractal\TransformerAbstract;
 
 class ProjectHistoriesTransformer extends TransformerAbstract

@@ -83,6 +83,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //模型用户(参与人)
         $api->post('/tasks/{task}/participant', 'App\Http\Controllers\ModuleUserController@addModuleUserParticipant');
         $api->put('/tasks/{task}/participant_remove', 'App\Http\Controllers\ModuleUserController@remove');
+
+        $api->post('/calendars/{calendar}/participant', 'App\Http\Controllers\ModuleUserController@addModuleUserParticipant');
+        $api->put('/calendars/{calendar}/participant_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //附件
         $api->get('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@index');
         $api->post('/repositorys/{repository}/affix', 'App\Http\Controllers\AffixController@add');

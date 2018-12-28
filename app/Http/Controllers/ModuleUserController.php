@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\ModuleUser;
 use App\Models\OperateEntity;
 use App\Models\Project;
+use App\Models\Calendar;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\Trail;
@@ -38,7 +39,6 @@ class ModuleUserController extends Controller
     public function add(ModuleUserRequest $request, $model, $type)
     {
         $payload = $request->all();
-
         if (!$request->has('person_ids') && !$request->has('del_person_ids'))
             return $this->response->noContent();
 
@@ -78,6 +78,7 @@ class ModuleUserController extends Controller
             }
             //要求一个接口可以完成添加人和删除人,已经存在的删除
             if (count($participantDeleteIds)) {
+
                 // 操作日志
                 $start = '';
                 foreach ($participantDeleteIds as $key => $participantId) {
@@ -182,6 +183,9 @@ class ModuleUserController extends Controller
                         } else if ($model instanceof Star && $model->id) {
                             $moduleableId = $model->id;
                             $moduleableType = ModuleableType::STAR;
+                        }else if ($model instanceof Calendar && $model->id) {
+                            $moduleableId = $model->id;
+                            $moduleableType = ModuleableType::CALENDAR;
                         }
                         // TODO 还有其他类型
 

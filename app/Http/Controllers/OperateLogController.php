@@ -13,6 +13,7 @@ use App\Models\Announcement;
 use App\Models\Star;
 use App\Models\Report;
 use App\Models\Issues;
+use App\Models\Calendar;
 use App\Models\Task;
 use App\Models\Trail;
 use App\OperateLogMethod;
@@ -32,7 +33,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Issues $issues,Announcement $announcement)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -54,6 +55,8 @@ class OperateLogController extends Controller
             $query = $issues->operateLogs();
         }else if ($client && $client->id) {
             $query = $client->operateLogs();
+        }else if ($calendar && $calendar->id) {
+            $query = $calendar->operateLogs();
         }
         //TODO 其他模块
 

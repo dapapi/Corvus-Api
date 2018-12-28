@@ -155,7 +155,8 @@ class ScheduleController extends Controller
             }
             unset($id);
 
-            $schedules = Schedule::where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+            $schedules = Schedule::select('schedules.*')->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+                ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增减的连接查询
                 ->whereIn('material_id', $payload['material_ids'])->get();
 
             return $this->response->collection($schedules, new ScheduleTransformer());

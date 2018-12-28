@@ -29,9 +29,8 @@ class Control extends Model
     public function value($num = null)
     {
          $value = $this->hasMany(InstanceValue::class, 'form_control_id', 'form_control_id')->where('form_instance_number', $num)->first();
-         if ($value)
-             return $value->form_control_value;
-         return null;
+
+         return $value;
     }
 
     public function dictionary()

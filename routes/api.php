@@ -384,6 +384,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // calendar
         $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
+        $api->post('/calendars/{calendar}/task', 'App\Http\Controllers\CalendarController@storeCalendarTask');
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
         $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
         $api->delete('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@delete');

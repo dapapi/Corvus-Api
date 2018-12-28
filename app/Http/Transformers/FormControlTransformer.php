@@ -28,7 +28,6 @@ class FormControlTransformer extends TransformerAbstract
             'control_title' => $control->title,
             'control_placeholder' => $control->placeholder,
             'control_source' => $control->source,
-            'control_value' => $control->value($this->num),
         ];
         if ($control->format)
             $arr['control_data_select_format'] = $control->format;

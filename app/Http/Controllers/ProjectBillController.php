@@ -45,18 +45,38 @@ class ProjectBillController extends Controller
             $array['artist_name'] = $star->name;
           }
 
-        if($array['expense_type'] != '支出') {
+        if($array['expense_type'] == '支出') {
+
+            $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+
+            $array['expense_type'] = '收入';
+            $incomesum = ProjectBill::where($array)->select(DB::raw('sum(money) as incomesum'))->groupby('expense_type')->first();
             $array['expense_type'] = '支出';
-            $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
 
+        }else if($array['expense_type'] == '收入'){
+            $incomesum = ProjectBill::where($array)->select(DB::raw('sum(money) as incomesum'))->groupby('expense_type')->first();
+            $array['expense_type'] = '支出';
+            $expendituresum =  ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+            $array['expense_type'] = '收入';
         }else{
-            $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
-        }
+            $array['expense_type'] = '收入';
+            $incomesum = ProjectBill::where($array)->select(DB::raw('sum(money) as incomesum'))->groupby('expense_type')->first();
+            $array['expense_type'] = '支出';
+            $expendituresum =  ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
 
+
+            unset($array['expense_type']);
+        }
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
-        if(isset($expendituresum)){
+        if(isset($expendituresum)||isset($incomesum)){
+
             $result->addMeta('expendituresum', $expendituresum->expendituresum);
+
+            if(isset($incomesum)){
+                $result->addMeta('incomesum', $incomesum->incomesum);
+            }
+
             if(isset($projectbillresource)) {
                 $result->addMeta('expenses', $projectbillresource->expenses);
                 $result->addMeta('papi_divide', $projectbillresource->papi_divide);

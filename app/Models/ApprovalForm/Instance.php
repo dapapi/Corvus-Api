@@ -2,9 +2,11 @@
 
 namespace App\Models\ApprovalForm;
 
+use App\Interfaces\ApprovalInstanceInterface;
+use App\Models\DataDictionary;
 use Illuminate\Database\Eloquent\Model;
 
-class Instance extends Model
+class Instance extends Model implements approvalinstanceinterface
 {
     protected $table = 'approval_form_instances';
 
@@ -24,5 +26,15 @@ class Instance extends Model
     public function form()
     {
         return $this->belongsTo(ApprovalForm::class, 'form_id', 'id');
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(DataDictionary::class, 'form_status', 'id');
+    }
+
+    public function fields()
+    {
+        return $this->hasMany(InstanceValue::class, 'form_instance_number', 'form_instance_number');
     }
 }

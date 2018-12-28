@@ -30,6 +30,6 @@ class TemplateFieldHistories extends Model
 
     public function values()
     {
-        return $this->hasMany(FieldValue::class, 'field_id', 'id');
+        return $this->hasMany(FieldHistorie::class, 'field_id', 'id');
     }
 }

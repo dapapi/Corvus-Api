@@ -78,7 +78,7 @@ class ProjectHistorie extends Model
 
     public function fields()
     {
-        return $this->hasMany(FieldValue::class);
+        return $this->hasMany(FieldHistorie::class);
     }
 
     public function tasks()

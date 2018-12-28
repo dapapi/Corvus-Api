@@ -19,6 +19,7 @@ use App\Models\ApprovalForm\InstanceValue;
 use App\Models\Contract;
 use App\Models\DataDictionary;
 use App\Models\ProjectHistorie;
+use App\Models\TemplateFieldHistories;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Project;
@@ -399,7 +400,7 @@ class ApprovalFormController extends Controller
 
         $result = $this->response->item($project, new ProjectHistoriesTransformer());
 
-        $data = TemplateField::where('status', $payload['type'])->get();
+        $data = TemplateFieldHistories::where('status', $payload['type'])->get();
 
         $participant = DB::table('approval_form_participants as afp')
             ->join('users', function ($join) {
@@ -415,7 +416,7 @@ class ApprovalFormController extends Controller
 
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-       
+
         $project = DB::table('project_histories as projects')
             ->join('approval_form_business as bu', function ($join) {
                 $join->on('projects.project_number', '=', 'bu.form_instance_number');

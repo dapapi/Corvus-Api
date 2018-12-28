@@ -57,6 +57,6 @@ class DataDictionaryController extends Controller
     public function company(Request $request, $pid)
     {
         $collection = DataDictionary::where('parent_id', $pid)->selectRaw(DB::raw('`name` as enum_value'))->get();
-        return $collection;
+        return $this->response->array(['data' => $collection]);
     }
 }

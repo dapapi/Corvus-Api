@@ -76,7 +76,7 @@ class StarRequest extends FormRequest
             'affix.*.title' => 'required|max:255',
             'affix.*.size' => 'required|numeric|min:0',
             'affix.*.url' => 'required|max:500',
-            'affix.*.type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO])],
+            'affix.*.type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO,AffixType::STAR_PLAN,AffixType::INTRODUCE_ONESELF,AffixType::OTHER])],
         ];
     }
 }

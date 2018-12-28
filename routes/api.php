@@ -553,6 +553,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*后台权限 数据范围 控制台*/
         $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
         $api->get('/scope/{user}/operation/{dictionaries}','App\Http\Controllers\ScopeController@show');
+        //获取当前用户有权限的模块
+        $api->get('/console/getpowermodel','App\Http\Controllers\ConsoleController@getPowerModel');
+
 
         // 审批
         //我申请

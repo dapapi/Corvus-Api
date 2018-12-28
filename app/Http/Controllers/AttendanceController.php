@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AffixType;
 use App\Events\OperateLogEvent;
 use App\Http\Requests\AttendanceRequest;
 use App\Http\Requests\AttendancesStatisticsRepository;
@@ -86,7 +87,7 @@ class AttendanceController extends Controller
             $affixes = $request->get('affix');
             foreach ($affixes as $affix) {
                 try {
-                    $this->affixRepository->addAffix($user, $attendance, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
+                    $this->affixRepository->addAffix($user, $attendance, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
                     // 操作日志 ...
                 } catch (Exception $e) {
                     dd($e);

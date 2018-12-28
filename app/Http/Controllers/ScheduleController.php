@@ -199,7 +199,6 @@ class ScheduleController extends Controller
 
             $ntime = date('Y-m-d H:i:s',strtotime(now()));
         }
-
         DB::beginTransaction();
         try {
 

@@ -59,7 +59,7 @@ class ModuleUserController extends Controller
                 foreach ($participantIds as $key => $participantId) {
                     try {
                         $participantUser = User::findOrFail($participantId);//查询出所有经纪人或者宣传人
-                        $start .= $participantUser->name . ' ';
+                        $start .= $participantUser->name . ' 部门【'.implode(",",array_column($participantUser->department()->get()->toArray(),'name'))."】";
                     } catch (Exception $e) {
                     }
                 }
@@ -85,7 +85,7 @@ class ModuleUserController extends Controller
                 foreach ($participantDeleteIds as $key => $participantId) {
                     try {
                         $participantUser = User::findOrFail($participantId);
-                        $start .= $participantUser->name . ' ';
+                        $start .= $participantUser->name . ' 部门【'.implode(",",array_column($participantUser->department()->get()->toArray(),'name'))."】";
                     } catch (Exception $e) {
                     }
                 }
@@ -273,7 +273,7 @@ class ModuleUserController extends Controller
                 foreach ($person_ids as $person_id){
                     try {
                         $person = User::findOrFail($person_id);
-                        $start .= $person->name . ' ';
+                        $start .= $person->name . ' 部门【'.implode(",",array_column($person->department()->get()->toArray(),'name'))."】";
                     } catch (Exception $e) {
                     }
                 }
@@ -299,7 +299,7 @@ class ModuleUserController extends Controller
                 foreach ($del_person_ids as $moduleable_id => $del_person_id) {
                     try {
                         $del_person  = User::findOrFail($del_person_id);
-                        $start .= $del_person->name . ' ';
+                        $start .= $del_person->name . ' 部门【'.implode(",",array_column($person->department()->get()->toArray(),'name'))."】";
                     } catch (Exception $e) {
                     }
                 }

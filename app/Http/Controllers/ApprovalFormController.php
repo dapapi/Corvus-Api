@@ -27,6 +27,9 @@ use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\User;
 use App\Http\Transformers\ProjectTransformer;
+use App\Http\Transformers\ProjectHistoriesTransformer;
+use App\Http\Transformers\TemplateFieldHistoriesTransformer;
+
 use App\Models\RoleUser;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalFlow\Execute;
@@ -179,13 +182,15 @@ class ApprovalFormController extends Controller
 
     public function detail(Request $request,ApprovalInstanceInterface $instance)
     {
-        $type = $instance->bussiness_type;
+
+        $type = $instance->business_type;
         if ($type == 'projects') {
-            $project = Project::where('project_number', $instance->form_instance_number)->first();
+            $project = ProjectHistorie::where('project_number', $instance->form_instance_number)->first();
             $result = $this->getProject($request, $project);
         } else {
             $result = $this->getInstance($instance);
         }
+
         return $result;
     }
 
@@ -410,20 +415,25 @@ class ApprovalFormController extends Controller
 
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-
-        $project = DB::table('projects')
+       
+        $project = DB::table('project_histories as projects')
             ->join('approval_form_business as bu', function ($join) {
                 $join->on('projects.project_number', '=', 'bu.form_instance_number');
             })
             ->join('users', function ($join) {
                 $join->on('projects.creator_id', '=', 'users.id');
             })
+
+            ->leftjoin('position', function ($join) {
+                $join->on('position.id', '=', 'users.position_id');
+            })
+
             ->join('department_user', function ($join) {
                 $join->on('department_user.user_id', '=', 'users.id');
             })
             ->join('departments', function ($join) {
                 $join->on('departments.id', '=', 'department_user.department_id');
-            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at')
+            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at','position.name as position_name')
             ->where('projects.project_number', $project->project_number)->get();
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());

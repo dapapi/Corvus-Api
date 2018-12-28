@@ -81,20 +81,12 @@ class CalendarController extends Controller
     public function storeCalendarTask(StoreCalendarTaskRequest $request, Calendar $calendar)
     {
         $payload = $request->all();
-        $user = Auth::guard('api')->user();
-        if ($request->has('star')) {
-            $payload['starable_id'] = hashid_decode($payload['star']);
+        if ($calendar && $calendar->id) {
+            $array['resourceable_id'] = $calendar->id;
+            $array['resourceable_title'] = $calendar->nickname;
+            $array['resourceable_type'] = 'blogger';
 
-
-            //todo 暂时为硬编码
-            if ($user->company->name != '泰洋川禾') {
-                $payload['starable_type'] = ModuleableType::BLOGGER;//博主
-            } else {
-                $payload['starable_type'] = ModuleableType::STAR;//艺人
-            }
         }
-
-        $payload['creator_id'] = $user->id;
 
         DB::beginTransaction();
         //todo 加参与人

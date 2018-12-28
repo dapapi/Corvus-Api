@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Http\Requests\ModuleUserRequest;
+use App\Http\Requests\ModuleUserAllRequest;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\ModuleUser;
@@ -109,7 +110,79 @@ class ModuleUserController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+    public function addAll(ModuleUserAllRequest $request, $model, $type)
+    {
+        $payload = $request->all();
+        if (!$request->has('person_ids') && !$request->has('calendars_ids'))
+            return $this->response->noContent();
 
+        $participantIds = $request->get('person_ids', []);//参与人或宣传人ID数组
+        $particalendarsIds = $request->get('calendars_ids', []);
+
+        DB::beginTransaction();
+        try {
+            $result = $this->moduleUserRepository->addModuleUser($participantIds,$particalendarsIds, $model, $type);
+            $participantIds = $result[0];
+            $participantDeleteIds = $result[1];
+
+            // 操作日志 $type类型参与人或者宣传人
+            $title = $this->moduleUserRepository->getTypeName($type);
+            if (count($participantIds)) {
+                $start = '';
+                foreach ($participantIds as $key => $participantId) {
+                    try {
+                        $participantUser = User::findOrFail($participantId);//查询出所有经纪人或者宣传人
+                        $start .= $participantUser->name . ' ';
+                    } catch (Exception $e) {
+                    }
+                }
+                $start = substr($start, 0, strlen($start) - 1);
+
+                $array = [
+                    'title' => $title,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::ADD_PERSON,
+                ];
+                $array['obj'] = $this->operateLogRepository->getObject($model);
+                $operate = new OperateEntity($array);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+            //要求一个接口可以完成添加人和删除人,已经存在的删除
+            if (count($participantDeleteIds)) {
+
+                // 操作日志
+                $start = '';
+                foreach ($participantDeleteIds as $key => $participantId) {
+                    try {
+                        $participantUser = User::findOrFail($participantId);
+                        $start .= $participantUser->name . ' ';
+                    } catch (Exception $e) {
+                    }
+                }
+                $start = substr($start, 0, strlen($start) - 1);
+                $array = [
+                    'title' => $title,
+                    'start' => $start,
+                    'end' => null,
+                    'method' => OperateLogMethod::DEL_PERSON,
+                ];
+                $array['obj'] = $this->operateLogRepository->getObject($model);
+                $operate = new OperateEntity($array);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
+        DB::commit();
+        return $this->response->accepted();
+    }
     /**
      * 参与人
      *
@@ -122,6 +195,10 @@ class ModuleUserController extends Controller
     public function addModuleUserParticipant(ModuleUserRequest $request, $model)
     {
         return $this->add($request, $model, ModuleUserType::PARTICIPANT);
+    }
+    public function addModuleUserAllParticipant(ModuleUserAllRequest $request, $model)
+    {
+        return $this->addAll($request, $model, ModuleUserType::PARTICIPANT);
     }
 
     /**

@@ -17,6 +17,7 @@ use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
+use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Project;
 use App\User;
@@ -312,7 +313,6 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
-
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
@@ -430,7 +430,6 @@ class ApprovalFlowController extends Controller
         }
         if ($chain->next_id === 0)
             return [0, 245];
-
 
         $next = $chain->next;
 
@@ -563,7 +562,7 @@ class ApprovalFlowController extends Controller
     {
         $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
-        $headerId = DepartmentUser::where('department_id', $departmentId)->where('type', 1)->value('user_id');
+        $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
 
         if ($headerId)
             return User::find($headerId);

@@ -217,8 +217,7 @@ class ProjectController extends Controller
             }
             if ($payload['trail'])
                 $payload['trail_id'] = hashid_decode($payload['trail']['id']);
-
-            unset($payload['trail']);
+            unset($payload['trail']['id']);
         }
 
         $user = Auth::guard('api')->user();

@@ -113,6 +113,6 @@ class StarTransformer extends TransformerAbstract
     }
     public function includePublicity(Star $star){
         $users = $star->publicity()->get();
-        return $this->collection($users,new UsersTransformer());
+        return $this->collection($users,new UserTransformer());
     }
 }

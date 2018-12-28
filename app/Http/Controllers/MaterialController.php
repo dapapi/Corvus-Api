@@ -15,9 +15,9 @@ class MaterialController extends Controller
     // todo 跟前端确定是用一次返回还是用多次返回的方式
     public function all(Request $request)
     {
-        $type = $request->get('type', 1);
-        $materials = Material::where('type', $type)->get();
-
+//        $type = $request->get('type', 1);
+//        $materials = Material::where('type', $type)->get();
+        $materials = Material::get();
         return $this->response->collection($materials, new MaterialTransformer());
     }
 

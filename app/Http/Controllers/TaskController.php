@@ -1000,8 +1000,9 @@ class TaskController extends Controller
                             //TODO
                         }
 
-                        TaskResource::create($array);
-                        // 操作日志 ...
+                        $task_resource = TaskResource::create($array);
+                        // 操作日志
+
                     } else {
                         throw new Exception('没有这个类型');
                     }
@@ -1026,7 +1027,7 @@ class TaskController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
-            return $this->response->errorInternal('创建失败');
+            return $this->response->errorInternal('创建失败!');
         }
         DB::commit();
         return $this->response->item(Task::find($task->id), new TaskTransformer());

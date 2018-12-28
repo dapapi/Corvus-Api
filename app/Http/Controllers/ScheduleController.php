@@ -200,7 +200,6 @@ class ScheduleController extends Controller
 
             $ntime = date('Y-m-d H:i:s',strtotime(now()));
         }
-
         DB::beginTransaction();
         try {
 
@@ -384,7 +383,7 @@ class ScheduleController extends Controller
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
         if(!in_array($user->id,$users)) {
-            $schedule = $schedule->select('id', 'start_at', 'end_at', 'material_id','calendar_id', 'creator_id')->first();
+            $schedule = $schedule->select('id','title','is_allday', 'start_at', 'end_at', 'material_id','calendar_id', 'creator_id')->first();
             return $this->response->item($schedule, new ScheduleTransformer());
         }
         return $this->response->item($schedule, new ScheduleTransformer());

@@ -203,7 +203,7 @@ class BloggerController extends Controller
         if ($request->has('type_id')) {
             try {
                 $start = $blogger->type->name;
-
+                $array['type_id'] = hashid_decode($payload['type_id']);
                 $typeId = hashid_decode($payload['type_id']);
                 $bloggerType = BloggerType::findOrFail($typeId);
                 $end = $bloggerType->name;
@@ -223,7 +223,6 @@ class BloggerController extends Controller
                 return $this->response->errorBadRequest('类型错误');
             }
         }
-
         if ($request->has('communication_status')) {
             $array['communication_status'] = $payload['communication_status'];
             if ($array['communication_status'] != $blogger->communication_status) {
@@ -315,7 +314,6 @@ class BloggerController extends Controller
                 unset($array['level']);
             }
         }
-
         if ($request->has('hatch_star_at')) {
             $array['hatch_star_at'] = $payload['hatch_star_at'];
             if ($array['hatch_star_at'] != $blogger->hatch_star_at) {
@@ -534,7 +532,6 @@ class BloggerController extends Controller
             $array['xiaohongshu_url']  = $payload['star_xiaohongshu_infos']['url'];
             $array['xiaohongshu_fans_num']  = $payload['star_xiaohongshu_infos']['avatar'];
         }
-
         DB::beginTransaction();
         try {
             if (count($array) == 0)

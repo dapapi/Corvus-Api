@@ -64,7 +64,9 @@ class CalendarController extends Controller
         DB::beginTransaction();
         //todo 加参与人
         try {
+
             $calendar = Calendar::create($payload);
+
             if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
                 $payload['participant_ids'] = [];
 
@@ -116,8 +118,6 @@ class CalendarController extends Controller
         }
         $payload = $request->all();
 
-
-
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
             //todo 暂时为硬编码
@@ -127,13 +127,11 @@ class CalendarController extends Controller
                 $payload['starable_type'] = ModuleableType::STAR;
             }
         }
-
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];
 
         if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
             $payload['participant_del_ids'] = [];
-
         try {
             $calendar->update($payload);
 

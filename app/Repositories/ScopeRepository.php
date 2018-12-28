@@ -265,6 +265,7 @@ class ScopeRepository
         if($model == null){
             return false;
         }
+        return true;
     }
     /**
      * 检查数据权限

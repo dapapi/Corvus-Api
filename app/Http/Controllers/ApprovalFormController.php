@@ -230,7 +230,7 @@ class ApprovalFormController extends Controller
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//
         ->join('users as u', function ($join) {
-            $join->on('afe.current_handler_type', '=','u.id');
+            $join->on('afe.current_handler_id', '=','u.id');
         })
             ->join('project_histories as ph', function ($join) {
                 $join->on('afe.form_instance_number', '=', 'ph.project_number');

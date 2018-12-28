@@ -1072,6 +1072,7 @@ class TaskController extends Controller
         }catch (Exception $e){
             dd($e);
         }
+        DB::commit();
         return $this->response->item(Task::find($task->id), new TaskTransformer());
 //        return $this->response->created();
     }

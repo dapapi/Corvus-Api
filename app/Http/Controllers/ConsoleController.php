@@ -9,10 +9,19 @@ use App\Http\Transformers\RoleTransformer;
 use App\Http\Transformers\DataDictionarieTransformer;
 use App\Http\Transformers\RoleUserTransformer;
 use App\Events\OperateLogEvent;
+use App\Models\Blogger;
+use App\Models\Calendar;
+use App\Models\Client;
+use App\Models\Contract;
 use App\Models\Department;
+use App\Models\Project;
 use App\Models\Role;
 use App\Models\RoleUser;
 use App\Models\DataDictionarie;
+use App\Models\Star;
+use App\Models\Task;
+use App\Models\Trail;
+use App\Repositories\ScopeRepository;
 use App\User;
 use App\Models\GroupRoles;
 use App\Models\RoleResource;
@@ -455,4 +464,96 @@ class ConsoleController extends Controller
         }
     }
 
+
+    /**
+     * 检查权限
+     */
+    public function checkPower(Request $request)
+    {
+        $method = $request->get('method');
+        $uri = $request->get('uri');
+        $uri = preg_replace('/\\d+/', '{id}', $uri);
+        $id = $request->get('id');
+        //根据method和uri查询对应的模块
+        $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->first()->parent_id;
+        if($model_id){//模块不存在
+            return true;
+        }
+
+        $model = null;
+        if($request->has("id")){
+            $id = hashid_encode($id);
+            if (DataDictionarie::BLOGGER == $model_id){//博主
+                try {
+
+                    $model = Blogger::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }elseif(DataDictionarie::PROJECT == $model_id){//项目
+                try {
+
+                    $model = Project::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }elseif(DataDictionarie::STAR == $model_id){//艺人
+                try {
+
+                    $model = Star::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }elseif(DataDictionarie::CLIENT == $model_id){//客户
+                try {
+
+                    $model = Client::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }elseif(DataDictionarie::TRAIL == $model_id){//销售线索
+                try {
+
+                    $model = Trail::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }elseif(DataDictionarie::TASK == $model_id){//任务
+                try {
+
+                    $model = Task::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }elseif(DataDictionarie::CONTRACTS == $model_id){//合同
+                try {
+
+                    $model = Contract::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }elseif(DataDictionarie::CALENDAR == $model_id) {//日历
+                try {
+
+                    $model = Calendar::findOrFail($id);
+                } catch (Exception $exception) {
+                    abort(404);
+                }
+            }
+//            }elseif(DataDictionarie::CALENDAR == $model_id){//审批暂时不清楚
+//                try {
+//
+//                    $model = Appr::findOrFail($id);
+//                } catch (Exception $exception) {
+//                    abort(404);
+//                }
+//            }
+        }
+        $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        //获取用户角色
+        $role_ids = RoleUser::where('user_id',$userId)->select('role_id')->get();
+        (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
+
+    }
 }

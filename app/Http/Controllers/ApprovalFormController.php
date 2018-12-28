@@ -24,7 +24,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\DataDictionarie;
+use App\Models\DepartmentPrincipal;
+use App\Models\DepartmentUser;
 use App\User;
+use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\ProjectHistoriesTransformer;
 use App\Http\Transformers\TemplateFieldHistoriesTransformer;
 
@@ -34,6 +37,8 @@ use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalFlow\ChainFixed;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalForm\Participant;
+use App\Http\Transformers\TemplateFieldTransformer;
+use App\Models\TemplateField;
 
 
 use Illuminate\Support\Facades\Auth;
@@ -198,6 +203,13 @@ class ApprovalFormController extends Controller
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
+
+        $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
+        if ($payload['status'] == 1) {
+            $payload['status'] = array('231');
+        } else {
+            $payload['status'] = array('232', '233', '234', '235');
+        }
         //查询角色
         $dataRole = DB::table('approval_flow_execute as afe')//
         ->join('role_users as ru', function ($join) {
@@ -209,19 +221,22 @@ class ApprovalFormController extends Controller
             ->join('project_histories as ph', function ($join) {
                 $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
-            ->where('afe.flow_type_id',231)->where('afe.current_handler_type',247)->where('u.id',221)
-            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title', 'u.name', 'ph.created_at')->get()->toArray();
+            ->join('users as us', function ($join) {
+                $join->on('ph.creator_id', '=','us.id');
+            })
+            ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
+            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
         //->paginate($pageSize)->toArray();
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//
         ->join('users as u', function ($join) {
-            $join->on('afe.current_handler_type', '=','u.id');
+            $join->on('afe.current_handler_id', '=','u.id');
         })
             ->join('project_histories as ph', function ($join) {
                 $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
-            ->where('afe.flow_type_id',231)->where('afe.current_handler_type',245)->where('u.id',221)
-            ->select('afe.*', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get()->toArray();
+            ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
+            ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
         //部门负责人
         $dataPrincipal = DB::table('approval_flow_execute as afe')//

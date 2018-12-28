@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApprovalVerifyException;
 use App\Helper\Generator;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
@@ -229,66 +230,33 @@ class ApprovalFormController extends Controller
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $executeInfo = DB::table('approval_flow_execute')->get()->toArray();
-        $user = array();
-        foreach($executeInfo as $value){
-            if($value->current_handler_type == 245){
-                $user[] = (int)$value->current_handler_id;
-                //246 部门负责人
-            }elseif($value->current_handler_type == 246){
-                $changeInfo[] = DB::table('approval_flow_change')->where('form_instance_number',$value->form_instance_number)->where('change_state',237)->first()->change_id;
-            }
-        }
-        $changeArr = array_unique($changeInfo);
-        //查询申请人所在的部门
-        $departmentInfo = DB::table('department_user')->select('department_id')->whereIn('user_id',$changeArr)->get()->toArray();
-
-        foreach ($departmentInfo as $dValue){
-            $departmentRes[] = $dValue->department_id;
-        }
-        $departmentArr = array_unique($departmentRes);
-
-        $data = DB::table('approval_flow_execute as afe')//
-
-        ->join('approval_form_business as bu', function ($join) {
-            $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
+        //查询角色
+        $dataRole = DB::table('approval_flow_execute as afe')//
+        ->join('role_users as ru', function ($join) {
+            $join->on('afe.current_handler_id', '=', 'ru.role_id');
         })
-            ->join('users', function ($join) {
-                $join->on('afe.current_handler_id', '=','users.id')->where('afe.current_handler_type','=',245);
+            ->join('users as u', function ($join) {
+                $join->on('ru.user_id', '=','u.id');
             })
-            ->join('approval_flow_change as recode', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state',237);
+            ->join('project_histories as ph', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
-
-            ->join('users as creator', function ($join) {
-                $join->on('recode.change_id', '=', 'creator.id');
+            ->where('afe.flow_type_id',231)->where('afe.current_handler_type',247)->where('u.id',221)
+            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title', 'u.name', 'ph.created_at')->get();
+        //->paginate($pageSize)->toArray();
+        //查询个人
+        $dataUser = DB::table('approval_flow_execute as afe')//
+        ->join('users as u', function ($join) {
+            $join->on('afe.current_handler_type', '=','u.id');
+        })
+            ->join('project_histories as ph', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'ph.project_number');
             })
-
-            ->join('department_user as du', function ($join) {
-                $join->on('creator.id', '=', 'du.user_id');
-            })
-            ->join('department_principal as dp', function ($join) {
-                $join->on('dp.department_id', '=', 'du.department_id' )->where('afe.current_handler_type',246);
-            })
-            ->join('projects as ph', function ($join) {
-                $join->on('ph.project_number', '=','bu.form_instance_number');
-            })
-            ->where(function ($query) use ($payload, $request) {
-                if ($request->has('keyword')) {
-                    $query->where('ph.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'].'%');
-                }
-            })
-            ->whereIn('du.department_id', $departmentArr)
-            // ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
-            ->select('afe.*', 'ph.title', 'bu.*', 'users.name', 'ph.created_at', 'ph.id')
-            ->paginate($pageSize)->toArray();
-
-        foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->current_handler_id = hashid_encode($value->current_handler_id);
-        }
-
-        return $data;
+            ->where('afe.flow_type_id',231)->where('afe.current_handler_type',245)->where('u.id',221)
+            ->select('afe.*', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get();
+        $arr = array();
+        $arr['data'] = $dataRole;
+        return $arr;
     }
 
     public function myThenApproval(Request $request)
@@ -299,12 +267,12 @@ class ApprovalFormController extends Controller
         $userId = $user->id;
         $executeInfo = DB::table('approval_flow_execute')->get()->toArray();
         $user = array();
-        foreach($executeInfo as $value){
-            if($value->current_handler_type == 245){
+        foreach ($executeInfo as $value) {
+            if ($value->current_handler_type == 245) {
                 $user[] = (int)$value->current_handler_id;
-            }else{
-                $roleInfo = RoleUser::where('user_id',$userId)->where('role_id',$value->current_handler_id)->get()->toArray();
-                foreach ($roleInfo as $rvalue){
+            } else {
+                $roleInfo = RoleUser::where('user_id', $userId)->where('role_id', $value->current_handler_id)->get()->toArray();
+                foreach ($roleInfo as $rvalue) {
                     $user[] = $rvalue['role_id'];
                 }
             }
@@ -392,16 +360,33 @@ class ApprovalFormController extends Controller
 
     public function getInstance(Request $request, $instance)
     {
+        $num = $instance->form_instance_number;
         $result = $this->response->item($instance, new ApprovalInstanceTransformer());
         $data = Control::where('form_id', $instance->form_id)->orderBy('sort_number')->get();
-        $resource = new Fractal\Resource\Collection($data, new ControlTransformer($instance->form_instance_number));
+        $resource = new Fractal\Resource\Collection($data, new ControlTransformer($num));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
 
+        // todo 申请人、知会人
+        $approval = [];
+
+        $approvalStart = Change::where('form_instance_number', $num)->where('change_state', 237)->first();
+        $user = User::where('id', $approvalStart->change_id)->first();
+        $department = $user->department()->first();
+
+        if ($department)
+            $approval = [
+                'name' => $user->name,
+                'department_name' => $user->department,
+                'created_at' => $approvalStart->change_at
+            ];
+
         $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $result->addMeta('approval', $approval);
 
         return $result;
     }
+
     // 获取group里的form_ids
     public function getForms(GetFormIdsRequest $request)
     {
@@ -496,11 +481,13 @@ class ApprovalFormController extends Controller
             }
 
             $this->instanceStoreInit($instance->form_id, $num, $user->id);
-
+        } catch (ApprovalVerifyException $exception) {
+            DB::rollBack();
+            return $this->response->errorBadRequest($exception->getMessage());
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
-            return $this->response->error('新建审批失败');
+            return $this->response->errorInternal('新建审批失败');
         }
 
         DB::commit();
@@ -606,14 +593,14 @@ class ApprovalFormController extends Controller
 
     private function instanceStoreInit($formId, $num, $userId)
     {
+        $executeInfo = ChainFixed::where('form_id', $formId)->get()->toArray();
+        if (count($executeInfo) <= 0)
+            throw new ApprovalVerifyException('审批流不存在');
+
         try {
-
-            $executeInfo = ChainFixed::where('form_id', $formId)->get()->toArray();
-
             $executeArray = [
                 'form_instance_number' => $num,
                 'current_handler_id' => $executeInfo[0]['next_id'],
-                // todo 角色处理
                 'current_handler_type' => $executeInfo[0]['approver_type'],
                 'flow_type_id' => DataDictionarie::FORM_STATE_DSP
             ];
@@ -626,7 +613,6 @@ class ApprovalFormController extends Controller
                 'change_state' => DataDictionarie::FIOW_TYPE_TJSP
             ];
             Change::create($changeArray);
-
         } catch (Exception $exception) {
             throw $exception;
         }

@@ -215,9 +215,10 @@ class ProjectController extends Controller
                     return $this->response->errorBadRequest('字段与项目类型匹配错误');
                 }
             }
-            if ($payload['trail'])
+            if (count($payload['trail']) > 0) {
                 $payload['trail_id'] = hashid_decode($payload['trail']['id']);
-            unset($payload['trail']['id']);
+                unset($payload['trail']['id']);
+            }
         }
 
         $user = Auth::guard('api')->user();

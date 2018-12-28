@@ -245,7 +245,7 @@ class ProjectController extends Controller
                     ]);
                     FieldHistorie::create([
                         'field_id' => hashid_decode((int)$key),
-                        'project_id' => $projectId,
+                        'project_id' => $projectHistorie->id,
                         'value' => $val,
                     ]);
                 }

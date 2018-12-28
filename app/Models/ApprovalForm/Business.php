@@ -24,7 +24,7 @@ class Business extends Model implements ApprovalInstanceInterface
         return $this->belongsTo(ApprovalForm::class, 'form_id', 'form_id');
     }
 
-    public function dictionary()
+    public function status()
     {
         return $this->belongsTo(DataDictionary::class, 'form_status', 'id');
     }

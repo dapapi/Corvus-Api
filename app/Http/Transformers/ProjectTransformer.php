@@ -44,7 +44,7 @@ class ProjectTransformer extends TransformerAbstract
 
             ];
             if ($business)
-                $array['approval_status'] = $business->dictionary->id;
+                $array['approval_status'] = $business->status->id;
 
             if ($count > 1)
                 $array['approval_begin'] = 1;

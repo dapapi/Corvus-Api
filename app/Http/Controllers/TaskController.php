@@ -1048,8 +1048,8 @@ class TaskController extends Controller
         try {
 
             $user = Auth::guard('api')->user();
-            $title = $user->name . "将你加入了项目";  //通知消息的标题
-            $subheading = $user->name . "将你加入了项目";
+            $title = $user->name . "邀请你参与任务";  //通知消息的标题
+            $subheading = $user->name . "邀请你参与任务";
             $module = Message::TASK;
             $link = URL::action("TaskController@show", ["task" => $task->id]);
             $data = [];

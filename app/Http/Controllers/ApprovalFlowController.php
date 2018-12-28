@@ -43,10 +43,10 @@ class ApprovalFlowController extends Controller
         $conditionId = null;
 
         try {
-            if ($changeType === 224 && $value) {
+            if ($changeType == 224 && $value) {
                 // 数值控件做条件的处理
                 $formControlId = Condition::where('form_id', $formId)->value('form_control_id');
-                $controlId = Control::find($formControlId)->control_id;
+                $controlId = Control::where('form_control_id', $formControlId)->first()->control_id;
                 if ($controlId == 83)
                     $value = $this->numberForCondition($formId, $value);
 
@@ -218,8 +218,9 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->verifyHandler($num, $userId);
-            list($nextId, $type) = $this->getChainNext($this->getInstance($num), $userId);
+            $currentHandlerId = $this->verifyHandler($num, $userId);
+            list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+
             $this->storeRecord($num, $userId, $now, 239, $comment);
 
             if ($nextId)
@@ -520,6 +521,8 @@ class ApprovalFlowController extends Controller
             if (is_null($role))
                 throw new ApprovalVerifyException('当前用户没权限进行该操作');
         }
+
+        return $now->current_handler_id;
     }
 
     private function getValuesForCondition($formControlIds, $num, $value = null)

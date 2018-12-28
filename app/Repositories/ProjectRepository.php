@@ -2,34 +2,40 @@
 
 namespace App\Repositories;
 
+use App\Models\OperateLog;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Trail;
 use App\Models\TrailStar;
+use App\ModuleableType;
+use App\OperateLogMethod;
 use Illuminate\Support\Facades\DB;
 
 class ProjectRepository
 {
     public static function getProjectBySatrId($star_id)
     {
-        $result =
-            (new Project())->setTable("p")->from("projects as p")
-            ->leftJoin('trails as t','t.id','=','p.trail_id')
-            ->leftJoin('trail_star as ts','ts.trail_id','=','t.id')
-            ->where('ts.star_id',$star_id)
-            ->where('ts.type',TrailStar::EXPECTATION)
-            ->get([
-                'p.title',
-                'p.principal_id',
-                DB::raw(//1:进行中 2:完成  3:终止 4:删除
-                    " case p.status
-                    when 1 then '进行中'
-                    when 2 then '完成'
-                    when 3 then '终止'
-                    when 4 then '删除'
-                    end 'status'"
-                ),
-                'p.created_at',
-            ]);
+        $result = (new Star())->setTable("s")->from("stars as s")
+            ->select(DB::raw('distinct p.*'))
+            ->leftJoin('contracts as c',function ($join)use ($star_id){
+                $join->on('c.stars','s.id')
+                    ->where('star_type',ModuleableType::STAR);
+            })->leftJoin('approval_form_business as afb',function ($join){
+                $join->on('afb.form_instance_number','c.form_instance_number')
+                    ->where('afb.form_status',302);//审批完成
+            })
+            ->leftJoin('projects as p',function ($join){
+                $join->on('p.id','c.project_id');
+            })
+            ->leftJoin('operate_logs as ol',function ($join){
+                $join->on('ol.logable_id','p.id')
+                    ->where('ol.logable_type',ModuleableType::STAR)
+
+                    ->where('ol.method',OperateLogMethod::FOLLOW_UP);
+            })
+            ->where('stars',$star_id)
+            ->orderBy('ol.created_at','desc')->limit(3)
+            ->get();
         return $result;
     }
 }

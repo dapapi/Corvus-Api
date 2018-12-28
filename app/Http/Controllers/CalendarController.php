@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Calendar\EditCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarRequest;
-use App\Http\Requests\Calendar\EditModelUserCalendarRequest;
+use App\Http\Requests\Calendar\StoreCalendarTaskRequest;
 use App\Http\Transformers\CalendarTransformer;
 use App\Models\Calendar;
 use App\ModuleableType;
@@ -78,7 +78,41 @@ class CalendarController extends Controller
         DB::commit();
         return $this->response->item($calendar, new CalendarTransformer());
     }
+    public function storeCalendarTask(StoreCalendarTaskRequest $request, Calendar $calendar)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        if ($request->has('star')) {
+            $payload['starable_id'] = hashid_decode($payload['star']);
 
+
+            //todo 暂时为硬编码
+            if ($user->company->name != '泰洋川禾') {
+                $payload['starable_type'] = ModuleableType::BLOGGER;//博主
+            } else {
+                $payload['starable_type'] = ModuleableType::STAR;//艺人
+            }
+        }
+
+        $payload['creator_id'] = $user->id;
+
+        DB::beginTransaction();
+        //todo 加参与人
+        try {
+            $calendar = Calendar::create($payload);
+            if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
+                $payload['participant_ids'] = [];
+
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $calendar, ModuleUserType::PARTICIPANT);
+
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+        return $this->response->item($calendar, new CalendarTransformer());
+    }
     public function edit(EditCalendarRequest $request, Calendar $calendar)
     {
         //todo 日历权限硬编码

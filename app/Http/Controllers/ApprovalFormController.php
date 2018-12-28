@@ -24,10 +24,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\DataDictionarie;
-use App\Models\DepartmentPrincipal;
-use App\Models\DepartmentUser;
 use App\User;
-use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\ProjectHistoriesTransformer;
 use App\Http\Transformers\TemplateFieldHistoriesTransformer;
 
@@ -37,8 +34,6 @@ use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalFlow\ChainFixed;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalForm\Participant;
-use App\Http\Transformers\TemplateFieldTransformer;
-use App\Models\TemplateField;
 
 
 use Illuminate\Support\Facades\Auth;

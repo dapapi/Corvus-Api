@@ -242,7 +242,7 @@ class ApprovalFormController extends Controller
             ->join('project_histories as ph', function ($join) {
                 $join->on('ph.project_number', '=','bu.form_instance_number');
             })
-            ->where('dp.user_id',18)
+            ->where('dp.user_id',$userId)
 
             ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
 

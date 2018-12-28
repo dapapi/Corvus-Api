@@ -68,8 +68,8 @@ class OperateLogEventListener
     protected $renewal = '更新';
     protected $transfer = '调岗';
     protected $refuse = '拒绝了';
-    protected $add_work = '添加作品 %s ';
-    protected $add_star_task = "添加任务 %s";
+    protected $add_work = '添加 %s 作品';
+    protected $add_star_task = "创建了关联资源 %s 任务";
 
     /**
      * Handle the event.

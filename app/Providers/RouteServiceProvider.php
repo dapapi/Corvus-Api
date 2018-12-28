@@ -504,6 +504,17 @@ class RouteServiceProvider extends ServiceProvider
             return $entity;
         });
 
+        Route::bind('historie', function ($value) {
+
+            try {
+                $id = hashid_decode($value);
+                $entity = ProjectHistorie::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
     }
 
     /**

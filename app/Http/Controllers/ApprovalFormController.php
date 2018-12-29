@@ -259,7 +259,7 @@ class ApprovalFormController extends Controller
                 $join->on('ph.project_number', '=','bu.form_instance_number');
             })
             ->where('dp.user_id',$userId)
-
+            ->whereIn('afe.flow_type_id',$payload['status'])
             ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
         $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
@@ -376,6 +376,7 @@ class ApprovalFormController extends Controller
     {
         $num = $instance->form_instance_number;
         $result = $this->response->item($instance, new ApprovalInstanceTransformer());
+
         $data = Control::where('form_id', $instance->form_id)->orderBy('sort_number')->get();
         $resource = new Fractal\Resource\Collection($data, new ControlTransformer($num));
         $manager = new Manager();
@@ -427,28 +428,28 @@ class ApprovalFormController extends Controller
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
 
-        $project = DB::table('project_histories as projects')
-            ->join('approval_form_business as bu', function ($join) {
-                $join->on('projects.project_number', '=', 'bu.form_instance_number');
-            })
-            ->join('users', function ($join) {
-                $join->on('projects.creator_id', '=', 'users.id');
-            })
-
-            ->leftjoin('position', function ($join) {
-                $join->on('position.id', '=', 'users.position_id');
-            })
-
-            ->join('department_user', function ($join) {
-                $join->on('department_user.user_id', '=', 'users.id');
-            })
-            ->join('departments', function ($join) {
-                $join->on('departments.id', '=', 'department_user.department_id');
-            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at','position.name as position_name')
-            ->where('projects.project_number', $project->project_number)->get();
+//        $project = DB::table('project_histories as projects')
+//            ->join('approval_form_business as bu', function ($join) {
+//                $join->on('projects.project_number', '=', 'bu.form_instance_number');
+//            })
+//            ->join('users', function ($join) {
+//                $join->on('projects.creator_id', '=', 'users.id');
+//            })
+//
+//            ->leftjoin('position', function ($join) {
+//                $join->on('position.id', '=', 'users.position_id');
+//            })
+//
+//            ->join('department_user', function ($join) {
+//                $join->on('department_user.user_id', '=', 'users.id');
+//            })
+//            ->join('departments', function ($join) {
+//                $join->on('departments.id', '=', 'department_user.department_id');
+//            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at','position.name as position_name')
+//            ->where('projects.project_number', $project->project_number)->get();
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $result->addMeta('approval', $project);
+        //$result->addMeta('approval', $project);
         $result->addMeta('participant', $participant);
 
         return $result;

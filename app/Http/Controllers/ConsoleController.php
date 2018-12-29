@@ -552,8 +552,23 @@ class ConsoleController extends Controller
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //获取用户角色
-        $role_ids = RoleUser::where('user_id',$userId)->select('role_id')->get();
+        $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
+
         (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
 
+    }
+    //返回用户有哪些模块的功能权限
+    public function getPowerModel()
+    {
+        $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
+        $result = RoleResource::leftJoin('data_dictionaries as dd',function ($join){
+            $join->on('dd.id','role_resources.resouce_id');
+        })->leftJoin('data_dictionaries as ddd','ddd.id','dd.parent_id')
+            ->select('ddd.*')
+            ->whereIn('role_id',$role_ids)->groupBy('ddd.id')->get()->toArray();
+
+        return $result;
     }
 }

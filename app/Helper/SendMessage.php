@@ -19,7 +19,7 @@ class SendMessage{
 
     }
 
-    public function login($authorization,$user_id,$username,$title,$subheading,$link,$data,$recives)
+    public function login($authorization,$user_id,$username,$title,$subheading,$link,$data,$recives=null)
     {
         $user = new User();
         $user->userId = $user_id;
@@ -37,7 +37,12 @@ class SendMessage{
         $message->to = implode(",",$recives);
         $message->link = $link;
         $message->message = $data;
-        $message->action = "sendmessage";
+        if($recives != null){
+            $message->action = "sendmessage";
+        }else{
+            $message->action = "broadcast";
+        }
+
         $this->websocket_client->send(json_encode($message));
     }
     public function recive(){

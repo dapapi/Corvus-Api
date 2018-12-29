@@ -29,7 +29,7 @@ class AffixRequest extends FormRequest
             'title' => 'required|max:255',
             'size' => 'required|numeric|min:0',
             'url' => 'required|max:500',
-            'type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO])],
+            'type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO,AffixType::STAR_PLAN,AffixType::INTRODUCE_ONESELF,AffixType::OTHER])],
         ];
     }
 }

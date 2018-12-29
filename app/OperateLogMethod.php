@@ -39,4 +39,7 @@ abstract class OperateLogMethod
     const REFUSE = 27;//拒绝
     const ADD_WORK = 28;//添加作品
     const ADD_STAR_TASK=29 ;//为艺人添加任务
+    const CREATE_SIGNING_CONTRACTS=30;//创建签约合同
+    const CREATE_RESCISSION_CONTRACTS = 31;//创建解约合同
+
 }

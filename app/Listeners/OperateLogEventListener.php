@@ -69,7 +69,8 @@ class OperateLogEventListener
     protected $transfer = '调岗';
     protected $refuse = '拒绝了';
     protected $add_work = '添加 %s 作品';
-    protected $add_star_task = "创建了关联资源 %s 任务";
+    protected $create_signing_contracts="%s 创建了签约合同";
+    protected $create_rescission_contracts = "%s 创建了解约合同";
 
     /**
      * Handle the event.
@@ -281,6 +282,15 @@ class OperateLogEventListener
                 case OperateLogMethod::ADD_STAR_TASK:
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->add_star_task,$title);
+                    break;
+                case OperateLogMethod::CREATE_SIGNING_CONTRACTS:
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->create_signing_contracts,$title);
+                    break;
+                case OperateLogMethod::CREATE_RESCISSION_CONTRACTS:
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->create_rescission_contracts,$title);
+                    break;
             }
 
             OperateLog::create([

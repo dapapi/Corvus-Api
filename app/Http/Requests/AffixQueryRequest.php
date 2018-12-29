@@ -26,7 +26,7 @@ class AffixQueryRequest extends FormRequest
     public function rules()
     {
         return [
-            'type' => Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO]),
+            'type' => Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO,AffixType::STAR_PLAN,AffixType::INTRODUCE_ONESELF,AffixType::OTHER]),
         ];
     }
 }

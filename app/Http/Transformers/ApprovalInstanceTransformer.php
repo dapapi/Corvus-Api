@@ -17,9 +17,9 @@ class ApprovalInstanceTransformer extends TransformerAbstract
         $arr['form_instance_number'] = $instance->form_instance_number;
 
         if ($count > 1)
-            $array['approval_begin'] = 1;
+            $arr['approval_begin'] = 1;
         else
-            $array['approval_begin'] = 0;
+            $arr['approval_begin'] = 0;
 
 
         if ($instance->status) {

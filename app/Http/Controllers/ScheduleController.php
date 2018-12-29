@@ -288,6 +288,7 @@ class ScheduleController extends Controller
                      }
 
                  }else if($payload['repeat'] == 1){
+
                      $timestamp = strtotime($end)-strtotime($eetime);
                      $onedaytimestamp = 60*60*24;
                      $sumtimestamp = ceil($timestamp/$onedaytimestamp);
@@ -435,6 +436,7 @@ class ScheduleController extends Controller
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $users = $this->getPowerUsers($schedule);
+
         $user = Auth::guard("api")->user();
         if(!in_array($user->id,$users)) {
             return $this->response->errorInternal("你没有编辑该日程的权限");
@@ -448,7 +450,7 @@ class ScheduleController extends Controller
                 return $this->response->errorBadRequest('日历id不存在');
             $participants = array_column($calendar->participants()->get()->toArray(),'id');
             if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
-                $this->response->errorInternal("你没有权限添加日程");
+                $this->response->errorInternal("你没有权限修改日程");
         }
         if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);

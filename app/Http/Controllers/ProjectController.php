@@ -201,7 +201,6 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request)
     {
-
         // todo 可能涉及筛选可选线索
         $payload = $request->all();
 
@@ -215,8 +214,11 @@ class ProjectController extends Controller
                     return $this->response->errorBadRequest('字段与项目类型匹配错误');
                 }
             }
-            $payload['trail_id'] = hashid_decode($payload['trail']['id']);
-            unset($payload['trail']['id']);
+            if (count($payload['trail']) > 0) {
+                $payload['trail_id'] = hashid_decode($payload['trail']['id']);
+                unset($payload['trail']['id']);
+            }
+            $payload['project_number'] = Project::getProjectNumber();
         }
 
         $user = Auth::guard('api')->user();
@@ -225,17 +227,16 @@ class ProjectController extends Controller
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         DB::beginTransaction();
-        $payload['project_number'] = Project::getProjectNumber();
 
         try {
             $project = Project::create($payload);
             $projectId = $project->id;
 
-            $projectHistorie = ProjectHistorie::create($payload);
-            $approvalForm = new ApprovalFormController();
-            $approvalForm->projectStore($payload['type'], $payload['notice'],$payload['project_number']);
 
             if ($payload['type'] != 5) {
+                $projectHistorie = ProjectHistorie::create($payload);
+                $approvalForm = new ApprovalFormController();
+                $approvalForm->projectStore($payload['type'], $payload['notice'], $payload['project_number']);
                 foreach ($payload['fields'] as $key => $val) {
                     FieldValue::create([
                         'field_id' => hashid_decode((int)$key),
@@ -244,7 +245,7 @@ class ProjectController extends Controller
                     ]);
                     FieldHistorie::create([
                         'field_id' => hashid_decode((int)$key),
-                        'project_id' => $projectId,
+                        'project_id' => $projectHistorie->id,
                         'value' => $val,
                     ]);
                 }
@@ -488,29 +489,29 @@ class ProjectController extends Controller
         }
         DB::commit();
         DB::beginTransaction();
-        try{
+        try {
 
             $user = Auth::guard('api')->user();
-            $title = $user->name."将你加入了项目";  //通知消息的标题
-            $subheading = $user->name."将你加入了项目";
+            $title = $user->name . "将你加入了项目";  //通知消息的标题
+            $subheading = $user->name . "将你加入了项目";
             $module = Message::PROJECT;
-            $link = URL::action("ProjectController@detail",["project"=>$project->id]);
+            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
             $data = [];
             $data[] = [
-                "title" =>  '项目名称', //通知消息中的消息内容标题
-                'value' =>  $project->title,  //通知消息内容对应的值
+                "title" => '项目名称', //通知消息中的消息内容标题
+                'value' => $project->title,  //通知消息内容对应的值
             ];
             $principal = User::findOrFail($project->principal_id);
             $data[] = [
-                'title' =>  '项目负责人',
-                'value' =>  $principal->name
+                'title' => '项目负责人',
+                'value' => $principal->name
             ];
             $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
             $authorization = $request->header()['authorization'][0];
 
-            (new MessageRepository())->addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$participant_ids);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
             DB::commit();
-        }catch (Exception $e){
+        } catch (Exception $e) {
             DB::rollBack();
         }
 
@@ -531,7 +532,7 @@ class ProjectController extends Controller
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-        if(isset($expendituresum)) {
+        if (isset($expendituresum)) {
             $result->addMeta('contractmoney', $contractmoney);
             $result->addMeta('expendituresum', $expendituresum->expendituresum);
         }
@@ -562,6 +563,7 @@ class ProjectController extends Controller
 
         return $this->response->item($project, new ProjectTransformer());
     }
+
     public function course(Request $request, Project $project)
     {
         $status = $request->get('status');
@@ -611,9 +613,9 @@ class ProjectController extends Controller
         DB::beginTransaction();
         try {
 
-               if(ProjectStatusLogs::where($array)->first() == true){
-                   return $this->response->errorForbidden('该状态已存在');
-               }
+            if (ProjectStatusLogs::where($array)->first() == true) {
+                return $this->response->errorForbidden('该状态已存在');
+            }
 
             $projects = ProjectStatusLogs::create($array);
 
@@ -625,12 +627,14 @@ class ProjectController extends Controller
         DB::commit();
         return $this->response->item($projects, new ProjectCourseTransformer());
     }
+
     public function allCourse(Request $request, Project $project)
     {
-        $projects = ProjectStatusLogs::where('logable_id',$project->id)->CreateDesc()->get();
+        $projects = ProjectStatusLogs::where('logable_id', $project->id)->CreateDesc()->get();
 
         return $this->response->collection($projects, new ProjectCourseTransformer());
     }
+
     public function changeStatus(Request $request, Project $project)
     {
         $status = $request->get('status');
@@ -653,7 +657,7 @@ class ProjectController extends Controller
                 break;
         }
 
-            $project->save();
+        $project->save();
 
 
         return $this->response->item($project, new ProjectTransformer());
@@ -760,21 +764,23 @@ class ProjectController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+
     public function getMoneType(Request $request)
     {
 
         $type = ProjectReturnedMoneyType::get();
         return $this->response->collection($type, new ProjectReturnedMoneyTypeTransformer());
     }
-    public function indexReturnedMoney(Request $request,Project $project)
+
+    public function indexReturnedMoney(Request $request, Project $project)
     {
         $contract_id = 22;
         $project_id = $project->id;
-        $project = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id,'p_id'=>0])->createDesc()->get();
+        $project = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id, 'p_id' => 0])->createDesc()->get();
         $contractReturnedMoney = 10000000000;
-        $alreadyReturnedMoney = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id])->wherein('project_returned_money_type_id',[1,2,3,4])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
-        $notReturnedMoney =  $contractReturnedMoney - $alreadyReturnedMoney->toArray()['alreadysum'];
-        $alreadyinvoice = ProjectReturnedMoney::where(['contract_id'=>$contract_id,'project_id'=>$project_id])->wherein('project_returned_money_type_id',[5,6])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
+        $alreadyReturnedMoney = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id])->wherein('project_returned_money_type_id', [1, 2, 3, 4])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
+        $notReturnedMoney = $contractReturnedMoney - $alreadyReturnedMoney->toArray()['alreadysum'];
+        $alreadyinvoice = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id])->wherein('project_returned_money_type_id', [5, 6])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
 
 
         $result = $this->response->collection($project, new ProjectReturnedMoneyTransformer());
@@ -786,7 +792,8 @@ class ProjectController extends Controller
 
         return $result;
     }
-    public function addReturnedMoney(ReturnedMoneyRequest $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)
+
+    public function addReturnedMoney(ReturnedMoneyRequest $request, Project $project, ProjectReturnedMoney $projectReturnedMoney)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -794,13 +801,13 @@ class ProjectController extends Controller
         $payload['creator_id'] = $user->id;
         $array = $payload;
         $array['project_id'] = $project->id;
-        if($request->has('principal_id')){
+        if ($request->has('principal_id')) {
             $array['principal_id'] = hashid_decode($payload['principal_id']);
         }
-        if($request->has('project_returned_money_type_id')){
+        if ($request->has('project_returned_money_type_id')) {
             $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
-        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>0])->count() + 1;
+        $array['issue_name'] = $projectReturnedMoney->where(['project_id' => $array['project_id'], 'principal_id' => $array['principal_id'], 'p_id' => 0])->count() + 1;
         DB::beginTransaction();
         try {
             $project = ProjectReturnedMoney::create($array);
@@ -822,37 +829,40 @@ class ProjectController extends Controller
         }
         DB::commit();
     }
-    public function showReturnedMoney(Request $request,ProjectReturnedMoney $projectReturnedMoney)
+
+    public function showReturnedMoney(Request $request, ProjectReturnedMoney $projectReturnedMoney)
     {
 
-         if($projectReturnedMoney->p_id == 0){
-        return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyTransformer());
-      }else{
+        if ($projectReturnedMoney->p_id == 0) {
+            return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyTransformer());
+        } else {
 
-        return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyShowTransformer());
-         }
+            return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyShowTransformer());
+        }
     }
-    public function editReturnedMoney(EditEeturnedMoneyRequest $request,ProjectReturnedMoney $projectReturnedMoney)
+
+    public function editReturnedMoney(EditEeturnedMoneyRequest $request, ProjectReturnedMoney $projectReturnedMoney)
     {
         $payload = $request->all();
         $array = $payload;
-        if($request->has('principal_id')){
+        if ($request->has('principal_id')) {
 
             $array['principal_id'] = hashid_decode($payload['principal_id']);
         }
-        if($request->has('project_returned_money_type_id')){
+        if ($request->has('project_returned_money_type_id')) {
             $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
-        try{
-                $projectReturnedMoney->update($array);
-             } catch (Exception $exception) {
+        try {
+            $projectReturnedMoney->update($array);
+        } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());
-            }
-            DB::commit();
+        }
+        DB::commit();
         return $this->response->accepted();
     }
+
     public function deleteReturnedMoney(ProjectReturnedMoney $projectReturnedMoney)
     {
 
@@ -868,7 +878,8 @@ class ProjectController extends Controller
         return $this->response->noContent();
 
     }
-    public function addProjectRecord(Request $request,Project $project,ProjectReturnedMoney $projectReturnedMoney)
+
+    public function addProjectRecord(Request $request, Project $project, ProjectReturnedMoney $projectReturnedMoney)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -877,13 +888,13 @@ class ProjectController extends Controller
         $array = $payload;
         $array['project_id'] = $project->id;
         $array['p_id'] = $projectReturnedMoney->id;
-        if($request->has('principal_id')){
+        if ($request->has('principal_id')) {
             $array['principal_id'] = hashid_decode($payload['principal_id']);
         }
-        if($request->has('project_returned_money_type_id')){
+        if ($request->has('project_returned_money_type_id')) {
             $array['project_returned_money_type_id'] = hashid_decode($payload['project_returned_money_type_id']);
         }
-        $array['issue_name'] = $projectReturnedMoney->where(['project_id'=> $array['project_id'],'principal_id'=>$array['principal_id'],'p_id'=>$projectReturnedMoney->id])->count() + 1;
+        $array['issue_name'] = $projectReturnedMoney->where(['project_id' => $array['project_id'], 'principal_id' => $array['principal_id'], 'p_id' => $projectReturnedMoney->id])->count() + 1;
         DB::beginTransaction();
         try {
             $project = ProjectReturnedMoney::create($array);

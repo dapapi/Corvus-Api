@@ -74,9 +74,10 @@ class Kernel extends HttpKernel
         'cors' => \Barryvdh\Cors\HandleCors::class,
 
         'export' => ExcelExportSetResponseHeader::class,
-        'datamanage'  =>  \App\Http\Middleware\DataAuth\DataManage::class,
-        'permissions' => \App\Http\Middleware\Permissions::class,
-        'dataview'  =>  \App\Http\Middleware\DataAuth\DataView::class
+//        'datamanage'  =>  \App\Http\Middleware\DataAuth\DataManage::class,
+//        'permissions' => \App\Http\Middleware\Permissions::class,
+//        'dataview'  =>  \App\Http\Middleware\DataAuth\DataView::class
+        'checkpower'    =>  \App\Http\Middleware\PowerMiddleWare::class
 
 
     ];

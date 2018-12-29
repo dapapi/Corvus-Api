@@ -35,7 +35,7 @@ class DataView
                 return $next($request);
 //                throw new NoRoleException("你访问的模块不存在");
             }
-            $resourceId = $resource->parent_id;
+            $resourceId = $resource->id;
             //检查访问模块是否受数据权限查看范围限制，只限制配置了查看范围的模块
             $res = RoleResourceView::where('resource_id',$resourceId)->first();
             if($res != null){

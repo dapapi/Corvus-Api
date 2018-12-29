@@ -16,6 +16,6 @@ class FieldHistorie extends Model
 
     public function field()
     {
-        return $this->belongsTo(TemplateField::class, 'field_id', 'id');
+        return $this->belongsTo(FieldHistorie::class, 'field_id', 'id');
     }
 }

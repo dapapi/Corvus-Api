@@ -2,7 +2,11 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\NoRoleException;
 use App\Models\DepartmentUser;
+use App\Models\RoleResource;
+use App\Models\RoleResourceManage;
+use App\Models\RoleResourceView;
 use App\Models\RoleUser;
 use App\Models\DataDictionarie;
 
@@ -202,24 +206,20 @@ class ScopeRepository
      * @param $role_id 角色数组
      * @param $user_id
      */
-    public function checkPower($request,$role_ids)
+    public function checkPower($uri,$method,$role_ids,$model=null)
     {
-        $path = request()->path();
-        $api = preg_replace('/\\d+/', '{id}', $path);
-        $method = request()->getMethod();
-        $uri = $request->route()->uri;
         //1.获取接口在数据字典中的id
-        $resource= DataDictionarie::where('val', '/'.$api)->where('code', $method)->first();
+        $resource= DataDictionarie::where('val', '/'.$uri)->where('code', $method)->first();//检查数据字典里是否配置了该权限，没有则放过该请求
         if($resource != null){//请求地址在数据字典不存在则不进行权限控制
-            $resource_id = $resource->id;
+            $model_id = $resource->parent_id;
             //2.检查功能权限
-            $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource_id)->get()->toArray();
+            $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource->id)->get()->toArray();
             if(empty($featureInfo)){//如果为空则表示没有权限
-                return false;
+                throw new NoRoleException("你没有访问{$resource->name}功能权限");
             }
             //如果是get请求则检查role_data_view表中是检查用户对该接口的权限
             if($method == "GET"){
-                $model_id = $resource->parent_id;//获取接口所在的模块
+
                 //检查访问模块是否在role_resource_view表中，只限制配置了查看范围的模块
                 $res = RoleResourceView::where('resource_id',$model_id)->first();
                 if($res != null){//检查访问模块是否在role_resource_view表中，则进行权限限制
@@ -228,20 +228,31 @@ class ScopeRepository
                     $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
                     if(count($viewSql) != 0){//没有对应模块的权限记录，则不进行权限控制
                         //如果接口中传进了模型，则对模型进行权限控制
-                        $preg = "/{[a-z]+}/";
-                        if(preg_match($preg,$uri,$model)){
-                            $model = $model[0];
-                            $model = trim($model,"{");
-                            $model = trim($model,"}");
-                            $model = $request->$model;
-                            $this->checkDataViewPower($model);//检查用户对数据权限
+                        if($model != null){
+
+                            if(!$this->checkDataViewPower($model)){//检查用户对数据权限
+                                throw new NoRoleException("你没有查看{$resource->name}的权限");
+                            }
                         }
+                    }else{
+                        throw new NoRoleException("你没有查看{$resource->name}的权限！");
                     }
 
                 }
             }
-            //如果method是post
-            if($method == "POST"){
+            //如果method不是get
+            if($method != "GET"){
+                $res = RoleResourceManage::where('resource_id',$model_id)->first();
+                //获取角色管理数据范围
+                $manageSql = RoleDataManage::whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
+                if(count($manageSql) == 0){//如果权限管理表中没有记录不进行权限控制
+                    throw new NoRoleException("你没有操作{$resource->name}的权限");
+                }
+                if($model != null){
+                    if(!$this->checkDataManagePower($model)){//检查用户对数据权限
+                        throw new NoRoleException("你没有操作{$resource->name}的权限！");
+                    }
+                }
 
             }
 
@@ -252,7 +263,44 @@ class ScopeRepository
     {
         $model = $model->searchData()->find($model->id);
         if($model == null){
-            throw new NoRoleException("你没有查看该数据的权限");
+            return false;
         }
+        return true;
     }
+    /**
+     * 检查数据权限
+     */
+    public function checkDataManagePower($model)
+    {
+        foreach ($this->manageSql as $value){
+            if($value['data_manage_id'] == 24){//我负责的
+                if($this->user_id == $model->principal_id) {
+                    return true;
+                }
+
+            }elseif($value['data_manage_id'] == 25){//我创建的
+                if($this->user_id == $model->creator_id){
+                    return true;
+                }
+
+            }elseif ($value['data_manage_id'] == 26){//我参与的
+                //获取该项目对应的参与人
+                $res = $model->participants()->get();
+                $participated_ids = array_column($res->toArray(),'id');
+                if(in_array($this->user_id,$participated_ids)) {
+                    return true;
+                }
+
+            }elseif($value['data_manage_id'] == 27){//27 我可见的
+                $arrUserId = (new ScopeRepository())->getUserIds($this->user_id,"/".$this->operation,\request()->method(),true);//获取有查看权限的用户
+                //$arrUserId为空数组表示全部数据可见，所以可以操作全部数据
+                if(($arrUserId != null && (in_array($this->user_id,$arrUserId)) || count($arrUserId) == 0)){
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+    //
 }

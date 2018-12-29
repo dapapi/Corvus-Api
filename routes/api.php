@@ -33,7 +33,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->get('/download', 'App\Http\Controllers\ExcelController@download');
-    $api->group(['middleware' => ['auth:api', 'bindings','permissions',"datamanage",'dataview']], function ($api) {
+    $api->group(['middleware' => ['auth:api', 'bindings','checkpower']], function ($api) {
 
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
@@ -557,7 +557,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // 审批
         //我申请
         $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
-        $api->get('/approvals_project/detail/{project_approve}','App\Http\Controllers\ApprovalFormController@detail');
         //我的审批 待审批
         $api->get('/approvals_project/approval','App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批
@@ -578,7 +577,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         // 获取审批实例
-        $api->get('/approval_instances/{instance}', 'App\Http\Controllers\ApprovalFormController@getInstance');
+        $api->get('/approval_instances/{instance}', 'App\Http\Controllers\ApprovalFormController@detail');
         // 合同和普通审批新建
         $api->post('/approvals/{approval}', 'App\Http\Controllers\ApprovalFormController@instanceStore');
         // 审批流

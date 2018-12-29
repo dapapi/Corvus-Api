@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AffixType;
 use App\Events\OperateLogEvent;
+use App\Models\Message;
 use App\Http\Requests\Task\AddRelateTaskRequest;
 use App\Http\Requests\Task\FilterTaskRequest;
 use App\Http\Requests\TaskCancelTimeRequest;
@@ -26,6 +27,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
+use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScopeRepository;
 use App\ResourceType;
@@ -38,6 +40,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 
 class TaskController extends Controller
@@ -369,6 +372,48 @@ class TaskController extends Controller
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('操作失败');
+        }
+        DB::commit();
+        //发送消息
+        DB::beginTransaction();
+        try {
+
+            $user = Auth::guard('api')->user();
+            $message = "";
+            switch ($status){
+                case TaskStatus::NORMAL:
+                    $message="任务状态转为正常";
+                    break;
+                case TaskStatus::COMPLETE:
+                    $message="任务完成";
+                    break;
+                case TaskStatus::TERMINATION:
+                    $message="任务终止";
+                    break;
+            }
+            $title = $user->name . $message;  //通知消息的标题
+            $subheading = $user->name . $message;
+            $module = Message::TASK;
+            $link = URL::action("TaskController@show", ["task" => $task->id]);
+            $data = [];
+            $data[] = [
+                "title" => '任务名称', //通知消息中的消息内容标题
+                'value' => $task->title,  //通知消息内容对应的值
+            ];
+            $principal = User::findOrFail($task->principal_id);
+            $data[] = [
+                'title' => '负责人',
+                'value' => $principal->name
+            ];
+
+            $recives = array_column($task->participants()->get()->toArray(),'name');
+            $recives[] = hashid_encode($task->creator_id);//创建人
+            $recives[] = hashid_encode($task->principal_id);//负责人
+            $authorization = $request->header()['authorization'][0];
+
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
+        }catch (Exception $e){
+
         }
         DB::commit();
         return $this->response->accepted();
@@ -981,6 +1026,17 @@ class TaskController extends Controller
                                 $star = Star::findOrFail($resourceableId);
                                 $array['resourceable_id'] = $star->id;
                                 $array['resourceable_type'] = ModuleableType::STAR;
+                                //操作日志
+                                $operate = new OperateEntity([
+                                    'obj' => $star,
+                                    'title' => $task->title,
+                                    'start' => null,
+                                    'end' => null,
+                                    'method' => OperateLogMethod::ADD_STAR_TASK,
+                                ]);
+                                event(new OperateLogEvent([
+                                    $operate,
+                                ]));
                                 break;
                             case ResourceType::PROJECT:
                                 $project = Project::findOrFail($resourceableId);
@@ -1028,6 +1084,35 @@ class TaskController extends Controller
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败!');
+        }
+        DB::commit();
+        DB::beginTransaction();
+        try {
+
+            $user = Auth::guard('api')->user();
+            $title = $user->name . "邀请你参与任务";  //通知消息的标题
+            $subheading = $user->name . "邀请你参与任务";
+            $module = Message::TASK;
+            $link = URL::action("TaskController@show", ["task" => $task->id]);
+            $data = [];
+            $data[] = [
+                "title" => '任务名称', //通知消息中的消息内容标题
+                'value' => $task->title,  //通知消息内容对应的值
+            ];
+            $principal = User::findOrFail($task->principal_id);
+            $data[] = [
+                'title' => '负责人',
+                'value' => $principal->name
+            ];
+
+            $recives = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;//参与人
+            $recives[] = hashid_encode($task->creator_id);//创建人
+            $recives[] = $payload['principal_id'];//负责人
+            $authorization = $request->header()['authorization'][0];
+
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
+        }catch (Exception $e){
+
         }
         DB::commit();
         return $this->response->item(Task::find($task->id), new TaskTransformer());

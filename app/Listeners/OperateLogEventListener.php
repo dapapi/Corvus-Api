@@ -68,6 +68,8 @@ class OperateLogEventListener
     protected $renewal = '更新';
     protected $transfer = '调岗';
     protected $refuse = '拒绝了';
+    protected $add_work = '添加 %s 作品';
+    protected $add_star_task = "创建了关联资源 %s 任务";
 
     /**
      * Handle the event.
@@ -272,6 +274,13 @@ class OperateLogEventListener
                     $level = OperateLogLevel::HIGH;
                     $content = $this->refuse. $typeName . '，' . $start;
                     break;
+                case OperateLogMethod::ADD_WORK://为艺人添加作品
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_work, $title);;
+                    break;
+                case OperateLogMethod::ADD_STAR_TASK:
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_star_task,$title);
             }
 
             OperateLog::create([

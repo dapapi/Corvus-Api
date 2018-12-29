@@ -17,9 +17,13 @@ use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
+use App\Models\Blogger;
+use App\Models\Contract;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Project;
+use App\Models\Star;
+use App\SignContractStatus;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -231,7 +235,7 @@ class ApprovalFlowController extends Controller
             if ($nextId)
                 $this->createOrUpdateHandler($num, $nextId, $type);
             else
-                $this->createOrUpdateHandler($num, $userId, $type,232);
+                $this->createOrUpdateHandler($num, $userId, $type, 232);
 
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
@@ -333,7 +337,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 245,234);
+            $this->createOrUpdateHandler($num, $userId, 245, 234);
 
             $project = Project::where('project_number', $num)->first();
             if ($project)
@@ -401,6 +405,7 @@ class ApprovalFlowController extends Controller
     {
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
+        // todo preId找不到时
         if (!$form)
             throw new Exception('form不存在');
 
@@ -442,8 +447,22 @@ class ApprovalFlowController extends Controller
 
     private function getTransferNextChain($instance, $dateTime)
     {
-        $lastRecord = Change::where('form_instance_number', $instance->form_instance_number)->where('change_at', '<', $dateTime)->orderBy('change_at', 'desc')->first();
-        $arr = $this->getChainNext($instance, $lastRecord->change_id);
+        $num = $instance->form_instance_number;
+        $count = Change::where('form_instance_number', $num)->where('change_state', '!=', 241)->count('form_instance_number');
+
+        $form = $instance->form;
+        if ($form->change_type == 223) {
+            $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
+        } else if ($form->change_type == 222) {
+            $preId = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->value('next_id');
+        } else if ($form->change_type == 224) {
+            $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
+            $value = $this->getValuesForCondition($formControlIds, $num);
+            $conditionId = $this->getCondition($instance->form_id, $value);
+            $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
+        }
+
+        $arr = $this->getChainNext($instance, $preId);
 
         return $arr;
     }
@@ -487,6 +506,7 @@ class ApprovalFlowController extends Controller
                 $instance = $this->getInstance($num);
                 $instance->form_status = $status;
                 $instance->save();
+                $this->changeRelateStatus($instance, $status);
             }
         } catch (Exception $exception) {
             throw $exception;
@@ -568,5 +588,27 @@ class ApprovalFlowController extends Controller
             return User::find($headerId);
         else
             return null;
+    }
+
+    private function changeRelateStatus($instance, $status)
+    {
+        $num = $instance->form_instance_number;
+        $contract = Contract::where('form_instance_number', $num)->first();
+        if (is_null($contract))
+            return null;
+
+        if ($contract->star_type && $status == 232) {
+            $starArr = explode(',', $contract->stars);
+            if (in_array($instance->form_id, [5, 7]))
+                DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
+
+            if (in_array($instance->form_id, [6, 8]))
+                DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT]);
+        }
+
+        if ($contract->project_id) {
+            if ($status != 232)
+                $contract->project->delete();
+        }
     }
 }

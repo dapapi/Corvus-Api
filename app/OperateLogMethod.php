@@ -37,4 +37,6 @@ abstract class OperateLogMethod
     const RENEWAL = 25;//更新
     const TRANSFER = 26;//调岗
     const REFUSE = 27;//拒绝
+    const ADD_WORK = 28;//添加作品
+    const ADD_STAR_TASK=29 ;//为艺人添加任务
 }

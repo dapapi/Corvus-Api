@@ -214,6 +214,13 @@ class ScheduleController extends Controller
                  if($payload['repeat'] == 0){
                      $schedule = Schedule::create($payload);
 
+                     if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                         $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                     }
+                     if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                         $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                     }
+
                  }else if($payload['repeat'] == 1){
                      $timestamp = strtotime($end)-strtotime($etime);
                      $onedaytimestamp = 60*60*24;
@@ -224,6 +231,13 @@ class ScheduleController extends Controller
                          $payload['start_at'] =   $start_time;
                          $payload['end_at'] =   $end_time;
                          $schedule = Schedule::create($payload);
+                         if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                         }
+                         if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                         }
+
                      }
                  }else if($payload['repeat'] == 2){
                      $timestamp = strtotime($end)-strtotime($etime);
@@ -235,6 +249,12 @@ class ScheduleController extends Controller
                          $payload['start_at'] =   $start_time;
                          $payload['end_at'] =   $end_time;
                          $schedule = Schedule::create($payload);
+                         if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                         }
+                         if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                         }
                      }
 
                  }else if($payload['repeat'] == 3){
@@ -247,6 +267,12 @@ class ScheduleController extends Controller
                          $payload['start_at'] =   $start_time;
                          $payload['end_at'] =   $end_time;
                          $schedule = Schedule::create($payload);
+                         if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                         }
+                         if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                         }
                      }
 
                  }
@@ -254,6 +280,12 @@ class ScheduleController extends Controller
                  if($payload['repeat'] == 0){
 
                      $schedule = Schedule::create($payload);
+                     if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                         $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                     }
+                     if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                         $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                     }
 
                  }else if($payload['repeat'] == 1){
                      $timestamp = strtotime($end)-strtotime($eetime);
@@ -265,6 +297,12 @@ class ScheduleController extends Controller
                          $payload['start_at'] =   $start_time;
                          $payload['end_at'] =   $end_time;
                          $schedule = Schedule::create($payload);
+                         if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                         }
+                         if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                         }
                      }
                  }else if($payload['repeat'] == 2){
                      $timestamp = strtotime($end)-strtotime($eetime);
@@ -276,6 +314,12 @@ class ScheduleController extends Controller
                          $payload['start_at'] =   $start_time;
                          $payload['end_at'] =   $end_time;
                          $schedule = Schedule::create($payload);
+                         if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                         }
+                         if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                         }
                      }
 
                  }else if($payload['repeat'] == 3){
@@ -288,6 +332,12 @@ class ScheduleController extends Controller
                          $payload['start_at'] =   $start_time;
                          $payload['end_at'] =   $end_time;
                          $schedule = Schedule::create($payload);
+                         if ($request->has('task_ids') && is_array($payload['task_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+                         }
+                         if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                         }
                      }
 
                  }
@@ -368,6 +418,18 @@ class ScheduleController extends Controller
         }
         $schedules = ScheduleRelate::where($array)->createDesc()->get();
         return $this->response->collection($schedules, new ScheduleRelateTransformer());
+
+    }
+    public function removeSchedulesTask(Request $request,Schedule $schedule)
+    {
+        $payload = $request->all();
+        $array['schedule_id'] = $schedule->id;
+        if($request->has('delete_id')){
+            $array[] = ['id',hashid_decode($payload['delete_id'])];
+            ScheduleRelate::where($array)->delete();
+        }
+
+
 
     }
     public function edit(EditScheduleRequest $request, Schedule $schedule)

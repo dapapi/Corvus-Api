@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
@@ -22,6 +23,7 @@ use App\Models\Contract;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Message;
+use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
 use App\OperateLogMethod;
@@ -324,8 +326,6 @@ class ApprovalFlowController extends Controller
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
-        $instance = $this->getInstance($num);
-
         list($nextId, $type) = $this->getChainNext($instance, 0);
 
         $currentStatus = Execute::where('form_instance_number', $num)->first();
@@ -343,9 +343,6 @@ class ApprovalFlowController extends Controller
 
             $this->createOrUpdateHandler($num, $userId, 245, 234);
 
-            $project = Project::where('project_number', $num)->first();
-            if ($project)
-                $project->delete();
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -662,7 +659,7 @@ class ApprovalFlowController extends Controller
                         $operate,
                     ]));
                 }catch (Exception $e){
-
+                    throw $e;
                 }
                 DB::commit();
             }
@@ -723,7 +720,7 @@ class ApprovalFlowController extends Controller
                         $operate,
                     ]));
                 }catch (Exception $e){
-
+                    throw $e;
                 }
                 DB::commit();
             }

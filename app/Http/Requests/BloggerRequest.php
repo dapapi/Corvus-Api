@@ -30,7 +30,11 @@ class BloggerRequest extends FormRequest
     public function rules()
     {
         return [
-            'nickname' => 'required|unique:bloggers|max:255',
+       //     'nickname' => 'required|unique:bloggers|max:255',
+            'nickname' => ['required',
+                            'unique:bloggers',
+                            'max:255'
+                            ],
             'platform_id'=> 'nullable', // 平台
             'type_id' => 'required|numeric',
             'communication_status' => Rule::in([
@@ -66,6 +70,11 @@ class BloggerRequest extends FormRequest
             'terminate_agreement_at' => 'date',//解约日期
             'sign_contract_other' => 'boolean',//是否签约其他公司
             'sign_contract_other_name' => 'max:255',//签约公司名称
+        ];
+    }
+    public function messages(){
+        return [
+           'nickname.unique' => '已存在'
         ];
     }
 }

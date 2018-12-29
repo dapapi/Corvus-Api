@@ -99,7 +99,7 @@ class ModuleUserRepository
         ];
 
 
-            $array['moduleable_type'] = ModuleableType::CALENDAR;
+            $array['moduleable_type'] = ModuleableType::SCHEDULE;
 
         //TODO 还有其他类型
         foreach ($particalendarsIds as $key => $value)

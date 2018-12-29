@@ -409,6 +409,7 @@ class ApprovalFlowController extends Controller
     {
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
+        // todo preId找不到时
         if (!$form)
             throw new Exception('form不存在');
 
@@ -450,8 +451,22 @@ class ApprovalFlowController extends Controller
 
     private function getTransferNextChain($instance, $dateTime)
     {
-        $lastRecord = Change::where('form_instance_number', $instance->form_instance_number)->where('change_at', '<', $dateTime)->orderBy('change_at', 'desc')->first();
-        $arr = $this->getChainNext($instance, $lastRecord->change_id);
+        $num = $instance->form_instance_number;
+        $count = Change::where('form_instance_number', $num)->where('change_state', '!=', 241)->count('form_instance_number');
+
+        $form = $instance->form;
+        if ($form->change_type == 223) {
+            $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
+        } else if ($form->change_type == 222) {
+            $preId = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->value('next_id');
+        } else if ($form->change_type == 224) {
+            $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
+            $value = $this->getValuesForCondition($formControlIds, $num);
+            $conditionId = $this->getCondition($instance->form_id, $value);
+            $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
+        }
+
+        $arr = $this->getChainNext($instance, $preId);
 
         return $arr;
     }
@@ -716,7 +731,7 @@ class ApprovalFlowController extends Controller
 
         if ($contract->project_id) {
             if ($status != 232)
-            $contract->project->delete();
+                $contract->project->delete();
         }
     }
 }

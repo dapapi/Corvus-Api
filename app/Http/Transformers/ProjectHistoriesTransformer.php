@@ -76,7 +76,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
 
         $array['name'] = $projectInfo[0]->name;
         $array['department_name']= $projectInfo[0]->department_name;
-        $array['project_number']= $projectInfo[0]->project_number;
+        $array['form_instance_number']= $projectInfo[0]->project_number;
         $array['form_status']= $projectInfo[0]->form_status;
         $array['created_at']= $projectInfo[0]->created_at;
         $array['position_name']= $projectInfo[0]->position_name;

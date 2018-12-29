@@ -243,17 +243,20 @@ class ScopeRepository
             //如果method不是get
             if($method != "GET"){
                 $res = RoleResourceManage::where('resource_id',$model_id)->first();
-                //获取角色管理数据范围
-                $manageSql = RoleDataManage::whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
-                if(count($manageSql) == 0){//如果权限管理表中没有记录不进行权限控制
-                    throw new NoRoleException("你没有操作{$resource->name}的权限");
-                }
-                if($model != null){
-                    $user = Auth::guard("api")->user();
-                    if(!$this->checkDataManagePower($user->id,$manageSql,$uri,$model)){//检查用户对数据权限
-                        throw new NoRoleException("你没有操作{$resource->name}的权限！");
+                if($res != null){ //数据管理权限列表中没有该模块权限放过
+                    //获取角色管理数据范围
+                    $manageSql = RoleDataManage::whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
+                    if(count($manageSql) == 0){//如果权限管理表中没有记录不进行权限控制
+                        throw new NoRoleException("你没有操作{$resource->name}的权限");
+                    }
+                    if($model != null){
+                        $user = Auth::guard("api")->user();
+                        if(!$this->checkDataManagePower($user->id,$manageSql,$uri,$model)){//检查用户对数据权限
+                            throw new NoRoleException("你没有操作{$resource->name}的权限！");
+                        }
                     }
                 }
+
 
             }
 

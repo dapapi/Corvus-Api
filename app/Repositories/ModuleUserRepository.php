@@ -107,7 +107,6 @@ class ModuleUserRepository
 
             $particalendarsIds[$key] = hashid_decode($value);
         }
-
         $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->wherein('moduleable_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
 
         foreach ($participantDeleteIds as $key => &$participantDeleteId) {
@@ -125,18 +124,20 @@ class ModuleUserRepository
         }
 
         $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
-
         foreach ($participantIds as $key => &$participantId) {
             try {
+
                 $participantId = hashid_decode($participantId);
                 $participantUser = User::findOrFail($participantId);
                 $array['user_id'] = $participantUser->id;
-                foreach ($particalendarsIds as $key => $value)
+                foreach ($participantId as $key => $value)
                 {
+
                     $array['moduleable_id'] = $value;
                     $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $value)->where('user_id', $participantUser->id)->where('type', $type)->first();
                     if (!$moduleUser) {//不存在则添加
                         ModuleUser::create($array);
+
                     } else {//存在则从列表中删除
                         array_splice($participantIds, $key, 1);
 //                    $participantDeleteIds[] = $participantId;

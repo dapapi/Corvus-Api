@@ -1023,25 +1023,29 @@ class TaskController extends Controller
                                 $array['resourceable_type'] = ModuleableType::BLOGGER;
                                 break;
                             case ResourceType::STAR:
+
                                 $star = Star::findOrFail($resourceableId);
                                 $array['resourceable_id'] = $star->id;
                                 $array['resourceable_type'] = ModuleableType::STAR;
                                 //操作日志
-                                $operate = new OperateEntity([
-                                    'obj' => $star,
-                                    'title' => $task->title,
-                                    'start' => null,
-                                    'end' => null,
-                                    'method' => OperateLogMethod::ADD_STAR_TASK,
-                                ]);
+//                                $operate = new OperateEntity([
+//                                    'obj' => $star,
+//                                    'title' => $task->title,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_STAR_TASK,
+//                                ]);
                                 event(new OperateLogEvent([
                                     $operate,
                                 ]));
+
                                 break;
                             case ResourceType::PROJECT:
                                 $project = Project::findOrFail($resourceableId);
+
                                 $array['resourceable_id'] = $project->id;
                                 $array['resourceable_type'] = ModuleableType::PROJECT;
+
                                 break;
                             case ResourceType::CLIENT:
                                 $client = Client::findOrFail($resourceableId);

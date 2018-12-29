@@ -125,7 +125,7 @@ class ModuleUserRepository
 
         $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
 
-        foreach ($participantIds as $key => &$participantId) {
+        foreach ($participantIds as $key => $participantId) {
             try {
 
                 $participantId = hashid_decode($participantId);
@@ -133,8 +133,8 @@ class ModuleUserRepository
                 $array['user_id'] = $participantUser->id;
                 foreach ($participantIds as $key => $value)
                 {
-                    $array['moduleable_id'] = $value;
-                    $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $value)->where('user_id', $participantUser->id)->where('type', $type)->first();
+                    $array['moduleable_id'] = $model->id;
+                    $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $model->id)->where('user_id', $participantUser->id)->where('type', $type)->first();
                     if (!$moduleUser) {//不存在则添加
                         ModuleUser::create($array);
 

@@ -30,7 +30,7 @@ class BloggerRequest extends FormRequest
     public function rules()
     {
         return [
-            'nickname' => 'required|unique|max:255',
+            'nickname' => 'required|unique:bloggers|max:255',
             'platform_id'=> 'nullable', // 平台
             'type_id' => 'required|numeric',
             'communication_status' => Rule::in([

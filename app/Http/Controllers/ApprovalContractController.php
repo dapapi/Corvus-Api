@@ -92,7 +92,7 @@ class ApprovalContractController extends Controller
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
         $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
         if ($payload['status'] == 1) {
             $payload['status'] = array('231');
@@ -108,7 +108,7 @@ class ApprovalContractController extends Controller
                 $join->on('ru.user_id', '=','u.id');
             })
             ->join('contracts as ph', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'ph.project_number');
+                $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
             })
             ->join('users as us', function ($join) {
                 $join->on('ph.creator_id', '=','us.id');
@@ -122,7 +122,7 @@ class ApprovalContractController extends Controller
             $join->on('afe.current_handler_id', '=','u.id');
         })
             ->join('contracts as ph', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'ph.project_number');
+                $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
             })
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
             ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get()->toArray();
@@ -145,7 +145,7 @@ class ApprovalContractController extends Controller
                 $join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type','=',246);
             })
             ->join('contracts as ph', function ($join) {
-                $join->on('ph.project_number', '=','bu.form_instance_number');
+                $join->on('ph.form_instance_number', '=','bu.form_instance_number');
             })
             ->where('dp.user_id',$userId)
 
@@ -153,9 +153,16 @@ class ApprovalContractController extends Controller
 
         $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
 
-        $arr = array();
-        $arr['data'] = $resArr;
+        $count = count($resArr);//总条数
+        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($resArr,$start,$pageSize);
 
+        $arr = array();
+        $arr['total'] = $count;
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = $count;
+        $arr['meta']['current_page'] = $count;
+        $arr['meta']['total_pages'] = ceil($count/20);
         foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);
         }

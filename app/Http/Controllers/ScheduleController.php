@@ -438,9 +438,9 @@ class ScheduleController extends Controller
         $users = $this->getPowerUsers($schedule);
 
         $user = Auth::guard("api")->user();
-//        if(!in_array($user->id,$users)) {
-//            return $this->response->errorInternal("你没有编辑该日程的权限");
-//        }
+        if(!in_array($user->id,$users)) {
+            return $this->response->errorInternal("你没有编辑该日程的权限");
+        }
         $payload = $request->all();
 
         if ($request->has('calendar_id')) {
@@ -467,7 +467,7 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule->update($payload);
-         $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
+     $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
 
         } catch (\Exception $exception) {
             Log::error($exception);
@@ -483,9 +483,9 @@ class ScheduleController extends Controller
     {
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
-//        if(!in_array($user->id,$users)) {
-//            return $this->response->accepted();
-//        }
+        if(!in_array($user->id,$users)) {
+            return $this->response->accepted();
+        }
         return $this->response->item($schedule, new ScheduleTransformer());
     }
 

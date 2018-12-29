@@ -599,13 +599,13 @@ class ApprovalFlowController extends Controller
 
                     $user = Auth::guard('api')->user();
 
-                    if($contract->star_type == "blogger"){
+                    if($contract->star_type == "bloggers"){
                         $model = Blogger::findOrFail($contract->stars);
                         $name = $model->nickname;
                         $link = URL::action("StarController@show",['star'=>$model->id]);
                         $module = Message::BLOGGER;
                     }
-                    if($contract->star_type=="star"){
+                    if($contract->star_type=="stars"){
                         $model = Star::findOrFail($contract->stars);
                         $name = $model->name;
                         $link = URL::action("BloggerController@show",['blogger'=>$model->id]);
@@ -614,7 +614,7 @@ class ApprovalFlowController extends Controller
                     $title = $name . "签约";  //通知消息的标题
                     $subheading = $name . "签约";
                     $data = [];
-                    if($contract->star_type == "blogger") {
+                    if($contract->star_type == "stars") {
                         $data[] = [
                             "title" => '艺人签约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
@@ -660,13 +660,13 @@ class ApprovalFlowController extends Controller
 
                     $user = Auth::guard('api')->user();
 
-                    if($contract->star_type == "blogger"){
+                    if($contract->star_type == "bloggers"){
                         $model = Blogger::findOrFail($contract->stars);
                         $name = $model->nickname;
                         $link = URL::action("StarController@show",['star'=>$model->id]);
                         $module = Message::BLOGGER;
                     }
-                    if($contract->star_type=="star"){
+                    if($contract->star_type=="stars"){
                         $model = Star::findOrFail($contract->stars);
                         $name = $model->name;
                         $link = URL::action("BloggerController@show",['blogger'=>$model->id]);
@@ -675,7 +675,7 @@ class ApprovalFlowController extends Controller
                     $title = $name . "解约";  //通知消息的标题
                     $subheading = $name . "解约";
                     $data = [];
-                    if($contract->star_type == "blogger") {
+                    if($contract->star_type == "stars") {
                         $data[] = [
                             "title" => '艺人解约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值

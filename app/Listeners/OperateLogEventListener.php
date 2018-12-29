@@ -282,9 +282,15 @@ class OperateLogEventListener
                 case OperateLogMethod::ADD_STAR_TASK:
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->add_star_task,$title);
+                    break;
                 case OperateLogMethod::CREATE_SIGNING_CONTRACTS:
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->create_signing_contracts,$title);
+                    break;
+                case OperateLogMethod::CREATE_RESCISSION_CONTRACTS:
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->create_rescission_contracts,$title);
+                    break;
             }
 
             OperateLog::create([

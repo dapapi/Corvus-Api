@@ -23,7 +23,7 @@ class ApprovalInstanceTransformer extends TransformerAbstract
 
 
         if ($instance->status) {
-            $arr['approval_status'] = $instance->status->id;
+            $arr['form_status'] = $instance->status->id;
             $arr['approval_status_name'] = $instance->status->name;
             $arr['approval_status_icon'] = $instance->status->icon;
         }

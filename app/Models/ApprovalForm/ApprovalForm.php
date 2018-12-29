@@ -6,9 +6,11 @@ use App\Models\ApprovalFlow\Condition;
 use App\Models\DataDictionary;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ApprovalForm extends Model
 {
+    use SoftDeletes;
     protected $table = 'approval_forms';
 
     protected $fillable = [

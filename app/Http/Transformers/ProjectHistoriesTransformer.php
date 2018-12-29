@@ -4,7 +4,7 @@ namespace App\Http\Transformers;
 
 use App\Models\ProjectHistorie;
 use App\Models\ApprovalFlow\Change;
-
+use Illuminate\Support\Facades\DB;
 use League\Fractal\TransformerAbstract;
 
 class ProjectHistoriesTransformer extends TransformerAbstract
@@ -21,6 +21,8 @@ class ProjectHistoriesTransformer extends TransformerAbstract
     public function transform(ProjectHistorie $project)
     {
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
+
+
 
         if ($this->isAll) {
             $array = [
@@ -51,6 +53,33 @@ class ProjectHistoriesTransformer extends TransformerAbstract
             $array['approval_begin'] = 1;
         else
             $array['approval_begin'] = 0;
+
+        $projectInfo = DB::table('project_histories as projects')
+            ->join('approval_form_business as bu', function ($join) {
+                $join->on('projects.project_number', '=', 'bu.form_instance_number');
+            })
+            ->join('users', function ($join) {
+                $join->on('projects.creator_id', '=', 'users.id');
+            })
+
+            ->leftjoin('position', function ($join) {
+                $join->on('position.id', '=', 'users.position_id');
+            })
+
+            ->join('department_user', function ($join) {
+                $join->on('department_user.user_id', '=', 'users.id');
+            })
+            ->join('departments', function ($join) {
+                $join->on('departments.id', '=', 'department_user.department_id');
+            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at','position.name as position_name')
+            ->where('projects.project_number', $project->project_number)->get()->toArray();
+
+        $array['name'] = $projectInfo[0]->name;
+        $array['department_name']= $projectInfo[0]->department_name;
+        $array['project_number']= $projectInfo[0]->project_number;
+        $array['form_status']= $projectInfo[0]->form_status;
+        $array['created_at']= $projectInfo[0]->created_at;
+        $array['position_name']= $projectInfo[0]->position_name;
 
         return $array;
     }

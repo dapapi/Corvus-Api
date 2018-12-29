@@ -89,49 +89,80 @@ class ApprovalContractController extends Controller
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-
         $userId = $user->id;
-        $executeInfo = DB::table('approval_flow_execute')->get()->toArray();
-        $user = array();
-        foreach($executeInfo as $value){
-            if($value->current_handler_type == 245){
-                $user[] = (int)$value->current_handler_id;
-            }else{
-                $roleInfo = RoleUser::where('user_id',$userId)->where('role_id',$value->current_handler_id)->get()->toArray();
-                foreach ($roleInfo as $rvalue){
-                    $user[] = $rvalue['role_id'];
-                }
-            }
-        }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $data = DB::table('approval_flow_execute as afe')//
 
-        ->join('approval_form_business as bu', function ($join) {
-            $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
-        })
-            ->join('users', function ($join) {
-                $join->on('afe.current_handler_id', '=', 'users.id');
-            })
-            ->join('contracts as cs', function ($join) {
-                $join->on('cs.form_instance_number', '=', 'bu.form_instance_number');
-            })
-            ->where(function ($query) use ($payload, $request) {
-                if ($request->has('keyword')) {
-                    $query->where('afe.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
-                }
-            })
-            ->whereIn('afe.current_handler_id', $user)
-            ->where('afe.flow_type_id', DataDictionarie::FORM_STATE_DSP)
-            ->select('afe.*', 'bu.*', 'users.name', 'cs.created_at', 'cs.id')
-            ->paginate($pageSize)->toArray();
 
-        foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->current_handler_id = hashid_encode($value->current_handler_id);
+        $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
+        if ($payload['status'] == 1) {
+            $payload['status'] = array('231');
+        } else {
+            $payload['status'] = array('232', '233', '234', '235');
         }
+        //查询角色
+        $dataRole = DB::table('approval_flow_execute as afe')//
+        ->join('role_users as ru', function ($join) {
+            $join->on('afe.current_handler_id', '=', 'ru.role_id');
+        })
+            ->join('users as u', function ($join) {
+                $join->on('ru.user_id', '=','u.id');
+            })
+            ->join('contracts as ph', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'ph.project_number');
+            })
+            ->join('users as us', function ($join) {
+                $join->on('ph.creator_id', '=','us.id');
+            })
+            ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
+            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
+        //->paginate($pageSize)->toArray();
+        //查询个人
+        $dataUser = DB::table('approval_flow_execute as afe')//
+        ->join('users as u', function ($join) {
+            $join->on('afe.current_handler_id', '=','u.id');
+        })
+            ->join('contracts as ph', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'ph.project_number');
+            })
+            ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
+            ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'ph.title', 'u.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
-        return $data;
+        //部门负责人
+        $dataPrincipal = DB::table('approval_flow_execute as afe')//
+        ->join('approval_form_business as bu', function ($join) {
+            $join->on('afe.form_instance_number', '=','bu.form_instance_number');
+        })
+            ->join('approval_flow_change as recode', function ($join) {
+                $join->on('afe.form_instance_number', '=','recode.form_instance_number')->where('recode.change_state','=',237);
+            })
+            ->join('users as creator', function ($join) {
+                $join->on('recode.change_id', '=','creator.id');
+            })
+            ->join('department_user as du', function ($join) {
+                $join->on('creator.id', '=', 'du.user_id');
+            })
+            ->join('department_principal as dp', function ($join) {
+                $join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type','=',246);
+            })
+            ->join('contracts as ph', function ($join) {
+                $join->on('ph.project_number', '=','bu.form_instance_number');
+            })
+            ->where('dp.user_id',$userId)
+
+            ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
+
+        $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
+
+        $arr = array();
+        $arr['data'] = $resArr;
+
+        foreach ($arr['data'] as $key => &$value) {
+            $value->id = hashid_encode($value->id);
+        }
+        return $arr;
     }
+
+
 
     public function myThenApproval(Request $request)
     {
@@ -183,7 +214,7 @@ class ApprovalContractController extends Controller
 
         return $data;
     }
-
+    // todo 角色判断
     public function notify(Request $request)
     {
 
@@ -217,7 +248,7 @@ class ApprovalContractController extends Controller
             })
             ->where('afp.notice_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
-            ->select('cs.id', 'afp.*', 'bu.*', 'users.name', 'cs.created_at')
+            ->select('cs.id', 'afp.*','cs.title', 'bu.*', 'users.name', 'cs.created_at')
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key => &$value) {

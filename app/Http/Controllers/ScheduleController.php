@@ -422,8 +422,7 @@ class ScheduleController extends Controller
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
         if(!in_array($user->id,$users)) {
-            $schedule = $schedule->select('id','title','is_allday', 'start_at', 'end_at', 'material_id','calendar_id', 'creator_id')->first();
-            return $this->response->item($schedule, new ScheduleTransformer());
+            return $this->response->accepted();
         }
         return $this->response->item($schedule, new ScheduleTransformer());
     }

@@ -249,7 +249,8 @@ class ScopeRepository
                     throw new NoRoleException("你没有操作{$resource->name}的权限");
                 }
                 if($model != null){
-                    if(!$this->checkDataManagePower($model)){//检查用户对数据权限
+                    $user = Auth::guard("api")->user();
+                    if(!$this->checkDataManagePower($user->id,$manageSql,$uri,$model)){//检查用户对数据权限
                         throw new NoRoleException("你没有操作{$resource->name}的权限！");
                     }
                 }
@@ -270,16 +271,16 @@ class ScopeRepository
     /**
      * 检查数据权限
      */
-    public function checkDataManagePower($model)
+    public function checkDataManagePower($user_id,$manageSql,$uri,$model)
     {
-        foreach ($this->manageSql as $value){
+        foreach ($manageSql as $value){
             if($value['data_manage_id'] == 24){//我负责的
-                if($this->user_id == $model->principal_id) {
+                if($user_id == $model->principal_id) {
                     return true;
                 }
 
             }elseif($value['data_manage_id'] == 25){//我创建的
-                if($this->user_id == $model->creator_id){
+                if($user_id == $model->creator_id){
                     return true;
                 }
 
@@ -287,14 +288,14 @@ class ScopeRepository
                 //获取该项目对应的参与人
                 $res = $model->participants()->get();
                 $participated_ids = array_column($res->toArray(),'id');
-                if(in_array($this->user_id,$participated_ids)) {
+                if(in_array($user_id,$participated_ids)) {
                     return true;
                 }
 
             }elseif($value['data_manage_id'] == 27){//27 我可见的
-                $arrUserId = (new ScopeRepository())->getUserIds($this->user_id,"/".$this->operation,\request()->method(),true);//获取有查看权限的用户
+                $arrUserId = (new ScopeRepository())->getUserIds($user_id,"/".$uri,\request()->method(),true);//获取有查看权限的用户
                 //$arrUserId为空数组表示全部数据可见，所以可以操作全部数据
-                if(($arrUserId != null && (in_array($this->user_id,$arrUserId)) || count($arrUserId) == 0)){
+                if(($arrUserId != null && (in_array($user_id,$arrUserId)) || count($arrUserId) == 0)){
                     return true;
                 }
 

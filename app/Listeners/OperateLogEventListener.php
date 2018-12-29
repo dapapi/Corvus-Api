@@ -181,6 +181,8 @@ class OperateLogEventListener
                         $content = sprintf($this->setting_field, $title, $end);
                     } else if ($start && $end) {
                         $content = sprintf($this->update_field, $title, $start, $end);
+                    } else if ($start && !$end){
+                        $content = sprintf($this->update_field, $title, $start,$end);
                     }
                     break;
                 case OperateLogMethod::DELETE://删除

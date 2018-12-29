@@ -80,33 +80,6 @@ class CalendarController extends Controller
         DB::commit();
         return $this->response->item($calendar, new CalendarTransformer());
     }
-    public function storeCalendarTask(StoreCalendarTaskRequest $request, Calendar $calendar)
-    {
-        $payload = $request->all();
-        if ($calendar && $calendar->id) {
-            $array['resourceable_id'] = $calendar->id;
-            $array['resourceable_title'] = $calendar->nickname;
-            $array['resourceable_type'] = 'blogger';
-
-        }
-
-        DB::beginTransaction();
-        //todo 加参与人
-        try {
-            $calendar = Calendar::create($payload);
-            if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
-                $payload['participant_ids'] = [];
-
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $calendar, ModuleUserType::PARTICIPANT);
-
-        } catch (Exception $exception) {
-            Log::error($exception);
-            DB::rollBack();
-            return $this->response->errorInternal('创建失败');
-        }
-        DB::commit();
-        return $this->response->item($calendar, new CalendarTransformer());
-    }
     public function edit(EditCalendarRequest $request, Calendar $calendar)
     {
         //todo 日历权限硬编码

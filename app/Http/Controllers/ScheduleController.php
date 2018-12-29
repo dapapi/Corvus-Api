@@ -6,9 +6,12 @@ use App\AffixType;
 use App\Http\Requests\Schedule\EditScheduleRequest;
 use App\Http\Requests\Schedule\IndexScheduleRequest;
 use App\Http\Requests\Schedule\StoreScheduleRequest;
+use App\Http\Requests\Schedule\StoreScheduleTaskRequest;
 use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
+use App\Http\Transformers\ScheduleRelateTransformer;
 use App\Models\Calendar;
+use App\Models\ScheduleRelate;
 use App\Models\Material;
 use App\Models\Module;
 use App\Models\ProjectResource;
@@ -17,6 +20,7 @@ use App\Models\TaskResource;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\Repositories\AffixRepository;
+use App\Repositories\ScheduleRelatesRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScheduleRepository;
 use Dingo\Api\Http\Request;
@@ -29,14 +33,17 @@ class ScheduleController extends Controller
     protected $moduleUserRepository;
     protected $affixRepository;
 
-    public function __construct(ModuleUserRepository $moduleUserRepository, AffixRepository $affixRepository)
+    public function __construct(ModuleUserRepository $moduleUserRepository, AffixRepository $affixRepository,ScheduleRelatesRepository $scheduleRelatesRepository)
     {
         $this->moduleUserRepository = $moduleUserRepository;
         $this->affixRepository = $affixRepository;
+        $this->scheduleRelatesRepository = $scheduleRelatesRepository;
+
     }
 
     public function index(IndexScheduleRequest $request)
     {
+
         $payload = $request->all();
         $user = Auth::guard("api")->user();
 
@@ -122,17 +129,18 @@ class ScheduleController extends Controller
             //2.1会议室先关的日程（不管是否参与人可见）
 
         /*--------------开始----------------------*/
-
         if ($request->has('calendar_ids')) {
             foreach ($payload['calendar_ids'] as &$id) {
                 $id = hashid_decode($id);
             }
+
             unset($id);
             //日程仅参与人可见
             $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
                 $join->on('mu.moduleable_id','s.id')
                     ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'");
             })->select('mu.user_id')->whereRaw("s.id=schedules.id");
+
             $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery){
                 $query->where(function ($query)use ($payload){
                     $query->where('privacy',Schedule::OPEN);
@@ -171,7 +179,6 @@ class ScheduleController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
-
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
         $calendar = Calendar::find($payload['calendar_id']);
@@ -329,7 +336,40 @@ class ScheduleController extends Controller
 
         return $this->response->item($schedule, new ScheduleTransformer());
     }
+    public function storeSchedulesTask(StoreScheduleTaskRequest $request,Schedule $schedule)
+    {
+        $payload = $request->all();
 
+
+            DB::beginTransaction();
+        try {
+
+            if ($request->has('task_ids') && is_array($payload['task_ids'])){
+              $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+            }
+            if ($request->has('project_ids') && is_array($payload['project_ids'])){
+                $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
+        DB::commit();
+        return $this->response->accepted();
+
+    }
+    public function indexSchedulesTask(Request $request,Schedule $schedule)
+    {
+        $payload = $request->all();
+        $array['schedule_id'] = $schedule->id;
+        if($request->has('type')){//姓名
+            $array[] = ['moduleable_type',$payload['type']];
+        }
+        $schedules = ScheduleRelate::where($array)->createDesc()->get();
+        return $this->response->collection($schedules, new ScheduleRelateTransformer());
+
+    }
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $users = $this->getPowerUsers($schedule);
@@ -348,7 +388,6 @@ class ScheduleController extends Controller
             if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
                 $this->response->errorInternal("你没有权限添加日程");
         }
-
         if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);
             $material = Material::find($payload['material_id']);

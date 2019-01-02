@@ -92,7 +92,7 @@ class DepartmentController extends Controller
         DB::beginTransaction();
         try {
 //            $contact = $department->update($departmentArr);
-            $num = DB::table("department_principal")->where('department_id',$departmentId)->where('user_id',$payload['user_id'])->delete();
+            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
 
 //            $num = DB::table('department_user')
 //                ->where('department_id',$departmentId)

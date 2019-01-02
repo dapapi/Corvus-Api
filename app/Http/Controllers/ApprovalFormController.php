@@ -10,6 +10,7 @@ use App\Http\Transformers\ApprovalFormTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
 use App\Http\Transformers\ControlTransformer;
 use App\Interfaces\ApprovalInstanceInterface;
+use App\Models\ApprovalFlow\Condition;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Http\Transformers\FormControlTransformer;
 use App\Models\ApprovalForm\Control;
@@ -668,17 +669,33 @@ class ApprovalFormController extends Controller
         return DataDictionary::where('name', $value)->whereIn('parent_id', [136, 177])->value('code');
     }
 
+    // todo debug 分支存储不对
     private function instanceStoreInit($formId, $num, $userId)
     {
-        $executeInfo = ChainFixed::where('form_id', $formId)->get()->toArray();
-        if (count($executeInfo) <= 0)
+        $form = ApprovalForm::where('form_id', $formId)->first();
+        if ($form->change_type == 224) {
+            // 分支流程去找对应value
+            $controlIds = Condition::where('form_id', $formId)->value('form_control_id');
+            $controlIdArr = explode(',', $controlIds);
+            $valueArr = [];
+            foreach ($controlIdArr as $controlId) {
+                $valueArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
+            }
+            $values = implode(',', $valueArr);
+            $conditionId = Condition::where('form_id', $formId)->where('condition', $values)->value('form_condition_id');
+        } else {
+            $conditionId = null;
+        }
+
+        $executeInfo = ChainFixed::where('form_id', $formId)->where('condition_id', $conditionId)->orderBy('sort_number')->first();
+        if (is_null($executeInfo))
             throw new ApprovalVerifyException('审批流不存在');
 
         try {
             $executeArray = [
                 'form_instance_number' => $num,
-                'current_handler_id' => $executeInfo[0]['next_id'],
-                'current_handler_type' => $executeInfo[0]['approver_type'],
+                'current_handler_id' => $executeInfo->next_id,
+                'current_handler_type' => $executeInfo->approver_type,
                 'flow_type_id' => DataDictionarie::FORM_STATE_DSP
             ];
 

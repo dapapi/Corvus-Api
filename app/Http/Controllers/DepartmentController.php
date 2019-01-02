@@ -53,9 +53,9 @@ class DepartmentController extends Controller
             $array = [
                 "department_id"=>$id,
                 "user_id"=>hashid_decode($payload['user_id']),
-                "type"=>Department::DEPARTMENT_HEAD_TYPE,
+
             ];
-            $depar = DepartmentUser::create($array);
+            $depar = DepartmentPrincipal::create($array);
             // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $department,

@@ -30,7 +30,6 @@ class DepartmentController extends Controller
     public function index(Request $request)
     {
 
-
         $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
@@ -230,12 +229,18 @@ class DepartmentController extends Controller
 //                    ->where('department_id',$departmentId)
 //                    ->where('type','!=',1)
 //                    ->update(['department_id'=>1]);
+                foreach ($payload['user'] as $key=>$value){
+                    $userId = hashid_decode($value);
+                    $snum = DB::table('department_user')
+                        ->where('department_id',$departmentId)
+                        ->update(['department_id'=>1]);
+                }
 
                 foreach ($payload['user'] as $key=>$value){
                     $userId = hashid_decode($value);
                     $snum = DB::table('department_user')
                         ->where('user_id',$userId)
-                        ->update(['department_id'=>$departmentId]);
+                        ->update(['department_id'=>$departmentId,'type'=>0]);
                 }
 
                 // 操作日志

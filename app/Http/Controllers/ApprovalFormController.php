@@ -203,7 +203,7 @@ class ApprovalFormController extends Controller
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
         $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
         if ($payload['status'] == 1) {
             $payload['status'] = array('231');
@@ -264,8 +264,17 @@ class ApprovalFormController extends Controller
 
         $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
 
+        $count = count($resArr);//总条数
+        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($resArr,$start,$pageSize);
+
+
         $arr = array();
-        $arr['data'] = $resArr;
+
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = $count;
+        $arr['meta']['current_page'] = $payload['page'];
+        $arr['meta']['total_pages'] = ceil($count/20);
 
         foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);
@@ -445,7 +454,7 @@ class ApprovalFormController extends Controller
             })
             ->join('departments', function ($join) {
                 $join->on('departments.id', '=', 'department_user.department_id');
-            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at','position.name as position')
+            })->select('users.name', 'departments.name as department_name', 'projects.project_number as form_instance_number', 'bu.form_status', 'projects.created_at','position.name as position')
             ->where('projects.project_number', $project->project_number)->get();
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());

@@ -420,7 +420,7 @@ class ApprovalFlowController extends Controller
         } else if ($changeType == 223) {
             // 自由流程
             $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->first();
-        } else if ($changeType === 224) {
+        } else if ($changeType == 224) {
             // 分支流程
             $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
             $value = $this->getValuesForCondition($formControlIds, $num);

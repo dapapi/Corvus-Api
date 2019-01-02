@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DepartmentPrincipal extends Model
 {
+    public $timestamps = false;
     protected $table = 'department_principal';
     protected $fillable = [
         'department_id',

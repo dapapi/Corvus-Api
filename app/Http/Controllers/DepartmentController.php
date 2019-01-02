@@ -8,6 +8,8 @@ use App\Http\Transformers\PositionTransformer;
 
 
 use App\Models\Department;
+use App\Models\DepartmentPrincipal;
+
 use App\Models\Position;
 use App\Models\DepartmentUser;
 use App\Models\OperateEntity;
@@ -27,6 +29,8 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
+
+
         $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
@@ -77,7 +81,6 @@ class DepartmentController extends Controller
     public function edit(DepartmentRequest $departmentrequest,Department $department,User $user,DepartmentUser $departmentUser)
     {
         $payload = $departmentrequest->all();
-
         $departmentId = $department->id;
         $userId = hashid_decode($payload['user_id']);
         $departmentArr = [
@@ -89,23 +92,23 @@ class DepartmentController extends Controller
         DB::beginTransaction();
         try {
 //            $contact = $department->update($departmentArr);
-//            //$num = DB::table("department_user")->where('department_id',$departmentId)->where('type',1)->delete();
+            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
 
-            $num = DB::table('department_user')
-                ->where('department_id',$departmentId)
-                ->where('type',1)
-                ->update(['type'=>0]);
+//            $num = DB::table('department_user')
+//                ->where('department_id',$departmentId)
+//                ->where('type',1)
+//                ->update(['type'=>0]);
+//
+//            $num = DB::table('department_user')
+//                ->where('user_id',hashid_decode($payload['user_id']))
+//                ->update(['type'=>1]);
+            $array = [
+                "department_id"=>$departmentId,
+                "user_id"=>hashid_decode($payload['user_id']),
 
-            $num = DB::table('department_user')
-                ->where('user_id',hashid_decode($payload['user_id']))
-                ->update(['type'=>1]);
-////            $array = [
-////                "department_id"=>$departmentId,
-////                "user_id"=>hashid_decode($payload['user_id']),
-////                "type"=>Department::DEPARTMENT_HEAD_TYPE,
-////            ];
-////
-////            $depar = DepartmentUser::create($array);
+            ];
+
+            $depar = DepartmentPrincipal::create($array);
 //            // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $department,
@@ -223,17 +226,16 @@ class DepartmentController extends Controller
         try {
             if(!empty($payload['user'])){
 
-                $num = DB::table('department_user')
-                    ->where('department_id',$departmentId)
-                    ->where('type','!=',1)
-                    ->update(['department_id'=>1]);
+//                $num = DB::table('department_user')
+//                    ->where('department_id',$departmentId)
+//                    ->where('type','!=',1)
+//                    ->update(['department_id'=>1]);
 
                 foreach ($payload['user'] as $key=>$value){
                     $userId = hashid_decode($value);
                     $snum = DB::table('department_user')
                         ->where('user_id',$userId)
                         ->update(['department_id'=>$departmentId]);
-
                 }
 
                 // 操作日志
@@ -523,5 +525,10 @@ class DepartmentController extends Controller
     }
 
 
+    public function directorList(Request $request)
+    {
+        $positions = Position::get();
+        return $this->response->collection($positions, new positionTransformer());
+    }
 
 }

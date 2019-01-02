@@ -228,12 +228,10 @@ class DepartmentController extends Controller
         $departmentPid = $department->department_pid;
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
-        $users = isset($payload['user']) ? $payload['user'] : 1;
-
         DB::beginTransaction();
         try {
 
-            if($users != 1){
+            if($payload['user'][0] != null){
 
 //                $num = DB::table('department_user')
 //                    ->where('department_id',$departmentId)
@@ -266,6 +264,7 @@ class DepartmentController extends Controller
                 ]));
 
             }else{
+
                 //return $this->response->errorInternal('用户id错误');
                 $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
                 foreach ($depatments as $key=>$value){

@@ -122,8 +122,8 @@ class ModuleUserController extends Controller
 
         DB::beginTransaction();
         try {
-            $result = $this->moduleUserRepository->addModuleUser($participantIds,$particalendarsIds, $model, $type);
 
+            $result = $this->moduleUserRepository->addModuleUsersAll($participantIds,$particalendarsIds, $model, $type);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

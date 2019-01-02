@@ -50,7 +50,6 @@ class Schedule extends Model
     {
         return $this->morphMany(Affix::class, 'affixable');
     }
-
     public function material()
     {
         return $this->belongsTo(Material::class);
@@ -61,4 +60,9 @@ class Schedule extends Model
         return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PARTICIPANT);
     }
 
+    public function schedulerelate()
+    {
+
+        return $this->hasMany(ScheduleRelate::class);
+    }
 }

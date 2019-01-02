@@ -143,9 +143,9 @@ class ApprovalFlowController extends Controller
         }
 
         $now = Execute::where('form_instance_number', $num)->first();
-        if ($now->flow_type_id != 231)
+        if ($now->flow_type_id == 232)
             return $this->response->array(['data' => $array]);
-        else {
+        else if ($now->flow_type_id == 231) {
             $person = $now->person;
             // todo 把主管换成人
             if ($now->current_handler_type == 246) {
@@ -163,6 +163,8 @@ class ApprovalFlowController extends Controller
                 ],
                 'approval_stage' => 'doing'
             ];
+        } else {
+
         }
 
         list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);

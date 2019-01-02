@@ -20,6 +20,7 @@ class ProjectTransformer extends TransformerAbstract
 
     public function transform(Project $project)
     {
+
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
         if ($this->isAll) {

@@ -442,7 +442,6 @@ class ScheduleController extends Controller
             return $this->response->errorInternal("你没有编辑该日程的权限");
         }
         $payload = $request->all();
-
         if ($request->has('calendar_id')) {
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
             $calendar = Calendar::find($payload['calendar_id']);
@@ -467,8 +466,7 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule->update($payload);
-     $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
-
+       $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();

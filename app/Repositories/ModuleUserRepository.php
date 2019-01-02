@@ -97,9 +97,13 @@ class ModuleUserRepository
         $array = [
             'type' => $type,
         ];
-
-
+        if ($model instanceof Schedule && $model->id) {
             $array['moduleable_type'] = ModuleableType::SCHEDULE;
+        } else if ($model instanceof Calendar && $model->id) {
+            $array['moduleable_type'] = ModuleableType::CALENDAR;
+        }
+
+
 
         //TODO 还有其他类型
         foreach ($particalendarsIds as $key => $value)
@@ -122,13 +126,12 @@ class ModuleUserRepository
                 array_splice($participantDeleteIds, $key, 1);
             }
         }
-
         $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
-
         foreach ($participantIds as $key => $participantId) {
             try {
 
                 $participantId = hashid_decode($participantId);
+
                 $participantUser = User::findOrFail($participantId);
                 $array['user_id'] = $participantUser->id;
                 foreach ($participantIds as $key => $value)
@@ -154,6 +157,68 @@ class ModuleUserRepository
         //返回添加成功或者删除成功的参与人和宣传人
         return [$participantIds, $participantDeleteIds];
     }
+    public function addModuleUsersAll($participantIds, $particalendarsIds, $model, $type)
+{
+    $array = [
+        'type' => $type,
+    ];
+
+
+    $array['moduleable_type'] = ModuleableType::SCHEDULE;
+
+    //TODO 还有其他类型
+    foreach ($particalendarsIds as $key => $value)
+    {
+
+        $particalendarsIds[$key] = hashid_decode($value);
+    }
+
+    $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->wherein('moduleable_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
+    foreach ($participantDeleteIds as $key => &$participantDeleteId) {
+        try {
+
+            $moduleUser = ModuleUser::where($participantDeleteId)->first();
+            if ($moduleUser) {//数据存在则从数据库中删除
+                $moduleUser->delete();
+            } else {//不存在则将ID从要删除的参与人或者宣传人列表中删除
+                array_splice($participantDeleteIds, $key, 1);
+            }
+        } catch (Exception $e) {
+            array_splice($participantDeleteIds, $key, 1);
+        }
+    }
+    $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
+
+    foreach ($participantIds as $key => &$participantId) {
+
+        try {
+            $participantId = hashid_decode($participantId);
+            $participantUser = User::findOrFail($participantId);
+            $array['user_id'] = $participantUser->id;
+            foreach ($particalendarsIds as $key => $value)
+            {
+                $array['moduleable_id'] =$value;
+                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $value)->where('user_id', $participantUser->id)->where('type', $type)->first();
+                if (!$moduleUser) {//不存在则添加
+
+                    ModuleUser::create($array);
+
+                } else {//存在则从列表中删除
+                    array_splice($participantIds, $key, 1);
+//                    $participantDeleteIds[] = $participantId;
+//                    //要求一个接口可以完成添加人和删除人,已经存在的删除
+//                    $moduleUser->delete();
+                }
+            }
+
+
+        } catch (Exception $e) {
+            array_splice($participantIds, $key, 1);
+        }
+    }
+    //返回添加成功或者删除成功的参与人和宣传人
+    return [$participantIds, $participantDeleteIds];
+}
     public function addModuleUsers($person_ids, $del_person_ids, $moduleable_ids,$moduleable_type, $type)
     {
         $del_module_person = [];

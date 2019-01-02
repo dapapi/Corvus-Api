@@ -107,8 +107,8 @@ class CalendarController extends Controller
             $payload['participant_del_ids'] = [];
         try {
             $calendar->update($payload);
-
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
+
         } catch (Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('修改日历失败');

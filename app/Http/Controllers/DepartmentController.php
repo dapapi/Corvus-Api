@@ -81,7 +81,6 @@ class DepartmentController extends Controller
     public function edit(DepartmentRequest $departmentrequest,Department $department,User $user,DepartmentUser $departmentUser)
     {
         $payload = $departmentrequest->all();
-
         $departmentId = $department->id;
         $userId = hashid_decode($payload['user_id']);
         $departmentArr = [

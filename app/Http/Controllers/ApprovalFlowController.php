@@ -166,13 +166,13 @@ class ApprovalFlowController extends Controller
         }
 
         list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);
-        if ($nextId === 0)
+        if ($nextId == 0)
             return $this->response->array(['data' => $array]);
 
         $form = $instance->form;
         $formId = $instance->form_id;
         $condition = null;
-        if ($form->change_type === 224) {
+        if ($form->change_type == 224) {
             // todo 拼value
             $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
             $value = $this->getValuesForCondition($formControlId, $num);
@@ -186,7 +186,7 @@ class ApprovalFlowController extends Controller
             ->where('sort_number', '>=', $nextChain->sort_number)
             ->orderBy('sort_number')
             ->get();
-        if ($form->change_type === 223) {
+        if ($form->change_type == 223) {
             $nextChain = ChainFree::where('next_id', $nextId)->where('form_id', $formId)->first();
             $chains = ChainFree::where('form_number', $num)
                 ->where('next_id', '!=', 0)
@@ -434,7 +434,7 @@ class ApprovalFlowController extends Controller
 
             return $this->getTransferNextChain($instance, $now);
         }
-        if ($chain->next_id === 0)
+        if ($chain->next_id == 0)
             return [0, 245];
 
         $next = $chain->next;

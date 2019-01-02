@@ -451,7 +451,7 @@ class ApprovalFlowController extends Controller
     private function getTransferNextChain($instance, $dateTime)
     {
         $num = $instance->form_instance_number;
-        $count = Change::where('form_instance_number', $num)->where('change_state', '!=', 241)->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
 
         $form = $instance->form;
         if ($form->change_type == 223) {

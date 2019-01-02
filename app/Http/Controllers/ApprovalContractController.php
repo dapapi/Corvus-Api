@@ -122,7 +122,8 @@ class ApprovalContractController extends Controller
             })
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
             ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','afis.form_control_value as title','us.name', 'ph.created_at')->get()->toArray();
-        //->paginate($pageSize)->toArray();
+
+       
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//
             ->join('users as u', function ($join) {
@@ -132,11 +133,15 @@ class ApprovalContractController extends Controller
                 $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
             })
 
+            ->join('users as us', function ($join) {
+                $join->on('ph.creator_id', '=', 'us.id');
+            })
+
             ->join('approval_form_instance_values as afis', function ($join) {
                 $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
             })
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
-            ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'afis.form_control_value as title', 'u.name', 'ph.created_at', 'ph.id')->get()->toArray();
+            ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
         //部门负责人
         $dataPrincipal = DB::table('approval_flow_execute as afe')//
@@ -179,6 +184,7 @@ class ApprovalContractController extends Controller
         $arr['meta']['pagination'] = $count;
         $arr['meta']['current_page'] = $count;
         $arr['meta']['total_pages'] = ceil($count/20);
+
         foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);
         }

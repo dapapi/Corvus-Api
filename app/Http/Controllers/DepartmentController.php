@@ -178,6 +178,8 @@ class DepartmentController extends Controller
 
             $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
 
+            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
+
             foreach ($depatments as $value){
                 $snum = DB::table('department_user')
                     ->where('user_id',$value['user_id'])

@@ -97,9 +97,13 @@ class ModuleUserRepository
         $array = [
             'type' => $type,
         ];
-
-
+        if ($model instanceof Schedule && $model->id) {
             $array['moduleable_type'] = ModuleableType::SCHEDULE;
+        } else if ($model instanceof Calendar && $model->id) {
+            $array['moduleable_type'] = ModuleableType::CALENDAR;
+        }
+
+
 
         //TODO 还有其他类型
         foreach ($particalendarsIds as $key => $value)
@@ -122,13 +126,12 @@ class ModuleUserRepository
                 array_splice($participantDeleteIds, $key, 1);
             }
         }
-
         $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
-
         foreach ($participantIds as $key => $participantId) {
             try {
 
                 $participantId = hashid_decode($participantId);
+
                 $participantUser = User::findOrFail($participantId);
                 $array['user_id'] = $participantUser->id;
                 foreach ($participantIds as $key => $value)

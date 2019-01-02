@@ -6,7 +6,7 @@ use App\Models\Department;
 use App\User;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\DepartmentPrincipal;
 
 class UserTransformer extends TransformerAbstract
 {
@@ -58,17 +58,20 @@ class UserTransformer extends TransformerAbstract
             'jobs'=> $user->jobs,//'岗位',
             'number'=> $user->number,//'工号',
             'work_email'=> $user->work_email,//'工作邮箱',
-            'is_department_principal' => $user->is_department_principal,
             'disable'=>$user->disable,
             'entry_status'=>$user->entry_status,
 
-
         ];
-
 
         if ($user->company) {
             $array['company'] = $user->company->name;
             $array['company_id'] = hashid_encode($user->company->id);
+        }
+        $principalInfo = DB::table('department_principal')->where('department_principal.user_id', $user->id)->count();
+        if ($principalInfo) {
+            $array['is_department_principal'] = 1;
+        }else{
+            $array['is_department_principal'] = 0;
         }
 
         return $array;

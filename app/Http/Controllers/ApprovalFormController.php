@@ -682,7 +682,7 @@ class ApprovalFormController extends Controller
                 $valueArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
             }
             $values = implode(',', $valueArr);
-            $conditionId = Condition::where('form_id', $formId)->where('condition', $values)->value('form_condition_id');
+            $conditionId = Condition::where('form_id', $formId)->where('condition', $values)->value('flow_condition_id');
         } else {
             $conditionId = null;
         }

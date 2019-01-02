@@ -172,16 +172,28 @@ class DepartmentController extends Controller
         $departmentId = $department->id;
         $departmentPid = $department->department_pid;
 
-        $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
+       // $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
 
         try {
-            if(empty($depatments)){
-                $num = DB::table("departments")->where('id',$departmentId)->delete();
-                return $this->response->noContent();
-            }else{
-                return $this->response->errorInternal('该部门有下级部门或部门下有成员');
 
+            $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
+
+            foreach ($depatments as $value){
+                $snum = DB::table('department_user')
+                    ->where('user_id',$value['user_id'])
+                    ->update(['department_id'=>1]);
             }
+            $num = DB::table("departments")->where('id',$departmentId)->delete();
+
+
+//            if(empty($depatments)){
+//
+//                $num = DB::table("departments")->where('id',$departmentId)->delete();
+//                return $this->response->noContent();
+//            }else{
+//                return $this->response->errorInternal('该部门有下级部门或部门下有成员');
+//
+//            }
         } catch (Exception $e) {
 
             return $this->response->errorInternal('删除失败');
@@ -212,18 +224,16 @@ class DepartmentController extends Controller
     public function selectStore(Request $request,Department $department,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
-
         $departmentId = $department->id;
-
         $departmentPid = $department->department_pid;
-
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
-
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
+        $users = isset($payload['user']) ? $payload['user'] : 1;
 
         DB::beginTransaction();
         try {
-            if(!empty($payload['user'])){
+
+            if($users != 1){
 
 //                $num = DB::table('department_user')
 //                    ->where('department_id',$departmentId)
@@ -256,7 +266,13 @@ class DepartmentController extends Controller
                 ]));
 
             }else{
-                return $this->response->errorInternal('用户id错误');
+                //return $this->response->errorInternal('用户id错误');
+                $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
+                foreach ($depatments as $key=>$value){
+                    $snum = DB::table('department_user')
+                        ->where('user_id',$value['user_id'])
+                        ->update(['department_id'=>1]);
+                }
             }
 
         } catch (Exception $e) {

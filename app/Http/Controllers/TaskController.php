@@ -992,7 +992,9 @@ class TaskController extends Controller
 
         DB::beginTransaction();
         try {
+
             $task = Task::create($payload);
+
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $task,
@@ -1006,6 +1008,7 @@ class TaskController extends Controller
             ]));
 
             if (!$pTask->id) {//子任务不能关联资源
+
                 //关联资源
                 if ($request->has('resource_type') && $request->has('resourceable_id')) {
                     $resourceType = $payload['resource_type'];
@@ -1035,9 +1038,9 @@ class TaskController extends Controller
 //                                    'end' => null,
 //                                    'method' => OperateLogMethod::ADD_STAR_TASK,
 //                                ]);
-                                event(new OperateLogEvent([
-                                    $operate,
-                                ]));
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
 
                                 break;
                             case ResourceType::PROJECT:
@@ -1082,6 +1085,7 @@ class TaskController extends Controller
 
             //添加参与人
             if ($request->has('participant_ids')) {
+
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
             }
         } catch (Exception $e) {

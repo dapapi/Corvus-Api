@@ -8,6 +8,7 @@ use App\Http\Transformers\JobTransformer;
 use App\Events\OperateLogEvent;
 
 use App\Models\Department;
+use App\Models\Training;
 use Carbon\Carbon;
 use App\User;
 use App\Models\Record;
@@ -186,6 +187,19 @@ class PersonnelManageController extends Controller
                         'contact_phone' => $value['contact_phone'],
                     ];
                     $familyInfo = FamilyData::create($familyData);
+                }
+            }
+            //添加培训经历
+            if(!empty($payload['training'])) {
+                foreach ($payload['training'] as $key => $value) {
+                    $familyData = [
+                        'user_id' => $userid,
+                        'course_name' => $value['course_name'],
+                        'certificate' => $value['certificate'],
+                        'address' => $value['address'],
+                        'trained_time' => $value['trained_time'],
+                    ];
+                    $trainingInfo = Training::create($familyData);
                 }
             }
             //添加个人特长
@@ -397,40 +411,18 @@ class PersonnelManageController extends Controller
     }
 
     //修改user
-    public function editUser(Request $request, User $user,DepartmentUser $departmentUser)
+    public function editUser(Request $request, User $user)
     {
         $payload = $request->all();
-
         $userid = $user->id;
-        $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
 
         try {
-//            $operate = new OperateEntity([
-//                    'obj' => $user,
-//                    'title' => '个人',
-//                    'start' => '信息',
-//                    'end' => '档案',
-//                    'method' => OperateLogMethod::UPDATE,
-//                ]);
-//                event(new OperateLogEvent([
-//                    $operate,
-//                ]));
 
-            $array = [
-                'department_id' => $payload['department_id'],
-                'user_id' => $userid,
-            ];
+            $num = DB::table('department_user')
+                ->where('user_id',$userid)
+                ->where('type',0)
+                ->update(['department_id'=>$payload['department_id']]);
 
-            if($data == 0){
-                $departmentUser->create($array);
-            }else{
-                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
-                    ->where('user_id', $userid)
-                    ->first();
-                $departmentInfo->delete();
-                $departmentUser->create($array);
-
-            }
             $user->update($payload);
         } catch (\Exception $exception) {
             Log::error($exception);

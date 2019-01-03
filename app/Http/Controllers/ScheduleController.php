@@ -527,12 +527,17 @@ class ScheduleController extends Controller
         $users[] = $schedule->creator_id;
         //参与者
         $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
-        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
+        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除,
         if($schedule->privacy == Schedule::OPEN){
+
             $calendar = Calendar::find($schedule->calendar_id);
             if($calendar != null){
                 $users[] = $calendar->creator_id;
                 $users = array_merge($users,array_column($calendar->participants()->get()->toArray(),'id'));
+                if($calendar->privacy == Calendar::OPEN){
+                    //当前客户可以修改
+                    $users[] = Auth::guard("api")->user()->id;
+                }
             }
         }
         return $users;

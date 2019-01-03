@@ -92,12 +92,14 @@ class ApprovalContractController extends Controller
     {
 
         $payload = $request->all();
+
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
         $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
+        $payload['keyword'] = isset($payload['keyword']) ? $payload['keyword'] : '';
         if ($payload['status'] == 1) {
             $payload['status'] = array('231');
         } else {
@@ -120,10 +122,10 @@ class ApprovalContractController extends Controller
             ->join('approval_form_instance_values as afis', function ($join) {
                 $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
             })
+            ->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
             ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','afis.form_control_value as title','us.name', 'ph.created_at')->get()->toArray();
 
-       
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//
             ->join('users as u', function ($join) {
@@ -140,6 +142,8 @@ class ApprovalContractController extends Controller
             ->join('approval_form_instance_values as afis', function ($join) {
                 $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
             })
+            ->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
+
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
             ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
@@ -168,6 +172,7 @@ class ApprovalContractController extends Controller
                 $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
             })
 
+            ->where('afe.form_instance_number',$payload['keyword'])->orwhere('creator.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('ph.title', 'LIKE', '%' . $payload['keyword'] . '%')
             ->where('dp.user_id',$userId)
             ->whereIn('afe.flow_type_id',$payload['status'])
             ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();

@@ -11,8 +11,10 @@ class ApprovalInstanceTransformer extends TransformerAbstract
     public function transform(ApprovalInstanceInterface $instance)
     {
         $count = Change::where('form_instance_number', $instance->form_instance_number)->count('form_instance_number');
-        if ($instance->form)
+        if ($instance->form) {
             $arr['title'] = $instance->form->name;
+            $arr['form_id'] = hashid_encode($instance->form->form_id);
+        }
 
         $arr['form_instance_number'] = $instance->form_instance_number;
 

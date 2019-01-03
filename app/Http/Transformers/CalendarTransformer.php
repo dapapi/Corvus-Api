@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 
 class CalendarTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['starable', 'participants'];
+    protected $availableIncludes = ['starable', 'participants','schdule'];
 
     public function transform(Calendar $calendar)
     {
@@ -43,6 +43,11 @@ class CalendarTransformer extends TransformerAbstract
 
         $participants = $calendar->participants;
         return $this->collection($participants, new UserTransformer());
+    }
+    public function includeSchdule(Calendar $calendar)
+    {
+        $schdules = $calendar->schedules()->get();
+        return $this->collection($schdules,new ScheduleTransformer());
     }
 
 }

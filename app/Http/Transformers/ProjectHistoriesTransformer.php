@@ -20,9 +20,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
 
     public function transform(ProjectHistorie $project)
     {
-        $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
-
-
+        $count = Change::where('form_instance_number', $project->project_number)->get();
 
         if ($this->isAll) {
             $array = [

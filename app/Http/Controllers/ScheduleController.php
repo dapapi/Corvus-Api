@@ -447,9 +447,6 @@ class ScheduleController extends Controller
             $calendar = Calendar::find($payload['calendar_id']);
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
-            $participants = array_column($calendar->participants()->get()->toArray(),'id');
-            if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
-                $this->response->errorInternal("你没有权限修改日程");
         }
         if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);

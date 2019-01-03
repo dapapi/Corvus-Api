@@ -155,6 +155,7 @@ class ScheduleController extends Controller
             })->mergeBindings($subquery)
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
                 ->get();
+
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
         if ($request->has('material_ids')) {

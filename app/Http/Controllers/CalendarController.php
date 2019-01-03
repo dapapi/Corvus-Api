@@ -50,12 +50,16 @@ class CalendarController extends Controller
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
 
-
             //todo 暂时为硬编码
             if ($user->company->name != '泰洋川禾') {
                 $payload['starable_type'] = ModuleableType::BLOGGER;//博主
             } else {
                 $payload['starable_type'] = ModuleableType::STAR;//艺人
+            }
+            //判断艺人是否已经关联日历
+            $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('starable_id',$payload['starable_id'])->get()->toArray();
+            if(count($calendars) > 1){
+                return $this->response->errorInternal("艺人已经关联项目");
             }
         }
 

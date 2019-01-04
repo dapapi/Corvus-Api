@@ -44,6 +44,7 @@ class ApprovalContractController extends Controller
 
     public function myApply(Request $request)
     {
+
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
@@ -63,7 +64,7 @@ class ApprovalContractController extends Controller
             ->join('users', function ($join) {
                 $join->on('cs.creator_id', '=', 'users.id');
             })
-            ->join('approval_form_instance_values as afis', function ($join) {
+            ->leftjoin('approval_form_instance_values as afis', function ($join) {
                 $join->on('afis.form_instance_number', '=', 'cs.form_instance_number')->where('form_control_id',43);
             })
 

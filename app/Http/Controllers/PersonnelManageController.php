@@ -605,6 +605,8 @@ class PersonnelManageController extends Controller
         $now = Carbon::now();
         $userid = $user->id;
 
+        $department = DepartmentUser::where('user_id',$userid)->get()->toArray();
+        if(empty($department)){
         if($status == 3){
             $array = [
                 'entry_status' => $payload['entry_status'],
@@ -614,7 +616,6 @@ class PersonnelManageController extends Controller
                 'department_id' => User::USER_DEPARTMENT_DEFAULT,
                 'user_id' => $userid,
             ];
-
             DepartmentUser::create($departmentarray);
         }else{
             $array = [
@@ -639,6 +640,10 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         return $this->response->accepted();
+
+        }else{
+            return $this->response->errorInternal('该用户已存在部门');
+        }
     }
 
     //获取用户门户

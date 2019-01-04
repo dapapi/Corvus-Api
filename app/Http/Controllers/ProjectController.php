@@ -379,11 +379,9 @@ class ProjectController extends Controller
 
             $project->update($payload);
             $projectId = $project->id;
-
             $trail = $project->trail;
 
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
-
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
                     $fieldId = hashid_decode((int)$key);

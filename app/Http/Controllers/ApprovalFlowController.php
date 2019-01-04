@@ -143,9 +143,9 @@ class ApprovalFlowController extends Controller
         }
 
         $now = Execute::where('form_instance_number', $num)->first();
-        if ($now->flow_type_id != 231)
+        if ($now->flow_type_id == 232)
             return $this->response->array(['data' => $array]);
-        else {
+        else if ($now->flow_type_id == 231) {
             $person = $now->person;
             // todo 把主管换成人
             if ($now->current_handler_type == 246) {
@@ -163,16 +163,18 @@ class ApprovalFlowController extends Controller
                 ],
                 'approval_stage' => 'doing'
             ];
+        } else {
+
         }
 
         list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);
-        if ($nextId === 0)
+        if ($nextId == 0)
             return $this->response->array(['data' => $array]);
 
         $form = $instance->form;
         $formId = $instance->form_id;
         $condition = null;
-        if ($form->change_type === 224) {
+        if ($form->change_type == 224) {
             // todo 拼value
             $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
             $value = $this->getValuesForCondition($formControlId, $num);
@@ -186,7 +188,7 @@ class ApprovalFlowController extends Controller
             ->where('sort_number', '>=', $nextChain->sort_number)
             ->orderBy('sort_number')
             ->get();
-        if ($form->change_type === 223) {
+        if ($form->change_type == 223) {
             $nextChain = ChainFree::where('next_id', $nextId)->where('form_id', $formId)->first();
             $chains = ChainFree::where('form_number', $num)
                 ->where('next_id', '!=', 0)
@@ -434,7 +436,7 @@ class ApprovalFlowController extends Controller
 
             return $this->getTransferNextChain($instance, $now);
         }
-        if ($chain->next_id === 0)
+        if ($chain->next_id == 0)
             return [0, 245];
 
         $next = $chain->next;
@@ -449,7 +451,7 @@ class ApprovalFlowController extends Controller
     private function getTransferNextChain($instance, $dateTime)
     {
         $num = $instance->form_instance_number;
-        $count = Change::where('form_instance_number', $num)->where('change_state', '!=', 241)->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
 
         $form = $instance->form;
         if ($form->change_type == 223) {

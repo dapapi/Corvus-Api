@@ -571,4 +571,20 @@ class ConsoleController extends Controller
 
         return $result;
     }
+
+    public function directorList(Request $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $data = DB::table('department_principal as dp')
+            ->join('users', function ($join) {
+                $join->on('users.id', '=','dp.user_id');
+            })
+            ->groupBy('users.id')
+            ->select('users.name','users.phone','users.email')
+            ->paginate($pageSize)->toArray();
+
+        return $data;
+    }
 }

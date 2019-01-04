@@ -44,5 +44,8 @@ class Calendar extends Model
     {
         return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PARTICIPANT);
     }
-
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class,'calendar_id');
+    }
 }

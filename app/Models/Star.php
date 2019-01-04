@@ -124,5 +124,8 @@ class Star extends Model
     {
         return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PUBLICITY);
     }
-
+    public function calendars()
+    {
+        return $this->morphOne(Calendar::class,'starable');
+    }
 }

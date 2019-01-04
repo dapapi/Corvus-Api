@@ -30,7 +30,6 @@ class DepartmentController extends Controller
     public function index(Request $request)
     {
 
-
         $depatments = Department::where('department_pid', 0)->get();
         return $this->response->collection($depatments, new DepartmentTransformer());
     }
@@ -54,9 +53,9 @@ class DepartmentController extends Controller
             $array = [
                 "department_id"=>$id,
                 "user_id"=>hashid_decode($payload['user_id']),
-                "type"=>Department::DEPARTMENT_HEAD_TYPE,
+
             ];
-            $depar = DepartmentUser::create($array);
+            $depar = DepartmentPrincipal::create($array);
             // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $department,
@@ -173,16 +172,30 @@ class DepartmentController extends Controller
         $departmentId = $department->id;
         $departmentPid = $department->department_pid;
 
-        $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
+       // $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
 
         try {
-            if(empty($depatments)){
-                $num = DB::table("departments")->where('id',$departmentId)->delete();
-                return $this->response->noContent();
-            }else{
-                return $this->response->errorInternal('该部门有下级部门或部门下有成员');
 
+            $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
+
+            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
+
+            foreach ($depatments as $value){
+                $snum = DB::table('department_user')
+                    ->where('user_id',$value['user_id'])
+                    ->update(['department_id'=>1]);
             }
+            $num = DB::table("departments")->where('id',$departmentId)->delete();
+
+
+//            if(empty($depatments)){
+//
+//                $num = DB::table("departments")->where('id',$departmentId)->delete();
+//                return $this->response->noContent();
+//            }else{
+//                return $this->response->errorInternal('该部门有下级部门或部门下有成员');
+//
+//            }
         } catch (Exception $e) {
 
             return $this->response->errorInternal('删除失败');
@@ -213,29 +226,31 @@ class DepartmentController extends Controller
     public function selectStore(Request $request,Department $department,DepartmentUser $departmentUser)
     {
         $payload = $request->all();
-
         $departmentId = $department->id;
-
         $departmentPid = $department->department_pid;
-
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
-
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
-
         DB::beginTransaction();
         try {
-            if(!empty($payload['user'])){
+
+            if($payload['user'][0] != null){
 
 //                $num = DB::table('department_user')
 //                    ->where('department_id',$departmentId)
 //                    ->where('type','!=',1)
 //                    ->update(['department_id'=>1]);
+                foreach ($payload['user'] as $key=>$value){
+                    $userId = hashid_decode($value);
+                    $snum = DB::table('department_user')
+                        ->where('department_id',$departmentId)
+                        ->update(['department_id'=>1]);
+                }
 
                 foreach ($payload['user'] as $key=>$value){
                     $userId = hashid_decode($value);
                     $snum = DB::table('department_user')
                         ->where('user_id',$userId)
-                        ->update(['department_id'=>$departmentId]);
+                        ->update(['department_id'=>$departmentId,'type'=>0]);
                 }
 
                 // 操作日志
@@ -251,7 +266,14 @@ class DepartmentController extends Controller
                 ]));
 
             }else{
-                return $this->response->errorInternal('用户id错误');
+
+                //return $this->response->errorInternal('用户id错误');
+                $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
+                foreach ($depatments as $key=>$value){
+                    $snum = DB::table('department_user')
+                        ->where('user_id',$value['user_id'])
+                        ->update(['department_id'=>1]);
+                }
             }
 
         } catch (Exception $e) {

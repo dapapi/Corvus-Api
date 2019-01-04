@@ -20,9 +20,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
 
     public function transform(ProjectHistorie $project)
     {
-        $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
-
-
+        $count = Change::where('form_instance_number', $project->project_number)->count('form_instance_number');
 
         if ($this->isAll) {
             $array = [
@@ -71,7 +69,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
             })
             ->join('departments', function ($join) {
                 $join->on('departments.id', '=', 'department_user.department_id');
-            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at','position.name as position_name')
+            })->select('users.name', 'departments.name as department_name', 'projects.project_number', 'bu.form_status', 'projects.created_at','position.name as position_name','bu.form_id')
             ->where('projects.project_number', $project->project_number)->get()->toArray();
 
         $array['name'] = $projectInfo[0]->name;
@@ -80,7 +78,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
         $array['form_status']= $projectInfo[0]->form_status;
         $array['created_at']= $projectInfo[0]->created_at;
         $array['position_name']= $projectInfo[0]->position_name;
-
+        $array['form_id']= $projectInfo[0]->form_id;
         return $array;
     }
 

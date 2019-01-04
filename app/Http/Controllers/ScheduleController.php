@@ -156,25 +156,7 @@ class ScheduleController extends Controller
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
 
                 ->get();
-//            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
-//                $join->on('mu.moduleable_id','s.id')
-//                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'");
-//            })->select('mu.user_id')->whereRaw("s.id=schedules.id");
-//
-//            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery){
-//                $query->where(function ($query)use ($payload){
-//                    $query->where('privacy',Schedule::OPEN);
-//                    $query->whereIn('calendar_id',$payload['calendar_ids']);
-//                })->orWhere(function ($query)use ($user,$subquery){
-//                    $query->orWhere('creator_id',$user->id);
-//                    $query->orWhere(function ($query)use ($user,$subquery){
-//                        $query->where('privacy',Schedule::SECRET);
-//                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
-//                    });
-//                });
-//            })->mergeBindings($subquery)
-//                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-//                ->get();
+
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
         if ($request->has('material_ids')) {
@@ -464,9 +446,6 @@ class ScheduleController extends Controller
             $calendar = Calendar::find($payload['calendar_id']);
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
-            $participants = array_column($calendar->participants()->get()->toArray(),'id');
-            if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
-                $this->response->errorInternal("你没有权限修改日程");
         }
         if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);
@@ -544,12 +523,17 @@ class ScheduleController extends Controller
         $users[] = $schedule->creator_id;
         //参与者
         $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
-        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
+        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除,
         if($schedule->privacy == Schedule::OPEN){
+
             $calendar = Calendar::find($schedule->calendar_id);
             if($calendar != null){
                 $users[] = $calendar->creator_id;
                 $users = array_merge($users,array_column($calendar->participants()->get()->toArray(),'id'));
+                if($calendar->privacy == Calendar::OPEN){
+                    //当前客户可以修改
+                    $users[] = Auth::guard("api")->user()->id;
+                }
             }
         }
         return $users;

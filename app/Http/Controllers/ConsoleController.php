@@ -582,7 +582,7 @@ class ConsoleController extends Controller
                 $join->on('users.id', '=','dp.user_id');
             })
             ->groupBy('users.id')
-            ->select('users.name','users.phone','users.email')
+            ->select('users.name','users.icon_url','users.phone','users.email')
             ->paginate($pageSize)->toArray();
 
         return $data;

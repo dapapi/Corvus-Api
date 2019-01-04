@@ -94,7 +94,6 @@ class CalendarController extends Controller
             return $this->response->errorInternal("你没有编辑日历的权限");
         }
         $payload = $request->all();
-
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
             //todo 暂时为硬编码
@@ -105,8 +104,8 @@ class CalendarController extends Controller
             }
             //判断艺人是否已经关联日历
             $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('starable_id',$payload['starable_id'])->get()->toArray();
-            if(count($calendars) > 1){
-                return $this->response->errorInternal("艺人已经关联项目");
+            if(count($calendars) >= 1){
+                return $this->response->errorMethodNotAllowed("艺人已经关联项目");
             }
         }
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))

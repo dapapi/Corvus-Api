@@ -376,6 +376,7 @@ class ProjectController extends Controller
         DB::beginTransaction();
         try {
 
+
             $project->update($payload);
             $projectId = $project->id;
 

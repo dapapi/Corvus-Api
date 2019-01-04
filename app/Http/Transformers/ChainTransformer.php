@@ -13,9 +13,12 @@ class ChainTransformer extends TransformerAbstract
     public function transform(ChainInterface $chain)
     {
         $instance = $chain->next;
-
-        $array['name'] = $instance->name;
-        $array['icon_url'] = $instance->icon_url;
+        if (is_null($instance)) {
+            $array['name'] = '该用户不在系统';
+        } else {
+            $array['name'] = $instance->name;
+            $array['icon_url'] = $instance->icon_url;
+        }
 
         return $array;
     }

@@ -22,6 +22,8 @@ class UserTransformer extends TransformerAbstract
         'record',
         'familyData',
         'roleUser',
+        'tasks',
+        'schedules'
     ];
    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
@@ -126,7 +128,19 @@ class UserTransformer extends TransformerAbstract
 
         return $this->collection($log, new OperateLogTransformer());
     }
+    public function includeTasks(User $user)
+    {
 
+        $tasks = $user->userTasks;
+        return $this->collection($tasks, new TaskTransformer());
+    }
+    public function includeSchedules(User $user)
+    {
+
+        $schedules= $user->userSchedules;
+
+        return $this->collection($schedules, new ScheduleTransformer());
+    }
     public function includeEducation(User $user)
     {
         $education = $user->education;

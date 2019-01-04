@@ -37,7 +37,10 @@ class UserController extends Controller
 
         return $this->response->item($user, new UserTransformer());
     }
-
+    public function show(User $user)
+    {
+        return $this->response->item($user, new UserTransformer());
+    }
     private function department(Department $department)
     {
         $department = $department->pDepartment;

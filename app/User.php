@@ -4,6 +4,7 @@ namespace App;
 
 use App\Models\Affix;
 use App\Models\Department;
+use App\Models\ModuleUser;
 use App\Models\RoleUser;
 
 use App\Models\PersonalSkills;
@@ -12,6 +13,7 @@ use App\Models\PersonalJob;
 use App\Models\PersonalSalary;
 use App\Models\OperateLog;
 use App\Models\Education;
+use App\Models\Schedule;
 use App\Models\Training;
 use App\Models\Record;
 use App\Models\FamilyData;
@@ -175,12 +177,23 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Department::class);
     }
+    public function userTasks()
+    {
+        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->withTrashed();
+    }
+    public function userSchedules()
+    {
+        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id');
+    }
 
     public function participantTasks()
     {
         return $this->morphedByMany(Task::class, 'moduleable', 'module_users')->where('module_users.type', ModuleUserType::PARTICIPANT);
     }
-
+    public function participantSchedule()
+    {
+        return $this->morphedByMany(Schedule::class, 'moduleable', 'module_users')->where('module_users.type', ModuleUserType::PARTICIPANT);
+    }
     public function participantProjects()
     {
         return $this->morphedByMany(Project::class, 'moduleable', 'module_users')->where('module_users.type', ModuleUserType::PARTICIPANT);

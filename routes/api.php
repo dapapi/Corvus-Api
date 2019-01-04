@@ -504,6 +504,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
 
+
         /*组织架构 职位管理*/
         $api->get('/position', 'App\Http\Controllers\DepartmentController@positionList');
         $api->post('/position', 'App\Http\Controllers\DepartmentController@positionStore');
@@ -545,6 +546,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/console/feature/{role}','App\Http\Controllers\ConsoleController@featureRole');
         //获取数据权限
         $api->get('/console/scope/{role}','App\Http\Controllers\ConsoleController@scope');
+        //获取部门负责人
+        $api->get('/console/director', 'App\Http\Controllers\ConsoleController@directorList');
+
 
         //增加修改数据权限
         $api->post('/console/scope/{role}','App\Http\Controllers\ConsoleController@scopeStore');

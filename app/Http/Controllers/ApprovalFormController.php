@@ -401,6 +401,7 @@ class ApprovalFormController extends Controller
 
         if ($department)
             $approval = [
+                'user_id' => hashid_encode($user->id),
                 'name' => $user->name,
                 'department_name' => $department->name,
                 'position' => $user->position,

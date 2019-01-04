@@ -133,14 +133,14 @@ class ScheduleController extends Controller
             foreach ($payload['calendar_ids'] as &$id) {
                 $id = hashid_decode($id);
             }
-
             unset($id);
             //日程仅参与人可见
             $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
                 $join->on('mu.moduleable_id','s.id')
-                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'");
-            })->select('mu.user_id')->whereRaw("s.id=schedules.id");
-
+                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'")
+                    ->whereRaw("mu.type='".Schedule::DAILY."'");
+            })->select('mu.user_id');
+//->whereRaw("s.id=schedules.id")
             $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery){
                 $query->where(function ($query)use ($payload){
                     $query->where('privacy',Schedule::OPEN);
@@ -154,7 +154,27 @@ class ScheduleController extends Controller
                 });
             })->mergeBindings($subquery)
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+
                 ->get();
+//            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
+//                $join->on('mu.moduleable_id','s.id')
+//                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'");
+//            })->select('mu.user_id')->whereRaw("s.id=schedules.id");
+//
+//            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery){
+//                $query->where(function ($query)use ($payload){
+//                    $query->where('privacy',Schedule::OPEN);
+//                    $query->whereIn('calendar_id',$payload['calendar_ids']);
+//                })->orWhere(function ($query)use ($user,$subquery){
+//                    $query->orWhere('creator_id',$user->id);
+//                    $query->orWhere(function ($query)use ($user,$subquery){
+//                        $query->where('privacy',Schedule::SECRET);
+//                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
+//                    });
+//                });
+//            })->mergeBindings($subquery)
+//                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+//                ->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
         if ($request->has('material_ids')) {
@@ -429,9 +449,6 @@ class ScheduleController extends Controller
             $array[] = ['id',hashid_decode($payload['delete_id'])];
             ScheduleRelate::where($array)->delete();
         }
-
-
-
     }
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {

@@ -67,11 +67,11 @@ class ScheduleTransformer extends TransformerAbstract
     public function includeTask(Schedule $schedule){
 
         $task = $schedule->schedulerelate->where('moduleable_type','task');
-        return $this->collection($task, new ScheduleRelateTransformer());
+        return $this->collection($task, new ScheduleRelateTaskTransformer());
     }
     public function includeProject(Schedule $schedule){
-
         $project = $schedule->schedulerelate->where('moduleable_type','project');
-        return $this->collection($project, new ScheduleRelateTransformer());
+
+        return $this->collection($project, new ScheduleRelateProjectTransformer());
     }
 }

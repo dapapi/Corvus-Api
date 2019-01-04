@@ -395,6 +395,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
         $api->post('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@storeSchedulesTask');
         $api->get('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@indexSchedulesTask');
+
+
         $api->delete('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@removeSchedulesTask');
         $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@edit');
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');

@@ -407,7 +407,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
         $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
         $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
-        $api->post('/schedules/{schedule}/task', 'App\Http\Controllers\ScheduleController@store');
+
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');

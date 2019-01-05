@@ -119,7 +119,12 @@ class BloggerTransformer extends TransformerAbstract
     public function includeCalendar(Blogger $blogger)
     {
         $calendars = $blogger->calendars()->first();
-        return $this->item($calendars,new CalendarTransformer());
-
+        if($calendars){
+            return $this->item($calendars,new CalendarTransformer());
+        }else{
+            return $this->null();
+        }
     }
+
+
 }

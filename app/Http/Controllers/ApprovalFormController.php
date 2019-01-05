@@ -316,6 +316,7 @@ class ApprovalFormController extends Controller
 
             ->where('afc.change_state','!=',237)->where('afc.change_state','!=',238)->where('afc.change_id',$userId)
             ->orderBy('ph.created_at', 'desc')
+            ->groupBy('afb.form_instance_number')
             ->select('afb.form_instance_number','afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
         return $dataUser;

@@ -108,6 +108,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/attendance/{attendance}/affix', 'App\Http\Controllers\AffixController@index');
         // 隐私设置
         $api->post('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
+        $api->post('/Projects/{Project}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
 
         //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
         //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');

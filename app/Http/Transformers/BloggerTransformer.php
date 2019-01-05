@@ -55,7 +55,8 @@ class BloggerTransformer extends TransformerAbstract
         $arraySimple = [
             'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
-            'avatar' => $blogger->avatar
+            'avatar' => $blogger->avatar,
+            'status' => $blogger->sign_contract_status,
         ];
         return $this->isAll ? $array : $arraySimple;
     }

@@ -75,6 +75,7 @@ class ApprovalContractController extends Controller
             })
             ->where('cs.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
+            ->orderBy('cs.created_at', 'desc')
             ->select('cs.*', 'bu.*', 'users.name', 'cs.id','afis.form_control_value as title')
             ->paginate($pageSize)->toArray();
 
@@ -187,7 +188,7 @@ class ApprovalContractController extends Controller
         } else {
             $resArr = $this->thenApproval();
         }
-       
+
         $count = count($resArr);//总条数
         $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($resArr,$start,$pageSize);

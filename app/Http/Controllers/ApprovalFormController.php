@@ -551,18 +551,6 @@ class ApprovalFormController extends Controller
                 $flow->storeFreeChains($chains, $num);
             }
 
-            if (!empty($notice)) {
-                foreach ($notice as $value) {
-                    $participantsArray = [
-                        'form_instance_number' => $num,
-                        'created_at' => date("Y-m-d H:i:s", time()),
-                        'notice_id' => hashid_decode($value),
-                        'notice_type' => DataDictionarie::NOTICE_TYPE_TEAN,
-                    ];
-                    Participant::create($participantsArray);
-                }
-            }
-
             if ($type) {
                 $contract = Contract::create([
                     'form_instance_number' => $num,
@@ -604,8 +592,8 @@ class ApprovalFormController extends Controller
                 foreach ($notice as $user) {
                     Participant::create([
                         'form_instance_number' => $num,
-                        'notice_id' => hashid_decode($user->id),
-                        'notice_type' => $user->type,
+                        'notice_id' => hashid_decode($user['id']),
+                        'notice_type' => in_array('type', $user) ? $user['type'] : 245,
                         'created_at' => Carbon::now(),
                     ]);
                 }

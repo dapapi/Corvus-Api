@@ -117,9 +117,9 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeCalendar(Star $star)
     {
-        $calendars = $star->calendars()->get();
+        $calendars = $star->calendars()->first();
 
-        return $this->collection($calendars,new CalendarTransformer());
+        return $this->item($calendars,new CalendarTransformer());
 
     }
 }

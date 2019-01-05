@@ -263,7 +263,6 @@ class ProjectController extends Controller
                         $trail->fee = $val;
                         continue;
                     }
-
                     if ($key == 'expectations') {
                         if ($trail->type == Trail::TYPE_PAPI) {
                             $starableType = ModuleableType::BLOGGER;
@@ -271,6 +270,7 @@ class ProjectController extends Controller
                             $starableType = ModuleableType::STAR;
                         }
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
+
                         foreach ($val as $expectation) {
                             $starId = hashid_decode($expectation);
                             if ($starableType == ModuleableType::BLOGGER) {

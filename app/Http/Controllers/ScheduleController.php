@@ -174,6 +174,25 @@ class ScheduleController extends Controller
 
 
     }
+    public  function all(Request $request){
+        $payload = $request->all();
+        if ($request->has('calendar_ids')) {
+            foreach ($payload['calendar_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+
+
+            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload){
+                $query->where(function ($query)use ($payload){
+                    $query->whereIn('calendar_id',$payload['calendar_ids']);
+                });
+            })
+                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+                ->get();
+            return $this->response->collection($schedules, new ScheduleTransformer());
+        }
+    }
     public  function hasauxiliary($request,$payload,$schedule,$module,$user){
 
         if ($request->has('task_ids') && is_array($payload['task_ids'])){

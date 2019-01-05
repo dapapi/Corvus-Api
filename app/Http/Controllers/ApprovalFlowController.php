@@ -7,12 +7,14 @@ use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
+use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ChainTransformer;
 use App\Models\ApprovalFlow\ChainFixed;
 use App\Models\ApprovalFlow\ChainFree;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalFlow\Condition;
 use App\Models\ApprovalFlow\Execute;
+use App\Models\ApprovalFlow\FixedParticipant;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
@@ -24,7 +26,6 @@ use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\OperateEntity;
-use App\Models\Project;
 use App\Models\Star;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
@@ -37,6 +38,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
+use League\Fractal;
+use League\Fractal\Manager;
+use League\Fractal\Serializer\DataArraySerializer;
+
 
 class ApprovalFlowController extends Controller
 {
@@ -78,7 +83,16 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal($exception);
         }
 
-        return $this->response->collection($chains, new ChainTransformer());
+        $result = $this->response->collection($chains, new ChainTransformer());
+
+        $participants = FixedParticipant::where('form_id', $formId)->get();
+
+        $resource = new Fractal\Resource\Collection($participants, new ApprovalParticipantTransformer());
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+        $result->addMeta('notice', $manager->createData($resource)->toArray());
+
+        return $result;
     }
 
     public function storeFreeChains($chains, $formNumber)
@@ -605,7 +619,7 @@ class ApprovalFlowController extends Controller
             DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
 
             //签约
-            if (in_array($instance->form_id, [5, 7])){
+            if (in_array($instance->form_id, [5, 7])) {
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
                 //发消息,日志
                 DB::beginTransaction();
@@ -613,27 +627,27 @@ class ApprovalFlowController extends Controller
 
                     $user = Auth::guard('api')->user();
 
-                    if($contract->star_type == "bloggers"){
+                    if ($contract->star_type == "bloggers") {
                         $model = Blogger::findOrFail($contract->stars);
                         $name = $model->nickname;
-                        $link = URL::action("StarController@show",['star'=>$model->id]);
+                        $link = URL::action("StarController@show", ['star' => $model->id]);
                         $module = Message::BLOGGER;
                     }
-                    if($contract->star_type=="stars"){
+                    if ($contract->star_type == "stars") {
                         $model = Star::findOrFail($contract->stars);
                         $name = $model->name;
-                        $link = URL::action("BloggerController@show",['blogger'=>$model->id]);
+                        $link = URL::action("BloggerController@show", ['blogger' => $model->id]);
                         $module = Message::STAR;
                     }
                     $title = $name . "签约";  //通知消息的标题
                     $subheading = $name . "签约";
                     $data = [];
-                    if($contract->star_type == "stars") {
+                    if ($contract->star_type == "stars") {
                         $data[] = [
                             "title" => '艺人签约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
                         ];
-                    }else{
+                    } else {
                         $data[] = [
                             "title" => '博主签约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
@@ -647,7 +661,7 @@ class ApprovalFlowController extends Controller
 
                     $authorization = \request()->header()['authorization'][0];
 
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data,null);
+                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null);
 
                     //操作日志
                     $operate = new OperateEntity([
@@ -660,13 +674,13 @@ class ApprovalFlowController extends Controller
                     event(new OperateLogEvent([
                         $operate,
                     ]));
-                }catch (Exception $e){
+                } catch (Exception $e) {
                     throw $e;
                 }
                 DB::commit();
             }
             //解约
-            if (in_array($instance->form_id, [6, 8])){
+            if (in_array($instance->form_id, [6, 8])) {
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT]);
                 //发消息,日志
                 DB::beginTransaction();
@@ -674,27 +688,27 @@ class ApprovalFlowController extends Controller
 
                     $user = Auth::guard('api')->user();
 
-                    if($contract->star_type == "bloggers"){
+                    if ($contract->star_type == "bloggers") {
                         $model = Blogger::findOrFail($contract->stars);
                         $name = $model->nickname;
-                        $link = URL::action("StarController@show",['star'=>$model->id]);
+                        $link = URL::action("StarController@show", ['star' => $model->id]);
                         $module = Message::BLOGGER;
                     }
-                    if($contract->star_type=="stars"){
+                    if ($contract->star_type == "stars") {
                         $model = Star::findOrFail($contract->stars);
                         $name = $model->name;
-                        $link = URL::action("BloggerController@show",['blogger'=>$model->id]);
+                        $link = URL::action("BloggerController@show", ['blogger' => $model->id]);
                         $module = Message::STAR;
                     }
                     $title = $name . "解约";  //通知消息的标题
                     $subheading = $name . "解约";
                     $data = [];
-                    if($contract->star_type == "stars") {
+                    if ($contract->star_type == "stars") {
                         $data[] = [
                             "title" => '艺人解约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
                         ];
-                    }else{
+                    } else {
                         $data[] = [
                             "title" => '博主解约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
@@ -708,7 +722,7 @@ class ApprovalFlowController extends Controller
 
                     $authorization = \request()->header()['authorization'][0];
 
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data,null);
+                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null);
 
                     //操作日志
                     $operate = new OperateEntity([
@@ -721,7 +735,7 @@ class ApprovalFlowController extends Controller
                     event(new OperateLogEvent([
                         $operate,
                     ]));
-                }catch (Exception $e){
+                } catch (Exception $e) {
                     throw $e;
                 }
                 DB::commit();

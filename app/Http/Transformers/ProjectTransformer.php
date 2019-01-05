@@ -24,7 +24,8 @@ class ProjectTransformer extends TransformerAbstract
     public function transform(Project $project)
     {
         $user = Auth::guard('api')->user();
-
+        $setprivacy1 =array();
+        $Viewprivacy2 =array();
         $array['moduleable_id']= $project->id;
         $array['moduleable_type']= ModuleableType::PROJECT;
         $array['is_privacy']=  PrivacyType::OTHER;

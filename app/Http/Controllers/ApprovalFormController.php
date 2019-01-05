@@ -564,6 +564,19 @@ class ApprovalFormController extends Controller
             }
 
             $this->instanceStoreInit($instance->form_id, $num, $user->id);
+
+            // 存知会人
+            if ($notice) {
+                foreach ($notice as $user) {
+                    Participant::create([
+                        'form_instance_number' => $num,
+                        'notice_id' => hashid_decode($user->id),
+                        'notice_type' => $user->type,
+                        'created_at' => Carbon::now(),
+                    ]);
+                }
+            }
+
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorBadRequest($exception->getMessage());

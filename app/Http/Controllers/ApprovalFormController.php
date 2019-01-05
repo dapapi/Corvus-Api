@@ -8,6 +8,7 @@ use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
+use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ControlTransformer;
 use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\ApprovalFlow\Condition;
@@ -447,8 +448,11 @@ class ApprovalFormController extends Controller
                 'created_at' => $approvalStart->change_at
             ];
 
+        $participants = Participant::where('form_instance_number', $num)->get();
+        $notice = new Fractal\Resource\Collection($participants, new ApprovalParticipantTransformer());
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $approval);
+        $result->addMeta('notice', $manager->createData($notice)->toArray());
 
         return $result;
     }

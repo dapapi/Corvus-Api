@@ -230,10 +230,12 @@ class DepartmentController extends Controller
         $departmentPid = $department->department_pid;
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
+        $users = isset($payload['user']) ? $payload['user'] : 1;
+
         DB::beginTransaction();
         try {
 
-            if($payload['user'][0] != null){
+            if($users != 1){
 
 //                $num = DB::table('department_user')
 //                    ->where('department_id',$departmentId)
@@ -287,7 +289,7 @@ class DepartmentController extends Controller
 
     public function show(Request $request,User $user)
     {
-        $data = $user->get()->toArray();
+        $data = $user->where('entry_status',3)->get()->toArray();
 
         $targetKey = 'name';
         $data = array_map(function ($item) use ($targetKey) {

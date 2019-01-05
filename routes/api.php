@@ -37,7 +37,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
-
+        $api->get('/users/{user}', 'App\Http\Controllers\UserController@show');
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
@@ -106,6 +106,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post("/attendance/{attendance}/affix", "App\Http\Controllers\AffixController@add");
         $api->get('/attendance/{attendance}/affix', 'App\Http\Controllers\AffixController@index');
+        // 隐私设置
+        $api->post('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
+        $api->post('/Projects/{Project}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
 
         //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
         //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
@@ -395,8 +398,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
         $api->post('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@storeSchedulesTask');
         $api->get('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@indexSchedulesTask');
-
-
+        $api->delete('/schedules/{schedule}/projects/{project}', 'App\Http\Controllers\ScheduleController@removeoneSchedulesRelate');
+        $api->delete('/schedules/{schedule}/tasks/{task}', 'App\Http\Controllers\ScheduleController@removeoneSchedulesRelate');
         $api->delete('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@removeSchedulesTask');
         $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@edit');
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');

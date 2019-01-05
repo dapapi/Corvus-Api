@@ -125,6 +125,7 @@ class ApprovalContractController extends Controller
 
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
+            ->orderBy('ph.created_at', 'desc')
             ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','afis.form_control_value as title','us.name', 'ph.created_at')->get()->toArray();
 
         //查询个人
@@ -146,6 +147,7 @@ class ApprovalContractController extends Controller
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
+            ->orderBy('ph.created_at', 'desc')
             ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
 
@@ -177,6 +179,7 @@ class ApprovalContractController extends Controller
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('creator.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('ph.title', 'LIKE', '%' . $payload['keyword'] . '%')
             ->where('dp.user_id',$userId)
             ->whereIn('afe.flow_type_id',$payload['status'])
+            ->orderBy('ph.created_at', 'desc')
             ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
             $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
@@ -230,6 +233,8 @@ class ApprovalContractController extends Controller
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 
             ->where('afc.change_state','!=',237)->where('afc.change_state','!=',238)->where('afc.change_id',$userId)
+            ->orderBy('ph.created_at', 'desc')
+            ->groupBy('afb.form_instance_number')
             ->select('afb.form_instance_number','afb.form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
         return $dataUser;

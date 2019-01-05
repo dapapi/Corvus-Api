@@ -65,7 +65,8 @@ class StarTransformer extends TransformerAbstract
         $arraySimple = [
             'id' => hashid_encode($star->id),
             'name' => $star->name,
-            'avatar' => $star->avatar
+            'avatar' => $star->avatar,
+            'status' =>$star->sign_contract_status
         ];
 
         return $this->isAll ? $array : $arraySimple;
@@ -117,9 +118,9 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeCalendar(Star $star)
     {
-        $calendars = $star->calendars()->get();
+        $calendars = $star->calendars()->first();
 
-        return $this->collection($calendars,new CalendarTransformer());
+        return $this->item($calendars,new CalendarTransformer());
 
     }
 }

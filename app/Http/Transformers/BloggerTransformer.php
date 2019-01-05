@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 class BloggerTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses','calendar'];
 
     private $isAll;
 
@@ -116,5 +116,10 @@ class BloggerTransformer extends TransformerAbstract
 
         return $this->collection($users,new UsersTransformer());
     }
+    public function includeCalendar(Blogger $blogger)
+    {
+        $calendars = $blogger->calendars()->first();
+        return $this->item($calendars,new CalendarTransformer());
 
+    }
 }

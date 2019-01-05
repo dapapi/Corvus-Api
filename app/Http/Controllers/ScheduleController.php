@@ -11,9 +11,11 @@ use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
 use App\Http\Transformers\ScheduleRelateTransformer;
 use App\Models\Calendar;
+use App\Models\Project;
 use App\Models\ScheduleRelate;
 use App\Models\Material;
 use App\Models\Module;
+use App\Models\Task;
 use App\Models\ProjectResource;
 use App\Models\Schedule;
 use App\Models\TaskResource;
@@ -391,6 +393,22 @@ class ScheduleController extends Controller
         if($request->has('delete_id')){
             $array[] = ['id',hashid_decode($payload['delete_id'])];
             ScheduleRelate::where($array)->delete();
+        }
+    }
+    public function removeoneSchedulesRelate(Schedule $schedule,$model)
+    {
+
+        $array['schedule_id'] = $schedule->id;
+        if ($model instanceof Task && $model->id) {
+            $array['moduleable_id'] = $model->id;
+            $array['moduleable_type'] = ModuleableType::TASK;
+        }else if ($model instanceof Project && $model->id) {
+            $array['moduleable_id'] = $model->id;
+            $array['moduleable_type'] = ModuleableType::PROJECT;
+        }
+        $is_ture = ScheduleRelate::where($array)->delete();
+        if(!$is_ture){
+            $this->response->errorInternal("删除失败");
         }
     }
     public function edit(EditScheduleRequest $request, Schedule $schedule)

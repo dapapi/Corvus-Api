@@ -22,13 +22,13 @@ class ScopeRepository
 
     //数据字典中parent_id查看数据范围
     //根据19-本人相关 20-本部门  21-本人及下属部门 22-全部 替换userIds
-    public function getDataViewUsers(){
+    public function getDataViewUsers(bool $arr=false){
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         $path = request()->path();
         $operation = preg_replace('/\\d+/', '{id}', $path);
         $method = request()->getMethod();
-        return $this->getUserIds($userId,"/".$operation,$method);
+        return $this->getUserIds($userId,"/".$operation,$method,$arr);
     }
 
     /**

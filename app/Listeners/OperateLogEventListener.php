@@ -68,9 +68,10 @@ class OperateLogEventListener
     protected $renewal = '更新';
     protected $transfer = '调岗';
     protected $refuse = '拒绝了';
-    protected $add_work = '添加 %s 作品';
+    protected $add_work = '为该艺人新增了 %s 作品';
     protected $create_signing_contracts="%s 创建了签约合同";
     protected $create_rescission_contracts = "%s 创建了解约合同";
+    protected $add_star_task = "创建了关联资源为该艺人的任务";
 
     /**
      * Handle the event.
@@ -279,17 +280,17 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::ADD_WORK://为艺人添加作品
                     $level = OperateLogLevel::LOW;
-                    $content = sprintf($this->add_work, $title);;
+                    $content = sprintf($this->add_work,$title);;
                     break;
-                case OperateLogMethod::ADD_STAR_TASK:
+                case OperateLogMethod::ADD_STAR_TASK: //为艺人添加任务
                     $level = OperateLogLevel::LOW;
-                    $content = sprintf($this->add_star_task,$title);
+                    $content = sprintf($this->add_star_task);
                     break;
-                case OperateLogMethod::CREATE_SIGNING_CONTRACTS:
+                case OperateLogMethod::CREATE_SIGNING_CONTRACTS: //创建签约合同
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->create_signing_contracts,$title);
                     break;
-                case OperateLogMethod::CREATE_RESCISSION_CONTRACTS:
+                case OperateLogMethod::CREATE_RESCISSION_CONTRACTS: //创建解约合同
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->create_rescission_contracts,$title);
                     break;

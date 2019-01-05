@@ -84,7 +84,6 @@ class Project extends Model
         $user = Auth::guard("api")->user();
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers();
-
         return (new SearchDataScope())->getCondition($query, $rules, $userid)->orWhereRaw("{$userid} in (
             select mu.user_id from projects as p
             left join module_users as mu on mu.moduleable_id = p.id and
@@ -92,6 +91,8 @@ class Project extends Model
 
             "' where p.id = projects.id
         )");
+
+
 //        return (new SearchDataScope())->getCondition($query, $rules, $userid)->leftJoin('module_users as mu',function ($join){
 //            $join->on('mu.moduleable_id','projects.id')
 //                ->where('mu.moduleable_type',ModuleableType::PROJECT);

@@ -462,7 +462,9 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule->update($payload);
-       $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
+            $this->hasauxiliary($request,$payload,$schedule,'',$user);
+
+            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -477,6 +479,7 @@ class ScheduleController extends Controller
     {
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
+
         if(!in_array($user->id,$users)) {
             return $this->response->accepted();
         }

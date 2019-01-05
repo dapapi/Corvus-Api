@@ -13,6 +13,7 @@ class ApprovalParticipantTransformer extends TransformerAbstract
         return [
             'id' => hashid_encode($notic->id),
             'name' => $notic->name,
+            'type' => $participant->notice_type,
             "icon_url" => $notic->icon_url
         ];
     }

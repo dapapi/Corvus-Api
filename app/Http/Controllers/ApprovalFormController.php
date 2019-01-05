@@ -8,6 +8,7 @@ use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
+use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ControlTransformer;
 use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\ApprovalFlow\Condition;
@@ -118,7 +119,7 @@ class ApprovalFormController extends Controller
                         $participantsArray = [
                             'form_instance_number' => $projectNumber,
                             'created_at' => date("Y-m-d H:i:s", time()),
-                            'notice_id' => hashid_decode($value),
+                            'notice_id' => hashid_decode($value['id']),
                             'notice_type' => DataDictionarie::NOTICE_TYPE_TEAN,
                         ];
                         Participant::create($participantsArray);
@@ -447,8 +448,11 @@ class ApprovalFormController extends Controller
                 'created_at' => $approvalStart->change_at
             ];
 
+        $participants = Participant::where('form_instance_number', $num)->get();
+        $notice = new Fractal\Resource\Collection($participants, new ApprovalParticipantTransformer());
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $approval);
+        $result->addMeta('notice', $manager->createData($notice)->toArray());
 
         return $result;
     }
@@ -552,18 +556,6 @@ class ApprovalFormController extends Controller
                 $flow->storeFreeChains($chains, $num);
             }
 
-            if (!empty($notice)) {
-                foreach ($notice as $value) {
-                    $participantsArray = [
-                        'form_instance_number' => $num,
-                        'created_at' => date("Y-m-d H:i:s", time()),
-                        'notice_id' => hashid_decode($value),
-                        'notice_type' => DataDictionarie::NOTICE_TYPE_TEAN,
-                    ];
-                    Participant::create($participantsArray);
-                }
-            }
-
             if ($type) {
                 $contract = Contract::create([
                     'form_instance_number' => $num,
@@ -605,8 +597,8 @@ class ApprovalFormController extends Controller
                 foreach ($notice as $user) {
                     Participant::create([
                         'form_instance_number' => $num,
-                        'notice_id' => hashid_decode($user->id),
-                        'notice_type' => $user->type,
+                        'notice_id' => hashid_decode($user['id']),
+                        'notice_type' => in_array('type', $user) ? $user['type'] : 245,
                         'created_at' => Carbon::now(),
                     ]);
                 }
@@ -668,9 +660,12 @@ class ApprovalFormController extends Controller
         if (!is_array($value))
             return [$value, ''];
 
-        if (!is_array($value['id'])) {
+        if (in_array('id', $value) && !is_array($value['id'])) {
             $value['id'] = hashid_decode($value['id']);
             return [$value['name'], $value['id']];
+        } else if (!in_array('id', $value)) {
+            $value = implode(',', $value);
+            return [$value, ''];
         }
 
         foreach ($value['id'] as &$id) {

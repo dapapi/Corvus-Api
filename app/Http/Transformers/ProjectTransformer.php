@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Http\Transformers;
-
+use App\ModuleableType;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalForm\Business;
+use App\Models\PrivacyUser;
 use App\Models\Project;
+use App\PrivacyType;
+use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
@@ -20,6 +23,27 @@ class ProjectTransformer extends TransformerAbstract
 
     public function transform(Project $project)
     {
+        $user = Auth::guard('api')->user();
+
+        $array['moduleable_id']= $project->id;
+        $array['moduleable_type']= ModuleableType::PROJECT;
+        $array['is_privacy']=  PrivacyType::OTHER;
+        $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+        foreach ($setprivacy as $key =>$v){
+
+            $setprivacy1[]=array_values($v)[0];
+
+        }
+        if($project->creator_id != $user->id){
+            $array['user_id']= $user->id;
+            $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+            if($Viewprivacy){
+                foreach ($Viewprivacy as $key =>$v){
+                    $Viewprivacy1[]=array_values($v)[0];
+                }
+                $setprivacy1  = array_intersect($setprivacy1,$Viewprivacy1);
+            }
+        }
 
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
@@ -44,6 +68,23 @@ class ProjectTransformer extends TransformerAbstract
                 'last_updated_at' => $project->last_updated_at,
 
             ];
+            if($setprivacy1)
+                foreach ($Viewprivacy1 as $key =>$v){
+                    $Viewprivacy2[$v]=$key;
+                }
+            $array = array_merge($array,$Viewprivacy2);
+             foreach ($array as $key1 => $val1)
+             {
+                 foreach ($Viewprivacy2 as $key2 => $val2)
+                 {
+
+                     if($key1 === $key2){
+
+                         unset($array[$key1]);
+                     }
+                 }
+             }
+
             if ($business)
                 $array['approval_status'] = $business->status->id;
 

@@ -1031,16 +1031,16 @@ class TaskController extends Controller
                                 $array['resourceable_id'] = $star->id;
                                 $array['resourceable_type'] = ModuleableType::STAR;
                                 //操作日志
-//                                $operate = new OperateEntity([
-//                                    'obj' => $star,
-//                                    'title' => $task->title,
-//                                    'start' => null,
-//                                    'end' => null,
-//                                    'method' => OperateLogMethod::ADD_STAR_TASK,
-//                                ]);
-//                                event(new OperateLogEvent([
-//                                    $operate,
-//                                ]));
+                                $operate = new OperateEntity([
+                                    'obj' => $star,
+                                    'title' => null,
+                                    'start' => null,
+                                    'end' => null,
+                                    'method' => OperateLogMethod::ADD_STAR_TASK,
+                                ]);
+                                event(new OperateLogEvent([
+                                    $operate,
+                                ]));
 
                                 break;
                             case ResourceType::PROJECT:

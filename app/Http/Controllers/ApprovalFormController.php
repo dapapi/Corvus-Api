@@ -660,9 +660,12 @@ class ApprovalFormController extends Controller
         if (!is_array($value))
             return [$value, ''];
 
-        if (!is_array($value['id'])) {
+        if (in_array('id', $value) && !is_array($value['id'])) {
             $value['id'] = hashid_decode($value['id']);
             return [$value['name'], $value['id']];
+        } else if (!in_array('id', $value)) {
+            $value = implode(',', $value);
+            return [$value, ''];
         }
 
         foreach ($value['id'] as &$id) {

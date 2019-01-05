@@ -187,7 +187,7 @@ class ApprovalContractController extends Controller
         } else {
             $resArr = $this->thenApproval();
         }
-
+       
         $count = count($resArr);//总条数
         $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($resArr,$start,$pageSize);
@@ -235,7 +235,7 @@ class ApprovalContractController extends Controller
             ->where('afc.change_state','!=',237)->where('afc.change_state','!=',238)->where('afc.change_id',$userId)
             ->orderBy('ph.created_at', 'desc')
             ->groupBy('afb.form_instance_number')
-            ->select('afb.form_instance_number','afb.form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->tosql();
+            ->select('afb.form_instance_number','afb.form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
         return $dataUser;
     }

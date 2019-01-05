@@ -120,7 +120,7 @@ class StarTransformer extends TransformerAbstract
     {
         $calendars = $star->calendars()->first();
 
-        return $this->collection($calendars,new CalendarTransformer());
+        return $this->item($calendars,new CalendarTransformer());
 
     }
 }

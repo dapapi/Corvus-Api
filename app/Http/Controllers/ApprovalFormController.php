@@ -208,9 +208,7 @@ class ApprovalFormController extends Controller
         $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
         if ($payload['status'] == 1) {
             $payload['status'] = array('231');
-        } else {
-            $payload['status'] = array('232', '233', '234', '235');
-        }
+
         //查询角色
         $dataRole = DB::table('approval_flow_execute as afe')//
         ->join('role_users as ru', function ($join) {
@@ -226,6 +224,7 @@ class ApprovalFormController extends Controller
                 $join->on('ph.creator_id', '=','us.id');
             })
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
+            ->orderBy('ph.created_at', 'desc')
             ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
         //->paginate($pageSize)->toArray();
         //查询个人
@@ -239,8 +238,8 @@ class ApprovalFormController extends Controller
             ->join('users as us', function ($join) {
                 $join->on('ph.creator_id', '=', 'us.id');
             })
-
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
+            ->orderBy('ph.created_at', 'desc')
             ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
         //部门负责人
@@ -265,9 +264,15 @@ class ApprovalFormController extends Controller
             })
             ->where('dp.user_id',$userId)
             ->whereIn('afe.flow_type_id',$payload['status'])
+            ->orderBy('ph.created_at', 'desc')
             ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
-        $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
+             $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
+        } else {
+
+            //$payload['status'] = array('232', '233', '234', '235');
+            $resArr = $this->thenApproval();
+        }
 
         $count = count($resArr);//总条数
         $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
@@ -285,6 +290,35 @@ class ApprovalFormController extends Controller
             $value->id = hashid_encode($value->id);
         }
         return $arr;
+    }
+
+    //获取已审批信息
+    public function thenApproval(){
+
+        $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        //查询个人
+        $dataUser = DB::table('approval_flow_change as afc')//
+            ->join('users as u', function ($join) {
+                $join->on('afc.change_id', '=','u.id');
+            })
+            ->join('project_histories as ph', function ($join) {
+                $join->on('afc.form_instance_number', '=', 'ph.project_number');
+            })
+            ->join('users as us', function ($join) {
+                $join->on('us.id', '=', 'ph.creator_id');
+            })
+            ->join('approval_form_business as afb', function ($join) {
+                $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
+            })
+
+            //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
+
+            ->where('afc.change_state','!=',237)->where('afc.change_state','!=',238)->where('afc.change_id',$userId)
+            ->orderBy('ph.created_at', 'desc')
+            ->select('afb.form_instance_number','afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
+
+        return $dataUser;
     }
 
     public function myThenApproval(Request $request)

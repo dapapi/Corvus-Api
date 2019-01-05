@@ -118,7 +118,7 @@ class ApprovalFormController extends Controller
                         $participantsArray = [
                             'form_instance_number' => $projectNumber,
                             'created_at' => date("Y-m-d H:i:s", time()),
-                            'notice_id' => hashid_decode($value),
+                            'notice_id' => hashid_decode($value['id']),
                             'notice_type' => DataDictionarie::NOTICE_TYPE_TEAN,
                         ];
                         Participant::create($participantsArray);

@@ -65,7 +65,7 @@ class ApprovalContractController extends Controller
                 $join->on('cs.creator_id', '=', 'users.id');
             })
             ->leftjoin('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'cs.form_instance_number')->where('form_control_id',43);
+                $join->on('afis.form_instance_number', '=', 'cs.form_instance_number')->whereIn('form_control_id',[6,25,43]);
             })
 
             ->where(function ($query) use ($payload, $request) {
@@ -75,6 +75,7 @@ class ApprovalContractController extends Controller
             })
             ->where('cs.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
+            ->orderBy('cs.created_at', 'desc')
             ->select('cs.*', 'bu.*', 'users.name', 'cs.id','afis.form_control_value as title')
             ->paginate($pageSize)->toArray();
 
@@ -120,7 +121,7 @@ class ApprovalContractController extends Controller
                 $join->on('ph.creator_id', '=','us.id');
             })
             ->join('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
+                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
             })
 
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
@@ -142,7 +143,7 @@ class ApprovalContractController extends Controller
             })
 
             ->join('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
+                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
             })
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 
@@ -173,7 +174,7 @@ class ApprovalContractController extends Controller
             })
 
             ->join('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
+                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
             })
 
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('creator.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('ph.title', 'LIKE', '%' . $payload['keyword'] . '%')
@@ -228,7 +229,7 @@ class ApprovalContractController extends Controller
             })
 
             ->leftjoin('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->where('form_control_id',43);
+                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
             })
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 

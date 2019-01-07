@@ -164,11 +164,10 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
-            $schedules = Schedule::select('schedules.*')->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+            $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
                 ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
                     ->whereRaw('c.deleted_at is null')
                 ->whereIn('material_id', $payload['material_ids'])->get();
-
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 
@@ -363,7 +362,7 @@ class ScheduleController extends Controller
                 ->orderby('start_at')->get(['id'])->toArray();
             if($endmaterials){
 
-                $this->response->errorForbidden("会议室已占用");
+                $this->response->errorForbidden("该艺人已存在相关日历");
             }
 
         }

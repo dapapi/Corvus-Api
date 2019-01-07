@@ -30,6 +30,7 @@ class ProjectTransformer extends TransformerAbstract
         $array['moduleable_type']= ModuleableType::PROJECT;
         $array['is_privacy']=  PrivacyType::OTHER;
         $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+
         foreach ($setprivacy as $key =>$v){
 
             $setprivacy1[]=array_values($v)[0];
@@ -38,14 +39,14 @@ class ProjectTransformer extends TransformerAbstract
         if($project->creator_id != $user->id){
             $array['user_id']= $user->id;
             $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+
             if($Viewprivacy){
                 foreach ($Viewprivacy as $key =>$v){
                     $Viewprivacy1[]=array_values($v)[0];
                 }
-                $setprivacy1  = array_intersect($setprivacy1,$Viewprivacy1);
+                $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
             }
         }
-
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
         if ($this->isAll) {
@@ -69,8 +70,8 @@ class ProjectTransformer extends TransformerAbstract
                 'last_updated_at' => $project->last_updated_at,
 
             ];
-            if($setprivacy1)
-                foreach ($Viewprivacy1 as $key =>$v){
+            if($setprivacy1 && $project->creator_id != $user->id)
+                foreach ($setprivacy1 as $key =>$v){
                     $Viewprivacy2[$v]=$key;
                 }
             $array = array_merge($array,$Viewprivacy2);
@@ -85,7 +86,6 @@ class ProjectTransformer extends TransformerAbstract
                      }
                  }
              }
-
             if ($business)
                 $array['approval_status'] = $business->status->id;
 

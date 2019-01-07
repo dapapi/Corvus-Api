@@ -535,7 +535,8 @@ class ProjectController extends Controller
         $manager->setSerializer(new DataArraySerializer());
         if (isset($expendituresum)) {
             $user = Auth::guard('api')->user();
-
+            $setprivacy1 =array();
+            $Viewprivacy2 =array();
             $array['moduleable_id']= $project->id;
             $array['moduleable_type']= ModuleableType::PROJECT;
             $array['is_privacy']=  PrivacyType::OTHER;
@@ -555,8 +556,10 @@ class ProjectController extends Controller
                     $setprivacy1  = array_intersect($setprivacy1,$Viewprivacy1);
                 }
             }
-            if($setprivacy1){
-                foreach ($Viewprivacy1 as $key =>$v){
+            if($setprivacy1 && $project->creator_id != $user->id)
+            {
+
+                foreach ($setprivacy1 as $key =>$v){
                     $Viewprivacy2[$v]=$key;
                 }
 

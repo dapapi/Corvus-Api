@@ -119,7 +119,7 @@ class ApprovalFormController extends Controller
                         $participantsArray = [
                             'form_instance_number' => $projectNumber,
                             'created_at' => date("Y-m-d H:i:s", time()),
-                            'notice_id' => hashid_decode($value['id']),
+                            'notice_id' => hashid_decode($value),
                             'notice_type' => DataDictionarie::NOTICE_TYPE_TEAN,
                         ];
                         Participant::create($participantsArray);
@@ -753,7 +753,11 @@ class ApprovalFormController extends Controller
             $value['id'] = hashid_decode($value['id']);
             return [$value['name'], $value['id']];
         } else if (!in_array('id', $value)) {
-            $value = implode(',', $value);
+            $str = '';
+            foreach ($value as $file) {
+                $str .= $file['fileUrl'] . ',';
+            }
+            $value = rtrim($str, ',');
             return [$value, ''];
         }
 

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blogger;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use App\ModuleableType;
-
 use App\Repositories\PrivacyUserRepository;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
@@ -31,11 +31,18 @@ class privacyUserController extends Controller
         if ($model instanceof Blogger && $model->id) {
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::BLOGGER;
-            $this->privacyUserRepository->is_creator($array,$model);
+            $thisnull = $this->privacyUserRepository->is_creator($array,$model);
+
+        }else if($model instanceof Project && $model->id){
+            $array['moduleable_id'] = $model->id;
+            $array['moduleable_type'] = ModuleableType::PROJECT;
+            $thisnull = $this->privacyUserRepository->is_creator($array,$model);
+            if(!$thisnull) {
+               return $this->response->errorForbidden("你不能添加");
+            }
         }
         DB::beginTransaction();
         try {
-
             $this->privacyUserRepository->addPrivacy($array,$request,$payload);
 //           // 操作日志
 //            $operate = new OperateEntity([

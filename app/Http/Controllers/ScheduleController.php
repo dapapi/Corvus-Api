@@ -354,7 +354,18 @@ class ScheduleController extends Controller
             $this->response->errorInternal("你没有权限添加日程");
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
-
+        if($payload['material_id']){
+            $materials['material_id']= ['material_id',$payload['material_id']];
+            $materials['start_at'] = ['end_at','>=',$payload['start_at']];
+            $materials['end_at']= ['start_at','<=',$payload['end_at']];
+            $endmaterials = Schedule::where($materials['material_id'][0],$materials['material_id'][1])
+                ->where($materials['end_at'][0],$materials['end_at'][1],$materials['end_at'][2])
+                ->where($materials['start_at'][0],$materials['start_at'][1],$materials['start_at'][2])
+                ->orderby('start_at')->get(['id']);
+            if(!isset($endmaterials)){
+                $this->response->errorForbidden("会议室已占用");
+            }
+        }
         $module = Module::where('code', 'schedules')->first();
 
         DB::beginTransaction();
@@ -479,7 +490,6 @@ class ScheduleController extends Controller
     {
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
-
         if(!in_array($user->id,$users)) {
             return $this->response->accepted();
         }

@@ -62,7 +62,6 @@ class CalendarController extends Controller
                 return $this->response->errorInternal("艺人已经关联项目");
             }
         }
-
         $payload['creator_id'] = $user->id;
 
         DB::beginTransaction();

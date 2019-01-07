@@ -11,4 +11,14 @@ abstract class PrivacyType
 
     const BLOGGER_BILL ='bill';
 
+    const PROJECT_BILL ='bill';
+    const FEE ='fee';
+
+    const PROJECT_EXPENDITURE ='projected_expenditure';
+
+    const EXPENDITURESUM ='expendituresum';
+
+    const CONTRACTMONEY ='contractmoney';
+
+
 }

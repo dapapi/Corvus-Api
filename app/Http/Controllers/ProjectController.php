@@ -18,6 +18,7 @@ use App\Models\Client;
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
+use App\Models\PrivacyUser;
 use App\Models\Project;
 use App\Models\ProjectBill;
 use App\Models\ProjectHistorie;
@@ -32,6 +33,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
@@ -516,19 +518,62 @@ class ProjectController extends Controller
     {
         $type = $project->type;
         $result = $this->response->item($project, new ProjectTransformer());
-
         $data = TemplateField::where('module_type', $type)->get();
-
         $array['project_kd_name'] = $project->title;
         $array['expense_type'] = '支出';
         $contractmoney = 100000000;
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+        unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
         if (isset($expendituresum)) {
-            $result->addMeta('contractmoney', $contractmoney);
-            $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            $user = Auth::guard('api')->user();
+            $setprivacy1 =array();
+            $Viewprivacy2 =array();
+            $array['moduleable_id']= $project->id;
+            $array['moduleable_type']= ModuleableType::PROJECT;
+            $array['is_privacy']=  PrivacyType::OTHER;
+            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+            foreach ($setprivacy as $key =>$v){
+
+                $setprivacy1[]=array_values($v)[0];
+
+            }
+            if($project->creator_id != $user->id){
+                $array['user_id']= $user->id;
+                $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+                if($Viewprivacy){
+                    foreach ($Viewprivacy as $key =>$v){
+                        $Viewprivacy1[]=array_values($v)[0];
+                    }
+                    $setprivacy1  = array_intersect($setprivacy1,$Viewprivacy1);
+                }
+            }
+            if($setprivacy1 && $project->creator_id != $user->id)
+            {
+
+                foreach ($setprivacy1 as $key =>$v){
+                    $Viewprivacy2[$v]=$key;
+                }
+
+                foreach ($Viewprivacy2 as $key2 => $val2)
+                {
+
+                  if($key2 === 'contractmoney'){
+                      $result->addMeta('contractmoney','');
+                  }
+                  if($key2 === 'expendituresum'){
+                      $result->addMeta('expendituresum','');
+                  }
+
+                }
+            }else {
+                $result->addMeta('contractmoney', $contractmoney);
+
+                $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            }
+
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
 
@@ -683,6 +728,25 @@ class ProjectController extends Controller
 
         return $this->response->paginator($projects, new ProjectTransformer());
 
+    }
+
+    public function getClient(Request $request)
+    {
+        $projectId = $request->get('project_id', 0);
+        $projectId = hashid_decode($projectId);
+        try {
+            $project = Project::findOrFail($projectId);
+        } catch (Exception $exception) {
+            return $this->response->errorBadRequest('项目id错误');
+        }
+
+        $client = $project->trail->client;
+
+        $data = array(
+            'client_id' => hashid_encode($client->id),
+            'name' => $client->company
+        );
+        return $this->response->array(['data' => $data]);
     }
 
     /**

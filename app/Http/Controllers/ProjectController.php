@@ -3,39 +3,47 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\AddRelateProjectRequest;
-use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Transformers\ProjectCourseTransformer;
+use App\Http\Requests\Project\EditEeturnedMoneyRequest;
+use App\Http\Transformers\ProjectTransformer;
+use App\Http\Transformers\TemplateFieldTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
-use App\Http\Transformers\ProjectTransformer;
-use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ProjectCourseTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
-use App\Models\FieldHistorie;
+use App\ModuleableType;
+
+use App\Models\PrivacyUser;
 use App\Models\FieldValue;
 use App\Models\Message;
-use App\Models\Project;
-use App\Models\ProjectBill;
-use App\Models\ProjectHistorie;
-use App\Models\ProjectRelate;
-use App\Models\ProjectReturnedMoney;
-use App\Models\ProjectReturnedMoneyType;
+use App\PrivacyType;
 use App\Models\ProjectStatusLogs;
+use App\Events\OperateLogEvent;
+use App\Models\OperateEntity;
+use App\Models\ProjectReturnedMoneyType;
+use App\OperateLogMethod;
+use App\Models\ProjectReturnedMoney;
+use App\Models\ProjectBill;
+use App\Models\Project;
+use App\Models\ProjectRelate;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
-use App\ModuleableType;
+use App\Models\ProjectHistorie;
+use App\Models\FieldHistorie;
+use App\Models\User;
 use App\ModuleUserType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
-use App\User;
+use App\Repositories\ScopeRepository;
+use Dingo\Api\Facade\Route;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -516,19 +524,62 @@ class ProjectController extends Controller
     {
         $type = $project->type;
         $result = $this->response->item($project, new ProjectTransformer());
-
         $data = TemplateField::where('module_type', $type)->get();
-
         $array['project_kd_name'] = $project->title;
         $array['expense_type'] = '支出';
         $contractmoney = 100000000;
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+        unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
         if (isset($expendituresum)) {
-            $result->addMeta('contractmoney', $contractmoney);
-            $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            $user = Auth::guard('api')->user();
+            $setprivacy1 =array();
+            $Viewprivacy2 =array();
+            $array['moduleable_id']= $project->id;
+            $array['moduleable_type']= ModuleableType::PROJECT;
+            $array['is_privacy']=  PrivacyType::OTHER;
+            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+            foreach ($setprivacy as $key =>$v){
+
+                $setprivacy1[]=array_values($v)[0];
+
+            }
+            if($project->creator_id != $user->id){
+                $array['user_id']= $user->id;
+                $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+                if($Viewprivacy){
+                    foreach ($Viewprivacy as $key =>$v){
+                        $Viewprivacy1[]=array_values($v)[0];
+                    }
+                    $setprivacy1  = array_intersect($setprivacy1,$Viewprivacy1);
+                }
+            }
+            if($setprivacy1 && $project->creator_id != $user->id)
+            {
+
+                foreach ($setprivacy1 as $key =>$v){
+                    $Viewprivacy2[$v]=$key;
+                }
+
+                foreach ($Viewprivacy2 as $key2 => $val2)
+                {
+
+                  if($key2 === 'contractmoney'){
+                      $result->addMeta('contractmoney','');
+                  }
+                  if($key2 === 'expendituresum'){
+                      $result->addMeta('expendituresum','');
+                  }
+
+                }
+            }else {
+                $result->addMeta('contractmoney', $contractmoney);
+
+                $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            }
+
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
 

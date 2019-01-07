@@ -377,43 +377,132 @@ class ApprovalFormController extends Controller
     {
 
         $payload = $request->all();
+
         $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        $pageSize = $request->get('page_size', config('app.page_size'));
 
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
         $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
-
+        $payload['keyword'] = isset($payload['keyword']) ? $payload['keyword'] : '';
         if ($payload['status'] == 1) {
             $payload['status'] = array('231');
+            //查询个人
+            $dataUser = DB::table('approval_form_participants as afp')//
+
+                ->join('approval_form_business as afb', function ($join) {
+                    $join->on('afp.form_instance_number', '=', 'afb.form_instance_number');
+                })
+                ->join('project_histories as cs', function ($join) {
+                    $join->on('cs.project_number', '=', 'afp.form_instance_number');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('cs.creator_id', '=', 'us.id');
+                })
+                ->whereIn('afb.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', $userId)
+                ->orderBy('afp.created_at', 'desc')
+                ->select('afb.form_instance_number', 'cs.title', 'us.name', 'us.name', 'afp.created_at', 'afb.form_status','cs.id')->get()->toArray();
+
+
+            //查询角色
+            $dataRole = DB::table('approval_form_participants as afe')//
+                ->join('role_users as ru', function ($join) {
+                    $join->on('afe.notice_id', '=', 'ru.role_id');
+                })
+                ->join('approval_form_business as afb', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'afb.form_instance_number');
+                })
+                ->join('users as u', function ($join) {
+                    $join->on('ru.user_id', '=','u.id');
+                })
+                ->join('project_histories as ph', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'ph.project_number');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('ph.creator_id', '=','us.id');
+                })
+                ->whereIn('afb.form_status',$payload['status'])->where('afe.notice_type',247)->where('u.id',$userId)
+                ->orderBy('ph.created_at', 'desc')
+                ->select('ph.id','afe.form_instance_number','afe.notice_type','afb.form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
+
+
+            //部门负责人
+            $dataPrincipal = DB::table('approval_form_participants as afe')//
+
+                ->join('approval_form_business as bu', function ($join) {
+                    $join->on('afe.form_instance_number', '=','bu.form_instance_number');
+                })
+                ->join('approval_flow_change as recode', function ($join) {
+                    $join->on('afe.form_instance_number', '=','recode.form_instance_number')->where('recode.change_state','=',237);
+                })
+                ->join('users as creator', function ($join) {
+                    $join->on('recode.change_id', '=','creator.id');
+                })
+                ->join('department_user as du', function ($join) {
+                    $join->on('creator.id', '=', 'du.user_id');
+                })
+                ->join('department_principal as dp', function ($join) {
+                    $join->on('dp.department_id', '=', 'du.department_id')->where('afe.notice_type','=',246);
+                })
+                ->join('project_histories as ph', function ($join) {
+                    $join->on('ph.project_number', '=','bu.form_instance_number');
+                })
+
+                ->where('dp.user_id',$userId)
+                ->whereIn('bu.form_status',$payload['status'])
+                ->orderBy('ph.created_at', 'desc')
+                ->select('ph.id','afe.form_instance_number','afe.notice_type','bu.form_status','ph.title','creator.name', 'ph.created_at')->get()->toArray();
+
+            $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
         } else {
-            $payload['status'] = array('232', '233', '234', '235');
+            $resArr = $this->thenNotifyApproval();
         }
 
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $data = DB::table('approval_form_participants as afp')//
+            $count = count($resArr);//总条数
+            $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
+            $article = array_slice($resArr,$start,$pageSize);
 
-        ->join('approval_form_business as bu', function ($join) {
-            $join->on('afp.form_instance_number', '=', 'bu.form_instance_number');
-        })
-            ->join('users', function ($join) {
-                $join->on('afp.notice_id', '=', 'users.id');
-            })
-            ->join('projects as ph', function ($join) {
-                $join->on('ph.project_number', '=', 'afp.form_instance_number');
-            })
-            ->where(function ($query) use ($payload, $request) {
-                if ($request->has('keyword')) {
-                    $query->where('afp.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
-                }
-            })
-            ->where('afp.notice_id', $user->id)
-            ->whereIn('bu.form_status', $payload['status'])
-            ->select('ph.id', 'afp.*', 'bu.*', 'users.name', 'ph.created_at')
-            ->paginate($pageSize)->toArray();
+            $arr = array();
+            $arr['total'] = $count;
+            $arr['data'] = $article;
+            $arr['meta']['pagination'] = $count;
+            $arr['meta']['current_page'] = $count;
+            $arr['meta']['total_pages'] = ceil($count/20);
 
-        foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->notice_id = hashid_encode($value->notice_id);
-        }
-        return $data;
+            foreach ($arr['data'] as $key => &$value) {
+                $value->id = hashid_encode($value->id);
+            }
+            return $arr;
+    }
+
+    //获取已审批信息
+    public function thenNotifyApproval(){
+
+        $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        //查询个人
+        $dataUser = DB::table('approval_form_participants as afc')//
+            ->join('users as u', function ($join) {
+                $join->on('afc.notice_id', '=','u.id');
+            })
+
+            ->join('project_histories as ph', function ($join) {
+                $join->on('afc.form_instance_number', '=', 'ph.project_number');
+            })
+
+            ->join('users as us', function ($join) {
+                $join->on('us.id', '=', 'ph.creator_id');
+            })
+            ->join('approval_form_business as afb', function ($join) {
+                $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
+            })
+
+            ->where('afc.notice_type','!=',237)->where('afc.notice_type','!=',238)->where('afc.notice_id',$userId)
+            ->orderBy('ph.created_at', 'desc')
+            ->groupBy('afb.form_instance_number')
+            ->select('ph.id','afb.form_instance_number','afb.form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
+
+        return $dataUser;
     }
 
     // 获取一般审批表单

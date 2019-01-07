@@ -1059,6 +1059,17 @@ class TaskController extends Controller
                                 $trail = Trail::findOrFail($resourceableId);
                                 $array['resourceable_id'] = $trail->id;
                                 $array['resourceable_type'] = ModuleableType::TRAIL;
+                                //操作日志
+                                $operate = new OperateEntity([
+                                    'obj' => $trail,
+                                    'title' => null,
+                                    'start' => null,
+                                    'end' => null,
+                                    'method' => OperateLogMethod::ADD_TRAIL_TASK,
+                                ]);
+                                event(new OperateLogEvent([
+                                    $operate,
+                                ]));
                                 break;
                             //TODO
                         }

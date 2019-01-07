@@ -7,17 +7,19 @@ use League\Fractal\TransformerAbstract;
 
 class ScheduleRelateTaskTransformer extends TransformerAbstract
 {
+    //protected $defaultIncludes = ['task'];
 
     public function transform(ScheduleRelate $scheduleRelate)
     {
-        $array = [
+        if($scheduleRelate->taskid() == null){
 
-            'moduleable_id' =>hashid_encode($scheduleRelate->moduleable_id),
+            return array();
+        }else{
 
+            $array = [
+            'moduleable_id' => hashid_decode($scheduleRelate->moduleable_id),
             'title' => $scheduleRelate->tasktitle()
         ];
-
         return $array;
-    }
-
+    }}
 }

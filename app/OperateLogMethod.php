@@ -41,5 +41,7 @@ abstract class OperateLogMethod
     const ADD_STAR_TASK=29 ;//为艺人添加任务
     const CREATE_SIGNING_CONTRACTS=30;//创建签约合同
     const CREATE_RESCISSION_CONTRACTS = 31;//创建解约合同
+    const ADD_PRODUCTION = 32;//微博主添加做品
+    const ADD_TRAIL_TASK = 33;//创建销售线索关联任务
 
 }

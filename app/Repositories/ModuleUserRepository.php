@@ -304,6 +304,9 @@ class ModuleUserRepository
             case ModuleUserType::BROKER:
                 $title = '经纪人';
                 break;
+            case ModuleUserType::PRODUCER;
+                $title = '制作人';
+                break;
             //TODO
         }
         return $title;

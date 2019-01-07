@@ -511,6 +511,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/departments/member/{department}', 'App\Http\Controllers\DepartmentController@selectStore');
 
         $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+        //获取职位列表
+        $api->get('/departments_jobs', 'App\Http\Controllers\DepartmentController@jobsList');
 
 
         /*组织架构 职位管理*/

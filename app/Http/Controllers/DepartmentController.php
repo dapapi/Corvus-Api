@@ -549,7 +549,7 @@ class DepartmentController extends Controller
     }
 
 
-    public function directorList(Request $request)
+    public function jobsList(Request $request)
     {
         $positions = Position::get();
         return $this->response->collection($positions, new positionTransformer());

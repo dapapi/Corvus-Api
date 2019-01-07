@@ -8,7 +8,6 @@ use League\Fractal\TransformerAbstract;
 class OperateLogTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['user'];
-
     public function transform(OperateLog $operateLog)
     {
         $array = [

@@ -198,7 +198,6 @@ class ScheduleController extends Controller
         if ($request->has('task_ids') && is_array($payload['task_ids'])){
             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
         }
-
         if ($request->has('project_ids') && is_array($payload['project_ids'])){
             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
         }

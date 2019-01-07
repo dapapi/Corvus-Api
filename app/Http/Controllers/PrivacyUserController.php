@@ -31,11 +31,11 @@ class privacyUserController extends Controller
         if ($model instanceof Blogger && $model->id) {
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::BLOGGER;
-           // $this->privacyUserRepository->is_creator($array,$model);
+            $this->privacyUserRepository->is_creator($array,$model);
         }else if($model instanceof Project && $model->id){
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::PROJECT;
-           // $this->privacyUserRepository->is_creator($array,$model);
+            $this->privacyUserRepository->is_creator($array,$model);
         }
         DB::beginTransaction();
         try {

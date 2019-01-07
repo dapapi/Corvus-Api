@@ -490,7 +490,6 @@ class ScheduleController extends Controller
     {
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
-
         if(!in_array($user->id,$users)) {
             return $this->response->accepted();
         }

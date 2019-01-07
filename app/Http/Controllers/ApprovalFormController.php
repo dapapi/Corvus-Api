@@ -755,8 +755,9 @@ class ApprovalFormController extends Controller
         } else if (!in_array('id', $value)) {
             $str = '';
             foreach ($value as $file) {
-                $str .= $file['fileUrl'];
+                $str .= $file['fileUrl'] . ',';
             }
+            $value = rtrim($str, ',');
             return [$value, ''];
         }
 

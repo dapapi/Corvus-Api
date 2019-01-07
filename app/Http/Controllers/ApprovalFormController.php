@@ -753,7 +753,10 @@ class ApprovalFormController extends Controller
             $value['id'] = hashid_decode($value['id']);
             return [$value['name'], $value['id']];
         } else if (!in_array('id', $value)) {
-            $value = implode(',', $value);
+            $str = '';
+            foreach ($value as $file) {
+                $str .= $file['fileUrl'];
+            }
             return [$value, ''];
         }
 

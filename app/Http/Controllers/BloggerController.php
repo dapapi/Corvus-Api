@@ -678,6 +678,7 @@ class BloggerController extends Controller
     {
         $payload = $request->all();
         $blooger_id = $payload['blogger_id'];
+        $blogger = Blogger::findOrFail($blooger_id);
         unset($payload['blogger_id']);
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -748,17 +749,29 @@ class BloggerController extends Controller
                 }
 
             }
-//            // 操作日志
-//            $operate = new OperateEntity([
-//                'obj' => $production,
-//                'title' => null,
-//                'start' => null,
-//                'end' => null,
-//                'method' => OperateLogMethod::CREATE,
-//            ]);
-//            event(new OperateLogEvent([
-//                $operate,
-//            ]));
+            // 操作日志
+            //创建做品操作日志
+            $operate = new OperateEntity([
+                'obj' => $production,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+            //为博主添加做品操作日志
+            $operate = new OperateEntity([
+                'obj' => $blogger,
+                'title' => $production->videoname,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::ADD_PRODUCTION,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Trail;
 
 
+use App\Models\Trail;
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EditTrailRequest extends FormRequest
 {
@@ -35,7 +37,7 @@ class EditTrailRequest extends FormRequest
             'contact.phone' => ['nullable', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
             'resource' => 'nullable',
             'resource_type' => 'nullable|numeric',
-            'status' => 'nullable|numeric',
+            'status' => ['nullable',Rule::in([Trail::PRIORITY_A,Trail::PRIORITY_B,Trail::PRIORITY_C,Trail::PRIORITY_S])],
             'cooperation_type' => 'nullable|numeric', // 合作类型
             'priority' => 'nullable|numeric',
             'recommendations' => 'nullable|array',

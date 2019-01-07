@@ -9,6 +9,7 @@ use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\OperateLog;
+use App\Models\Production;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Report;
@@ -25,6 +26,7 @@ use App\Models\Work;
 use App\Models\GroupRoles;
 use App\Models\ProjectBillsResource;
 use App\Models\Role;
+use App\ModuleUserType;
 use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -72,6 +74,8 @@ class OperateLogEventListener
     protected $create_signing_contracts="%s 创建了签约合同";
     protected $create_rescission_contracts = "%s 创建了解约合同";
     protected $add_star_task = "创建了关联资源为该艺人的任务";
+    protected $add_production = "为该博主新增了 %s 做品";
+    protected $add_trail_tsak = "%s 创建了关联资源为该销售线索的任务";
 
     /**
      * Handle the event.
@@ -154,6 +158,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Role) {
                 $type = ModuleableType::ROLE;
                 $typeName = '角色';
+            }else if($operate->obj instanceof Production){
+                $type = ModuleableType::PRODUCTION;
+                $typeName = "做品库";
             }
             //TODO
 
@@ -161,7 +168,6 @@ class OperateLogEventListener
             $start = $operate->start;
             $end = $operate->end;
             $level = 0;
-
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
@@ -294,8 +300,14 @@ class OperateLogEventListener
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->create_rescission_contracts,$title);
                     break;
+                case OperateLogMethod::ADD_PRODUCTION://为博主添加做品库
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_production,$title);
+                    break;
+                case OperateLogMethod::ADD_TRAIL_TASK://为销售线索创建任务
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_trail_tsak,$user->name);
             }
-
             OperateLog::create([
                 'user_id' => $user->id,
                 'logable_id' => $id,

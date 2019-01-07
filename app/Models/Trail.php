@@ -61,6 +61,7 @@ class Trail extends Model
     const PRIORITY_S = 4;
 
 
+
     protected $fillable = [
         'title',
         'brand',

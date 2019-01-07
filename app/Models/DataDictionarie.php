@@ -50,7 +50,12 @@ class DataDictionarie extends Model
     const MESSAGE = 14;//消息
     //。。。。
 
-
+    //销售线索来源类型
+    const RESOURCE_TYPE = 37;
+    //优先级
+    const PRIORITY = 49;
+    //合作类型
+    const COOPERATION_TYPE = 28;
 
 
     public function dataDictionaries()
@@ -96,5 +101,13 @@ class DataDictionarie extends Model
         } else {
             return false;
         }
+    }
+    //根据parent_id 和 val获取name
+    public function getName($parent_id,$val){
+        $res = $this->where('parent_id',$parent_id)->where('val',$val)->first();
+        if($res == null){
+            return null;
+        }
+        return $res->name;
     }
 }

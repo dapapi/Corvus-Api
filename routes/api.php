@@ -356,6 +356,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
+        $api->get('/projects/relate_client', 'App\Http\Controllers\ProjectController@getClient');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
         $api->get('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@indexReturnedMoney');
@@ -510,6 +511,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/departments/member/{department}', 'App\Http\Controllers\DepartmentController@selectStore');
 
         $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+        //获取职位列表
+        $api->get('/departments_jobs', 'App\Http\Controllers\DepartmentController@jobsList');
 
 
         /*组织架构 职位管理*/

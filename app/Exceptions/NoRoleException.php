@@ -9,6 +9,6 @@ class NoRoleException extends HttpException
 {
     public function __construct( string $message = null, \Exception $previous = null, array $headers = array(), ?int $code = 0)
     {
-        parent::__construct(500, $message, $previous, $headers, $code);
+        parent::__construct(403, $message, $previous, $headers, $code);
     }
 }

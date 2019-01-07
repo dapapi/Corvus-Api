@@ -26,6 +26,7 @@ abstract class ModuleableType
     const ROLE = 'role';
     const REPOSITORY = 'repository';
     const PROJECTBILLSRESOURCE = 'projectbillsresource';
+    const PRODUCTION = "production";
 
 
 

@@ -156,20 +156,22 @@ class ApprovalFormController extends Controller
         }
 
         $data = DB::table('approval_form_business as bu')
-            ->join('projects as hi', function ($join) {
-                $join->on('bu.form_instance_number', '=', 'hi.project_number');
+            ->join('project_histories as ph', function ($join) {
+                $join->on('bu.form_instance_number', '=', 'ph.project_number');
             })
             ->join('users', function ($join) {
-                $join->on('hi.creator_id', '=', 'users.id');
+                $join->on('ph.creator_id', '=', 'users.id');
             })
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keyword')) {
                     $query->where('bu.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
                 }
             })
-            ->where('hi.creator_id', $user->id)
+            ->where('ph.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
-            ->select('hi.*', 'bu.*', 'users.name', 'hi.id')
+            ->orderBy('ph.created_at', 'desc')
+            ->select('ph.*', 'bu.*', 'users.name', 'ph.id')
+
             ->paginate($pageSize)->toArray();
 
         //return $this->response->item($data, new ProjectTransformer());

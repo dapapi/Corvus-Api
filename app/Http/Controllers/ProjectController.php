@@ -3,47 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\AddRelateProjectRequest;
+use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Requests\Project\EditEeturnedMoneyRequest;
-use App\Http\Transformers\ProjectTransformer;
-use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
-use App\Http\Transformers\ProjectCourseTransformer;
+use App\Http\Transformers\ProjectTransformer;
+use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
-use App\ModuleableType;
-
-use App\Models\PrivacyUser;
+use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
-use App\PrivacyType;
-use App\Models\ProjectStatusLogs;
-use App\Events\OperateLogEvent;
-use App\Models\OperateEntity;
-use App\Models\ProjectReturnedMoneyType;
-use App\OperateLogMethod;
-use App\Models\ProjectReturnedMoney;
-use App\Models\ProjectBill;
+use App\Models\PrivacyUser;
 use App\Models\Project;
+use App\Models\ProjectBill;
+use App\Models\ProjectHistorie;
 use App\Models\ProjectRelate;
+use App\Models\ProjectReturnedMoney;
+use App\Models\ProjectReturnedMoneyType;
+use App\Models\ProjectStatusLogs;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
-use App\Models\ProjectHistorie;
-use App\Models\FieldHistorie;
+use App\ModuleableType;
 use App\ModuleUserType;
+use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
-use App\Repositories\ScopeRepository;
 use App\User;
-use Dingo\Api\Facade\Route;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -734,6 +728,25 @@ class ProjectController extends Controller
 
         return $this->response->paginator($projects, new ProjectTransformer());
 
+    }
+
+    public function getClient(Request $request)
+    {
+        $projectId = $request->get('project_id', 0);
+        $projectId = hashid_decode($projectId);
+        try {
+            $project = Project::findOrFail($projectId);
+        } catch (Exception $exception) {
+            return $this->response->errorBadRequest('项目id错误');
+        }
+
+        $client = $project->trail->client;
+
+        $data = array(
+            'client_id' => hashid_encode($client->id),
+            'name' => $client->company
+        );
+        return $this->response->array(['data' => $data]);
     }
 
     /**

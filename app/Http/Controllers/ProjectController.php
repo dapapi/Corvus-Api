@@ -762,7 +762,7 @@ class ProjectController extends Controller
             'client_id' => hashid_encode($client->id),
             'title' => $client->company
         );
-        return $this->response->array(['data' => $data]);
+        return $this->response->array(['data' => array($data)]);
     }
 
     /**

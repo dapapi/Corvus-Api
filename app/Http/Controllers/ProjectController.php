@@ -529,6 +529,7 @@ class ProjectController extends Controller
         $manager->setSerializer(new DataArraySerializer());
         if (isset($expendituresum)) {
             $user = Auth::guard('api')->user();
+            $user->id = 2;
             $setprivacy1 =array();
             $Viewprivacy2 =array();
             $array['moduleable_id']= $project->id;
@@ -540,19 +541,34 @@ class ProjectController extends Controller
                 $setprivacy1[]=array_values($v)[0];
 
             }
-            if($project->creator_id != $user->id){
+            if($project ->creator_id != $user->id && $project->principal_id != $user->id){
+
                 $array['user_id']= $user->id;
                 $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+                unset($array);
                 if($Viewprivacy){
                     foreach ($Viewprivacy as $key =>$v){
                         $Viewprivacy1[]=array_values($v)[0];
                     }
-                    $setprivacy1  = array_intersect($setprivacy1,$Viewprivacy1);
+                    $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
+                }else{
+                    $setprivacy1 = array();
                 }
-            }
-            if($setprivacy1 && $project->creator_id != $user->id)
-            {
 
+            }
+            if($project ->creator_id != $user->id && $project->principal_id != $user->id)
+            {
+                if(empty($setprivacy1)){
+
+                    $array1['moduleable_id']= $project->id;
+                    $array1['moduleable_type']= ModuleableType::PROJECT;
+                    $array1['is_privacy']=  PrivacyType::OTHER;
+                    $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
+                    foreach ($setprivacy as $key =>$v){
+                        $setprivacy1[]=array_values($v)[0];
+
+                    }
+                }
                 foreach ($setprivacy1 as $key =>$v){
                     $Viewprivacy2[$v]=$key;
                 }

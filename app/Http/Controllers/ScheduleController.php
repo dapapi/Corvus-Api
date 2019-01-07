@@ -360,10 +360,12 @@ class ScheduleController extends Controller
             $endmaterials = Schedule::where($materials['material_id'][0],$materials['material_id'][1])
                 ->where($materials['end_at'][0],$materials['end_at'][1],$materials['end_at'][2])
                 ->where($materials['start_at'][0],$materials['start_at'][1],$materials['start_at'][2])
-                ->orderby('start_at')->get(['id']);
-            if(!isset($endmaterials)){
+                ->orderby('start_at')->get(['id'])->toArray();
+            if($endmaterials){
+
                 $this->response->errorForbidden("会议室已占用");
             }
+
         }
         $module = Module::where('code', 'schedules')->first();
 

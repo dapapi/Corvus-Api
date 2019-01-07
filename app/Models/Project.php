@@ -50,6 +50,7 @@ class Project extends Model
     const PROJECT_TYPE = 'projects'; // 业务类型
 
 
+
     protected $fillable = [
         'title',
         'project_number',

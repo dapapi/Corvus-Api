@@ -50,6 +50,7 @@ class ProjectTransformer extends TransformerAbstract
             }
 
         }
+
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
         if ($this->isAll) {
@@ -95,12 +96,15 @@ class ProjectTransformer extends TransformerAbstract
                  foreach ($Viewprivacy2 as $key2 => $val2)
                  {
 
-                     if($key1 === $key2){
+                     if($key1 === $key2 ){
 
-                         unset($array[$key1]);
+                              unset($array[$key1]);
+
                      }
+
+
                  }
-             }
+               }
             }
             if ($business)
                 $array['approval_status'] = $business->status->id;
@@ -147,9 +151,20 @@ class ProjectTransformer extends TransformerAbstract
 
     public function includeTrail(Project $project)
     {
+        $user = Auth::guard('api')->user();
+        $array['moduleable_id']= $project->id;
+        $array['moduleable_type']= ModuleableType::PROJECT;
+        $array['moduleable_field']= PrivacyType::FEE;
+        $array['is_privacy']=  PrivacyType::OTHER;
+        $array['user_id']=  $user->id;
+        $setprivacy = PrivacyUser::where($array)->first();
+
         $trail = $project->trail;
         if (!$trail)
             return null;
+        if(!$setprivacy)
+            return $this->item($trail, new TrailTransformer($setprivacy));
+        else
         return $this->item($trail, new TrailTransformer());
     }
 

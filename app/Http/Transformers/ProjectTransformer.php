@@ -30,7 +30,6 @@ class ProjectTransformer extends TransformerAbstract
         $array['moduleable_type']= ModuleableType::PROJECT;
         $array['is_privacy']=  PrivacyType::OTHER;
         $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-
         foreach ($setprivacy as $key =>$v){
 
             $setprivacy1[]=array_values($v)[0];

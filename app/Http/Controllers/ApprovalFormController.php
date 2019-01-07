@@ -156,11 +156,11 @@ class ApprovalFormController extends Controller
         }
 
         $data = DB::table('approval_form_business as bu')
-            ->join('projects as hi', function ($join) {
+            ->join('project_histories as ph', function ($join) {
                 $join->on('bu.form_instance_number', '=', 'hi.project_number');
             })
             ->join('users', function ($join) {
-                $join->on('hi.creator_id', '=', 'users.id');
+                $join->on('ph.creator_id', '=', 'users.id');
             })
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keyword')) {
@@ -170,6 +170,7 @@ class ApprovalFormController extends Controller
             ->where('hi.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
             ->select('hi.*', 'bu.*', 'users.name', 'hi.id')
+            ->orderBy('ph.created_at', 'desc')
             ->paginate($pageSize)->toArray();
 
         //return $this->response->item($data, new ProjectTransformer());

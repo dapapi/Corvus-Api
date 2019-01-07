@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 use App\PrivacyType;
+
+use Illuminate\Http\Request;
 use App\ModuleableType;
 use App\Models\PrivacyUser;
 
@@ -10,9 +12,13 @@ class PrivacyUserRepository
 
     public function is_creator($array, $model)
     {
-        if ($array['user_id'] == $model->creator_id) {
-            return $this->response->errorMethodNotAllowed('不能添加');
+
+        if ($array['user_id'] != $model->creator_id) {
+
+            return false;
+
         }
+        return true;
 
     }
 

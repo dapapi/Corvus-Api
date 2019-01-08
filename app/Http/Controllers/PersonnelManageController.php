@@ -417,9 +417,11 @@ class PersonnelManageController extends Controller
 //            if(!empty($userPhone)){
 //                return $this->response->errorInternal('手机号已经注册！');
 //            }
+            $icon_url = $this->getColorName($payload['name']);
 
             unset($payload['department']);
             unset($payload['department_id']);
+            $payload['icon_url'] = $icon_url;
             $user->update($payload);
             //$personalDetail->update($payload);
 

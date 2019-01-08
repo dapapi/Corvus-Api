@@ -362,7 +362,7 @@ class ScheduleController extends Controller
                 ->orderby('start_at')->get(['id'])->toArray();
             if($endmaterials){
 
-                $this->response->errorForbidden("该艺人已存在相关日历");
+                $this->response->errorForbidden("该会议室已被占用");
             }
 
         }

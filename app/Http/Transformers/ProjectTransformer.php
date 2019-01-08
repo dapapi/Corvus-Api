@@ -78,14 +78,15 @@ class ProjectTransformer extends TransformerAbstract
             if($project ->creator_id != $user->id && $project->principal_id != $user->id){
                if(empty($setprivacy1)){
 
-                   $array1['moduleable_id']= $project->id;
-                   $array1['moduleable_type']= ModuleableType::PROJECT;
-                   $array1['is_privacy']=  PrivacyType::OTHER;
-                   $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
-                   foreach ($setprivacy as $key =>$v){
-                       $setprivacy1[]=array_values($v)[0];
-
-                   }
+//                   $array1['moduleable_id']= $project->id;
+//                   $array1['moduleable_type']= ModuleableType::PROJECT;
+//                   $array1['is_privacy']=  PrivacyType::OTHER;
+//                   $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
+//                   foreach ($setprivacy as $key =>$v){
+//                       $setprivacy1[]=array_values($v)[0];
+//
+//                   }
+                   $setprivacy1 =  PrivacyType::getProject();
                }
                 foreach ($setprivacy1 as $key =>$v){
                     $Viewprivacy2[$v]=$key;

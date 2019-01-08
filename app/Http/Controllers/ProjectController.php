@@ -568,8 +568,8 @@ class ProjectController extends Controller
 //                        $setprivacy1[]=array_values($v)[0];
 //
 //                    }
-//                }
                     $setprivacy1 =  PrivacyType::getProject();
+                }
                 foreach ($setprivacy1 as $key =>$v){
                     $Viewprivacy2[$v]=$key;
                 }

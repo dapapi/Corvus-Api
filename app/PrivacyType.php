@@ -20,5 +20,14 @@ abstract class PrivacyType
 
     const CONTRACTMONEY ='contractmoney';
 
+    public static function getProject()
+    {           $project = array();
+        $project[] = 'bill';
+        $project[] = 'fee';
+        $project[] = 'projected_expenditure';
+        $project[] = 'expendituresum';
+        $project[] = 'contractmoney';
 
+        return $project;
+    }
 }

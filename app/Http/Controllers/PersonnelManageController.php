@@ -390,24 +390,34 @@ class PersonnelManageController extends Controller
             if($data == 0){
                 $departmentUser->create($array);
             }else{
-                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
-                    ->where('user_id', $userid)
-                    ->first();
+                $departmentInfo = DepartmentUser::where('user_id', $userid)->first();
                 $departmentInfo->delete();
                 $departmentUser->create($array);
 
             }
-            $userArr = [
-                'hire_shape' => $payload['hire_shape'],
-                'department' => $payload['department'],
-                'email' => $payload['email'],
-                'department_id' => $payload['department_id'],
-                'id_number' => $payload['id_number'],
-                'position_id' => $payload['position_id']
 
-            ];
+//            $userArr = [
+//                'age' => $payload['age'],
+//                'birth_time' => $payload['birth_time'],
+//                'gender' => $payload['gender'],
+//                'high_school' => $payload['high_school'],
+//                'position_id' => $payload['position_id'],
+//                'name' => $payload['name'],
+//                'number' => $payload['number'],
+//                'phone' => $payload['phone'],
+//                'work_email' => $payload['work_email']
+//
+//            ];
 
-            $user->update($userArr);
+//            $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
+//            dd($userPhone);
+//            if(!empty($userPhone)){
+//                return $this->response->errorInternal('手机号已经注册！');
+//            }
+
+            unset($payload['department']);
+            unset($payload['department_id']);
+            $user->update($payload);
             //$personalDetail->update($payload);
 
 

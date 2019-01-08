@@ -164,6 +164,10 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
+            if($payload['start_date'] == $payload['end_date']){
+                $payload['end_date']= date('Y-m-d 23:59:59',strtotime($payload['end_date']));
+            }
+
             $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
                 ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
                     ->whereRaw('c.deleted_at is null')

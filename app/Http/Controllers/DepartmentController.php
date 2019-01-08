@@ -91,7 +91,6 @@ class DepartmentController extends Controller
 
         DB::beginTransaction();
         try {
-
             //先查询修改之前的部门主管是否存在别的部门
             $principalInfo = DB::table("department_principal")->where('department_id',$departmentId)->get()->toArray();
 
@@ -141,16 +140,6 @@ class DepartmentController extends Controller
                 $depar = DepartmentPrincipal::create($principalArr);
             }
             $depar = $department->update($departmentArr);
-
-
-//            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
-//
-//            $array = [
-//                "department_id"=>$departmentId,
-//                "user_id"=>hashid_decode($payload['user_id']),
-//
-//            ];
-
 
 //            // 操作日志
 //            $operate = new OperateEntity([

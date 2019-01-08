@@ -750,6 +750,11 @@ class ApprovalFormController extends Controller
             return [$value['name'], $value['id']];
         }
 
+        if (!is_array($value[0])) {
+            $value = implode(',', $value);
+            return [$value, ''];
+        }
+
         if (array_key_exists('fileUrl', $value[0])) {
             $str = '';
             foreach ($value as $item) {
@@ -771,8 +776,6 @@ class ApprovalFormController extends Controller
             return [$names, $ids];
         }
 
-        $value = implode(',', $value);
-        return [$value, ''];
 
     }
 

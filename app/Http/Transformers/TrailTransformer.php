@@ -16,6 +16,8 @@ class TrailTransformer extends TransformerAbstract
 
     public function __construct($isAll = true)
     {
+      //  dd($isAll);
+       // $this->setprivacy = $setprivacy;
         $this->isAll = $isAll;
     }
 
@@ -23,6 +25,7 @@ class TrailTransformer extends TransformerAbstract
     public function transform(Trail $trail)
     {
         if ($this->isAll) {
+
             $array = [
                 'id' => hashid_encode($trail->id),
                 'title' => $trail->title,
@@ -47,7 +50,6 @@ class TrailTransformer extends TransformerAbstract
                 'created_at' => $trail->created_at->toDateTimeString(),
                 'creator' => $trail->creator->name,
             ];
-
             if (is_numeric($trail->resource)) {
                 $resource = User::where('id', $trail->resource)->first();
                 if ($resource) {
@@ -66,7 +68,38 @@ class TrailTransformer extends TransformerAbstract
                 'id' => hashid_encode($trail->id),
                 'title' => $trail->title,
                 'brand' => $trail->brand,
+                'industry_id' => hashid_encode($trail->industry->id),
+                'industry' => $trail->industry->name,
+                'resource_type' => $trail->resource_type,
+                'type' => $trail->type,
+                'priority' => $trail->priority,
+                'status' => $trail->status,
+                'progress_status' => $trail->progress_status,
+                'cooperation_type' => $trail->cooperation_type,
+                'desc' => $trail->desc,
+                'lock_status' => $trail->lock_status,
+                // 日志内容
+                'last_follow_up_at' => $trail->last_follow_up_at,
+                'last_updated_user' => $trail->last_updated_user,
+                'last_updated_at' => $trail->last_updated_at,
+                'refused_at' => $trail->refused_at,
+                'refused_user' => $trail->refused_user,
+                'created_at' => $trail->created_at->toDateTimeString(),
+                'creator' => $trail->creator->name,
             ];
+            if (is_numeric($trail->resource)) {
+                $resource = User::where('id', $trail->resource)->first();
+                if ($resource) {
+                    $array['resource'] = [
+                        'id' => hashid_encode($resource->id),
+                        'name' => $resource->name,
+                    ];
+                } else {
+                    $array['resource'] = $trail->resource;
+                }
+            } else {
+                $array['resource'] = $trail->resource;
+            }
         }
 
         return $array;

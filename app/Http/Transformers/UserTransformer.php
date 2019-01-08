@@ -23,7 +23,8 @@ class UserTransformer extends TransformerAbstract
         'familyData',
         'roleUser',
         'tasks',
-        'schedules'
+        'schedules',
+        'position'
     ];
    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
@@ -173,6 +174,12 @@ class UserTransformer extends TransformerAbstract
         $roleUserData = $user->roleUser;
 
         return $this->collection($roleUserData, new RoleUserTransformer());
+    }
+    public function includePosition(User $user)
+    {
+        $positionData = $user->position;
+
+        return $this->collection($positionData, new PositionTransformer());
     }
 
 }

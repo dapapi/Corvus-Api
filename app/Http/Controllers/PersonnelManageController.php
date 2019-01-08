@@ -308,7 +308,17 @@ class PersonnelManageController extends Controller
 
     public function detail(Request $request,User $user)
     {
-        return $this->response->item($user, new UserTransformer());
+        $userId = $user->id;
+        $data = DB::table('department_user as du')
+            ->join('departments as ds', function ($join) {
+                $join->on('du.department_id', '=', 'ds.id');
+            })
+            ->select('ds.name','ds.id')
+            ->where('user_id', $userId)->get()->toArray();
+
+        $result = $this->response->item($user, new UserTransformer());
+        $result->addMeta('department', $data);
+        return $result;
     }
 
     //增加个人信息
@@ -360,9 +370,7 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $userid = $user->id;
 
-        $userid = $user->id;
         $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
-
         try {
 //            $operate = new OperateEntity([
 //                    'obj' => $user,
@@ -382,24 +390,35 @@ class PersonnelManageController extends Controller
             if($data == 0){
                 $departmentUser->create($array);
             }else{
-                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
-                    ->where('user_id', $userid)
-                    ->first();
+                $departmentInfo = DepartmentUser::where('user_id', $userid)->first();
                 $departmentInfo->delete();
                 $departmentUser->create($array);
 
             }
-            $userArr = [
-                'hire_shape' => $payload['hire_shape'],
-                'department' => $payload['department'],
-                'email' => $payload['email'],
-                'department_id' => $payload['department_id'],
-                'id_number' => $payload['id_number'],
 
-            ];
+//            $userArr = [
+//                'age' => $payload['age'],
+//                'birth_time' => $payload['birth_time'],
+//                'gender' => $payload['gender'],
+//                'high_school' => $payload['high_school'],
+//                'position_id' => $payload['position_id'],
+//                'name' => $payload['name'],
+//                'number' => $payload['number'],
+//                'phone' => $payload['phone'],
+//                'work_email' => $payload['work_email']
+//
+//            ];
 
-            $user->update($userArr);
-            $personalDetail->update($payload);
+//            $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
+//            dd($userPhone);
+//            if(!empty($userPhone)){
+//                return $this->response->errorInternal('手机号已经注册！');
+//            }
+
+            unset($payload['department']);
+            unset($payload['department_id']);
+            $user->update($payload);
+            //$personalDetail->update($payload);
 
 
         } catch (\Exception $exception) {

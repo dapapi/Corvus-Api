@@ -11,7 +11,7 @@ class PositionTransformer extends TransformerAbstract
     public function transform(Position $position)
     {
         return [
-            'id' => hashid_encode($position->id),
+            'id' => $position->id,
             'name' => $position->name,
         ];
 

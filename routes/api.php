@@ -109,7 +109,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // 隐私设置
         $api->post('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
         $api->post('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
-
+        $api->get('/privacyUsers', 'App\Http\Controllers\privacyUserController@detail');
+        $api->put('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
         //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');
@@ -418,7 +419,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/archive', 'App\Http\Controllers\PersonnelManageController@archivelist');
         $api->put('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@statusEdit');
         $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
-        $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
+        $api->put('/edit/{user}/personal', 'App\Http\Controllers\PersonnelManageController@editPersonal');
         $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
         $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
         $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');

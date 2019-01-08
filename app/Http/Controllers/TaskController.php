@@ -143,17 +143,13 @@ class TaskController extends Controller
         $query->union($tasks);
 
         $querySql = $query->toSql();
-        DB::connection()->enableQueryLog();
         $result = Task::rightJoin(DB::raw("($querySql) as a"), function ($join) {
             $join->on('tasks.id', '=', 'a.id');
         })
             ->mergeBindings($query)
             ->searchData()
             ->orderBy('a.created_at', 'desc')
-            ->get();
-        $sql = DB::getQueryLog();
-        dd($sql);
-//            ->paginate($pageSize);
+            ->paginate($pageSize);
 
         return $this->response->paginator($result, new TaskTransformer());
     }

@@ -164,11 +164,14 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
-            $schedules = Schedule::select('schedules.*')->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+            if($payload['start_date'] == $payload['end_date']){
+                $payload['end_date']= date('Y-m-d 23:59:59',strtotime($payload['end_date']));
+            }
+
+            $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
                 ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
                     ->whereRaw('c.deleted_at is null')
                 ->whereIn('material_id', $payload['material_ids'])->get();
-
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 
@@ -198,7 +201,6 @@ class ScheduleController extends Controller
         if ($request->has('task_ids') && is_array($payload['task_ids'])){
             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
         }
-
         if ($request->has('project_ids') && is_array($payload['project_ids'])){
             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
         }
@@ -355,16 +357,27 @@ class ScheduleController extends Controller
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
         if($payload['material_id']){
+            if ($payload['is_allday'] == 1) {
+                // 开始时间   Ymd 格式
+                $array['start_at'] = date('Y-m-d',strtotime($payload['start_at']));
+                $array['end_at'] = date('Y-m-d',strtotime($payload['end_at']));
+
+            } else {
+                $array['start_at'] = date('Y-m-d H:i:s',strtotime($payload['start_at']));
+                $array['end_at']= date('Y-m-d H:i:s',strtotime($payload['end_at']));
+
+            }
             $materials['material_id']= ['material_id',$payload['material_id']];
-            $materials['start_at'] = ['end_at','>=',$payload['start_at']];
-            $materials['end_at']= ['start_at','<=',$payload['end_at']];
+            $materials['start_at'] = ['end_at','>=',$array['start_at']];
+            $materials['end_at']= ['start_at','<=',$array['end_at']];
             $endmaterials = Schedule::where($materials['material_id'][0],$materials['material_id'][1])
                 ->where($materials['end_at'][0],$materials['end_at'][1],$materials['end_at'][2])
                 ->where($materials['start_at'][0],$materials['start_at'][1],$materials['start_at'][2])
-                ->orderby('start_at')->get(['id']);
-            if(!isset($endmaterials)){
-                $this->response->errorForbidden("会议室已占用");
+                ->orderby('start_at')->get(['id'])->toArray();
+            if($endmaterials){
+                $this->response->errorForbidden("该时段会议室已被占用");
             }
+
         }
         $module = Module::where('code', 'schedules')->first();
 

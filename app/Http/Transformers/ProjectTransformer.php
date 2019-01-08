@@ -151,21 +151,25 @@ class ProjectTransformer extends TransformerAbstract
 
     public function includeTrail(Project $project)
     {
-        $user = Auth::guard('api')->user();
-        $array['moduleable_id']= $project->id;
-        $array['moduleable_type']= ModuleableType::PROJECT;
-        $array['moduleable_field']= PrivacyType::FEE;
-        $array['is_privacy']=  PrivacyType::OTHER;
-        $array['user_id']=  $user->id;
-        $setprivacy = PrivacyUser::where($array)->first();
 
-        $trail = $project->trail;
-        if (!$trail)
-            return null;
-        if(!$setprivacy)
-            return $this->item($trail, new TrailTransformer($setprivacy));
-        else
-        return $this->item($trail, new TrailTransformer());
+        $user = Auth::guard('api')->user();
+        if($project ->creator_id != $user->id && $project->principal_id != $user->id) {
+            $array['moduleable_id'] = $project->id;
+            $array['moduleable_type'] = ModuleableType::PROJECT;
+            $array['moduleable_field'] = PrivacyType::FEE;
+            $array['is_privacy'] = PrivacyType::OTHER;
+            $array['user_id'] = $user->id;
+            $setprivacy = PrivacyUser::where($array)->first();
+        }
+            $trail = $project->trail;
+            if (!$trail)
+                return null;
+            if (!$setprivacy)
+                return $this->item($trail, new TrailTransformer($setprivacy));
+
+            else
+                return $this->item($trail, new TrailTransformer());
+
     }
 
     public function includeParticipants(Project $project)

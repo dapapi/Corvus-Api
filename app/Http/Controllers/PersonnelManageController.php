@@ -316,8 +316,11 @@ class PersonnelManageController extends Controller
             ->select('ds.name','ds.id')
             ->where('user_id', $userId)->get()->toArray();
 
+        $detail = DB::table('personal_detail as du')->where('user_id', $userId)->get()->toArray();
+
         $result = $this->response->item($user, new UserTransformer());
         $result->addMeta('department', $data);
+        $result->addMeta('detail', $detail);
         return $result;
     }
 
@@ -419,6 +422,51 @@ class PersonnelManageController extends Controller
             unset($payload['department_id']);
             $user->update($payload);
             //$personalDetail->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+    }
+
+    //修改个人信息
+    public function editPersonalDetail(Request $request, User $user,PersonalDetail $personalDetail)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        $data = $personalDetail->where('user_id',$userid)->count();
+//        $userEmail = User::where('email', $payload['email'])->get()->toArray();
+//
+//        if(!empty($userEmail)){
+//            return $this->response->errorInternal('该邮箱已存在!');
+//        }
+
+        try {
+//            $operate = new OperateEntity([
+//                    'obj' => $user,
+//                    'title' => '个人',
+//                    'start' => '信息',
+//                    'end' => '档案',
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            if($data == 0){
+                $personalDetail->create($payload);
+            }else{
+                $departmentInfo = $personalDetail->where('user_id', $userid)->first();
+                $departmentInfo->update($payload);
+            }
+
+             $userArr = [
+                'email' => $payload['email'],
+                'hire_shape' => $payload['hire_shape']
+             ];
+            $user->update($userArr);
 
 
         } catch (\Exception $exception) {

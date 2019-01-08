@@ -308,7 +308,17 @@ class PersonnelManageController extends Controller
 
     public function detail(Request $request,User $user)
     {
-        return $this->response->item($user, new UserTransformer());
+        $userId = $user->id;
+        $data = DB::table('department_user as du')
+            ->join('departments as ds', function ($join) {
+                $join->on('du.department_id', '=', 'ds.id');
+            })
+            ->select('ds.name','ds.id')
+            ->where('user_id', $userId)->get()->toArray();
+
+        $result = $this->response->item($user, new UserTransformer());
+        $result->addMeta('department', $data);
+        return $result;
     }
 
     //增加个人信息
@@ -360,9 +370,7 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $userid = $user->id;
 
-        $userid = $user->id;
         $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
-
         try {
 //            $operate = new OperateEntity([
 //                    'obj' => $user,
@@ -395,11 +403,12 @@ class PersonnelManageController extends Controller
                 'email' => $payload['email'],
                 'department_id' => $payload['department_id'],
                 'id_number' => $payload['id_number'],
+                'position_id' => $payload['position_id']
 
             ];
 
             $user->update($userArr);
-            $personalDetail->update($payload);
+            //$personalDetail->update($payload);
 
 
         } catch (\Exception $exception) {

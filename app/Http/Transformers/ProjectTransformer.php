@@ -78,14 +78,15 @@ class ProjectTransformer extends TransformerAbstract
             if($project ->creator_id != $user->id && $project->principal_id != $user->id){
                if(empty($setprivacy1)){
 
-                   $array1['moduleable_id']= $project->id;
-                   $array1['moduleable_type']= ModuleableType::PROJECT;
-                   $array1['is_privacy']=  PrivacyType::OTHER;
-                   $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
-                   foreach ($setprivacy as $key =>$v){
-                       $setprivacy1[]=array_values($v)[0];
-
-                   }
+//                   $array1['moduleable_id']= $project->id;
+//                   $array1['moduleable_type']= ModuleableType::PROJECT;
+//                   $array1['is_privacy']=  PrivacyType::OTHER;
+//                   $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
+//                   foreach ($setprivacy as $key =>$v){
+//                       $setprivacy1[]=array_values($v)[0];
+//
+//                   }
+                   $setprivacy1 =  PrivacyType::getProject();
                }
                 foreach ($setprivacy1 as $key =>$v){
                     $Viewprivacy2[$v]=$key;
@@ -151,21 +152,25 @@ class ProjectTransformer extends TransformerAbstract
 
     public function includeTrail(Project $project)
     {
-        $user = Auth::guard('api')->user();
-        $array['moduleable_id']= $project->id;
-        $array['moduleable_type']= ModuleableType::PROJECT;
-        $array['moduleable_field']= PrivacyType::FEE;
-        $array['is_privacy']=  PrivacyType::OTHER;
-        $array['user_id']=  $user->id;
-        $setprivacy = PrivacyUser::where($array)->first();
 
-        $trail = $project->trail;
-        if (!$trail)
-            return null;
-        if(!$setprivacy)
-            return $this->item($trail, new TrailTransformer($setprivacy));
-        else
-        return $this->item($trail, new TrailTransformer());
+        $user = Auth::guard('api')->user();
+        if($project ->creator_id != $user->id && $project->principal_id != $user->id) {
+            $array['moduleable_id'] = $project->id;
+            $array['moduleable_type'] = ModuleableType::PROJECT;
+            $array['moduleable_field'] = PrivacyType::FEE;
+            $array['is_privacy'] = PrivacyType::OTHER;
+            $array['user_id'] = $user->id;
+            $setprivacy = PrivacyUser::where($array)->first();
+        }
+            $trail = $project->trail;
+            if (!$trail)
+                return null;
+            if (!$setprivacy)
+                return $this->item($trail, new TrailTransformer($setprivacy));
+
+            else
+                return $this->item($trail, new TrailTransformer());
+
     }
 
     public function includeParticipants(Project $project)

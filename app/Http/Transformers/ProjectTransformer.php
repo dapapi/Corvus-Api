@@ -154,6 +154,7 @@ class ProjectTransformer extends TransformerAbstract
     {
 
         $user = Auth::guard('api')->user();
+        $setprivacy = true;
         if($project ->creator_id != $user->id && $project->principal_id != $user->id) {
             $array['moduleable_id'] = $project->id;
             $array['moduleable_type'] = ModuleableType::PROJECT;

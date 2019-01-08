@@ -419,7 +419,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/archive', 'App\Http\Controllers\PersonnelManageController@archivelist');
         $api->put('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@statusEdit');
         $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
-        $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
+        $api->put('/edit/{user}/personal', 'App\Http\Controllers\PersonnelManageController@editPersonal');
         $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
         $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
         $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');

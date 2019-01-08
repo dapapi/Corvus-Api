@@ -18,6 +18,7 @@ use App\Models\Training;
 use App\Models\Record;
 use App\Models\FamilyData;
 use App\Models\DepartmentPrincipal;
+use App\Models\Position;
 
 use App\Models\Project;
 use App\Models\Role;
@@ -247,6 +248,11 @@ class User extends Authenticatable
     public function RoleUser()
     {
         return $this->hasMany(RoleUser::class, 'user_id', 'id');
+    }
+
+    public function Position()
+    {
+        return $this->hasMany(Position::class, 'id', 'position_id');
     }
 
     public function operateLogs()

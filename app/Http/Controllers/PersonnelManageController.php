@@ -390,9 +390,7 @@ class PersonnelManageController extends Controller
             if($data == 0){
                 $departmentUser->create($array);
             }else{
-                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
-                    ->where('user_id', $userid)
-                    ->first();
+                $departmentInfo = DepartmentUser::where('user_id', $userid)->first();
                 $departmentInfo->delete();
                 $departmentUser->create($array);
 

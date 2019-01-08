@@ -49,11 +49,9 @@ class ReviewController extends Controller
          }else{
             $arr1 = Report::wherein('id',$arr)->get(['id']);
         }
-        if(!empty($arr1)){
+        if($arr1){
             $stars = BulletinReview::wherein('template_id',$arr1->toarray())->where('status',$status)->createDesc()->paginate($pageSize);
-        }else{
-            $stars = BulletinReview::where('template_id','99')->where('status',$status)->createDesc()->paginate($pageSize);
-          }
+        }
         return $this->response->paginator($stars, new ReviewTransformer());
     }
     public function myTemplate(ReviewAllRequest $request)

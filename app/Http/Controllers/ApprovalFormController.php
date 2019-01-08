@@ -619,7 +619,7 @@ class ApprovalFormController extends Controller
         $notice = $request->get('notice', null);
 
         // 区分合同还是普通审批
-        if ($approval->group_id === 2)
+        if ($approval->group_id == 2)
             $type = 1;
         else
             $type = 0;
@@ -716,10 +716,10 @@ class ApprovalFormController extends Controller
                 if ($type == 'contract_number') {
                     $this->company = $this->getCompanyCode($value);
                 } else {
-                    if ($type === 'type')
+                    if ($type == 'type')
                         $this->type = $this->formatType($value);
 
-                    if ($type === 'stars')
+                    if ($type == 'stars')
                         $this->contract->update([
                             'star_type' => $this->starType
                         ]);

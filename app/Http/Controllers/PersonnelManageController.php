@@ -309,17 +309,9 @@ class PersonnelManageController extends Controller
     public function detail(Request $request,User $user)
     {
         $userId = $user->id;
-        $data = DB::table('department_user as du')
-            ->join('departments as ds', function ($join) {
-                $join->on('du.department_id', '=', 'ds.id');
-            })
-            ->select('ds.name','ds.id')
-            ->where('user_id', $userId)->get()->toArray();
-
         $detail = DB::table('personal_detail as du')->where('user_id', $userId)->get()->toArray();
 
         $result = $this->response->item($user, new UserTransformer());
-        $result->addMeta('department', $data);
         $result->addMeta('detail', $detail);
         return $result;
     }

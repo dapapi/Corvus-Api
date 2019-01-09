@@ -253,7 +253,7 @@ class User extends Authenticatable
 
     public function Position()
     {
-        return $this->hasMany(Position::class, 'id', 'position_id');
+        return $this->hasOne(Position::class, 'id', 'position_id');
     }
 
     public function operateLogs()

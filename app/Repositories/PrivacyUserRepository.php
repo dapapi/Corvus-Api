@@ -26,7 +26,8 @@ class PrivacyUserRepository
     public function getPrivacy($array)
     {
         $array['is_privacy'] = PrivacyType::OTHER;
-        $isnot = PrivacyUser::where($array)->groupby('moduleable_field')->select('moduleable_field',DB::raw('group_concat(user_id) as user_ids'))->get();
+       // $isnot = PrivacyUser::where($array)->groupby('moduleable_field')->select('moduleable_field as field',DB::raw('group_concat(user_id) as user_ids'))->get();
+        $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
         return $isnot;
     }
     public function updatePrivacy($array,$request, $payload)

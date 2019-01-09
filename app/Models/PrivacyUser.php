@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\User;
 
 class PrivacyUser extends Model
 {
@@ -14,6 +14,9 @@ class PrivacyUser extends Model
         'moduleable_field',
         'is_privacy'
     ];
-
+    public function user()
+    {
+        return $this->belongsTo(User::class,'user_id','id');
+    }
 
 }

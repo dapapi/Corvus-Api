@@ -74,9 +74,10 @@ class TrailTransformer extends TransformerAbstract
                     'creator' => $trail->creator->name,
                 ];
             }
-//            if(in_array('fee',$array)){
-//              dd(3);
-//            }
+            if(in_array('fee',$array)){
+                $resource = User::where('id', $trail->resource)->first();
+                dd($trail);
+            }
             if (is_numeric($trail->resource)) {
                 $resource = User::where('id', $trail->resource)->first();
                 if ($resource) {

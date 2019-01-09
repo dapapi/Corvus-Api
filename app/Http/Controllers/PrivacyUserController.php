@@ -37,7 +37,7 @@ class privacyUserController extends Controller
             $array['moduleable_type'] = ModuleableType::BLOGGER;
         }
         $privacyuser = $this->privacyUserRepository->getPrivacy($array,$request,$payload);
-        return $this->response->item($privacyuser, new PrivacyUserTransformer());
+        return $this->response->collection($privacyuser, new PrivacyUserTransformer(false));
 
     }
     public function edit(Request $request,$model)

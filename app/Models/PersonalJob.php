@@ -34,6 +34,7 @@ class PersonalJob extends Model
         'recruitment_ditch',//'招聘渠道');
         'recruitment_type',//'校招/社招');
         'other_ditch',//'其他招聘渠道');
+        'entry_time',//'入职日期');
 
     ];
 

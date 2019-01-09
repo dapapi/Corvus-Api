@@ -59,8 +59,14 @@ class PersonnelManageController extends Controller
                 }
 
                 if(!empty($positionType)) {
+                    //1 在职 聘用形式 劳动和实习
+                    if($positionType == 1 ){
+                        $query->whereIn('hire_shape', [2,3]);
+                    }else{
+                        //2 离职 聘用形式 劳动和实习 状态已离职
+                        $query->whereIn('hire_shape', [2,3])->where('status',3);
+                    }
 
-                    $query->where('position_type', $positionType);
                 }
                 if(!empty($ehireShape)) {
                     $query->where('hire_shape',$ehireShape);
@@ -254,7 +260,8 @@ class PersonnelManageController extends Controller
         //离职
         if($status == 3){
             $array = [
-                'position_type' => User::USER_STATUS_DEPARTUE,
+                //'position_type' => User::USER_STATUS_DEPARTUE,
+                'status'=>User::USER_STATUS_DEPARTUE,
             ];
             $num = DB::table("role_users")->where('user_id',$user_id)->delete();
             //归档

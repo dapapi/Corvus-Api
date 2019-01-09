@@ -41,7 +41,7 @@ class UserTransformer extends TransformerAbstract
             'position' => $user->position,
             'hire_shape' => $user->hire_shape,
             'entry_time' => $user->entry_time,
-            'archive_time' => $user->entry_time,
+            'archive_time' => $user->archive_time,
             'position_type' => $user->position_type,
             'en_name'=> $user->en_name, // '英文',
             'gender'=> $user->gender,//性别',

@@ -2,10 +2,13 @@
 
 namespace App\Http\Transformers;
 
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\User;
 use League\Fractal\ParamBag;
+use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
 
 class TrailTransformer extends TransformerAbstract
@@ -75,8 +78,13 @@ class TrailTransformer extends TransformerAbstract
                 ];
             }
             if(in_array('fee',$array)){
-                $resource = User::where('id', $trail->resource)->first();
-                dd($trail);
+
+//                $user = Auth::guard('api')->user();
+//                $department_id = Department::where('name', '商业管理部')->first();
+//
+//                $user_ids = DepartmentUser::where('department_id',$department_id->id)->get(['user_id']);
+//                dd($department_id);
+//                dd($trail->resource);
             }
             if (is_numeric($trail->resource)) {
                 $resource = User::where('id', $trail->resource)->first();

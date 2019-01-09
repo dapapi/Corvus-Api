@@ -77,15 +77,15 @@ class TrailTransformer extends TransformerAbstract
                     'creator' => $trail->creator->name,
                 ];
             }
-            if(in_array('fee',$array)){
-
-//                $user = Auth::guard('api')->user();
-//                $department_id = Department::where('name', '商业管理部')->first();
+//            if(in_array('fee',$array)){
 //
-//                $user_ids = DepartmentUser::where('department_id',$department_id->id)->get(['user_id']);
-//                dd($department_id);
-//                dd($trail->resource);
-            }
+////                $user = Auth::guard('api')->user();
+////                $department_id = Department::where('name', '商业管理部')->first();
+////
+////                $user_ids = DepartmentUser::where('department_id',$department_id->id)->get(['user_id']);
+////                dd($department_id);
+////                dd($trail->resource);
+//            }
             if (is_numeric($trail->resource)) {
                 $resource = User::where('id', $trail->resource)->first();
                 if ($resource) {

@@ -64,9 +64,9 @@ class ApprovalContractController extends Controller
             ->join('users', function ($join) {
                 $join->on('cs.creator_id', '=', 'users.id');
             })
-            ->leftjoin('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'cs.form_instance_number')->whereIn('form_control_id',[6,25,43]);
-            })
+//            ->leftjoin('approval_form_instance_values as afis', function ($join) {
+//                $join->on('afis.form_instance_number', '=', 'cs.form_instance_number')->whereIn('form_control_id',[6,25,43]);
+//            })
 
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keyword')) {
@@ -76,7 +76,7 @@ class ApprovalContractController extends Controller
             ->where('cs.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
             ->orderBy('cs.created_at', 'desc')
-            ->select('cs.*', 'bu.*', 'users.name', 'cs.id','afis.form_control_value as title')
+            ->select('cs.*', 'bu.*', 'users.name', 'cs.id','cs.title')
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key => &$value) {
@@ -120,14 +120,14 @@ class ApprovalContractController extends Controller
             ->join('users as us', function ($join) {
                 $join->on('ph.creator_id', '=','us.id');
             })
-            ->join('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
-            })
+//            ->join('approval_form_instance_values as afis', function ($join) {
+//                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
+//            })
 
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
             ->orderBy('ph.created_at', 'desc')
-            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','afis.form_control_value as title','us.name', 'ph.created_at')->get()->toArray();
+            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
 
         //查询个人
         $dataUser = DB::table('approval_flow_execute as afe')//
@@ -143,14 +143,14 @@ class ApprovalContractController extends Controller
                 $join->on('ph.creator_id', '=', 'us.id');
             })
 
-            ->join('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
-            })
+//            ->join('approval_form_instance_values as afis', function ($join) {
+//                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
+//            })
            // ->where('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afe.form_instance_number',$payload['keyword'])
 
             ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
             ->orderBy('ph.created_at', 'desc')
-            ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
+            ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
 
         //部门负责人
@@ -174,9 +174,9 @@ class ApprovalContractController extends Controller
                 $join->on('ph.form_instance_number', '=','bu.form_instance_number');
             })
 
-            ->join('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
-            })
+//            ->join('approval_form_instance_values as afis', function ($join) {
+//                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
+//            })
 
             ->where('dp.user_id',$userId)
             ->whereIn('afe.flow_type_id',$payload['status'])
@@ -229,22 +229,21 @@ class ApprovalContractController extends Controller
                 $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
             })
 
-            ->leftjoin('approval_form_instance_values as afis', function ($join) {
-                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
-            })
+//            ->leftjoin('approval_form_instance_values as afis', function ($join) {
+//                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
+//            })
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 
             ->where('afc.change_state','!=',237)->where('afc.change_state','!=',238)->where('afc.change_id',$userId)
-            ->orderBy('ph.created_at', 'desc')
+            ->orderBy('afc.change_at', 'desc')
             ->groupBy('afb.form_instance_number')
-            ->select('afb.form_instance_number','afb.form_status', 'afis.form_control_value as title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
+            ->select('afb.form_instance_number','afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id','afc.change_at')->get()->toArray();
 
         return $dataUser;
     }
 
     public function myThenApproval(Request $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $userId = $user->id;

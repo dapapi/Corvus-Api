@@ -58,6 +58,7 @@ class ApprovalFormController extends Controller
     protected $company;
     protected $type;
     protected $contract;
+    protected $starType;
 
     public function __construct(Generator $generator = null)
     {

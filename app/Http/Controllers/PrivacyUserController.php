@@ -100,10 +100,10 @@ class privacyUserController extends Controller
         }else if($model instanceof Project && $model->id){
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::PROJECT;
-//            $thisnull = $this->privacyUserRepository->is_creator($array,$model);
-//            if(!$thisnull) {
-//               return $this->response->errorForbidden("你不能添加");
-//            }
+            $thisnull = $this->privacyUserRepository->is_creator($array,$model);
+            if(!$thisnull) {
+               return $this->response->errorForbidden("你不能添加");
+            }
         }
         DB::beginTransaction();
         try {

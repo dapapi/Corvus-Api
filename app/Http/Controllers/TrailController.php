@@ -741,7 +741,6 @@ class TrailController extends Controller
                     'title' => '预计订单费用',
                     'value' => $payload['fee'],
                 ];
-                dd($payload['fee']);
                 //TODO 发给papi商务组，商务组暂时没建立
 //            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
 //            $authorization = $request->header()['authorization'][0];

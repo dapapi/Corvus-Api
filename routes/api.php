@@ -111,6 +111,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
         $api->get('/privacyUsers', 'App\Http\Controllers\privacyUserController@detail');
         $api->put('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
+        $api->put('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
         //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');

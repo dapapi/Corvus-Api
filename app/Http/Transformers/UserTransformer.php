@@ -77,6 +77,15 @@ class UserTransformer extends TransformerAbstract
             $array['is_department_principal'] = 0;
         }
 
+        $data = DB::table('department_user as du')
+            ->join('departments as ds', function ($join) {
+                $join->on('du.department_id', '=', 'ds.id');
+            })
+            ->select('ds.name','ds.id')
+            ->where('user_id', $user->id)->get()->toArray();
+
+        $array['department'] = $data;
+
         return $array;
     }
 

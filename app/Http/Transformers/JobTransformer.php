@@ -33,6 +33,7 @@ class JobTransformer extends TransformerAbstract
             'recruitment_type' => $job->recruitment_type,
             'other_ditch' => $job->other_ditch,
             'user_id' => $job->user_id,
+            'entry_time' => $job->entry_time,
         ];
 
 

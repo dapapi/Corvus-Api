@@ -297,7 +297,6 @@ class ApprovalFormController extends Controller
     //获取已审批信息
     public function thenApproval()
     {
-
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //查询个人
@@ -317,9 +316,9 @@ class ApprovalFormController extends Controller
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)
-            ->orderBy('ph.created_at', 'desc')
+            ->orderBy('afc.change_at', 'desc')
             ->groupBy('afb.form_instance_number')
-            ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
+            ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id','afc.change_at')->get()->toArray();
 
         return $dataUser;
     }

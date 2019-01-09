@@ -107,10 +107,14 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
+        $useremail = User::where('email', $payload['email'])->get()->keyBy('email')->toArray();
         $pageSize = config('api.page_size');
 
-        if(!empty($userPhone)){
-            return $this->response->errorInternal('手机号已经注册！');
+        if(!empty($useremail) ) {
+            return $this->response->errorInternal('邮箱已经被注册!');
+        }
+        if(!empty($userPhone) ){
+            return $this->response->errorInternal('手机号已经被注册!');
         }else{
 
             if(!isset($payload['icon_url'])){
@@ -309,17 +313,9 @@ class PersonnelManageController extends Controller
     public function detail(Request $request,User $user)
     {
         $userId = $user->id;
-        $data = DB::table('department_user as du')
-            ->join('departments as ds', function ($join) {
-                $join->on('du.department_id', '=', 'ds.id');
-            })
-            ->select('ds.name','ds.id')
-            ->where('user_id', $userId)->get()->toArray();
-
         $detail = DB::table('personal_detail as du')->where('user_id', $userId)->get()->toArray();
 
         $result = $this->response->item($user, new UserTransformer());
-        $result->addMeta('department', $data);
         $result->addMeta('detail', $detail);
         return $result;
     }
@@ -417,9 +413,11 @@ class PersonnelManageController extends Controller
 //            if(!empty($userPhone)){
 //                return $this->response->errorInternal('手机号已经注册！');
 //            }
+            $icon_url = $this->getColorName($payload['name']);
 
             unset($payload['department']);
             unset($payload['department_id']);
+            $payload['icon_url'] = $icon_url;
             $user->update($payload);
             //$personalDetail->update($payload);
 
@@ -518,6 +516,8 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
+
+
                 $personalJob->create($payload);
 
 
@@ -533,6 +533,9 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
+
+        $data = $personalJob->where('user_id',$userid)->count();
+
         try {
 //                // 操作日志
 //                $operate = new OperateEntity([
@@ -545,7 +548,18 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
-                $personalJob->update($payload);
+            if($data == 0){
+                $personalJob->create($payload);
+            }else{
+                $jobInfo = $personalJob->where('user_id', $userid)->first();
+                $jobInfo->update($payload);
+            }
+
+            $userArr = [
+                'status' => $payload['status'],
+            ];
+            $user->update($userArr);
+            
 
 
         } catch (\Exception $exception) {

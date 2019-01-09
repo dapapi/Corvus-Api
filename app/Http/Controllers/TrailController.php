@@ -67,7 +67,6 @@ class TrailController extends Controller
             ->get();
         return $this->response->collection($clients, new TrailTransformer());
     }
-
     // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
     public function store(StoreTrailRequest $request)
     {
@@ -265,7 +264,6 @@ class TrailController extends Controller
         }
         return $this->response->item($trail, new TrailTransformer());
     }
-
     //todo 操作日志怎么记
     public function edit(EditTrailRequest $request, Trail $trail)
     {
@@ -491,26 +489,22 @@ class TrailController extends Controller
         DB::beginTransaction();
         try {
             if ($request->has('lock') && $payload['lock']) {//操作锁价
-                $array['lock_status'] = $payload['lock_status'];
-                if($trail->lock_status != $payload['lock_status']){
+                $array['lock_status'] = $payload['lock'];
+                if($trail->lock_status != $array['lock_status']){
                     $operateName = new OperateEntity([
                         'obj' => $trail,
                         'title' => '锁价',
-                        'start' => $payload['lock_status'] == 1?"锁价":"未锁价",
-                        'end' => $payload['lock_status'] == 1?"锁价":"未锁价",
+                        'start' => $array['lock_status'] == 1?"锁价":"未锁价",
+                        'end' => $array['lock_status'] == 1?"锁价":"未锁价",
                         'method' => OperateLogMethod::UPDATE,
                     ]);
                     $arrayOperateLog[] = $operateName;
-
+                    $trail->update($array);
                 }else{
                     unset($array['lock_status']);
                 }
 
             }
-
-
-            $trail->update($array);
-
             if ($request->has('client')) {
                 $client = $trail->client;
                 if (isset($payload['client']['company'] )){

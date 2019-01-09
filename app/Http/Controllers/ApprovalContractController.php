@@ -244,7 +244,6 @@ class ApprovalContractController extends Controller
 
     public function myThenApproval(Request $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $userId = $user->id;

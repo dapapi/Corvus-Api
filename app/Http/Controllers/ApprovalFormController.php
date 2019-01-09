@@ -297,7 +297,6 @@ class ApprovalFormController extends Controller
     //获取已审批信息
     public function thenApproval()
     {
-
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //查询个人

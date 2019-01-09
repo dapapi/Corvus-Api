@@ -736,7 +736,7 @@ class ApprovalFlowController extends Controller
                         $operate,
                     ]));
                 } catch (Exception $e) {
-                    throw $e;
+                    Log::error($e);
                 }
                 DB::commit();
             }

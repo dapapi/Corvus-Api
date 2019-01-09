@@ -35,7 +35,7 @@ class ProjectTransformer extends TransformerAbstract
             $setprivacy1[]=array_values($v)[0];
 
         }
-        if($project ->creator_id != $user->id && $project->principal_id != $user->id){
+        if(!$setprivacy1 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
 
             $array['user_id']= $user->id;
             $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
@@ -75,7 +75,7 @@ class ProjectTransformer extends TransformerAbstract
 
             ];
 
-            if($project ->creator_id != $user->id && $project->principal_id != $user->id){
+            if(!$setprivacy1 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
                if(empty($setprivacy1)){
 
 //                   $array1['moduleable_id']= $project->id;

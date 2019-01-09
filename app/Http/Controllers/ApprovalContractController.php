@@ -421,6 +421,7 @@ class ApprovalContractController extends Controller
         })
 
         ->where('afc.notice_type','!=',237)->where('afc.notice_type','!=',238)->where('afc.notice_id',$userId)
+        ->where('afb.form_status','!=', 231)
         ->orderBy('ph.created_at', 'desc')
         ->groupBy('afb.form_instance_number')
         ->select('ph.id','afb.form_instance_number','afb.form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();

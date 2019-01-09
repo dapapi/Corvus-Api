@@ -26,7 +26,7 @@ class PrivacyUserRepository
     public function getPrivacy($array)
     {
         $array['is_privacy'] = PrivacyType::OTHER;
-       // $isnot = PrivacyUser::where($array)->groupby('moduleable_field')->select('moduleable_field as field',DB::raw('group_concat(user_id) as user_ids'))->get();
+       // $isnot = PrivacyUser::where($array)->groupby('moduleable_field')->select('moduleable_field',DB::raw('group_concat(user_id) as user_ids'))->get();
         $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
         return $isnot;
     }
@@ -225,6 +225,27 @@ class PrivacyUserRepository
                 }
             }
         }
+        if ($request->has('hatch_at')) {
+            $project_bill = $payload['hatch_at'];
+            unset($payload['hatch_at']);
+            foreach ($project_bill as $key => &$value) {
+                $array['moduleable_field'] = PrivacyType::HATCH_STAR_AT;
+                $array['is_privacy'] = PrivacyType::OTHER;
+                $array['user_id'] = hashid_decode($value);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
+                $array['moduleable_field'] = PrivacyType::HATCH_END_AT;
+                $array['is_privacy'] = PrivacyType::OTHER;
+                $array['user_id'] = hashid_decode($value);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
+            }
+        }
+
     }
     public function addAll($p_ids,$array)
 {

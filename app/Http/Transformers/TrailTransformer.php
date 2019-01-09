@@ -2,10 +2,13 @@
 
 namespace App\Http\Transformers;
 
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\User;
 use League\Fractal\ParamBag;
+use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
 
 class TrailTransformer extends TransformerAbstract
@@ -74,9 +77,18 @@ class TrailTransformer extends TransformerAbstract
                     'creator' => $trail->creator->name,
                 ];
             }
-            if(in_array('fee',$array)){
-                $resource = User::where('id', $trail->resource)->first();
-                dd($trail);
+            if(array_key_exists("fee", $array)){
+                if($trail->lock_status){
+                $user = Auth::guard('api')->user();
+                $department_id = Department::where('name', '商业管理部')->first();
+                if($department_id){
+                $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
+                $user_ids = DepartmentUser::wherein('department_id',$department_ids)->where('user_id',$user->id)->get(['user_id'])->toArray();
+                if(!$user_ids){
+                   unset($array['fee']);
+                }
+                }
+              }
             }
             if (is_numeric($trail->resource)) {
                 $resource = User::where('id', $trail->resource)->first();

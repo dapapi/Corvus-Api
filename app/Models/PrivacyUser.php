@@ -16,6 +16,7 @@ class PrivacyUser extends Model
     ];
     public function user()
     {
+       // return $this->hasMany(User::class,'id','user_ids');
         return $this->belongsTo(User::class,'user_id','id');
     }
 

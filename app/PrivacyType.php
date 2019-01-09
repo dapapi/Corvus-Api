@@ -20,6 +20,9 @@ abstract class PrivacyType
 
     const CONTRACTMONEY ='contractmoney';
 
+    const HATCH_STAR_AT ='hatch_star_at';
+
+    const HATCH_END_AT ='hatch_end_at';
     public static function getProject()
     {           $project = array();
         $project[] = 'bill';
@@ -27,6 +30,14 @@ abstract class PrivacyType
         $project[] = 'projected_expenditure';
         $project[] = 'expendituresum';
         $project[] = 'contractmoney';
+
+        return $project;
+    }
+    public static function getBlogger()
+    {           $project = array();
+        $project[] = 'hatch_star_at';
+        $project[] = 'hatch_end_at';
+
 
         return $project;
     }

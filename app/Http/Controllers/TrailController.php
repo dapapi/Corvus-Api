@@ -15,6 +15,8 @@ use App\Http\Transformers\TrailTransformer;
 use App\Models\Blogger;
 use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\FilterJoin;
 use App\Models\Industry;
 use App\Models\OperateEntity;
@@ -37,7 +39,8 @@ class TrailController extends Controller
     public function index(FilterTrailRequest $request)
     {
         $payload = $request->all();
-
+        $user = Auth::guard('api')->user();
+        $department_id = Department::where('name', '商业管理部')->first();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $trails = Trail::where(function ($query) use ($request, $payload) {
@@ -54,6 +57,19 @@ class TrailController extends Controller
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
         })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+//        if($department_id){
+//            $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
+//            $user_ids = DepartmentUser::wherein('department_id',$department_ids)->where('user_id',$user->id)->get(['user_id'])->toArray();
+//            if(!$user_ids){
+//
+//            }
+//        }
+//
+//
+//
+//        dd($trails->get());
+
+//            ->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }
@@ -488,9 +504,11 @@ class TrailController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($request->has('lock') && $payload['lock']) {//操作锁价
-                $array['lock_status'] = $payload['lock'];
-                if($trail->lock_status != $array['lock_status']){
+
+            if ($request->has('lock')) {//操作锁价
+
+                $payload['lock_status'] = $payload['lock'];
+                if($trail->lock_status != $payload['lock_status']){
                     $operateName = new OperateEntity([
                         'obj' => $trail,
                         'title' => '锁价',
@@ -499,12 +517,13 @@ class TrailController extends Controller
                         'method' => OperateLogMethod::UPDATE,
                     ]);
                     $arrayOperateLog[] = $operateName;
-                    $trail->update($array);
+
                 }else{
-                    unset($array['lock_status']);
+                    unset($payload['lock_status']);
                 }
 
             }
+            $trail->update($array);
             if ($request->has('client')) {
                 $client = $trail->client;
                 if (isset($payload['client']['company'] )){
@@ -694,6 +713,7 @@ class TrailController extends Controller
                     return $this->response->errorInternal("推荐艺人关联失败");
                 }
             }
+
             event(new OperateLogEvent($arrayOperateLog));
         } catch (\Exception $exception) {
             Log::error($exception);
@@ -701,6 +721,7 @@ class TrailController extends Controller
             return $this->response->errorInternal('修改销售线索失败');
         }
         DB::commit();
+
         //发消息
         if($trail->lock_status == 1){
             DB::beginTransaction();
@@ -720,6 +741,7 @@ class TrailController extends Controller
                     'title' => '预计订单费用',
                     'value' => $payload['fee'],
                 ];
+                dd($payload['fee']);
                 //TODO 发给papi商务组，商务组暂时没建立
 //            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
 //            $authorization = $request->header()['authorization'][0];

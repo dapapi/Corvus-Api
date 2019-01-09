@@ -103,6 +103,8 @@ class ModuleUserRepository
             $array['moduleable_type'] = ModuleableType::CALENDAR;
         }else if ($model instanceof Project && $model->id) {
             $array['moduleable_type'] = ModuleableType::PROJECT;
+        }else if ($model instanceof Task && $model->id) {
+            $array['moduleable_type'] = ModuleableType::TASK;
         }
 
 

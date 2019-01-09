@@ -307,7 +307,7 @@ class PersonnelManageController extends Controller
     public function archiveList(Request $request)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $user = User::orderBy('entry_time','asc')
+        $user = User::orderBy('archive_time','desc')
             ->where(function($query) use($request){
                 $query->where('status',User::USER_ARCHIVE);
             })->paginate($pageSize);

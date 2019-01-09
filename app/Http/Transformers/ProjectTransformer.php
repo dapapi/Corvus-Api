@@ -167,7 +167,7 @@ class ProjectTransformer extends TransformerAbstract
             if (!$trail)
                 return null;
             if (!$setprivacy)
-                return $this->item($trail, new TrailTransformer($setprivacy));
+                return $this->item($trail, new TrailTransformer(true,$setprivacy));
 
             else
                 return $this->item($trail, new TrailTransformer());

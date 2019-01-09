@@ -128,11 +128,11 @@ class PrivacyUserRepository
                 $array['moduleable_field'] = PrivacyType::SIGN_CONTRACT_STATUS;
                 $array['is_privacy'] = PrivacyType::OTHER;
                 $array['user_id'] = hashid_decode($value);
-                $this->add($array);
-//                $isnot = PrivacyUser::where($array)->first();
-//                if(!$isnot){
-//                    $privacyUser = PrivacyUser::create($array);
-//                }
+//                $this->add($array);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
             }
         }
         if ($request->has('blogger_bill')) {
@@ -156,11 +156,11 @@ class PrivacyUserRepository
                 $array['moduleable_field'] = PrivacyType::FEE;
                 $array['is_privacy'] = PrivacyType::OTHER;
                 $array['user_id'] = hashid_decode($value);
-                $this->add($array);
-//                $isnot = PrivacyUser::where($array)->first();
-//                if(!$isnot){
-//                    $privacyUser = PrivacyUser::create($array);
-//                }
+//                $this->add($array);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
             }
         }
 
@@ -172,11 +172,11 @@ class PrivacyUserRepository
                 $array['is_privacy'] = PrivacyType::OTHER;
                 $array['user_id'] = hashid_decode($value);
 
-                $this->add($array);
-//                $isnot = PrivacyUser::where($array)->first();
-//                if(!$isnot){
-//                    $privacyUser = PrivacyUser::create($array);
-//                }
+//                $this->add($array);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
             }
         }
 
@@ -188,11 +188,11 @@ class PrivacyUserRepository
                 $array['moduleable_field'] = PrivacyType::EXPENDITURESUM;
                 $array['is_privacy'] = PrivacyType::OTHER;
                 $array['user_id'] = hashid_decode($value);
-                $this->add($array);
-//                $isnot = PrivacyUser::where($array)->first();
-//                if(!$isnot){
-//                    $privacyUser = PrivacyUser::create($array);
-//                }
+//                $this->add($array);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
             }
         }
 
@@ -203,11 +203,11 @@ class PrivacyUserRepository
                 $array['moduleable_field'] = PrivacyType::CONTRACTMONEY;
                 $array['is_privacy'] = PrivacyType::OTHER;
                 $array['user_id'] = hashid_decode($value);
-                $this->add($array);
-//                $isnot = PrivacyUser::where($array)->first();
-//                if(!$isnot){
-//                    $privacyUser = PrivacyUser::create($array);
-//                }
+//                $this->add($array);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
             }
         }
 
@@ -218,14 +218,14 @@ class PrivacyUserRepository
                 $array['moduleable_field'] = PrivacyType::PROJECT_BILL;
                 $array['is_privacy'] = PrivacyType::OTHER;
                 $array['user_id'] = hashid_decode($value);
-                $this->add($array);
-//                $isnot = PrivacyUser::where($array)->first();
-//                if(!$isnot){
-//                    $privacyUser = PrivacyUser::create($array);
-//                }
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
             }
         }
-    }public function addAll($p_ids,$array)
+    }
+    public function addAll($p_ids,$array)
 {
 
     $participantDeleteId = PrivacyUser::where('moduleable_id',$array['moduleable_id'])->where('moduleable_type',$array['moduleable_type'])->where('moduleable_field',$array['moduleable_field'])->where('is_privacy',$array['is_privacy'])->get(['id'])->toArray();

@@ -428,7 +428,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
         $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
         $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');
-        $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
+        //修改薪资
+        $api->put('/edit/{user}/salary', 'App\Http\Controllers\PersonnelManageController@editSalary');
         $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
         $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
         $api->get('/security/{user}', 'App\Http\Controllers\PersonnelManageController@securityDetail');

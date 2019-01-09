@@ -67,7 +67,6 @@ class TrailController extends Controller
             ->get();
         return $this->response->collection($clients, new TrailTransformer());
     }
-
     // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
     public function store(StoreTrailRequest $request)
     {

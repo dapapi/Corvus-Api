@@ -107,10 +107,14 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
+        $useremail = User::where('email', $payload['email'])->get()->keyBy('email')->toArray();
         $pageSize = config('api.page_size');
 
-        if(!empty($userPhone)){
-            return $this->response->errorInternal('手机号已经注册！');
+        if(!empty($useremail) ) {
+            return $this->response->errorInternal('邮箱已经被注册!');
+        }
+        if(!empty($userPhone) ){
+            return $this->response->errorInternal('手机号已经被注册!');
         }else{
 
             if(!isset($payload['icon_url'])){

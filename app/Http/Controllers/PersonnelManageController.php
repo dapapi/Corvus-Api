@@ -516,6 +516,8 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
+
+
                 $personalJob->create($payload);
 
 
@@ -531,6 +533,9 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
+
+        $data = $personalJob->where('user_id',$userid)->count();
+
         try {
 //                // 操作日志
 //                $operate = new OperateEntity([
@@ -543,7 +548,18 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
-                $personalJob->update($payload);
+            if($data == 0){
+                $personalJob->create($payload);
+            }else{
+                $jobInfo = $personalJob->where('user_id', $userid)->first();
+                $jobInfo->update($payload);
+            }
+
+            $userArr = [
+                'status' => $payload['status'],
+            ];
+            $user->update($userArr);
+            
 
 
         } catch (\Exception $exception) {

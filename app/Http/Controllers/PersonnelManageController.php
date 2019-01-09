@@ -559,7 +559,7 @@ class PersonnelManageController extends Controller
                 'status' => $payload['status'],
             ];
             $user->update($userArr);
-            
+
 
 
         } catch (\Exception $exception) {
@@ -574,6 +574,9 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
+
+        $data = $personalSalary->where('user_id',$userid)->count();
+
         try {
             //$payload['user_id'] = $userid;
 //                // 操作日志
@@ -587,7 +590,14 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
-            $personalSalary->update($payload);
+
+            if($data == 0){
+                $personalSalary->create($payload);
+            }else{
+                $salaryInfo = $personalSalary->where('user_id', $userid)->first();
+                $salaryInfo->update($payload);
+            }
+
 
 
         } catch (\Exception $exception) {

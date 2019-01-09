@@ -15,6 +15,10 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Hash;
+
 
 class UserController extends Controller
 {
@@ -91,5 +95,28 @@ class UserController extends Controller
         return $this->response->array([
             'access_token' => $accessToken
         ]);
+    }
+    //修改密码
+    public function editpassword(Request $request)
+    {
+
+        $id = Auth::user()->id;
+        $user = Auth::guard('api')->user();
+
+        $oldpassword = $request->input('oldpassword');
+        $newpassword = $request->input('newpassword');
+        $res = DB::table('users')->where('id', $id)->select('password')->first();
+        if (!Hash::check($oldpassword, $res->password)) {
+            return $this->response->errorInternal('原密码不正确');
+        }
+        $update = array(
+            'password' => bcrypt($newpassword),
+        );
+        $result = DB::table('users')->where('id', $id)->update($update);
+        if ($result) {
+            return $this->response->errorInternal('修改成功!');
+        } else {
+            return $this->response->errorInternal('修改失败！');
+        }
     }
 }

@@ -211,7 +211,7 @@ class ProjectController extends Controller
                     return $this->response->errorBadRequest('字段与项目类型匹配错误');
                 }
             }
-            if (count($payload['trail']) > 0) {
+            if (is_array($payload['trail']) && array_key_exists('id', $payload['trail'])) {
                 $payload['trail_id'] = hashid_decode($payload['trail']['id']);
                 unset($payload['trail']['id']);
             }

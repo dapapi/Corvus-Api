@@ -108,17 +108,17 @@ class privacyUserController extends Controller
         DB::beginTransaction();
         try {
             $this->privacyUserRepository->addPrivacy($array,$request,$payload);
-//           // 操作日志
-//            $operate = new OperateEntity([
-//                'obj' =>  $blogger,
-//                'title' => null,
-//                'start' => null,
-//                'end' => null,
-//                'method' => OperateLogMethod::CREATE,
-//            ]);
-//            event(new OperateLogEvent([
-//                $operate,
-//            ]));
+           // 操作日志
+            $operate = new OperateEntity([
+                'obj' =>  $model,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::ADD_PRIVACY,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

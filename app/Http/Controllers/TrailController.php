@@ -315,7 +315,7 @@ class TrailController extends Controller
             }
             $resource_type = DataDictionarie::where('parent_id',DataDictionarie::RESOURCE_TYPE)->where('val',$payload['resource_type'])->first();
             if($resource_type == null){
-                return $this->response->errorInternal("线索来源类型错误");
+                return $this->response->errorBadRequest("线索来源类型错误");
             }
             $end = $resource_type->name;
             if($payload['resource_type'] != $trail->resource_type){
@@ -355,7 +355,7 @@ class TrailController extends Controller
                 }catch (\Exception $e){
                     dd($e);
                     Log::error($e);
-                    return $this->response->errorInternal("销售线索来源错误");
+                    return $this->response->errorBadRequest("销售线索来源错误");
                 }
 
             }else{
@@ -379,7 +379,7 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
-                    return $this->response->errorInternal("负责人错误");
+                    return $this->response->errorBadRequest("负责人错误");
                 }
 
             }else{
@@ -412,7 +412,7 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
-                    return $this->response->errorInternal("行业信息错误");
+                    return $this->response->errorBadRequest("行业信息错误");
                 }
 
             }else{
@@ -458,7 +458,7 @@ class TrailController extends Controller
                 $curr_cooperation_type = DataDictionarie::getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
                 $cooperation_type =  DataDictionarie::getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
                 if($cooperation_type == null){
-                    return $this->response->errorInternal("合作类型错误");
+                    return $this->response->errorBadRequest("合作类型错误");
                 }
                 $operateName = new OperateEntity([
                     'obj' => $trail,
@@ -671,6 +671,7 @@ class TrailController extends Controller
                         $stars = array_column($star_list,'name');
                         $start = implode(",",$stars);
                     }
+                    //删除
                     TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
                     foreach ($payload['recommendations'] as $recommendation) {
                         $starId = hashid_decode($recommendation);
@@ -695,28 +696,31 @@ class TrailController extends Controller
                                 ]);
                         }
                     }
-                    if($start != $end){
-                        if($starableType == ModuleableType::BLOGGER){
-                            $title = "关联推荐博主";
-                        }else{
-                            $title = "关联推荐艺人";
-                        }
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => $title,
-                            'start' => $start,
-                            'end' => trim($end,","),
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+
+                    if($starableType == ModuleableType::BLOGGER){
+                        $title = "关联推荐博主";
+                    }else{
+                        $title = "关联推荐艺人";
                     }
+                    $operateName = new OperateEntity([
+                        'obj' => $trail,
+                        'title' => $title,
+                        'start' => $start,
+                        'end' => trim($end,","),
+                        'method' => OperateLogMethod::UPDATE,
+                    ]);
+                    $arrayOperateLog[] = $operateName;
+
 
                 }catch (\Exception $e){
                     return $this->response->errorInternal("推荐艺人关联失败");
                 }
             }
 
+
             event(new OperateLogEvent($arrayOperateLog));
+
+
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();

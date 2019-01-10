@@ -1015,64 +1015,96 @@ class TaskController extends Controller
                             'task_id' => $task->id,
                             'resource_id' => $resource->id,
                         ];
+                        $model = null;
                         switch ($resource->type) {
                             case ResourceType::BLOGGER:
-                                $blogger = Blogger::findOrFail($resourceableId);
-                                $array['resourceable_id'] = $blogger->id;
+                                $model = Blogger::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
                                 $array['resourceable_type'] = ModuleableType::BLOGGER;
                                 break;
                             case ResourceType::STAR:
 
-                                $star = Star::findOrFail($resourceableId);
-                                $array['resourceable_id'] = $star->id;
+                                $model = Star::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
                                 $array['resourceable_type'] = ModuleableType::STAR;
-                                //操作日志
-                                $operate = new OperateEntity([
-                                    'obj' => $star,
-                                    'title' => null,
-                                    'start' => null,
-                                    'end' => null,
-                                    'method' => OperateLogMethod::ADD_STAR_TASK,
-                                ]);
-                                event(new OperateLogEvent([
-                                    $operate,
-                                ]));
+//                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $star,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_STAR_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
 
                                 break;
                             case ResourceType::PROJECT:
-                                $project = Project::findOrFail($resourceableId);
+                                $model = Project::findOrFail($resourceableId);
 
-                                $array['resourceable_id'] = $project->id;
+                                $array['resourceable_id'] = $model->id;
                                 $array['resourceable_type'] = ModuleableType::PROJECT;
-
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $project,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_PROJECT_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+                                break;
                                 break;
                             case ResourceType::CLIENT:
-                                $client = Client::findOrFail($resourceableId);
-                                $array['resourceable_id'] = $client->id;
+                                $model = Client::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
                                 $array['resourceable_type'] = ModuleableType::CLIENT;
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $client,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_CLIENT_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
                                 break;
                             case ResourceType::TRAIL:
-                                $trail = Trail::findOrFail($resourceableId);
-                                $array['resourceable_id'] = $trail->id;
+                                $model = Trail::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
                                 $array['resourceable_type'] = ModuleableType::TRAIL;
                                 //操作日志
-                                $operate = new OperateEntity([
-                                    'obj' => $trail,
-                                    'title' => null,
-                                    'start' => null,
-                                    'end' => null,
-                                    'method' => OperateLogMethod::ADD_TRAIL_TASK,
-                                ]);
-                                event(new OperateLogEvent([
-                                    $operate,
-                                ]));
+//                                $operate = new OperateEntity([
+//                                    'obj' => $trail,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_TRAIL_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
                                 break;
                             //TODO
                         }
 
                         $task_resource = TaskResource::create($array);
                         // 操作日志
-
+                        $operate = new OperateEntity([
+                            'obj' => $model,
+                            'title' => null,
+                            'start' => null,
+                            'end' => null,
+                            'method' => OperateLogMethod::ADD_TASK_RESOURCE,
+                        ]);
+                        event(new OperateLogEvent([
+                            $operate,
+                        ]));
                     } else {
                         throw new Exception('没有这个类型');
                     }

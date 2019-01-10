@@ -594,7 +594,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //我的审批 已审批
         $api->get('/approvals_project/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
-        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
+        $api->get('/approvals/contracts', 'App\Http\Controllers\ApprovalFormController@getContractForms');
+        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getBaseForms');
         $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
 
         /*合同列表*/

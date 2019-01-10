@@ -507,22 +507,23 @@ class TrailController extends Controller
         DB::beginTransaction();
         try {
             if ($request->has('lock')) {//操作锁价
-                $payload['lock_status'] = $payload['lock'];
-                if($trail->lock_status != $payload['lock_status']){
+
+
+                $array['lock_status'] = $payload['lock'];
+                if($trail->lock_status != $array['lock_status']){
                     $operateName = new OperateEntity([
                         'obj' => $trail,
                         'title' => '锁价',
-                        'start' => $array['lock_status'] == 1?"锁价":"未锁价",
+                        'start' => $trail->lock_status == 1?"锁价":"未锁价",
                         'end' => $array['lock_status'] == 1?"锁价":"未锁价",
                         'method' => OperateLogMethod::UPDATE,
                     ]);
                     $arrayOperateLog[] = $operateName;
-
                 }else{
-                    unset($payload['lock_status']);
+                    unset($array['lock_status']);
+
                 }
             }
-
             $trail->update($array);
             if ($request->has('client')) {
                 $client = $trail->client;

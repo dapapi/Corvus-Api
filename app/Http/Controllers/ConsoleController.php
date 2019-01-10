@@ -69,7 +69,7 @@ class ConsoleController extends Controller
 
     public function getGroup(Request $request)
     {
-        $groupInfo = GroupRoles::orderBy('created_at')->get();
+        $groupInfo = GroupRoles::orderBy('created_at')->where('id','!=',1)->get();
         return $this->response->collection($groupInfo, new GroupRolesTransformer());
     }
 

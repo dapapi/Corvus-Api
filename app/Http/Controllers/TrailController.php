@@ -28,6 +28,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
 use App\OperateLogMethod;
+use App\Repositories\ScopeRepository;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

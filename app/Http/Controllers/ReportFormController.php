@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ReportForm\CommercialFunnelRequest;
-use App\Models\Report;
-use App\Repositories\TrailRepository;
 use App\Repositories\ReportFormRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

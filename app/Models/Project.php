@@ -155,4 +155,19 @@ class Project extends Model
 
         return $this->morphMany(ProjectBillsResource::class, 'resourceable');
     }
+    public function getProjectType($type)
+    {
+        if ($type == self::TYPE_MOVIE){
+            return "影视项目";
+        }else if(self::TYPE_VARIETY == $type){
+            return "综艺项目";
+        }else if(self::TYPE_ENDORSEMENT == $type){
+            return "商务代言";
+        }else if(self::TYPE_PAPI == $type){
+            return "papi项目";
+        }else if(self::TYPE_BASE == $type){
+            return "基础项目";
+        }
+        return null;
+    }
 }

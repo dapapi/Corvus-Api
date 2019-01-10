@@ -9,6 +9,7 @@ class Contract extends Model
 {
     protected $fillable = [
         'contract_number',
+        'title',
         'form_instance_number',
         'creator_id',
         'creator_name',

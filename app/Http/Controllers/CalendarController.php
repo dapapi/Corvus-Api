@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Calendar\EditCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarTaskRequest;
 use App\Http\Transformers\CalendarTransformer;
 use App\Models\Calendar;
+use App\Models\OperateEntity;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
 use App\Repositories\CalendarRepository;
 use App\Repositories\ModuleUserRepository;
 use DemeterChain\C;
@@ -62,7 +65,6 @@ class CalendarController extends Controller
                 return $this->response->errorInternal("艺人已经关联项目");
             }
         }
-
         $payload['creator_id'] = $user->id;
 
         DB::beginTransaction();
@@ -75,8 +77,19 @@ class CalendarController extends Controller
                 $payload['participant_ids'] = [];
 
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $calendar, ModuleUserType::PARTICIPANT);
-
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $calendar,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
         } catch (Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建失败');
@@ -94,7 +107,6 @@ class CalendarController extends Controller
             return $this->response->errorInternal("你没有编辑日历的权限");
         }
         $payload = $request->all();
-
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
             //todo 暂时为硬编码
@@ -105,8 +117,8 @@ class CalendarController extends Controller
             }
             //判断艺人是否已经关联日历
             $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('starable_id',$payload['starable_id'])->get()->toArray();
-            if(count($calendars) > 1){
-                return $this->response->errorInternal("艺人已经关联项目");
+            if(count($calendars) >= 1){
+                return $this->response->errorMethodNotAllowed("该艺人已存在相关日历");
             }
         }
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))

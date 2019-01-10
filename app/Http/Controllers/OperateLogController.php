@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Repositories\OperateLogRepository;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class OperateLogController extends Controller

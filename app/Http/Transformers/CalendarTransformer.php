@@ -40,7 +40,6 @@ class CalendarTransformer extends TransformerAbstract
 
     public function includeParticipants(Calendar $calendar)
     {
-
         $participants = $calendar->participants;
         return $this->collection($participants, new UserTransformer());
     }

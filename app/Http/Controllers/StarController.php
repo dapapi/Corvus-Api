@@ -64,12 +64,12 @@ class StarController extends Controller
     public function all(Request $request)
     {
         $array = [];//查询条件
+        $payload = $request->all();
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
         $isAll = $request->get('all', false);
         $stars = Star::createDesc()->searchData()->where($array)->get();
-
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
@@ -703,7 +703,7 @@ class StarController extends Controller
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
                         // 操作日志 ...
                     } catch (Exception $e) {
-                        print_r($e);
+                        Log::error($e);
                     }
                 }
             }

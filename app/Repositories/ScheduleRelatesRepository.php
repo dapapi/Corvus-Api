@@ -23,10 +23,10 @@ class ScheduleRelatesRepository
         ];
 
         $participantDeleteIds = ScheduleRelate::where('moduleable_type', $array['moduleable_type'])->where('schedule_id',  $array['schedule_id'])->where('user_id', $array['user_id'])->get(['id'])->toArray();
+
         foreach ($participantDeleteIds as $key => &$participantDeleteId) {
             try {
                  $moduleUser = ScheduleRelate::where($participantDeleteId)->first();
-
                 if ($moduleUser) {//数据存在则从数据库中删除
                     $moduleUser->delete();
                 } else {//不存在则将ID从要删除的参与人或者宣传人列表中删除

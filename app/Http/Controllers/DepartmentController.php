@@ -13,6 +13,7 @@ use App\Models\DepartmentPrincipal;
 use App\Models\Position;
 use App\Models\DepartmentUser;
 use App\Models\OperateEntity;
+use App\Models\RoleUser;
 use App\OperateLogMethod;
 use App\Events\OperateLogEvent;
 use App\Http\Transformers\UserTransformer;
@@ -45,17 +46,35 @@ class DepartmentController extends Controller
             "city"=> isset($payload['city']) ? $payload['city'] : '',
         ];
 
+        $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
         DB::beginTransaction();
         try {
-            $contact = Department::create($departmentArr);
-            $id = DB::getPdo()->lastInsertId();
+            if($userId == 0){
 
-            $array = [
-                "department_id"=>$id,
-                "user_id"=>hashid_decode($payload['user_id']),
+                $contact = Department::create($departmentArr);
 
-            ];
-            $depar = DepartmentPrincipal::create($array);
+            }else{
+
+                $contact = Department::create($departmentArr);
+                $id = DB::getPdo()->lastInsertId();
+
+                $array = [
+                    "department_id"=>$id,
+                    "user_id"=>$userId,
+
+                ];
+                $depar = DepartmentPrincipal::create($array);
+                //查询修改前部门主管如果存在多个部门则不更新角色表 反之则删除
+                $userIdSum = DB::table("role_users")->where('user_id',$userId)->get()->count();
+
+                if($userIdSum ==0){
+                    $array = [
+                        "role_id" => 75,
+                        "user_id" => $userId,
+                    ];
+                    $depar = RoleUser::create($array);
+                }
+            }
             // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $department,
@@ -81,33 +100,94 @@ class DepartmentController extends Controller
     {
         $payload = $departmentrequest->all();
         $departmentId = $department->id;
-        $userId = hashid_decode($payload['user_id']);
+       // $userId = hashid_decode($payload['user_id']);
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
-
+        $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
         DB::beginTransaction();
         try {
-//            $contact = $department->update($departmentArr);
-            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
 
-//            $num = DB::table('department_user')
-//                ->where('department_id',$departmentId)
-//                ->where('type',1)
-//                ->update(['type'=>0]);
-//
-//            $num = DB::table('department_user')
-//                ->where('user_id',hashid_decode($payload['user_id']))
-//                ->update(['type'=>1]);
-            $array = [
-                "department_id"=>$departmentId,
-                "user_id"=>hashid_decode($payload['user_id']),
+            if($userId == 0){
 
-            ];
+                $principalInfo = DB::table("department_principal")->where('department_id',$departmentId)->get()->toArray();
 
-            $depar = DepartmentPrincipal::create($array);
+                if(!empty($principalInfo)) {
+                    $departmentUserId = $principalInfo[0]->user_id;
+
+                    //查询修改前部门主管如果存在多个部门则不更新角色表 反之则删除
+                    $userIdSum = DB::table("department_principal")->where('user_id',$departmentUserId)->get()->count();
+
+                    if($userIdSum >= 2){
+
+                    }else{
+                        $num = DB::table("role_users")->where('user_id',$departmentUserId)->where('role_id',75)->delete();
+
+                    }
+                    $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
+
+                }
+
+            }else{
+
+            //先查询修改之前的部门主管是否存在别的部门
+            $principalInfo = DB::table("department_principal")->where('department_id',$departmentId)->get()->toArray();
+
+            if(empty($principalInfo)){
+
+                $principalArr = [
+                    "department_id"=>$departmentId,
+                    "user_id"=>hashid_decode($payload['user_id']),
+                ];
+                $depar = DepartmentPrincipal::create($principalArr);
+                //根据传过来的user_id 查询是部门主管角色
+                $roleUser = DB::table("role_users")->where('user_id',$userId)->where('role_id',75)->get()->toArray();
+                if(empty($roleUser)) {
+                    $array = [
+                        "role_id" => 75,
+                        "user_id" => $userId,
+                    ];
+                    $depar = RoleUser::create($array);
+                }
+
+            }else{
+
+                $departmentUserId = $principalInfo[0]->user_id;
+
+                //查询修改前部门主管如果存在多个部门则不更新角色表 反之则删除
+                $userIdSum = DB::table("department_principal")->where('user_id',$departmentUserId)->get()->count();
+
+                if($userIdSum >= 2){
+
+                }else{
+                    $num = DB::table("role_users")->where('user_id',$departmentUserId)->where('role_id',75)->delete();
+
+                }
+
+                //根据传过来的user_id 查询是部门主管角色
+                $roleUser = DB::table("role_users")->where('user_id',$userId)->where('role_id',75)->get()->toArray();
+                if(empty($roleUser)){
+                    $array = [
+                        "role_id"=>75,
+                        "user_id"=>$userId,
+                    ];
+                    $depar = RoleUser::create($array);
+                }
+
+                $principalArr = [
+                    "department_id"=>$departmentId,
+                    "user_id"=>hashid_decode($payload['user_id']),
+                ];
+                $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
+                $depar = DepartmentPrincipal::create($principalArr);
+            }
+
+
+            }
+            $depar = $department->update($departmentArr);
+
 //            // 操作日志
 //            $operate = new OperateEntity([
 //                'obj' => $department,
@@ -172,20 +252,33 @@ class DepartmentController extends Controller
         $departmentId = $department->id;
         $departmentPid = $department->department_pid;
 
-       // $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
-
         try {
 
             $depatments = DepartmentUser::where('department_id', $departmentId)->where('type','!=',1)->get()->toArray();
 
-            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
-
+            //$num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
+            //删除部门 把其下面部门成员移交到未分配部门
             foreach ($depatments as $value){
                 $snum = DB::table('department_user')
                     ->where('user_id',$value['user_id'])
                     ->update(['department_id'=>1]);
             }
-            $num = DB::table("departments")->where('id',$departmentId)->delete();
+            //获取删除部门负责人id
+            $principalInfo = DB::table("department_principal")->where('department_id',$departmentId)->first();
+
+            if(isset($principalInfo)){
+                //查找部门负责人表 如果值大于2 则 userid 存在多个部门负责人 反之则删除 role_user 表 75
+                $userIdSum = DB::table("department_principal")->where('user_id',$principalInfo->user_id)->count();
+                if($userIdSum >= 2){
+
+                }else{
+                    $num = DB::table("role_users")->where('user_id',$principalInfo->user_id)->where('role_id',75)->delete();
+
+                }
+            }
+           //////////
+            $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
+            $nums = DB::table("departments")->where('id',$departmentId)->delete();
 
 
 //            if(empty($depatments)){
@@ -230,10 +323,12 @@ class DepartmentController extends Controller
         $departmentPid = $department->department_pid;
         $depatments = DepartmentUser::where('department_id', $departmentId)->get()->toArray();
         $depatmentNotid = Department::where('name', Department::NOT_DISTRIBUTION_DEPARTMENT)->first()->id;
+        $users = isset($payload['user']) ? $payload['user'] : 1;
+
         DB::beginTransaction();
         try {
 
-            if($payload['user'][0] != null){
+            if($users != 1){
 
 //                $num = DB::table('department_user')
 //                    ->where('department_id',$departmentId)
@@ -287,7 +382,7 @@ class DepartmentController extends Controller
 
     public function show(Request $request,User $user)
     {
-        $data = $user->get()->toArray();
+        $data = $user->where('entry_status',3)->get()->toArray();
 
         $targetKey = 'name';
         $data = array_map(function ($item) use ($targetKey) {
@@ -344,6 +439,11 @@ class DepartmentController extends Controller
     public function positionStore(PositionRequest $positionRequest)
     {
         $payload = $positionRequest->all();
+        $name = Position::where('name', $payload['name'])->get()->keyBy('name')->toArray();
+
+        if(!empty($name) ) {
+            return $this->response->errorInternal('该职位已存在!');
+        }
         DB::beginTransaction();
         try {
             $depar = Position::create($payload);
@@ -547,10 +647,44 @@ class DepartmentController extends Controller
     }
 
 
-    public function directorList(Request $request)
+    public function jobsList(Request $request)
     {
         $positions = Position::get();
         return $this->response->collection($positions, new positionTransformer());
     }
+
+    public function storeJobs(Request $request)
+    {
+        $payload = $request->all();
+
+
+        DB::beginTransaction();
+        try {
+            $array = [
+                'name'=>$payload['name'],
+            ];
+            Position::create($array);
+            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $user,
+//                'title' => null,
+//                'start' => $user->disable,
+//                'end' => $payload['disable'],
+//                'method' => OperateLogMethod::UPDATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+
+
+    }
+
+
 
 }

@@ -59,8 +59,14 @@ class PersonnelManageController extends Controller
                 }
 
                 if(!empty($positionType)) {
+                    //1 在职 聘用形式 劳动和实习
+                    if($positionType == 1 ){
+                        $query->whereIn('hire_shape', [2,3])->where('status','!=',3);
+                    }else{
+                        //2 离职 聘用形式 劳动和实习 状态已离职
+                        $query->whereIn('hire_shape', [2,3])->where('status',3);
+                    }
 
-                    $query->where('position_type', $positionType);
                 }
                 if(!empty($ehireShape)) {
                     $query->where('hire_shape',$ehireShape);
@@ -107,10 +113,14 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
+        $useremail = User::where('email', $payload['email'])->get()->keyBy('email')->toArray();
         $pageSize = config('api.page_size');
 
-        if(!empty($userPhone)){
-            return $this->response->errorInternal('手机号已经注册！');
+        if(!empty($useremail) ) {
+            return $this->response->errorInternal('邮箱已经被注册!');
+        }
+        if(!empty($userPhone) ){
+            return $this->response->errorInternal('手机号已经被注册!');
         }else{
 
             if(!isset($payload['icon_url'])){
@@ -250,7 +260,8 @@ class PersonnelManageController extends Controller
         //离职
         if($status == 3){
             $array = [
-                'position_type' => User::USER_STATUS_DEPARTUE,
+                //'position_type' => User::USER_STATUS_DEPARTUE,
+                'status'=>User::USER_STATUS_DEPARTUE,
             ];
             $num = DB::table("role_users")->where('user_id',$user_id)->delete();
             //归档
@@ -296,7 +307,7 @@ class PersonnelManageController extends Controller
     public function archiveList(Request $request)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $user = User::orderBy('entry_time','asc')
+        $user = User::orderBy('archive_time','desc')
             ->where(function($query) use($request){
                 $query->where('status',User::USER_ARCHIVE);
             })->paginate($pageSize);
@@ -308,7 +319,12 @@ class PersonnelManageController extends Controller
 
     public function detail(Request $request,User $user)
     {
-        return $this->response->item($user, new UserTransformer());
+        $userId = $user->id;
+        $detail = DB::table('personal_detail as du')->where('user_id', $userId)->get()->toArray();
+
+        $result = $this->response->item($user, new UserTransformer());
+        $result->addMeta('detail', $detail);
+        return $result;
     }
 
     //增加个人信息
@@ -360,9 +376,7 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $userid = $user->id;
 
-        $userid = $user->id;
         $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
-
         try {
 //            $operate = new OperateEntity([
 //                    'obj' => $user,
@@ -382,24 +396,82 @@ class PersonnelManageController extends Controller
             if($data == 0){
                 $departmentUser->create($array);
             }else{
-                $departmentInfo = DepartmentUser::where('department_id', $payload['department_id'])
-                    ->where('user_id', $userid)
-                    ->first();
+                $departmentInfo = DepartmentUser::where('user_id', $userid)->first();
                 $departmentInfo->delete();
                 $departmentUser->create($array);
 
             }
-            $userArr = [
-                'hire_shape' => $payload['hire_shape'],
-                'department' => $payload['department'],
+
+//            $userArr = [
+//                'age' => $payload['age'],
+//                'birth_time' => $payload['birth_time'],
+//                'gender' => $payload['gender'],
+//                'high_school' => $payload['high_school'],
+//                'position_id' => $payload['position_id'],
+//                'name' => $payload['name'],
+//                'number' => $payload['number'],
+//                'phone' => $payload['phone'],
+//                'work_email' => $payload['work_email']
+//
+//            ];
+
+//            $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
+//            dd($userPhone);
+//            if(!empty($userPhone)){
+//                return $this->response->errorInternal('手机号已经注册！');
+//            }
+            $icon_url = $this->getColorName($payload['name']);
+
+            unset($payload['department']);
+            unset($payload['department_id']);
+            $payload['icon_url'] = $icon_url;
+            $user->update($payload);
+            //$personalDetail->update($payload);
+
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+
+    }
+
+    //修改个人信息
+    public function editPersonalDetail(Request $request, User $user,PersonalDetail $personalDetail)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        $data = $personalDetail->where('user_id',$userid)->count();
+//        $userEmail = User::where('email', $payload['email'])->get()->toArray();
+//
+//        if(!empty($userEmail)){
+//            return $this->response->errorInternal('该邮箱已存在!');
+//        }
+
+        try {
+//            $operate = new OperateEntity([
+//                    'obj' => $user,
+//                    'title' => '个人',
+//                    'start' => '信息',
+//                    'end' => '档案',
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                event(new OperateLogEvent([
+//                    $operate,
+//                ]));
+            if($data == 0){
+                $personalDetail->create($payload);
+            }else{
+                $departmentInfo = $personalDetail->where('user_id', $userid)->first();
+                $departmentInfo->update($payload);
+            }
+
+             $userArr = [
                 'email' => $payload['email'],
-                'department_id' => $payload['department_id'],
-                'id_number' => $payload['id_number'],
-
-            ];
-
+                'hire_shape' => $payload['hire_shape']
+             ];
             $user->update($userArr);
-            $personalDetail->update($payload);
 
 
         } catch (\Exception $exception) {
@@ -451,6 +523,8 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
+
+
                 $personalJob->create($payload);
 
 
@@ -466,6 +540,9 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
+
+        $data = $personalJob->where('user_id',$userid)->count();
+
         try {
 //                // 操作日志
 //                $operate = new OperateEntity([
@@ -478,7 +555,18 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
-                $personalJob->update($payload);
+            if($data == 0){
+                $personalJob->create($payload);
+            }else{
+                $jobInfo = $personalJob->where('user_id', $userid)->first();
+                $jobInfo->update($payload);
+            }
+
+            $userArr = [
+                'status' => $payload['status'],
+            ];
+            $user->update($userArr);
+
 
 
         } catch (\Exception $exception) {
@@ -493,6 +581,9 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
+
+        $data = $personalSalary->where('user_id',$userid)->count();
+
         try {
             //$payload['user_id'] = $userid;
 //                // 操作日志
@@ -506,7 +597,14 @@ class PersonnelManageController extends Controller
 //                event(new OperateLogEvent([
 //                    $operate,
 //                ]));
-            $personalSalary->update($payload);
+
+            if($data == 0){
+                $personalSalary->create($payload);
+            }else{
+                $salaryInfo = $personalSalary->where('user_id', $userid)->first();
+                $salaryInfo->update($payload);
+            }
+
 
 
         } catch (\Exception $exception) {
@@ -605,6 +703,8 @@ class PersonnelManageController extends Controller
         $now = Carbon::now();
         $userid = $user->id;
 
+        $department = DepartmentUser::where('user_id',$userid)->get()->toArray();
+        if(empty($department)){
         if($status == 3){
             $array = [
                 'entry_status' => $payload['entry_status'],
@@ -614,7 +714,6 @@ class PersonnelManageController extends Controller
                 'department_id' => User::USER_DEPARTMENT_DEFAULT,
                 'user_id' => $userid,
             ];
-
             DepartmentUser::create($departmentarray);
         }else{
             $array = [
@@ -639,6 +738,10 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         return $this->response->accepted();
+
+        }else{
+            return $this->response->errorInternal('该用户已存在部门');
+        }
     }
 
     //获取用户门户

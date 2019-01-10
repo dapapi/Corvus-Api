@@ -9,6 +9,7 @@ use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\OperateLog;
+use App\Models\Production;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Report;
@@ -25,6 +26,7 @@ use App\Models\Work;
 use App\Models\GroupRoles;
 use App\Models\ProjectBillsResource;
 use App\Models\Role;
+use App\ModuleUserType;
 use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -68,10 +70,18 @@ class OperateLogEventListener
     protected $renewal = '更新';
     protected $transfer = '调岗';
     protected $refuse = '拒绝了';
-    protected $add_work = '添加 %s 作品';
+    protected $add_work = '为该艺人新增了 %s 作品';
     protected $create_signing_contracts="%s 创建了签约合同";
     protected $create_rescission_contracts = "%s 创建了解约合同";
-
+    protected $add_star_task = "创建了关联资源为该%s的任务";
+    protected $add_production = "为该博主新增了 %s 做品";
+//    protected $add_trail_task = "创建了关联资源为该销售线索的任务";
+//    protected $add_client_task = "创建了关联资源为该客户的任务";
+    protected $add_client_contracts = "添加了该客户的联系人";
+    protected $add_relate = "将此项目关联了 %s";
+    protected $status_frozen = "进行了撤单,撤单原因为%s";
+    protected $add_privacy = "对该%s进行了隐私设置";
+    protected $create_contracts = "创建了合同";
     /**
      * Handle the event.
      *
@@ -153,6 +163,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Role) {
                 $type = ModuleableType::ROLE;
                 $typeName = '角色';
+            }else if($operate->obj instanceof Production){
+                $type = ModuleableType::PRODUCTION;
+                $typeName = "做品库";
             }
             //TODO
 
@@ -160,7 +173,6 @@ class OperateLogEventListener
             $start = $operate->start;
             $end = $operate->end;
             $level = 0;
-
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
@@ -279,22 +291,52 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::ADD_WORK://为艺人添加作品
                     $level = OperateLogLevel::LOW;
-                    $content = sprintf($this->add_work, $title);;
+                    $content = sprintf($this->add_work,$title);;
                     break;
-                case OperateLogMethod::ADD_STAR_TASK:
+                case OperateLogMethod::ADD_TASK_RESOURCE: //为艺人添加任务
                     $level = OperateLogLevel::LOW;
-                    $content = sprintf($this->add_star_task,$title);
+                    $content = sprintf($this->add_star_task,$typeName);
                     break;
-                case OperateLogMethod::CREATE_SIGNING_CONTRACTS:
+                case OperateLogMethod::CREATE_SIGNING_CONTRACTS: //创建签约合同
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->create_signing_contracts,$title);
                     break;
-                case OperateLogMethod::CREATE_RESCISSION_CONTRACTS:
+                case OperateLogMethod::CREATE_RESCISSION_CONTRACTS: //创建解约合同
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->create_rescission_contracts,$title);
                     break;
+                case OperateLogMethod::ADD_PRODUCTION://为博主添加做品库
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_production,$title);
+                    break;
+//                case OperateLogMethod::ADD_TRAIL_TASK://为销售线索创建任务
+//                    $level = OperateLogLevel::LOW;
+//                    $content = sprintf($this->add_trail_task);
+//                    break;
+//                case OperateLogMethod::ADD_CLIENT_TASK://为客户创建任务
+//                    $level = OperateLogLevel::LOW;
+//                    $content = sprintf($this->add_client_task);
+                    break;
+                case OperateLogMethod::ADD_CLIENT_CONTRACTS://为客户创建联系人
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_client_contracts);
+                    break;
+                case OperateLogMethod::ADD_RELATE://为项目创建关联项目或任务
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_relate,$start);
+                    break;
+                case OperateLogMethod::STATUS_FROZEN://撤单
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->status_frozen,$start);
+                    break;
+                case OperateLogMethod::ADD_PRIVACY://进行隐私设置
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_privacy,$typeName);
+                    break;
+                case OperateLogMethod::CREATE_CONTRACTS://创建合同
+                    $level = OperateLogLevel::LOW;
+                    $content = $this->create_contracts;
             }
-
             OperateLog::create([
                 'user_id' => $user->id,
                 'logable_id' => $id,

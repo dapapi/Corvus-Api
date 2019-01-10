@@ -15,12 +15,12 @@ class ScheduleTransformer extends TransformerAbstract
             'id' => hashid_encode($schedule->id),
             'title' => $schedule->title,
             'is_allday' => $schedule->is_allday,
-//            'privacy' => $schedule->privacy,
+            'privacy' => $schedule->privacy,
             'start_at' => $schedule->start_at,
             'end_at' => $schedule->end_at,
-//            'position' => $schedule->position,
-//            'repeat' => $schedule->repeat,
-//            'desc' => $schedule->desc,
+            'position' => $schedule->position,
+            'repeat' => $schedule->repeat,
+            'desc' => $schedule->desc,
         ];
 
         return $array;
@@ -67,11 +67,11 @@ class ScheduleTransformer extends TransformerAbstract
     public function includeTask(Schedule $schedule){
 
         $task = $schedule->schedulerelate->where('moduleable_type','task');
-        return $this->collection($task, new ScheduleRelateTransformer());
+        return $this->collection($task, new ScheduleRelateTaskTransformer());
     }
     public function includeProject(Schedule $schedule){
-
         $project = $schedule->schedulerelate->where('moduleable_type','project');
-        return $this->collection($project, new ScheduleRelateTransformer());
+
+        return $this->collection($project, new ScheduleRelateProjectTransformer());
     }
 }

@@ -78,6 +78,14 @@ class Control extends Model
         return null;
     }
 
+    public function getDisabledAttribute()
+    {
+        $property_value = $this->properties()->where('property_id', 410)->select('property_value')->first();
+        if ($property_value)
+            return 1;
+        return 0;
+    }
+
     public function enum()
     {
         return $this->hasMany(ControlEnums::class, 'form_control_id', 'form_control_id')->orderBy('sort_number')->select('enum_value');

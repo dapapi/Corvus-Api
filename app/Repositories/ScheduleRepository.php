@@ -23,14 +23,23 @@ class ScheduleRepository
         $start_time = $time->copy()->firstOfMonth();
         $end_time = $time->copy()->lastOfMonth()->endOfDay();
 //        DB::connection()->enableQueryLog();
-        $result = (new Schedule())->setTable("s")->from("schedules as s")
-            ->leftJoin('calendars as c','s.calendar_id','=','c.id')
+
+//        $result = (new Schedule())->setTable("s")->from("schedules as s")
+//            ->leftJoin('calendars as c','s.calendar_id','=','c.id')
+//            ->where('c.starable_id',$starable_id)
+//            ->where('c.starable_type',$starable_type)
+//            ->where('s.start_at','<',$end_time)
+//            ->where('s.end_at','>',$start_time)
+//            ->get();
+        $result = (new Calendar())->setTable("s")->from("calendars as c")
+            ->leftJoin('schedules as s','s.calendar_id','=','c.id')
             ->where('c.starable_id',$starable_id)
             ->where('c.starable_type',$starable_type)
             ->where('s.start_at','<',$end_time)
             ->where('s.end_at','>',$start_time)
             ->get();
-//        $sql = DB::getQueryLog();
+        // 开始时间 结束时间判断不正确
+       // $sql = DB::getQueryLog();
         $schedule_list = [];
         foreach ($result as $value){
             $start_at = Carbon::parse($value['start_at']);

@@ -2,45 +2,45 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Project\AddRelateProjectRequest;
+use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Requests\Project\EditEeturnedMoneyRequest;
-use App\Http\Transformers\ProjectTransformer;
-use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
-use App\Http\Transformers\ProjectCourseTransformer;
+use App\Http\Transformers\ProjectTransformer;
+use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
-use App\Models\ProjectStatusLogs;
-use App\Events\OperateLogEvent;
 use App\Models\OperateEntity;
-use App\Models\ProjectReturnedMoneyType;
-use App\OperateLogMethod;
-use App\Models\ProjectReturnedMoney;
-use App\Models\ProjectBill;
+use App\Models\PrivacyUser;
 use App\Models\Project;
+use App\Models\ProjectBill;
+use App\Models\ProjectHistorie;
 use App\Models\ProjectRelate;
+use App\Models\ProjectReturnedMoney;
+use App\Models\ProjectReturnedMoneyType;
+use App\Models\ProjectStatusLogs;
 use App\Models\Star;
 use App\Models\Task;
 use App\Models\TemplateField;
 use App\Models\Trail;
 use App\Models\TrailStar;
-use App\Models\ProjectHistorie;
-use App\Models\FieldHistorie;
-use App\Models\User;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
+use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
-use App\Repositories\ScopeRepository;
-use Dingo\Api\Facade\Route;
+use App\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -203,7 +203,7 @@ class ProjectController extends Controller
     {
         // todo 可能涉及筛选可选线索
         $payload = $request->all();
-
+        $arrayOperateLog = [];
         if ($payload['type'] != 5 && !$request->has('fields')) {
             return $this->response->errorBadRequest('缺少参数');
         } elseif ($request->has('fields')) {
@@ -214,7 +214,7 @@ class ProjectController extends Controller
                     return $this->response->errorBadRequest('字段与项目类型匹配错误');
                 }
             }
-            if (count($payload['trail']) > 0) {
+            if (is_array($payload['trail']) && array_key_exists('id', $payload['trail'])) {
                 $payload['trail_id'] = hashid_decode($payload['trail']['id']);
                 unset($payload['trail']['id']);
             }
@@ -263,18 +263,35 @@ class ProjectController extends Controller
                         $trail->fee = $val;
                         continue;
                     }
-
                     if ($key == 'expectations') {
+                        $start = null;
+                        $end = null;
                         if ($trail->type == Trail::TYPE_PAPI) {
                             $starableType = ModuleableType::BLOGGER;
+                            //获取当前的博主
+                            $blogger_list = $trail->bloggerExpectations()->get()->toArray();
+                            if(count($blogger_list)!=0){
+                                $bloggers = array_column($blogger_list,'nickname');
+                                $start = implode(",",$bloggers);
+                            }
                         } else {
                             $starableType = ModuleableType::STAR;
+                            //获取当前的艺人
+                            $star_list = $trail->expectations()->get()->toArray();
+                            if(count($star_list)!=0){
+                                $stars = array_column($star_list,'name');
+                                $start = implode(",",$stars);
+                            }
                         }
+                        //删除
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
+
                         foreach ($val as $expectation) {
                             $starId = hashid_decode($expectation);
                             if ($starableType == ModuleableType::BLOGGER) {
-                                if (Blogger::find($starId)) {
+                                $blogger = Blogger::find($starId);
+                                if ($blogger) {
+                                    $end .= ",".$blogger->nickname;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -283,7 +300,9 @@ class ProjectController extends Controller
                                     ]);
                                 }
                             } else {
-                                if (Star::find($starId)) {
+                                $star = Star::find($starId);
+                                if ($star) {
+                                    $end .= ",".$star->name;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -293,21 +312,47 @@ class ProjectController extends Controller
                                 }
                             }
                         }
+                        if($starableType == ModuleableType::BLOGGER){
+                            $title = "关联目标博主";
+                        }else{
+                            $title = "关联目标艺人";
+                        }
+
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => $title,
+                            'start' => $start,
+                            'end' => trim($end,","),
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
                         continue;
                     }
 
                     if ($key == 'recommendations') {
+                        $start = null;
+                        $end = null;
                         if ($trail->type == Trail::TYPE_PAPI) {
                             $starableType = ModuleableType::BLOGGER;
+                            //当前关联的博主
+                            $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
+                            $bloggers = array_column($blogger_list,'nickname');
+                            $start = implode(",",$bloggers);
                         } else {
                             $starableType = ModuleableType::STAR;
+                            $star_list = $trail->recommendations()->get()->toArray();
+                            $stars = array_column($star_list,'name');
+                            $start = implode(",",$stars);
                         }
+                        //删除
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
                         foreach ($val as $recommendation) {
                             $starId = hashid_decode($recommendation);
 
                             if ($starableType == ModuleableType::BLOGGER) {
-                                if (Blogger::find($starId))
+                                $blogger = Blogger::find($starId);
+                                if ($blogger)
+                                    $end .= $blogger->nickname;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -315,7 +360,9 @@ class ProjectController extends Controller
                                         'type' => TrailStar::RECOMMENDATION,
                                     ]);
                             } else {
-                                if (Star::find($starId))
+                                $star = Star::find($starId);
+                                if ($star)
+                                    $end .= $star->name;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -324,6 +371,19 @@ class ProjectController extends Controller
                                     ]);
                             }
                         }
+                        if($starableType == ModuleableType::BLOGGER){
+                            $title = "关联推荐博主";
+                        }else{
+                            $title = "关联推荐艺人";
+                        }
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => $title,
+                            'start' => $start,
+                            'end' => trim($end,","),
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
 
                     }
                 }
@@ -337,6 +397,16 @@ class ProjectController extends Controller
                 unset($id);
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $project, ModuleUserType::PARTICIPANT);
             }
+            // 操作日志
+            $operateName = new OperateEntity([
+                'obj' => $project,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            $arrayOperateLog[] = $operateName;
+            event(new OperateLogEvent($arrayOperateLog));//更新日志
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -351,82 +421,215 @@ class ProjectController extends Controller
     public function edit(EditProjectRequest $request, Project $project)
     {
         $payload = $request->all();
+        $arrayOperateLog = [];
 
-        if ($request->has('principal_id'))
-            $payload['principal_id'] = hashid_decode($payload['principal_id']);
-
-        if (!$request->has('type'))
-            $payload['type'] = $project->type;
-
-        if ($request->has('fields')) {
-            foreach ($payload['fields'] as $key => $val) {
-                $fieldId = hashid_decode((int)$key);
-                $field = TemplateField::where('module_type', $payload['type'])->find($fieldId);
-                if (!$field) {
-                    return $this->response->errorBadRequest('字段与项目类型匹配错误');
-                }
-            }
-        }
-        if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
-            $payload['participant_ids'] = [];
-
-        if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
-            $payload['participant_del_ids'] = [];
 
         DB::beginTransaction();
         try {
 
-            $project->update($payload);
-            $projectId = $project->id;
+            if ($request->has('principal_id')) {//负责人
+                $payload['principal_id'] = hashid_decode($payload['principal_id']);
+                if($project->principal_id != $payload['principal_id']){
+                    try{
+                        $curr_principal = User::find($project->principal_id)->name;
+                        $principal = User::findOrFail($payload['principal_id'])->name;
+                        //操作日志
+                        $operateName = new OperateEntity([
+                            'obj' => $project,
+                            'title' => "负责人",
+                            'start' => $curr_principal,
+                            'end' => $principal,
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+                    }catch (Exception $e){
+                        Log::error($e);
+                        DB::rollBack();
+                        return $this->response->errorInternal("负责人错误");
+                    }
 
-            $trail = $project->trail;
+                }
 
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
+            }
+
+            if (!$request->has('type')){
+                $payload['type']   = $project->type;
+                if($payload['type'] != $project->type){
+                    //操作日志
+                    $operateName = new OperateEntity([
+                        'obj' => $project,
+                        'title' => "项目类型",
+                        'start' => $project->getProjectType($project->type),
+                        'end' => $project->getProjectType($payload['type']),
+                        'method' => OperateLogMethod::UPDATE,
+                    ]);
+                    $arrayOperateLog[] = $operateName;
+                }
+
+
+            }
+
+
+            if ($request->has('fields')) {
+                foreach ($payload['fields'] as $key => $val) {
+                    $fieldId = hashid_decode((int)$key);
+                    $field = TemplateField::where('module_type', $payload['type'])->find($fieldId);
+                    if (!$field) {
+                        DB::rollBack();
+                        return $this->response->errorBadRequest('字段与项目类型匹配错误');
+                    }
+                }
+            }
+            if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
+                $payload['participant_ids'] = [];
+
+            if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
+                $payload['participant_del_ids'] = [];
+
+                //更新之前的项目参与人
+                $last_participants = implode(",",array_column($project->participants()->get()->toArray(),'name'));
+                $project->update($payload);//更新项目
+                $projectId = $project->id;
+                $trail = $project->trail;
+            //只有新增或者要删除的参与人不为空是才更新
+            if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids'])!=0){
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
+                //更新之后的项目参与人
+                $new_participants = implode(",",array_column($project->participants()->get()->toArray(),'name'));
+                //操作日志
+                if(!empty($last_participants) || !empty($new_participants)){
+                    $operateName = new OperateEntity([
+                        'obj' => $project,
+                        'title' => "项目参与人",
+                        'start' => $last_participants,
+                        'end' => $new_participants,
+                        'method' => OperateLogMethod::UPDATE,
+                    ]);
+                    $arrayOperateLog[] = $operateName;
+                }
+            }
+
 
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
                     $fieldId = hashid_decode((int)$key);
                     $fieldValue = FieldValue::where('field_id', $fieldId)->where('project_id', $projectId)->first();
-                    if ($fieldValue) {
-                        $fieldValue->value = $val;
-                        $fieldValue->save();
-                    } else {
-                        FieldValue::create([
-                            'field_id' => $fieldId,
-                            'project_id' => $projectId,
-                            'value' => $val,
-                        ]);
+
+                    //根据filedid获取字段名
+                    $fieldName = TemplateField::findOrFail($fieldId)->key;
+
+                    $oldValue = null;
+                    if ($fieldValue != null){
+                        $oldValue = $fieldValue->value;
                     }
+                    //以前的值不是null并且现在的值也不是null，才进行更新或者新增
+                    if (!empty($oldValue) || !empty($val)){
+                        //操作日志
+                        if ($oldValue != $val){
+                            $operateName = new OperateEntity([
+                                'obj' => $project,
+                                'title' => $fieldName,
+                                'start' => $oldValue,
+                                'end' => $val,
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                        }
+
+                        if ($fieldValue) {//存在保存，不存在新增
+                            $fieldValue->value = $val;
+                            $fieldValue->save();
+                        } else {
+                            FieldValue::create([
+                                'field_id' => $fieldId,
+                                'project_id' => $projectId,
+                                'value' => $val,
+                            ]);
+                        }
+                    }
+
                 }
 
             }
 
             if ($request->has('trail')) {
-
-
                 foreach ($payload['trail'] as $key => $val) {
+                    if ($key == 'fee') {
+                        $trail->fee = $val;
+                        if ($val != $trail->fee){
+                            $operateName = new OperateEntity([
+                                'obj' => $project,
+                                'title' => "预计订单收入",
+                                'start' => $trail->fee,
+                                'end' => $val,
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                            $operateName = new OperateEntity([
+                                'obj' => $trail,
+                                'title' => "预计订单收入",
+                                'start' => $trail->fee,
+                                'end' => $val,
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                        }
+                        continue;
+                    }
 
                     if ($key == 'lock') {
                         $trail->lock_status = $val;
+                        if ($val != $trail->lock_status){
+                            $operateName = new OperateEntity([
+                                'obj' => $project,
+                                'title' => "是否锁价",
+                                'start' => $trail->lock_status == 1?"锁价":"未锁价",
+                                'end' => $val == 1 ? "锁价" : "未锁价",
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                            $operateName = new OperateEntity([
+                                'obj' => $trail,
+                                'title' => "是否锁价",
+                                'start' => $trail->lock_status == 1?"锁价":"未锁价",
+                                'end' => $val == 1 ? "锁价" : "未锁价",
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                        }
                         continue;
                     }
 
-                    if ($key == 'fee') {
-                        $trail->fee = $val;
-                        continue;
-                    }
+
 
                     if ($key == 'expectations') {
+                        $start = null;
+                        $end = null;
                         if ($trail->type == Trail::TYPE_PAPI) {
                             $starableType = ModuleableType::BLOGGER;
+                            //获取当前的博主
+                            $blogger_list = $trail->bloggerExpectations()->get()->toArray();
+                            if(count($blogger_list)!=0){
+                                $bloggers = array_column($blogger_list,'nickname');
+                                $start = implode(",",$bloggers);
+                            }
                         } else {
                             $starableType = ModuleableType::STAR;
+                            //获取当前的艺人
+                            $star_list = $trail->expectations()->get()->toArray();
+                            if(count($star_list)!=0){
+                                $stars = array_column($star_list,'name');
+                                $start = implode(",",$stars);
+                            }
                         }
+                        //删除
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
                         foreach ($val as $expectation) {
                             $starId = hashid_decode($expectation);
                             if ($starableType == ModuleableType::BLOGGER) {
-                                if (Blogger::find($starId)) {
+                                $blogger = Blogger::find($starId);
+                                if ($blogger) {
+                                    $end .= ",".$blogger->nickname;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -435,7 +638,9 @@ class ProjectController extends Controller
                                     ]);
                                 }
                             } else {
-                                if (Star::find($starId)) {
+                                $star = Star::find($starId);
+                                if ($star) {
+                                    $end .= ",".$star->name;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -445,21 +650,48 @@ class ProjectController extends Controller
                                 }
                             }
                         }
+                        $end = trim($end,",");
+
+                        if($starableType == ModuleableType::BLOGGER){
+                            $title = "关联目标博主";
+                        }else{
+                            $title = "关联目标艺人";
+                        }
+
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => $title,
+                            'start' => $start,
+                            'end' => $end,
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
                         continue;
                     }
 
                     if ($key == 'recommendations') {
+                        $start = null;
+                        $end = null;
                         if ($trail->type == Trail::TYPE_PAPI) {
                             $starableType = ModuleableType::BLOGGER;
+                            //当前关联的博主
+                            $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
+                            $bloggers = array_column($blogger_list,'nickname');
+                            $start = implode(",",$bloggers);
                         } else {
                             $starableType = ModuleableType::STAR;
+                            $star_list = $trail->recommendations()->get()->toArray();
+                            $stars = array_column($star_list,'name');
+                            $start = implode(",",$stars);
                         }
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
                         foreach ($val as $recommendation) {
                             $starId = hashid_decode($recommendation);
 
                             if ($starableType == ModuleableType::BLOGGER) {
-                                if (Blogger::find($starId))
+                                $blogger = Blogger::find($starId);
+                                if ($blogger)
+                                    $end .= $blogger->nickname;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -467,7 +699,9 @@ class ProjectController extends Controller
                                         'type' => TrailStar::RECOMMENDATION,
                                     ]);
                             } else {
-                                if (Star::find($starId))
+                                $star = Star::find($starId);
+                                if ($star)
+                                    $end .= $star->name;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -476,12 +710,28 @@ class ProjectController extends Controller
                                     ]);
                             }
                         }
+                        $end = trim($end,",");
+
+                        if($starableType == ModuleableType::BLOGGER){
+                            $title = "关联推荐博主";
+                        }else{
+                            $title = "关联推荐艺人";
+                        }
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => $title,
+                            'start' => $start,
+                            'end' => $end,
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+
 
                     }
                     $trail->update($payload['trail']);
                 }
             }
-
+            event(new OperateLogEvent($arrayOperateLog));//更新日志
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -512,6 +762,7 @@ class ProjectController extends Controller
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
             DB::commit();
         } catch (Exception $e) {
+            Log::error($e);
             DB::rollBack();
         }
 
@@ -520,24 +771,95 @@ class ProjectController extends Controller
 
     public function detail(Request $request, $project)
     {
+
         $type = $project->type;
         $result = $this->response->item($project, new ProjectTransformer());
-
         $data = TemplateField::where('module_type', $type)->get();
-
         $array['project_kd_name'] = $project->title;
         $array['expense_type'] = '支出';
         $contractmoney = 100000000;
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+        unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
         if (isset($expendituresum)) {
-            $result->addMeta('contractmoney', $contractmoney);
-            $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            $user = Auth::guard('api')->user();
+            $user->id = 2;
+            $setprivacy1 =array();
+            $Viewprivacy2 =array();
+            $array['moduleable_id']= $project->id;
+            $array['moduleable_type']= ModuleableType::PROJECT;
+            $array['is_privacy']=  PrivacyType::OTHER;
+            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+            foreach ($setprivacy as $key =>$v){
+
+                $setprivacy1[]=array_values($v)[0];
+
+            }
+            if($project ->creator_id != $user->id && $project->principal_id != $user->id){
+
+                $array['user_id']= $user->id;
+                $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+                unset($array);
+                if($Viewprivacy){
+                    foreach ($Viewprivacy as $key =>$v){
+                        $Viewprivacy1[]=array_values($v)[0];
+                    }
+                    $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
+                }else{
+                    $setprivacy1 = array();
+                }
+
+            }
+            if($project ->creator_id != $user->id && $project->principal_id != $user->id)
+            {
+                if(empty($setprivacy1)){
+
+//                    $array1['moduleable_id']= $project->id;
+//                    $array1['moduleable_type']= ModuleableType::PROJECT;
+//                    $array1['is_privacy']=  PrivacyType::OTHER;
+//                    $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
+//                    foreach ($setprivacy as $key =>$v){
+//                        $setprivacy1[]=array_values($v)[0];
+//
+//                    }
+                    $setprivacy1 =  PrivacyType::getProject();
+                }
+                foreach ($setprivacy1 as $key =>$v){
+                    $Viewprivacy2[$v]=$key;
+                }
+
+                foreach ($Viewprivacy2 as $key2 => $val2)
+                {
+
+                  if($key2 === 'contractmoney'){
+                      $result->addMeta('contractmoney','');
+                  }
+                  if($key2 === 'expendituresum'){
+                      $result->addMeta('expendituresum','');
+                  }
+
+                }
+            }else {
+                $result->addMeta('contractmoney', $contractmoney);
+
+                $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            }
+
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $result;
     }
 
@@ -647,6 +969,17 @@ class ProjectController extends Controller
             case Project::STATUS_FROZEN:
                 $project->stop_at = now();
                 $project->status = $status;
+                //日志
+                $operate = new OperateEntity([
+                    'obj' => $project,
+                    'title' => "撤单",
+                    'start' => "客户跑路",
+                    'end' => null,
+                    'method' => OperateLogMethod::STATUS_FROZEN,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
                 break;
             case Project::STATUS_NORMAL:
                 $project->stop_at = null;
@@ -656,6 +989,7 @@ class ProjectController extends Controller
             default:
                 break;
         }
+
 
         $project->save();
 
@@ -689,6 +1023,25 @@ class ProjectController extends Controller
 
         return $this->response->paginator($projects, new ProjectTransformer());
 
+    }
+
+    public function getClient(Request $request)
+    {
+        $projectId = $request->get('project_id', 0);
+        $projectId = hashid_decode($projectId);
+        try {
+            $project = Project::findOrFail($projectId);
+        } catch (Exception $exception) {
+            return $this->response->errorBadRequest('项目id错误');
+        }
+
+        $client = $project->trail->client;
+
+        $data = array(
+            'client_id' => hashid_encode($client->id),
+            'title' => $client->company
+        );
+        return $this->response->array(['data' => array($data)]);
     }
 
     /**
@@ -727,18 +1080,23 @@ class ProjectController extends Controller
     {
         DB::beginTransaction();
         try {
-
+            $relate_task = [];
+            $relate_project = [];
             if ($request->has('tasks')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::TASK)->delete();
                 $tasks = $request->get('tasks');
                 foreach ($tasks as $value) {
                     $id = hashid_decode($value);
-                    if (Task::find($id))
+                    $task = Task::find($id);
+                    if ($task){
+                        $relate_task[] = $task->title;
                         ProjectRelate::create([
                             'project_id' => $project->id,
                             'moduleable_id' => $id,
                             'moduleable_type' => ModuleableType::TASK,
                         ]);
+                    }
+
                 }
             }
 
@@ -747,14 +1105,37 @@ class ProjectController extends Controller
                 $projects = $request->get('projects');
                 foreach ($projects as $value) {
                     $id = hashid_decode($value);
-                    if (Project::find($id))
+                    $temp_project = Project::find($id);
+                    if ($temp_project){
+                        $relate_project[] = $temp_project->title;
                         ProjectRelate::create([
                             'project_id' => $project->id,
                             'moduleable_id' => $id,
                             'moduleable_type' => ModuleableType::PROJECT,
                         ]);
+                    }
+
                 }
             }
+            //记录日志
+            $start = null;
+            if(count($relate_project) != 0){
+                $start .= implode(",",$relate_project)."项目";
+            }
+            if (count($relate_task) != 0){
+                $start .= ",".implode(",",$relate_task)."任务";
+            }
+
+            $operate = new OperateEntity([
+                'obj' => $project,
+                'title' => null,
+                'start' => trim($start,","),
+                'end' => null,
+                'method' => OperateLogMethod::ADD_RELATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -915,5 +1296,18 @@ class ProjectController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
+    }
+    private function editLog($obj, $field, $old, $new)
+    {
+        $operate = new OperateEntity([
+            'obj' => $obj,
+            'title' => $field,
+            'start' => $old,
+            'end' => $new,
+            'method' => OperateLogMethod::UPDATE,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
     }
 }

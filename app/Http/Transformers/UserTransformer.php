@@ -22,6 +22,9 @@ class UserTransformer extends TransformerAbstract
         'record',
         'familyData',
         'roleUser',
+        'tasks',
+        'schedules',
+        'position'
     ];
    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
@@ -38,7 +41,7 @@ class UserTransformer extends TransformerAbstract
             'position' => $user->position,
             'hire_shape' => $user->hire_shape,
             'entry_time' => $user->entry_time,
-            'archive_time' => $user->entry_time,
+            'archive_time' => $user->archive_time,
             'position_type' => $user->position_type,
             'en_name'=> $user->en_name, // '英文',
             'gender'=> $user->gender,//性别',
@@ -46,13 +49,9 @@ class UserTransformer extends TransformerAbstract
             'political'=> $user->political,//'政治面貌',
             'marriage'=> $user->marriage,//'婚姻状态',
             'cadastral_address'=> $user->cadastral_address,//'户籍地址',
-            'current_address'=> $user->current_address,//'现居住地址',
             'national'=> $user->national,// '民族',
-            'entry_time'=> $user->entry_time,//'入职时间',
-            'birth_time'=> $user->birth_time,//'出生日期',
             'blood_type'=> $user->blood_type,// '血型',
             'icon_url'=> $user->icon_url,//'用户头像',
-            'archive_time'=> $user->archive_time,//归档日期',
             'high_school'=> $user->high_school,// '最高学历',
             'age'=> $user->age,//'年龄',
             'jobs'=> $user->jobs,//'岗位',
@@ -60,7 +59,6 @@ class UserTransformer extends TransformerAbstract
             'work_email'=> $user->work_email,//'工作邮箱',
             'disable'=>$user->disable,
             'entry_status'=>$user->entry_status,
-
         ];
 
         if ($user->company) {
@@ -73,6 +71,15 @@ class UserTransformer extends TransformerAbstract
         }else{
             $array['is_department_principal'] = 0;
         }
+
+        $data = DB::table('department_user as du')
+            ->join('departments as ds', function ($join) {
+                $join->on('du.department_id', '=', 'ds.id');
+            })
+            ->select('ds.name','ds.id')
+            ->where('user_id', $user->id)->get()->toArray();
+
+        $array['department'] = $data;
 
         return $array;
     }
@@ -126,7 +133,19 @@ class UserTransformer extends TransformerAbstract
 
         return $this->collection($log, new OperateLogTransformer());
     }
+    public function includeTasks(User $user)
+    {
 
+        $tasks = $user->userTasks;
+        return $this->collection($tasks, new TaskTransformer());
+    }
+    public function includeSchedules(User $user)
+    {
+
+        $schedules= $user->userSchedules;
+
+        return $this->collection($schedules, new ScheduleTransformer());
+    }
     public function includeEducation(User $user)
     {
         $education = $user->education;
@@ -159,6 +178,14 @@ class UserTransformer extends TransformerAbstract
         $roleUserData = $user->roleUser;
 
         return $this->collection($roleUserData, new RoleUserTransformer());
+    }
+    public function includePosition(User $user)
+    {
+        $position = $user->position;
+        if (!$position)
+            return null;
+
+        return $this->item($position, new PositionTransformer());
     }
 
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Contact\StoreContactRequest;
 use App\Http\Transformers\ContactTransformer;
 use App\Models\Client;
 use App\Models\Contact;
+use App\OperateLogMethod;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -50,6 +51,17 @@ class ContactController extends Controller
 
         try {
             $contact = Contact::create($payload);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $client,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::ADD_CLIENT_CONTRACTS,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (\Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('创建联系人失败');

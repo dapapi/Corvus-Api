@@ -1,14 +1,16 @@
 <?php
 
 namespace App\Http\Transformers;
-
+use App\ModuleableType;
+use App\PrivacyType;
 use App\Models\Blogger;
 use League\Fractal\TransformerAbstract;
-
+use App\Models\PrivacyUser;
+use Illuminate\Support\Facades\Auth;
 class BloggerTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses','calendar'];
 
     private $isAll;
 
@@ -20,6 +22,32 @@ class BloggerTransformer extends TransformerAbstract
 
     public function transform(Blogger $blogger)
     {
+        $user = Auth::guard('api')->user();
+        $setprivacy1 =array();
+        $Viewprivacy2 =array();
+        $array['moduleable_id']= $blogger->id;
+        $array['moduleable_type']= ModuleableType::BLOGGER;
+        $array['is_privacy']=  PrivacyType::OTHER;
+        $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+        foreach ($setprivacy as $key =>$v){
+
+            $setprivacy1[]=array_values($v)[0];
+
+        }
+        if(!$setprivacy1 && $blogger ->creator_id != $user->id){
+            $array['user_id']= $user->id;
+            $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+            unset($array);
+            if($Viewprivacy){
+                foreach ($Viewprivacy as $key =>$v){
+                    $Viewprivacy1[]=array_values($v)[0];
+                }
+                $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
+            }else{
+                $setprivacy1 = array();
+            }
+
+        }
         $array = [
             'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
@@ -52,10 +80,44 @@ class BloggerTransformer extends TransformerAbstract
             'last_updated_user' => $blogger->last_updated_user,
             'updated_at' => $blogger->updated_at->toDateTimeString()
         ];
+
+        if(!$setprivacy1 && $blogger ->creator_id != $user->id){
+            if(empty($setprivacy1)){
+
+//                   $array1['moduleable_id']= $project->id;
+//                   $array1['moduleable_type']= ModuleableType::PROJECT;
+//                   $array1['is_privacy']=  PrivacyType::OTHER;
+//                   $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
+//                   foreach ($setprivacy as $key =>$v){
+//                       $setprivacy1[]=array_values($v)[0];
+//
+//                   }
+                $setprivacy1 =  PrivacyType::getBlogger();
+            }
+            foreach ($setprivacy1 as $key =>$v){
+                $Viewprivacy2[$v]=$key;
+            };
+            $array = array_merge($array,$Viewprivacy2);
+            foreach ($array as $key1 => $val1)
+            {
+                foreach ($Viewprivacy2 as $key2 => $val2)
+                {
+
+                    if($key1 === $key2 ){
+
+                        unset($array[$key1]);
+
+                    }
+
+
+                }
+            }
+        }
         $arraySimple = [
             'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
-            'avatar' => $blogger->avatar
+            'avatar' => $blogger->avatar,
+            'status' => $blogger->sign_contract_status,
         ];
         return $this->isAll ? $array : $arraySimple;
     }
@@ -115,5 +177,15 @@ class BloggerTransformer extends TransformerAbstract
 
         return $this->collection($users,new UsersTransformer());
     }
+    public function includeCalendar(Blogger $blogger)
+    {
+        $calendars = $blogger->calendars()->first();
+        if($calendars){
+            return $this->item($calendars,new CalendarTransformer());
+        }else{
+            return $this->null();
+        }
+    }
+
 
 }

@@ -37,6 +37,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
+        $api->get('/users/{user}', 'App\Http\Controllers\UserController@show');
+        //修改密码
+        $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
 
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
@@ -106,7 +109,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post("/attendance/{attendance}/affix", "App\Http\Controllers\AffixController@add");
         $api->get('/attendance/{attendance}/affix', 'App\Http\Controllers\AffixController@index');
-
+        // 隐私设置
+        $api->post('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
+        $api->post('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
+        $api->get('/privacyUsers', 'App\Http\Controllers\privacyUserController@detail');
+        $api->put('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
+        $api->put('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
         //   $api->post('/report/{report}/affixes/{report}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
         $api->get('/projects/{project}/affix', 'App\Http\Controllers\AffixController@index');
@@ -136,6 +144,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/{trail}/affix', 'App\Http\Controllers\AffixController@index');
         $api->get('/trails/{trail}/affixes/recycle_bin', 'App\Http\Controllers\AffixController@recycleBin');
         $api->post('/trails/{trail}/affix', 'App\Http\Controllers\AffixController@add');
+
         $api->post('/trails/{trail}/affixes/{affix}/download', 'App\Http\Controllers\AffixController@download');
         $api->delete('/trails/{trail}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         $api->post('/trails/{trail}/affixes/{affix}/recover', 'App\Http\Controllers\AffixController@recoverRemove');
@@ -353,6 +362,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
+        $api->get('/projects/relate_client', 'App\Http\Controllers\ProjectController@getClient');
         $api->post('/projects', 'App\Http\Controllers\ProjectController@store');
         $api->post('projects/{project}/relates', 'App\Http\Controllers\ProjectController@addRelates');
         $api->get('projects/{project}/returned/money', 'App\Http\Controllers\ProjectController@indexReturnedMoney');
@@ -384,6 +394,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // calendar
         $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
+
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
         $api->put('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@edit');
         $api->delete('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@delete');
@@ -392,15 +403,18 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/schedules/getcalendar', 'App\Http\Controllers\ScheduleController@getCalendar');
         // schedule
         $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
+        $api->get('/schedules/all', 'App\Http\Controllers\ScheduleController@all');
         $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
         $api->post('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@storeSchedulesTask');
         $api->get('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@indexSchedulesTask');
+        $api->delete('/schedules/{schedule}/projects/{project}', 'App\Http\Controllers\ScheduleController@removeoneSchedulesRelate');
+        $api->delete('/schedules/{schedule}/tasks/{task}', 'App\Http\Controllers\ScheduleController@removeoneSchedulesRelate');
         $api->delete('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@removeSchedulesTask');
         $api->put('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@edit');
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
         $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
         $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
-        $api->post('/schedules/{schedule}/task', 'App\Http\Controllers\ScheduleController@store');
+
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
@@ -410,11 +424,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/archive', 'App\Http\Controllers\PersonnelManageController@archivelist');
         $api->put('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@statusEdit');
         $api->post('/personal/{user}', 'App\Http\Controllers\PersonnelManageController@storePersonal');
-        $api->put('/edit/{user}/personal/{personalDetail}', 'App\Http\Controllers\PersonnelManageController@editPersonal');
+        //修改基本信息
+        $api->put('/edit/{user}/personal', 'App\Http\Controllers\PersonnelManageController@editPersonal');
+        //修改个人信息
+        $api->put('/edit/{user}/detail', 'App\Http\Controllers\PersonnelManageController@editPersonalDetail');
+
         $api->put('/edit/{user}/jobs/{personalJob}', 'App\Http\Controllers\PersonnelManageController@editJobs');
         $api->post('/jobs/{user}', 'App\Http\Controllers\PersonnelManageController@storeJobs');
         $api->post('/salary/{user}', 'App\Http\Controllers\PersonnelManageController@storeSalary');
-        $api->put('/edit/{user}/salary/{personalSalary}', 'App\Http\Controllers\PersonnelManageController@editSalary');
+        //修改薪资
+        $api->put('/edit/{user}/salary', 'App\Http\Controllers\PersonnelManageController@editSalary');
         $api->post('/security/{user}', 'App\Http\Controllers\PersonnelManageController@storeSecurity');
         $api->get('/personnel/{user}', 'App\Http\Controllers\PersonnelManageController@detail');
         $api->get('/security/{user}', 'App\Http\Controllers\PersonnelManageController@securityDetail');
@@ -503,6 +522,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/departments/member/{department}', 'App\Http\Controllers\DepartmentController@selectStore');
 
         $api->get('/departments_list', 'App\Http\Controllers\DepartmentController@departmentsList');
+        //获取职位列表
+        $api->get('/departments_jobs', 'App\Http\Controllers\DepartmentController@jobsList');
 
 
         /*组织架构 职位管理*/
@@ -573,7 +594,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //我的审批 已审批
         $api->get('/approvals_project/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
         $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
-        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getForms');
+        $api->get('/approvals/contracts', 'App\Http\Controllers\ApprovalFormController@getContractForms');
+        $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getGeneralForms');
         $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
 
         /*合同列表*/
@@ -593,6 +615,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/approvals/{approval}', 'App\Http\Controllers\ApprovalFormController@instanceStore');
         // 审批流
         $api->get('/approvals/chains', 'App\Http\Controllers\ApprovalFlowController@getChains');
+        $api->get('/approvals/{approval}/participants', 'App\Http\Controllers\ApprovalParticipantController@getFixedParticipants');
         $api->get('/approval_instances/{instance}/chains', 'App\Http\Controllers\ApprovalFlowController@getMergeChains');
         $api->put('/approval_instances/{instance}/agree', 'App\Http\Controllers\ApprovalFlowController@agree');
         $api->put('/approval_instances/{instance}/refuse', 'App\Http\Controllers\ApprovalFlowController@refuse');

@@ -50,6 +50,7 @@ class Project extends Model
     const PROJECT_TYPE = 'projects'; // 业务类型
 
 
+
     protected $fillable = [
         'title',
         'project_number',
@@ -84,7 +85,6 @@ class Project extends Model
         $user = Auth::guard("api")->user();
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers();
-
         return (new SearchDataScope())->getCondition($query, $rules, $userid)->orWhereRaw("{$userid} in (
             select mu.user_id from projects as p
             left join module_users as mu on mu.moduleable_id = p.id and
@@ -92,6 +92,8 @@ class Project extends Model
 
             "' where p.id = projects.id
         )");
+
+
 //        return (new SearchDataScope())->getCondition($query, $rules, $userid)->leftJoin('module_users as mu',function ($join){
 //            $join->on('mu.moduleable_id','projects.id')
 //                ->where('mu.moduleable_type',ModuleableType::PROJECT);
@@ -152,5 +154,20 @@ class Project extends Model
     {
 
         return $this->morphMany(ProjectBillsResource::class, 'resourceable');
+    }
+    public function getProjectType($type)
+    {
+        if ($type == self::TYPE_MOVIE){
+            return "影视项目";
+        }else if(self::TYPE_VARIETY == $type){
+            return "综艺项目";
+        }else if(self::TYPE_ENDORSEMENT == $type){
+            return "商务代言";
+        }else if(self::TYPE_PAPI == $type){
+            return "papi项目";
+        }else if(self::TYPE_BASE == $type){
+            return "基础项目";
+        }
+        return null;
     }
 }

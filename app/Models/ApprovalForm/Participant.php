@@ -2,10 +2,12 @@
 
 namespace App\Models\ApprovalForm;
 
+use App\Interfaces\ApprovalParticipantInterFace;
 use App\Models\DataDictionary;
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Participant extends Model
+class Participant extends Model implements ApprovalParticipantInterFace
 {
     protected $table = 'approval_form_participants';
 
@@ -22,5 +24,10 @@ class Participant extends Model
     public function dictionary()
     {
         return $this->belongsTo(DataDictionary::class, 'notice_type', 'id');
+    }
+
+    public function notice()
+    {
+        return $this->belongsTo(User::class, 'notice_id', 'id');
     }
 }

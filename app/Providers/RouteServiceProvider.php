@@ -465,8 +465,8 @@ class RouteServiceProvider extends ServiceProvider
 
             try {
                 $id = hashid_decode($value);
-
                 $entity = ProjectHistorie::findOrFail($id);
+
             } catch (Exception $exception) {
                 abort(404);
             }

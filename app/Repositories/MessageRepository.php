@@ -6,6 +6,7 @@ use App\Helper\SendMessage;
 use App\Models\Message;
 use App\Models\MessageData;
 use App\Models\MessageState;
+use App\User;
 use Carbon\Carbon;
 use function foo\func;
 use Illuminate\Support\Facades\DB;
@@ -27,11 +28,20 @@ class MessageRepository
         }
 
         DB::table('message_datas')->insert($data);
+        //todo 消息发送对列优化
+        if ($recives == null){//如果recives为null表示全员接收
+            $recives = User::select('id')->get()->toArray();
+        }else{
+            foreach ($recives as &$recive){
+                hashid_decode($recive);
+            }
+        }
+
         $recives_data = [];
         foreach ($recives as $recive){
             $recives_data[] = [
                 'message_id'  =>  $message->id,
-                'user_id' =>  hashid_decode($recive),
+                'user_id' =>  $recive,
                 'created_at'    =>  Carbon::now()
             ];
         }

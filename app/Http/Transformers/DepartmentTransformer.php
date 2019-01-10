@@ -21,13 +21,13 @@ class DepartmentTransformer extends TransformerAbstract
         $res = DB::table('department_principal as dp')
             ->join('users', function ($join) {
                 $join->on('dp.user_id','=', 'users.id');
-            })->select('users.name')
+            })->select('users.name','users.id')
             ->where('dp.department_id', $department->id)->get()->toArray();
 
         if (!empty($res)) {
             $array['is_department_principal'] = 1;
             $array['is_department_username'] = $res[0]->name;
-
+            $array['is_department_user_id'] = $res[0]->id;
         }else{
             $array['is_department_principal'] = 0;
             //$array['is_department_username'] = $res[0]['name'];

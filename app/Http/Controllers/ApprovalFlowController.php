@@ -7,12 +7,14 @@ use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
+use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ChainTransformer;
 use App\Models\ApprovalFlow\ChainFixed;
 use App\Models\ApprovalFlow\ChainFree;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalFlow\Condition;
 use App\Models\ApprovalFlow\Execute;
+use App\Models\ApprovalFlow\FixedParticipant;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
@@ -24,8 +26,8 @@ use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\OperateEntity;
-use App\Models\Project;
 use App\Models\Star;
+use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
 use App\SignContractStatus;
@@ -37,6 +39,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
+use League\Fractal;
+use League\Fractal\Manager;
+use League\Fractal\Serializer\DataArraySerializer;
+
 
 class ApprovalFlowController extends Controller
 {
@@ -78,7 +84,16 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal($exception);
         }
 
-        return $this->response->collection($chains, new ChainTransformer());
+        $result = $this->response->collection($chains, new ChainTransformer());
+
+        $participants = FixedParticipant::where('form_id', $formId)->get();
+
+        $resource = new Fractal\Resource\Collection($participants, new ApprovalParticipantTransformer());
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+        $result->addMeta('notice', $manager->createData($resource)->toArray());
+
+        return $result;
     }
 
     public function storeFreeChains($chains, $formNumber)
@@ -196,7 +211,7 @@ class ApprovalFlowController extends Controller
                 ->orderBy('sort_number')
                 ->get();
         }
-        foreach ($chains as $chain) {
+        foreach ($chains as $key => $chain) {
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
@@ -398,77 +413,105 @@ class ApprovalFlowController extends Controller
         return $instance;
     }
 
-    /**
-     * @param $instance
-     * @param $preId
-     * @return array [int $nextId, int $type]
-     * @throws Exception
-     */
-    private function getChainNext($instance, $preId)
-    {
-        $form = ApprovalForm::where('form_id', $instance->form_id)->first();
+//    /**
+//     * 重复审批人出现会跳过中间审批人
+//     * @param $instance
+//     * @param $preId
+//     * @return array [int $nextId, int $type]
+//     * @throws Exception
+//     */
+//    private function getChainNext($instance, $preId)
+//    {
+//        $form = ApprovalForm::where('form_id', $instance->form_id)->first();
+//
+//        if (!$form)
+//            throw new Exception('form不存在');
+//
+//        $formId = $form->form_id;
+//        $num = $instance->form_instance_number;
+//        $changeType = $form->change_type;
+//
+//        if ($changeType == 222) {
+//            // 固定流程
+//            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->first();
+//        } else if ($changeType == 223) {
+//            // 自由流程
+//            $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->first();
+//        } else if ($changeType == 224) {
+//            // 分支流程
+//            $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
+//            $value = $this->getValuesForCondition($formControlIds, $num);
+//            $conditionId = $this->getCondition($instance->form_id, $value);
+//            $chain = ChainFixed::where('form_id', $instance->form_id)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
+//        } else {
+//            throw new Exception('审批流转不存在');
+//        }
+//        if (is_null($chain)) {
+//            $now = Carbon::now();
+//
+//            return $this->getTransferNextChain($instance, $now);
+//        }
+//        if ($chain->next_id == 0)
+//            return [0, 245];
+//
+//        $next = $chain->next;
+//
+//        $type = $chain->approver_type;
+//        if (is_null($type))
+//            $type = 245;
+//
+//        return [$next->id, $type];
+//    }
 
-        // todo preId找不到时
-        if (!$form)
-            throw new Exception('form不存在');
-
-        $formId = $form->form_id;
-        $num = $instance->form_instance_number;
-        $changeType = $form->change_type;
-
-        if ($changeType == 222) {
-            // 固定流程
-            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->first();
-        } else if ($changeType == 223) {
-            // 自由流程
-            $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->first();
-        } else if ($changeType == 224) {
-            // 分支流程
-            $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
-            $value = $this->getValuesForCondition($formControlIds, $num);
-            $conditionId = $this->getCondition($instance->form_id, $value);
-            $chain = ChainFixed::where('form_id', $instance->form_id)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
-        } else {
-            throw new Exception('审批流转不存在');
-        }
-        if (is_null($chain)) {
-            $now = Carbon::now();
-
-            return $this->getTransferNextChain($instance, $now);
-        }
-        if ($chain->next_id == 0)
-            return [0, 245];
-
-        $next = $chain->next;
-
-        $type = $chain->approver_type;
-        if (is_null($type))
-            $type = 245;
-
-        return [$next->id, $type];
-    }
-
-    private function getTransferNextChain($instance, $dateTime)
+    private function getChainNext($instance)
     {
         $num = $instance->form_instance_number;
         $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
 
+        $count = $count + 1;
         $form = $instance->form;
         if ($form->change_type == 223) {
-            $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
+            $next = ChainFree::where('form_number', $num)->where('sort_number', $count)->first();
         } else if ($form->change_type == 222) {
-            $preId = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->value('next_id');
+            $next = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->first();
         } else if ($form->change_type == 224) {
             $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
             $value = $this->getValuesForCondition($formControlIds, $num);
             $conditionId = $this->getCondition($instance->form_id, $value);
-            $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
+            $next = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->first();
+        } else {
+            throw new ApprovalVerifyException('审批流不存在');
         }
+        $nextId = $next->next_id;
+        if (is_null($next->approver_type))
+            $type = 245;
+        else
+            $type = $next->approver_type;
 
-        $arr = $this->getChainNext($instance, $preId);
-
-        return $arr;
+        return [$nextId, $type];
     }
+
+//    private function getTransferNextChain($instance)
+//    {
+//        $num = $instance->form_instance_number;
+//        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
+//
+//        $form = $instance->form;
+//        if ($form->change_type == 223) {
+//            $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
+//        } else if ($form->change_type == 222) {
+//            $preId = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->value('next_id');
+//        } else if ($form->change_type == 224) {
+//            $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
+//            $value = $this->getValuesForCondition($formControlIds, $num);
+//            $conditionId = $this->getCondition($instance->form_id, $value);
+//            $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
+//        }
+//
+//        $arr = $this->getChainNext($instance, $preId);
+//
+//        return $arr;
+//    }
 
     /**
      * @param $formId
@@ -600,12 +643,13 @@ class ApprovalFlowController extends Controller
         if (is_null($contract))
             return null;
 
+        // 签约解约处理
         if ($contract->star_type && $status == 232) {
             $starArr = explode(',', $contract->stars);
             DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
 
             //签约
-            if (in_array($instance->form_id, [5, 7])){
+            if (in_array($instance->form_id, [5, 7])) {
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
                 //发消息,日志
                 DB::beginTransaction();
@@ -613,27 +657,27 @@ class ApprovalFlowController extends Controller
 
                     $user = Auth::guard('api')->user();
 
-                    if($contract->star_type == "bloggers"){
+                    if ($contract->star_type == "bloggers") {
                         $model = Blogger::findOrFail($contract->stars);
                         $name = $model->nickname;
-                        $link = URL::action("StarController@show",['star'=>$model->id]);
+                        $link = URL::action("StarController@show", ['star' => $model->id]);
                         $module = Message::BLOGGER;
                     }
-                    if($contract->star_type=="stars"){
+                    if ($contract->star_type == "stars") {
                         $model = Star::findOrFail($contract->stars);
                         $name = $model->name;
-                        $link = URL::action("BloggerController@show",['blogger'=>$model->id]);
+                        $link = URL::action("BloggerController@show", ['blogger' => $model->id]);
                         $module = Message::STAR;
                     }
                     $title = $name . "签约";  //通知消息的标题
                     $subheading = $name . "签约";
                     $data = [];
-                    if($contract->star_type == "stars") {
+                    if ($contract->star_type == "stars") {
                         $data[] = [
                             "title" => '艺人签约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
                         ];
-                    }else{
+                    } else {
                         $data[] = [
                             "title" => '博主签约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
@@ -647,7 +691,7 @@ class ApprovalFlowController extends Controller
 
                     $authorization = \request()->header()['authorization'][0];
 
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data,null);
+                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null);
 
                     //操作日志
                     $operate = new OperateEntity([
@@ -660,13 +704,15 @@ class ApprovalFlowController extends Controller
                     event(new OperateLogEvent([
                         $operate,
                     ]));
-                }catch (Exception $e){
-                    throw $e;
+                    DB::commit();
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    Log::error($e);
                 }
-                DB::commit();
+
             }
             //解约
-            if (in_array($instance->form_id, [6, 8])){
+            if (in_array($instance->form_id, [6, 8])) {
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT]);
                 //发消息,日志
                 DB::beginTransaction();
@@ -674,27 +720,27 @@ class ApprovalFlowController extends Controller
 
                     $user = Auth::guard('api')->user();
 
-                    if($contract->star_type == "bloggers"){
+                    if ($contract->star_type == "bloggers") {
                         $model = Blogger::findOrFail($contract->stars);
                         $name = $model->nickname;
-                        $link = URL::action("StarController@show",['star'=>$model->id]);
+                        $link = URL::action("StarController@show", ['star' => $model->id]);
                         $module = Message::BLOGGER;
                     }
-                    if($contract->star_type=="stars"){
+                    if ($contract->star_type == "stars") {
                         $model = Star::findOrFail($contract->stars);
                         $name = $model->name;
-                        $link = URL::action("BloggerController@show",['blogger'=>$model->id]);
+                        $link = URL::action("BloggerController@show", ['blogger' => $model->id]);
                         $module = Message::STAR;
                     }
                     $title = $name . "解约";  //通知消息的标题
                     $subheading = $name . "解约";
                     $data = [];
-                    if($contract->star_type == "stars") {
+                    if ($contract->star_type == "stars") {
                         $data[] = [
                             "title" => '艺人解约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
                         ];
-                    }else{
+                    } else {
                         $data[] = [
                             "title" => '博主解约', //通知消息中的消息内容标题
                             'value' => $name,  //通知消息内容对应的值
@@ -708,7 +754,7 @@ class ApprovalFlowController extends Controller
 
                     $authorization = \request()->header()['authorization'][0];
 
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data,null);
+                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null);
 
                     //操作日志
                     $operate = new OperateEntity([
@@ -721,16 +767,23 @@ class ApprovalFlowController extends Controller
                     event(new OperateLogEvent([
                         $operate,
                     ]));
-                }catch (Exception $e){
-                    throw $e;
+                    DB::commit();
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    Log::error($e);
                 }
-                DB::commit();
+
             }
         }
 
         if ($contract->project_id) {
             if ($status != 232)
                 $contract->project->delete();
+            if ($status == 232)
+                // todo 增加 Trail 的仓库封装带操作日志的一般数据库操作
+                $contract->project->trail->update([
+                    'progress_status' => Trail::STATUS_CONFIRMED
+                ]);
         }
     }
 }

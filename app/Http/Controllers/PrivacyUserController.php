@@ -49,17 +49,17 @@ class privacyUserController extends Controller
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::BLOGGER;
             $thisnull = $this->privacyUserRepository->is_creator($array,$model);
-//            if(!$thisnull) {
-//                return $this->response->errorForbidden("你不能修改");
-//            }
+            if(!$thisnull) {
+                return $this->response->errorForbidden("你不能修改");
+            }
 
         }else if($model instanceof Project && $model->id){
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::PROJECT;
             $thisnull = $this->privacyUserRepository->is_creator($array,$model);
-//            if(!$thisnull) {
-//                return $this->response->errorForbidden("你不能修改");
-//            }
+            if(!$thisnull) {
+                return $this->response->errorForbidden("你不能修改");
+            }
         }
         unset( $array['user_id']);
         DB::beginTransaction();

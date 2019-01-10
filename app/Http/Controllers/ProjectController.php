@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Project\AddRelateProjectRequest;
 use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
@@ -18,6 +19,7 @@ use App\Models\Client;
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
+use App\Models\OperateEntity;
 use App\Models\PrivacyUser;
 use App\Models\Project;
 use App\Models\ProjectBill;
@@ -33,6 +35,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
 use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
@@ -516,6 +519,7 @@ class ProjectController extends Controller
 
     public function detail(Request $request, $project)
     {
+
         $type = $project->type;
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
@@ -593,7 +597,17 @@ class ProjectController extends Controller
 
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $result;
     }
 

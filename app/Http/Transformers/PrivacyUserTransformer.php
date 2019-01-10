@@ -8,7 +8,7 @@ use League\Fractal\TransformerAbstract;
 
 class PrivacyUserTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['user'];
+    protected $availableIncludes = ['user','creator'];
 
     private $isAll = true;
 
@@ -30,7 +30,7 @@ class PrivacyUserTransformer extends TransformerAbstract
                 'field' => $privacyuser->moduleable_field
             ];
         }else{
-            //$privacyuser->user_ids = explode(',',$privacyuser->user_ids);
+
             $array = [
 
                 'field' => $privacyuser->moduleable_field,
@@ -46,6 +46,15 @@ class PrivacyUserTransformer extends TransformerAbstract
     {
 
         $project = $privacyuser->user;
+        if (!$project)
+            return null;
+
+        return $this->item($project, new UserTransformer());
+    }
+    public function includeCreator(PrivacyUser $privacyuser)
+    {
+
+        $project = $privacyuser->creator;
         if (!$project)
             return null;
 

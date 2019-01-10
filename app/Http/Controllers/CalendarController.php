@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Calendar\EditCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarTaskRequest;
 use App\Http\Transformers\CalendarTransformer;
 use App\Models\Calendar;
+use App\Models\OperateEntity;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
 use App\Repositories\CalendarRepository;
 use App\Repositories\ModuleUserRepository;
 use DemeterChain\C;
@@ -74,8 +77,19 @@ class CalendarController extends Controller
                 $payload['participant_ids'] = [];
 
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $calendar, ModuleUserType::PARTICIPANT);
-
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $calendar,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
         } catch (Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建失败');

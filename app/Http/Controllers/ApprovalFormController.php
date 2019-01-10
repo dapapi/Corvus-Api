@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Exceptions\ApprovalVerifyException;
 use App\Helper\Generator;
 use App\Http\Requests\Approval\GetFormIdsRequest;
@@ -22,8 +23,12 @@ use App\Models\ApprovalForm\InstanceValue;
 use App\Models\ApprovalGroup;
 use App\Models\Contract;
 use App\Models\DataDictionary;
+use App\Models\Message;
+use App\Models\OperateEntity;
 use App\Models\ProjectHistorie;
 use App\Models\TemplateFieldHistories;
+use App\OperateLogMethod;
+use App\Repositories\MessageRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Project;
@@ -49,6 +54,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\URL;
 use League\Fractal;
 use League\Fractal\Manager;
 use League\Fractal\Serializer\DataArraySerializer;
@@ -624,16 +630,16 @@ class ApprovalFormController extends Controller
         $notice = $request->get('notice', null);
 
         // 区分合同还是普通审批
-        if ($approval->group_id == 2)
+        if ($approval->group_id == 2)//合同审批
             $type = 1;
         else
             $type = 0;
 
         // 按合同规定艺人or博主
-        if (in_array($approval->form_id, [5, 6, 10]))
+        if (in_array($approval->form_id, [5, 6, 10]))//Papi签约合同，Papi解约合同，Papi项目合同
             $this->starType = 'bloggers';
 
-        if (in_array($approval->form_id, [7, 8, 9]))
+        if (in_array($approval->form_id, [7, 8, 9]))//泰洋签约合同，泰洋解约合同，泰洋项目合同
             $this->starType = 'stars';
 
         $user = Auth::guard('api')->user();
@@ -647,7 +653,7 @@ class ApprovalFormController extends Controller
             }
 
             if ($type) {
-                $contract = Contract::create([
+                $contract = Contract::create([//创建合同
                     'form_instance_number' => $num,
                     'creator_id' => $user->id,
                     'creator_name' => $user->name,
@@ -692,6 +698,58 @@ class ApprovalFormController extends Controller
                         'created_at' => Carbon::now(),
                     ]);
                 }
+            }
+            //记录日志
+            //泰洋项目合同，papi醒目合同
+            if($approval->form_id == 9 || $approval->form_id == 10){
+                foreach ($controlValues as $value) {
+                    if ($value['type'] == "project_id"){
+                        $project = Project::find(hashid_decode($value['id']));
+                        if($project){
+                            $operate = new OperateEntity([
+                                'obj' => $project,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::CREATE_CONTRACTS,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
+                        DB::beginTransaction();
+                        try {
+
+                            $user = Auth::guard('api')->user();
+                            $title = $project->title."项目成单了";  //通知消息的标题
+                            $subheading = $project->title."项目成单了";
+                            $module = Message::PROJECT;
+                            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
+                            $data = [];
+                            $data[] = [
+                                "title" => '项目名称', //通知消息中的消息内容标题
+                                'value' => $project->title,  //通知消息内容对应的值
+                            ];
+                            $principal = User::findOrFail($project->principal_id);
+                            $data[] = [
+                                'title' => '项目负责人',
+                                'value' => $principal->name
+                            ];
+                            //发送给创建人的直属领导
+                            $department = DepartmentUser::where('user_id',$user->id)->first();
+                            $leader = DepartmentUser::where('department_id',$department->id)->where('type',1)->first();
+                            $send_user = [$leader->id];
+                            $authorization = $request->header()['authorization'][0];
+
+                            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user);
+                            DB::commit();
+                        } catch (Exception $e) {
+                            DB::rollBack();
+                        }
+
+                    }
+                }
+
             }
 
         } catch (ApprovalVerifyException $exception) {

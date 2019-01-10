@@ -701,10 +701,12 @@ class ApprovalFlowController extends Controller
                     event(new OperateLogEvent([
                         $operate,
                     ]));
+                    DB::commit();
                 } catch (Exception $e) {
+                    DB::rollBack();
                     Log::error($e);
                 }
-                DB::commit();
+
             }
             //解约
             if (in_array($instance->form_id, [6, 8])) {
@@ -762,10 +764,12 @@ class ApprovalFlowController extends Controller
                     event(new OperateLogEvent([
                         $operate,
                     ]));
+                    DB::commit();
                 } catch (Exception $e) {
+                    DB::rollBack();
                     Log::error($e);
                 }
-                DB::commit();
+
             }
         }
 

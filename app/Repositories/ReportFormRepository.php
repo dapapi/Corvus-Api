@@ -9,13 +9,11 @@ use App\Models\Project;
 use App\Models\Star;
 use App\Models\Trail;
 use App\Models\TrailStar;
-use App\Models\User;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\SignContractStatus;
+use App\User;
 use Carbon\Carbon;
-use DemeterChain\C;
-use function foo\func;
 use Illuminate\Support\Facades\DB;
 
 class ReportFormRepository

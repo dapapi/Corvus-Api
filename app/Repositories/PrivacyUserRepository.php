@@ -28,10 +28,10 @@ class PrivacyUserRepository
     {
         $array['is_privacy'] = PrivacyType::OTHER;
        // $isnot = PrivacyUser::where($array)->groupby('moduleable_field')->select('moduleable_field',DB::raw('group_concat(user_id) as user_ids'))->get();
-        if($array('moduleable_type') == ModuleableType::PROJECT) {
+        if($array['moduleable_type'] == ModuleableType::PROJECT) {
             $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
-        }elseif ($array('moduleable_type') == ModuleableType::BLOGGER){
-            $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get(['hatch_star_at as hatch_at']);
+        }elseif ($array['moduleable_type'] == ModuleableType::BLOGGER){
+            $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
         }
         return $isnot;
     }

@@ -14,6 +14,7 @@ use App\Models\Client;
 use App\Models\Contact;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -111,8 +112,16 @@ class ClientController extends Controller
         try {
             foreach ($payload as $key => $value) {
                 $lastValue = $client[$key];
-                $comment = $columns->getColumn($key)->getComment();
-                $this->editLog($client, $comment, $lastValue, $value);
+                if($lastValue != $value){
+                    if($key == "principal_id"){
+                        $lastValue = User::find($client->principal_id)->name;
+                        $value = User::findOrFail($value)->name;
+                    }
+
+                    $comment = $columns->getColumn($key)->getComment();
+                    $this->editLog($client, $comment, $lastValue, $value);
+                }
+
             }
             $client->update($payload);
         } catch (\Exception $exception) {
@@ -151,6 +160,17 @@ class ClientController extends Controller
         if($client == null){
             return $this->response->errorInternal("你没有查看该数据的权限");
         }
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $client,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $this->response->item($client, new ClientTransformer());
     }
 

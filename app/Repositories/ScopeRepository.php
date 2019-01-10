@@ -67,8 +67,8 @@ class ScopeRepository
         $dataDictionarieId = max(array_column($viewSql,'data_view_id'));//获取用户对要访问的模块最大的权限
 
         $dataViewSql = RoleDataView::where('resource_id',$resourceId)->where('data_view_id',$dataDictionarieId)->get()->toArray();
+
         //查询本人相关 19
-        $arrayUserid = null;
         if($dataDictionarieId == 19){
 //                $dataArr = json_decode($viewSql[0]['data_view_sql'],true);
             $arrayUserid = array();
@@ -96,6 +96,8 @@ class ScopeRepository
             $arrayUserid = array_keys($result);//查看下属部门
         }elseif($dataDictionarieId == 22){//全部
             $arrayUserid = [];
+        }else{
+            return null;
         }
         if($arr === true){
             return $arrayUserid;
@@ -192,6 +194,8 @@ class ScopeRepository
                     return true;
                 }
 
+            }else{
+                return false;
             }
         }
         return false;

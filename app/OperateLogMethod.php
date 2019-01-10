@@ -38,10 +38,16 @@ abstract class OperateLogMethod
     const TRANSFER = 26;//调岗
     const REFUSE = 27;//拒绝
     const ADD_WORK = 28;//添加作品
-    const ADD_STAR_TASK=29 ;//为艺人添加任务
+    const ADD_TASK_RESOURCE = 29 ;//为艺人添加任务
     const CREATE_SIGNING_CONTRACTS=30;//创建签约合同
     const CREATE_RESCISSION_CONTRACTS = 31;//创建解约合同
     const ADD_PRODUCTION = 32;//微博主添加做品
-    const ADD_TRAIL_TASK = 33;//创建销售线索关联任务
+//    const ADD_TRAIL_TASK = 33;//创建销售线索关联任务
+//    const ADD_CLIENT_TASK = 34;//创建客户任务
+    const ADD_CLIENT_CONTRACTS = 33;//为客户创建联系人
+    const ADD_RELATE = 34;//添加关联
+    const STATUS_FROZEN = 35;//项目撤单
+    const ADD_PRIVACY = 36;//隐私设置
+    const CREATE_CONTRACTS = 37;//创建合同
 
 }

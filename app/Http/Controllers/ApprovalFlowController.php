@@ -212,9 +212,6 @@ class ApprovalFlowController extends Controller
                 ->get();
         }
         foreach ($chains as $key => $chain) {
-            if ($key == 0)
-                continue;
-
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,

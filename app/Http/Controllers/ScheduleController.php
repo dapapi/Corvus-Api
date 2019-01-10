@@ -204,27 +204,23 @@ class ScheduleController extends Controller
         if ($request->has('project_ids') && is_array($payload['project_ids'])){
             $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
         }
-        if ($request->has('participant_ids') && is_array($payload['participant_ids']))
-
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $schedule, ModuleUserType::PARTICIPANT);
 
         if ($request->has('participant_ids') && is_array($payload['participant_ids']))
 
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $schedule, ModuleUserType::PARTICIPANT);
 
-        if ($request->has('project_ids')) {
-            foreach ($payload['project_ids'] as &$id) {
-                $id = hashid_decode($id);
-                ProjectResource::create([
-                    'project_id' => $id,
-                    'resourceable_id' => $schedule->id,
-                    'resourceable_type' => ModuleableType::SCHEDULE,
-                    'resource_id' => $module->id,
-                ]);
-            }
-            unset($id);
-        }
-
+//        if ($request->has('project_ids')) {
+//            foreach ($payload['project_ids'] as &$id) {
+//                $id = hashid_decode($id);
+//                ProjectResource::create([
+//                    'project_id' => $id,
+//                    'resourceable_id' => $schedule->id,
+//                    'resourceable_type' => ModuleableType::SCHEDULE,
+//                    'resource_id' => $module->id,
+//                ]);
+//            }
+//            unset($id);
+//        }
 
         if ($request->has('affix')) {
             foreach ($payload['affix'] as $affix) {
@@ -356,7 +352,7 @@ class ScheduleController extends Controller
             $this->response->errorInternal("你没有权限添加日程");
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
-        if($payload['material_id']){
+        if($request->has('material_id')&&$payload['material_id']){
             if ($payload['is_allday'] == 1) {
                 // 开始时间   Ymd 格式
                 $array['start_at'] = date('Y-m-d',strtotime($payload['start_at']));
@@ -377,8 +373,8 @@ class ScheduleController extends Controller
             if($endmaterials){
                 $this->response->errorForbidden("该时段会议室已被占用");
             }
-
         }
+
         $module = Module::where('code', 'schedules')->first();
 
         DB::beginTransaction();
@@ -398,15 +394,15 @@ class ScheduleController extends Controller
     public function storeSchedulesTask(StoreScheduleTaskRequest $request,Schedule $schedule)
     {
         $payload = $request->all();
-
-
             DB::beginTransaction();
         try {
 
             if ($request->has('task_ids') && is_array($payload['task_ids'])){
               $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
             }
+
             if ($request->has('project_ids') && is_array($payload['project_ids'])){
+
                 $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
             }
         } catch (Exception $e) {
@@ -478,6 +474,7 @@ class ScheduleController extends Controller
             if (!$material)
                 return $this->response->errorBadRequest('会议室id不存在');
         }
+
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];
 
@@ -487,7 +484,6 @@ class ScheduleController extends Controller
         try {
             $schedule->update($payload);
             $this->hasauxiliary($request,$payload,$schedule,'',$user);
-
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
             Log::error($exception);

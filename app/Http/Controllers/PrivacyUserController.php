@@ -27,8 +27,8 @@ class privacyUserController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-        if($request->has('project_id')){
 
+        if($request->has('project_id')){
             $array['moduleable_id'] = hashid_decode($payload['project_id']);
             $array['moduleable_type'] = ModuleableType::PROJECT;
         }

@@ -703,7 +703,7 @@ class StarController extends Controller
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
                         // 操作日志 ...
                     } catch (Exception $e) {
-                        print_r($e);
+                        Log::error($e);
                     }
                 }
             }

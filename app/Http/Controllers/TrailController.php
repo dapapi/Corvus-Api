@@ -19,6 +19,7 @@ use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\FilterJoin;
 use App\Models\Industry;
+use App\Models\Message;
 use App\Models\OperateEntity;
 use App\Models\Star;
 use App\Models\Client;
@@ -27,11 +28,13 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
 use App\OperateLogMethod;
+use App\Repositories\ScopeRepository;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Maatwebsite\Excel\Excel;
 
 class TrailController extends Controller
@@ -504,24 +507,23 @@ class TrailController extends Controller
 
         DB::beginTransaction();
         try {
-
             if ($request->has('lock')) {//操作锁价
 
-                $payload['lock_status'] = $payload['lock'];
-                if($trail->lock_status != $payload['lock_status']){
+
+                $array['lock_status'] = $payload['lock'];
+                if($trail->lock_status != $array['lock_status']){
                     $operateName = new OperateEntity([
                         'obj' => $trail,
                         'title' => '锁价',
-                        'start' => $array['lock_status'] == 1?"锁价":"未锁价",
+                        'start' => $trail->lock_status == 1?"锁价":"未锁价",
                         'end' => $array['lock_status'] == 1?"锁价":"未锁价",
                         'method' => OperateLogMethod::UPDATE,
                     ]);
                     $arrayOperateLog[] = $operateName;
-
                 }else{
-                    unset($payload['lock_status']);
-                }
+                    unset($array['lock_status']);
 
+                }
             }
             $trail->update($array);
             if ($request->has('client')) {

@@ -34,9 +34,7 @@ class PrivacyUserTransformer extends TransformerAbstract
             $array = [
 
                 'field' => $privacyuser->moduleable_field,
-
               //  'user_ids' => $privacyuser->user_ids
-
             ];
         }
 
@@ -53,11 +51,9 @@ class PrivacyUserTransformer extends TransformerAbstract
     }
     public function includeCreator(PrivacyUser $privacyuser)
     {
-
-        $project = $privacyuser->creator;
+        $project = $privacyuser->user;
         if (!$project)
             return null;
-
         return $this->item($project, new UserTransformer());
     }
 }

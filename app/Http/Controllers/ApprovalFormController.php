@@ -605,7 +605,7 @@ class ApprovalFormController extends Controller
         return $this->response->collection($forms, new ApprovalFormTransformer());
     }
 
-    public function getBaseForms(Request $request)
+    public function getGeneralForms(Request $request)
     {
         $groups = ApprovalGroup::whereNotIn('id', [1, 2])->get();
         return $this->response->collection($groups, new ApprovalGroupTransformer());

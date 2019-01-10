@@ -211,10 +211,7 @@ class ApprovalFlowController extends Controller
                 ->orderBy('sort_number')
                 ->get();
         }
-        foreach ($chains as $key => $chain) {
-            if ($key == 0)
-                continue;
-
+        foreach ($chains as $chain) {
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
@@ -471,6 +468,7 @@ class ApprovalFlowController extends Controller
         $num = $instance->form_instance_number;
         $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
 
+        $count++;
         $form = $instance->form;
         if ($form->change_type == 223) {
             $next = ChainFree::where('form_number', $num)->where('sort_number', $count)->first();

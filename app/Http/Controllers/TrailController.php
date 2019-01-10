@@ -339,7 +339,6 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
-                    dd($e);
                     Log::error($e);
                     return $this->response->errorBadRequest("销售线索来源错误");
                 }

@@ -211,7 +211,10 @@ class ApprovalFlowController extends Controller
                 ->orderBy('sort_number')
                 ->get();
         }
-        foreach ($chains as $chain) {
+        foreach ($chains as $key => $chain) {
+            if ($key == 0)
+                continue;
+
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
@@ -481,7 +484,7 @@ class ApprovalFlowController extends Controller
         } else {
             throw new ApprovalVerifyException('审批流不存在');
         }
-        $nextId = $next->next->id;
+        $nextId = $next->next_id;
         if (is_null($next->approver_type))
             $type = 245;
         else

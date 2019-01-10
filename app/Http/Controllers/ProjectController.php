@@ -733,7 +733,6 @@ class ProjectController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
         } catch (Exception $exception) {
-            dd($exception);
             DB::rollBack();
             Log::error($exception);
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());

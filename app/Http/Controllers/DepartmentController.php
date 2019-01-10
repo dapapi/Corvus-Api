@@ -82,15 +82,38 @@ class DepartmentController extends Controller
     {
         $payload = $departmentrequest->all();
         $departmentId = $department->id;
-        $userId = hashid_decode($payload['user_id']);
+       // $userId = hashid_decode($payload['user_id']);
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
-
+        $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
         DB::beginTransaction();
         try {
+
+            if($userId == 0){
+
+                $principalInfo = DB::table("department_principal")->where('department_id',$departmentId)->get()->toArray();
+
+                if(!empty($principalInfo)) {
+                    $departmentUserId = $principalInfo[0]->user_id;
+
+                    //查询修改前部门主管如果存在多个部门则不更新角色表 反之则删除
+                    $userIdSum = DB::table("department_principal")->where('user_id',$departmentUserId)->get()->count();
+
+                    if($userIdSum >= 2){
+
+                    }else{
+                        $num = DB::table("role_users")->where('user_id',$departmentUserId)->where('role_id',75)->delete();
+
+                    }
+                    $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
+
+                }
+
+            }else{
+
             //先查询修改之前的部门主管是否存在别的部门
             $principalInfo = DB::table("department_principal")->where('department_id',$departmentId)->get()->toArray();
 
@@ -114,14 +137,17 @@ class DepartmentController extends Controller
             }else{
 
                 $departmentUserId = $principalInfo[0]->user_id;
+
                 //查询修改前部门主管如果存在多个部门则不更新角色表 反之则删除
                 $userIdSum = DB::table("department_principal")->where('user_id',$departmentUserId)->get()->count();
+
                 if($userIdSum >= 2){
 
                 }else{
                     $num = DB::table("role_users")->where('user_id',$departmentUserId)->where('role_id',75)->delete();
 
                 }
+                
                 //根据传过来的user_id 查询是部门主管角色
                 $roleUser = DB::table("role_users")->where('user_id',$userId)->where('role_id',75)->get()->toArray();
                 if(empty($roleUser)){
@@ -138,6 +164,9 @@ class DepartmentController extends Controller
                 ];
                 $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
                 $depar = DepartmentPrincipal::create($principalArr);
+            }
+
+
             }
             $depar = $department->update($departmentArr);
 
@@ -379,6 +408,11 @@ class DepartmentController extends Controller
     public function positionStore(PositionRequest $positionRequest)
     {
         $payload = $positionRequest->all();
+        $name = Position::where('name', $payload['name'])->get()->keyBy('name')->toArray();
+
+        if(!empty($name) ) {
+            return $this->response->errorInternal('该职位已存在!');
+        }
         DB::beginTransaction();
         try {
             $depar = Position::create($payload);
@@ -587,5 +621,39 @@ class DepartmentController extends Controller
         $positions = Position::get();
         return $this->response->collection($positions, new positionTransformer());
     }
+
+    public function storeJobs(Request $request)
+    {
+        $payload = $request->all();
+
+
+        DB::beginTransaction();
+        try {
+            $array = [
+                'name'=>$payload['name'],
+            ];
+            Position::create($array);
+            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $user,
+//                'title' => null,
+//                'start' => $user->disable,
+//                'end' => $payload['disable'],
+//                'method' => OperateLogMethod::UPDATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+
+
+    }
+
+
 
 }

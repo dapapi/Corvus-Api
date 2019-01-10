@@ -37,6 +37,13 @@ class privacyUserController extends Controller
             $array['moduleable_type'] = ModuleableType::BLOGGER;
         }
         $privacyuser = $this->privacyUserRepository->getPrivacy($array,$request,$payload);
+        foreach ($privacyuser as $key => $val){
+
+                if($val->moduleable_field =='hatch_end_at'){
+                   unset($privacyuser[$key]);
+                }
+
+        }
         return $this->response->collection($privacyuser, new PrivacyUserTransformer(false));
 
     }

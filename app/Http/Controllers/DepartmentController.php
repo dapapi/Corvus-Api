@@ -88,7 +88,7 @@ class DepartmentController extends Controller
             "name"=>$payload['name'],
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
-        $userId = isset($payload['user_id']) ? $payload['user_id'] : 0;
+        $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
         DB::beginTransaction();
         try {
 
@@ -137,14 +137,17 @@ class DepartmentController extends Controller
             }else{
 
                 $departmentUserId = $principalInfo[0]->user_id;
+
                 //查询修改前部门主管如果存在多个部门则不更新角色表 反之则删除
                 $userIdSum = DB::table("department_principal")->where('user_id',$departmentUserId)->get()->count();
+
                 if($userIdSum >= 2){
 
                 }else{
                     $num = DB::table("role_users")->where('user_id',$departmentUserId)->where('role_id',75)->delete();
 
                 }
+                
                 //根据传过来的user_id 查询是部门主管角色
                 $roleUser = DB::table("role_users")->where('user_id',$userId)->where('role_id',75)->get()->toArray();
                 if(empty($roleUser)){

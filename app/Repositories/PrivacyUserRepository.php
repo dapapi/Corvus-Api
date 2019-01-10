@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Repositories;
+use App\Models\ModuleUser;
 use App\PrivacyType;
 
 use Illuminate\Http\Request;
@@ -27,7 +28,11 @@ class PrivacyUserRepository
     {
         $array['is_privacy'] = PrivacyType::OTHER;
        // $isnot = PrivacyUser::where($array)->groupby('moduleable_field')->select('moduleable_field',DB::raw('group_concat(user_id) as user_ids'))->get();
-        $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
+        if($array('moduleable_type') == ModuleableType::PROJECT) {
+            $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
+        }elseif ($array('moduleable_type') == ModuleableType::BLOGGER){
+            $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get(['hatch_star_at as hatch_at']);
+        }
         return $isnot;
     }
     public function updatePrivacy($array,$request, $payload)
@@ -117,6 +122,19 @@ class PrivacyUserRepository
             //                }
 
                     }
+        if ($request->has('hatch_at')) {
+                $p_id = $payload['hatch_at'];
+                unset($payload['hatch_at']);
+                $array['moduleable_field'] = PrivacyType::HATCH_STAR_AT;
+                $array['is_privacy'] = PrivacyType::OTHER;
+                $isnot = PrivacyUser::where($array)->first();
+                $this->addAll($p_id,$array);
+                $array['moduleable_field'] = PrivacyType::HATCH_END_AT;
+                $array['is_privacy'] = PrivacyType::OTHER;
+                $this->addAll($p_id,$array);
+
+            }
+
 
     }
     public function addPrivacy($array,$request, $payload)

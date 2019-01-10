@@ -38,6 +38,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // user
         $api->get('/users/my', 'App\Http\Controllers\UserController@my');
         $api->get('/users/{user}', 'App\Http\Controllers\UserController@show');
+        //修改密码
+        $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
+
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');

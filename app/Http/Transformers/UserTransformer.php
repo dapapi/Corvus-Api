@@ -41,7 +41,7 @@ class UserTransformer extends TransformerAbstract
             'position' => $user->position,
             'hire_shape' => $user->hire_shape,
             'entry_time' => $user->entry_time,
-            'archive_time' => $user->entry_time,
+            'archive_time' => $user->archive_time,
             'position_type' => $user->position_type,
             'en_name'=> $user->en_name, // '英文',
             'gender'=> $user->gender,//性别',
@@ -49,13 +49,9 @@ class UserTransformer extends TransformerAbstract
             'political'=> $user->political,//'政治面貌',
             'marriage'=> $user->marriage,//'婚姻状态',
             'cadastral_address'=> $user->cadastral_address,//'户籍地址',
-            'current_address'=> $user->current_address,//'现居住地址',
             'national'=> $user->national,// '民族',
-            'entry_time'=> $user->entry_time,//'入职时间',
-            'birth_time'=> $user->birth_time,//'出生日期',
             'blood_type'=> $user->blood_type,// '血型',
             'icon_url'=> $user->icon_url,//'用户头像',
-            'archive_time'=> $user->archive_time,//归档日期',
             'high_school'=> $user->high_school,// '最高学历',
             'age'=> $user->age,//'年龄',
             'jobs'=> $user->jobs,//'岗位',
@@ -63,7 +59,6 @@ class UserTransformer extends TransformerAbstract
             'work_email'=> $user->work_email,//'工作邮箱',
             'disable'=>$user->disable,
             'entry_status'=>$user->entry_status,
-
         ];
 
         if ($user->company) {
@@ -186,9 +181,11 @@ class UserTransformer extends TransformerAbstract
     }
     public function includePosition(User $user)
     {
-        $positionData = $user->position;
+        $position = $user->position;
+        if (!$position)
+            return null;
 
-        return $this->collection($positionData, new PositionTransformer());
+        return $this->item($position, new PositionTransformer());
     }
 
 }

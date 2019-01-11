@@ -684,7 +684,7 @@ class TaskController extends Controller
                     TaskResource::create($array);
                     // 操作日志
                     $operate = new OperateEntity([
-                        'obj' => $task,
+                        'obj' => $model,
                         'title' => $title,
                         'start' => $start,
                         'end' => null,
@@ -1015,11 +1015,10 @@ class TaskController extends Controller
                             'task_id' => $task->id,
                             'resource_id' => $resource->id,
                         ];
-                        $model = null;
                         switch ($resource->type) {
                             case ResourceType::BLOGGER:
-                                $model = Blogger::findOrFail($resourceableId);
-                                $array['resourceable_id'] = $model->id;
+                                $blogger = Blogger::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $blogger->id;
                                 $array['resourceable_type'] = ModuleableType::BLOGGER;
                                 break;
                             case ResourceType::STAR:
@@ -1073,6 +1072,7 @@ class TaskController extends Controller
 //                                event(new OperateLogEvent([
 //                                    $operate,
 //                                ]));
+
                                 break;
                             case ResourceType::TRAIL:
                                 $model = Trail::findOrFail($resourceableId);

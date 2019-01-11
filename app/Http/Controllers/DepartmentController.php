@@ -108,7 +108,7 @@ class DepartmentController extends Controller
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
-            "company_id"=> $payload['company_id'],
+            "company_id"=> isset($payload['company_id']) ? $payload['company_id'] : '',
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
         $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;

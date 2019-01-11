@@ -27,7 +27,7 @@ class Department extends Model
     public function departments()
     {
 
-        return $this->hasMany(Department::class, 'department_pid', 'id');
+        return $this->hasMany(Department::class, 'department_pid', 'id')->orderBy('sort_number','asc');
     }
 
     public function users()
@@ -44,6 +44,7 @@ class Department extends Model
     public function getSubidByPid($pid){
         //查找所有数据
         $departments = $this->get(['id','department_pid']);
+
         $list = Common::getTree($departments,$pid,0);
         return $list;
     }

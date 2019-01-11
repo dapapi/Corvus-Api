@@ -33,7 +33,7 @@ class TemplateFieldTransformer extends TransformerAbstract
     {
         $value = $field->values()->where('project_id', $this->projectId)->first();
         if (!$value)
-            return null;
+            return $this->null();
 
         return $this->item($value, new FieldValueTransformer(false));
     }

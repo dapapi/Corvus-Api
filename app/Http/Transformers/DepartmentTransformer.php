@@ -44,7 +44,7 @@ class DepartmentTransformer extends TransformerAbstract
 
             if($companyInfo){
                 $array['company'] = $companyInfo->name;
-                $array['company_id'] = hashid_encode($companyInfo->company_id);
+                $array['company_id'] = $companyInfo->company_id;
             }else{
                 $array['company'] = '';
                 $array['company_id'] = '';

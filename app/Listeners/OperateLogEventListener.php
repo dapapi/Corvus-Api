@@ -73,8 +73,9 @@ class OperateLogEventListener
     protected $add_work = '为该艺人新增了 %s 作品';
     protected $create_signing_contracts="%s 创建了签约合同";
     protected $create_rescission_contracts = "%s 创建了解约合同";
-    protected $add_star_task = "创建了关联资源为该%s的任务";
+    protected $add_resource_task = "创建了关联资源为该%s的任务";
     protected $add_production = "为该博主新增了 %s 做品";
+
 //    protected $add_trail_task = "创建了关联资源为该销售线索的任务";
 //    protected $add_client_task = "创建了关联资源为该客户的任务";
     protected $add_client_contracts = "添加了该客户的联系人";
@@ -82,6 +83,8 @@ class OperateLogEventListener
     protected $status_frozen = "进行了撤单,撤单原因为%s";
     protected $add_privacy = "对该%s进行了隐私设置";
     protected $create_contracts = "创建了合同";
+
+
     /**
      * Handle the event.
      *
@@ -295,7 +298,7 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::ADD_TASK_RESOURCE: //为艺人添加任务
                     $level = OperateLogLevel::LOW;
-                    $content = sprintf($this->add_star_task,$typeName);
+                    $content = sprintf($this->add_resource_task,$typeName);
                     break;
                 case OperateLogMethod::CREATE_SIGNING_CONTRACTS: //创建签约合同
                     $level = OperateLogLevel::LOW;
@@ -316,6 +319,10 @@ class OperateLogEventListener
 //                case OperateLogMethod::ADD_CLIENT_TASK://为客户创建任务
 //                    $level = OperateLogLevel::LOW;
 //                    $content = sprintf($this->add_client_task);
+//                    break;
+                case OperateLogMethod::ADD_CLIENT_TASK://为客户创建任务
+                    $level = OperateLogLevel::LOW;
+                    $content = sprintf($this->add_client_task);
                     break;
                 case OperateLogMethod::ADD_CLIENT_CONTRACTS://为客户创建联系人
                     $level = OperateLogLevel::LOW;
@@ -335,7 +342,10 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::CREATE_CONTRACTS://创建合同
                     $level = OperateLogLevel::LOW;
+
                     $content = $this->create_contracts;
+
+                    break;
             }
             OperateLog::create([
                 'user_id' => $user->id,

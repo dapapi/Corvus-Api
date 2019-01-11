@@ -684,7 +684,7 @@ class TaskController extends Controller
                     TaskResource::create($array);
                     // 操作日志
                     $operate = new OperateEntity([
-                        'obj' => $task,
+                        'obj' => $model,
                         'title' => $title,
                         'start' => $start,
                         'end' => null,
@@ -1057,7 +1057,6 @@ class TaskController extends Controller
 //                                    $operate,
 //                                ]));
                                 break;
-                                break;
                             case ResourceType::CLIENT:
                                 $model = Client::findOrFail($resourceableId);
                                 $array['resourceable_id'] = $model->id;
@@ -1073,6 +1072,7 @@ class TaskController extends Controller
 //                                event(new OperateLogEvent([
 //                                    $operate,
 //                                ]));
+
                                 break;
                             case ResourceType::TRAIL:
                                 $model = Trail::findOrFail($resourceableId);
@@ -1095,16 +1095,29 @@ class TaskController extends Controller
 
                         $task_resource = TaskResource::create($array);
                         // 操作日志
+                        if ($model != null){
+                            $operate = new OperateEntity([
+                                'obj' => $model,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::ADD_TASK_RESOURCE,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
                         $operate = new OperateEntity([
-                            'obj' => $model,
+                            'obj' => $task,
                             'title' => null,
                             'start' => null,
                             'end' => null,
-                            'method' => OperateLogMethod::ADD_TASK_RESOURCE,
+                            'method' => OperateLogMethod::CREATE,
                         ]);
                         event(new OperateLogEvent([
                             $operate,
                         ]));
+
                     } else {
                         throw new Exception('没有这个类型');
                     }

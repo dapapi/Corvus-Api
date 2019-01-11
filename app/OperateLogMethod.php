@@ -50,4 +50,5 @@ abstract class OperateLogMethod
     const ADD_PRIVACY = 36;//隐私设置
     const CREATE_CONTRACTS = 37;//创建合同
 
+
 }

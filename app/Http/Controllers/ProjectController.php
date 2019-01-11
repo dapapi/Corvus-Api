@@ -270,17 +270,17 @@ class ProjectController extends Controller
                             $starableType = ModuleableType::BLOGGER;
                             //获取当前的博主
                             $blogger_list = $trail->bloggerExpectations()->get()->toArray();
-                            if(count($blogger_list)!=0){
-                                $bloggers = array_column($blogger_list,'nickname');
-                                $start = implode(",",$bloggers);
+                            if (count($blogger_list) != 0) {
+                                $bloggers = array_column($blogger_list, 'nickname');
+                                $start = implode(",", $bloggers);
                             }
                         } else {
                             $starableType = ModuleableType::STAR;
                             //获取当前的艺人
                             $star_list = $trail->expectations()->get()->toArray();
-                            if(count($star_list)!=0){
-                                $stars = array_column($star_list,'name');
-                                $start = implode(",",$stars);
+                            if (count($star_list) != 0) {
+                                $stars = array_column($star_list, 'name');
+                                $start = implode(",", $stars);
                             }
                         }
                         //删除
@@ -291,7 +291,7 @@ class ProjectController extends Controller
                             if ($starableType == ModuleableType::BLOGGER) {
                                 $blogger = Blogger::find($starId);
                                 if ($blogger) {
-                                    $end .= ",".$blogger->nickname;
+                                    $end .= "," . $blogger->nickname;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -302,7 +302,7 @@ class ProjectController extends Controller
                             } else {
                                 $star = Star::find($starId);
                                 if ($star) {
-                                    $end .= ",".$star->name;
+                                    $end .= "," . $star->name;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -312,20 +312,22 @@ class ProjectController extends Controller
                                 }
                             }
                         }
-                        if($starableType == ModuleableType::BLOGGER){
+                        if ($starableType == ModuleableType::BLOGGER) {
                             $title = "关联目标博主";
-                        }else{
+                        } else {
                             $title = "关联目标艺人";
                         }
+                        if (!empty($start) || !empty($end)) {
+                            $operateName = new OperateEntity([
+                                'obj' => $trail,
+                                'title' => $title,
+                                'start' => $start,
+                                'end' => trim($end, ","),
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                        }
 
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => $title,
-                            'start' => $start,
-                            'end' => trim($end,","),
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
                         continue;
                     }
 
@@ -336,13 +338,13 @@ class ProjectController extends Controller
                             $starableType = ModuleableType::BLOGGER;
                             //当前关联的博主
                             $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
-                            $bloggers = array_column($blogger_list,'nickname');
-                            $start = implode(",",$bloggers);
+                            $bloggers = array_column($blogger_list, 'nickname');
+                            $start = implode(",", $bloggers);
                         } else {
                             $starableType = ModuleableType::STAR;
                             $star_list = $trail->recommendations()->get()->toArray();
-                            $stars = array_column($star_list,'name');
-                            $start = implode(",",$stars);
+                            $stars = array_column($star_list, 'name');
+                            $start = implode(",", $stars);
                         }
                         //删除
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
@@ -351,7 +353,7 @@ class ProjectController extends Controller
 
                             if ($starableType == ModuleableType::BLOGGER) {
                                 $blogger = Blogger::find($starId);
-                                if ($blogger)
+                                if ($blogger) {
                                     $end .= $blogger->nickname;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
@@ -359,9 +361,10 @@ class ProjectController extends Controller
                                         'starable_type' => $starableType,
                                         'type' => TrailStar::RECOMMENDATION,
                                     ]);
+                                }
                             } else {
                                 $star = Star::find($starId);
-                                if ($star)
+                                if ($star) {
                                     $end .= $star->name;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
@@ -369,21 +372,26 @@ class ProjectController extends Controller
                                         'starable_type' => $starableType,
                                         'type' => TrailStar::RECOMMENDATION,
                                     ]);
+                                }
+
                             }
                         }
-                        if($starableType == ModuleableType::BLOGGER){
+                        if ($starableType == ModuleableType::BLOGGER) {
                             $title = "关联推荐博主";
-                        }else{
+                        } else {
                             $title = "关联推荐艺人";
                         }
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => $title,
-                            'start' => $start,
-                            'end' => trim($end,","),
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+                        if (!empty($start) || !empty($end)) {
+                            $operateName = new OperateEntity([
+                                'obj' => $trail,
+                                'title' => $title,
+                                'start' => $start,
+                                'end' => trim($end, ","),
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                        }
+
 
                     }
                 }
@@ -426,13 +434,13 @@ class ProjectController extends Controller
 
         DB::beginTransaction();
         try {
-
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
-                if($project->principal_id != $payload['principal_id']){
-                    try{
+                if ($project->principal_id != $payload['principal_id']) {
+                    try {
                         $curr_principal = User::find($project->principal_id)->name;
                         $principal = User::findOrFail($payload['principal_id'])->name;
+
                         //操作日志
                         $operateName = new OperateEntity([
                             'obj' => $project,
@@ -442,7 +450,8 @@ class ProjectController extends Controller
                             'method' => OperateLogMethod::UPDATE,
                         ]);
                         $arrayOperateLog[] = $operateName;
-                    }catch (Exception $e){
+
+                    } catch (Exception $e) {
                         Log::error($e);
                         DB::rollBack();
                         return $this->response->errorInternal("负责人错误");
@@ -452,9 +461,10 @@ class ProjectController extends Controller
 
             }
 
-            if (!$request->has('type')){
-                $payload['type']   = $project->type;
-                if($payload['type'] != $project->type){
+            if (!$request->has('type') || $payload['type'] == '') {
+                $payload['type'] = $project->type;
+
+                if ($payload['type'] != $project->type) {
                     //操作日志
                     $operateName = new OperateEntity([
                         'obj' => $project,
@@ -464,8 +474,9 @@ class ProjectController extends Controller
                         'method' => OperateLogMethod::UPDATE,
                     ]);
                     $arrayOperateLog[] = $operateName;
-                }
 
+                }
+            } else {
 
             }
 
@@ -475,8 +486,7 @@ class ProjectController extends Controller
                     $fieldId = hashid_decode((int)$key);
                     $field = TemplateField::where('module_type', $payload['type'])->find($fieldId);
                     if (!$field) {
-                        DB::rollBack();
-                        return $this->response->errorBadRequest('字段与项目类型匹配错误');
+                        throw new Exception('字段与项目类型匹配错误');
                     }
                 }
             }
@@ -486,18 +496,19 @@ class ProjectController extends Controller
             if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
                 $payload['participant_del_ids'] = [];
 
-                //更新之前的项目参与人
-                $last_participants = implode(",",array_column($project->participants()->get()->toArray(),'name'));
-                $project->update($payload);//更新项目
-                $projectId = $project->id;
-                $trail = $project->trail;
+            //更新之前的项目参与人
+            $last_participants = implode(",", array_column($project->participants()->get()->toArray(), 'name'));
+            $project->update($payload);//更新项目
+
+            $projectId = $project->id;
+            $trail = $project->trail;
             //只有新增或者要删除的参与人不为空是才更新
-            if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids'])!=0){
+            if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids']) != 0) {
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
                 //更新之后的项目参与人
-                $new_participants = implode(",",array_column($project->participants()->get()->toArray(),'name'));
+                $new_participants = implode(",", array_column($project->participants()->get()->toArray(), 'name'));
                 //操作日志
-                if(!empty($last_participants) || !empty($new_participants)){
+                if (!empty($last_participants) || !empty($new_participants)) {
                     $operateName = new OperateEntity([
                         'obj' => $project,
                         'title' => "项目参与人",
@@ -519,13 +530,13 @@ class ProjectController extends Controller
                     $fieldName = TemplateField::findOrFail($fieldId)->key;
 
                     $oldValue = null;
-                    if ($fieldValue != null){
+                    if ($fieldValue != null) {
                         $oldValue = $fieldValue->value;
                     }
                     //以前的值不是null并且现在的值也不是null，才进行更新或者新增
-                    if (!empty($oldValue) || !empty($val)){
+                    if (!empty($oldValue) || !empty($val)) {
                         //操作日志
-                        if ($oldValue != $val){
+                        if ($oldValue != $val) {
                             $operateName = new OperateEntity([
                                 'obj' => $project,
                                 'title' => $fieldName,
@@ -555,8 +566,8 @@ class ProjectController extends Controller
             if ($request->has('trail')) {
                 foreach ($payload['trail'] as $key => $val) {
                     if ($key == 'fee') {
-                        $trail->fee = $val;
-                        if ($val != $trail->fee){
+//                        $trail->fee = $val;
+                        if ($val != $trail->fee) {
                             $operateName = new OperateEntity([
                                 'obj' => $project,
                                 'title' => "预计订单收入",
@@ -576,22 +587,25 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
+
 
                     if ($key == 'lock') {
-                        $trail->lock_status = $val;
-                        if ($val != $trail->lock_status){
+//                        $trail->lock_status = $val;
+
+                        if ($val != $trail->lock_status) {
                             $operateName = new OperateEntity([
                                 'obj' => $project,
                                 'title' => "是否锁价",
-                                'start' => $trail->lock_status == 1?"锁价":"未锁价",
+                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
                                 'end' => $val == 1 ? "锁价" : "未锁价",
                                 'method' => OperateLogMethod::UPDATE,
                             ]);
                             $arrayOperateLog[] = $operateName;
+
                             $operateName = new OperateEntity([
                                 'obj' => $trail,
                                 'title' => "是否锁价",
-                                'start' => $trail->lock_status == 1?"锁价":"未锁价",
+                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
                                 'end' => $val == 1 ? "锁价" : "未锁价",
                                 'method' => OperateLogMethod::UPDATE,
                             ]);
@@ -599,7 +613,6 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
-
 
 
                     if ($key == 'expectations') {
@@ -609,27 +622,28 @@ class ProjectController extends Controller
                             $starableType = ModuleableType::BLOGGER;
                             //获取当前的博主
                             $blogger_list = $trail->bloggerExpectations()->get()->toArray();
-                            if(count($blogger_list)!=0){
-                                $bloggers = array_column($blogger_list,'nickname');
-                                $start = implode(",",$bloggers);
+                            if (count($blogger_list) != 0) {
+                                $bloggers = array_column($blogger_list, 'nickname');
+                                $start = implode(",", $bloggers);
                             }
                         } else {
                             $starableType = ModuleableType::STAR;
                             //获取当前的艺人
                             $star_list = $trail->expectations()->get()->toArray();
-                            if(count($star_list)!=0){
-                                $stars = array_column($star_list,'name');
-                                $start = implode(",",$stars);
+                            if (count($star_list) != 0) {
+                                $stars = array_column($star_list, 'name');
+                                $start = implode(",", $stars);
                             }
                         }
                         //删除
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
                         foreach ($val as $expectation) {
+
                             $starId = hashid_decode($expectation);
                             if ($starableType == ModuleableType::BLOGGER) {
                                 $blogger = Blogger::find($starId);
                                 if ($blogger) {
-                                    $end .= ",".$blogger->nickname;
+                                    $end .= "," . $blogger->nickname;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -640,7 +654,7 @@ class ProjectController extends Controller
                             } else {
                                 $star = Star::find($starId);
                                 if ($star) {
-                                    $end .= ",".$star->name;
+                                    $end .= "," . $star->name;
                                     TrailStar::create([
                                         'trail_id' => $trail->id,
                                         'starable_id' => $starId,
@@ -650,22 +664,24 @@ class ProjectController extends Controller
                                 }
                             }
                         }
-                        $end = trim($end,",");
+                        $end = trim($end, ",");
 
-                        if($starableType == ModuleableType::BLOGGER){
+                        if ($starableType == ModuleableType::BLOGGER) {
                             $title = "关联目标博主";
-                        }else{
+                        } else {
                             $title = "关联目标艺人";
                         }
+                        if (!empty($start) || !empty($end)) {
+                            $operateName = new OperateEntity([
+                                'obj' => $trail,
+                                'title' => $title,
+                                'start' => $start,
+                                'end' => $end,
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                        }
 
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => $title,
-                            'start' => $start,
-                            'end' => $end,
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
                         continue;
                     }
 
@@ -676,13 +692,13 @@ class ProjectController extends Controller
                             $starableType = ModuleableType::BLOGGER;
                             //当前关联的博主
                             $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
-                            $bloggers = array_column($blogger_list,'nickname');
-                            $start = implode(",",$bloggers);
+                            $bloggers = array_column($blogger_list, 'nickname');
+                            $start = implode(",", $bloggers);
                         } else {
                             $starableType = ModuleableType::STAR;
                             $star_list = $trail->recommendations()->get()->toArray();
-                            $stars = array_column($star_list,'name');
-                            $start = implode(",",$stars);
+                            $stars = array_column($star_list, 'name');
+                            $start = implode(",", $stars);
                         }
                         TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
                         foreach ($val as $recommendation) {
@@ -692,86 +708,92 @@ class ProjectController extends Controller
                                 $blogger = Blogger::find($starId);
                                 if ($blogger)
                                     $end .= $blogger->nickname;
-                                    TrailStar::create([
-                                        'trail_id' => $trail->id,
-                                        'starable_id' => $starId,
-                                        'starable_type' => $starableType,
-                                        'type' => TrailStar::RECOMMENDATION,
-                                    ]);
+                                TrailStar::create([
+                                    'trail_id' => $trail->id,
+                                    'starable_id' => $starId,
+                                    'starable_type' => $starableType,
+                                    'type' => TrailStar::RECOMMENDATION,
+                                ]);
                             } else {
                                 $star = Star::find($starId);
                                 if ($star)
                                     $end .= $star->name;
-                                    TrailStar::create([
-                                        'trail_id' => $trail->id,
-                                        'starable_id' => $starId,
-                                        'starable_type' => $starableType,
-                                        'type' => TrailStar::RECOMMENDATION,
-                                    ]);
+                                TrailStar::create([
+                                    'trail_id' => $trail->id,
+                                    'starable_id' => $starId,
+                                    'starable_type' => $starableType,
+                                    'type' => TrailStar::RECOMMENDATION,
+                                ]);
                             }
                         }
-                        $end = trim($end,",");
+                        $end = trim($end, ",");
 
-                        if($starableType == ModuleableType::BLOGGER){
+                        if ($starableType == ModuleableType::BLOGGER) {
                             $title = "关联推荐博主";
-                        }else{
+                        } else {
                             $title = "关联推荐艺人";
                         }
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => $title,
-                            'start' => $start,
-                            'end' => $end,
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+                        if (!empty($start) || !empty($end)) {
+                            $operateName = new OperateEntity([
+                                'obj' => $trail,
+                                'title' => $title,
+                                'start' => $start,
+                                'end' => $end,
+                                'method' => OperateLogMethod::UPDATE,
+                            ]);
+                            $arrayOperateLog[] = $operateName;
+                        }
 
 
                     }
-                    $trail->update($payload['trail']);
+
                 }
+                //更新线索
+                $trail->update($payload['trail']);
+
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
         } catch (Exception $exception) {
-            DB::rollBack();
             Log::error($exception);
+            DB::rollBack();
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());
         }
+//        dd($sql);
+
+//        DB::beginTransaction();
+//        try {
+//
+//            $user = Auth::guard('api')->user();
+//            $title = $user->name . "将你加入了项目";  //通知消息的标题
+//            $subheading = $user->name . "将你加入了项目";
+//            $module = Message::PROJECT;
+//            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
+//            $data = [];
+//            $data[] = [
+//                "title" => '项目名称', //通知消息中的消息内容标题
+//                'value' => $project->title,  //通知消息内容对应的值
+//            ];
+//            $principal = User::findOrFail($project->principal_id);
+//            $data[] = [
+//                'title' => '项目负责人',
+//                'value' => $principal->name
+//            ];
+//            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
+//            $authorization = $request->header()['authorization'][0];
+//
+//            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
+//            DB::commit();
+//        } catch (Exception $e) {
+//            DB::rollBack();
+//            Log::error($e);
+//        }
+
         DB::commit();
-        DB::beginTransaction();
-        try {
-
-            $user = Auth::guard('api')->user();
-            $title = $user->name . "将你加入了项目";  //通知消息的标题
-            $subheading = $user->name . "将你加入了项目";
-            $module = Message::PROJECT;
-            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
-            $data = [];
-            $data[] = [
-                "title" => '项目名称', //通知消息中的消息内容标题
-                'value' => $project->title,  //通知消息内容对应的值
-            ];
-            $principal = User::findOrFail($project->principal_id);
-            $data[] = [
-                'title' => '项目负责人',
-                'value' => $principal->name
-            ];
-            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
-            $authorization = $request->header()['authorization'][0];
-
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
-            DB::commit();
-        } catch (Exception $e) {
-            Log::error($e);
-            DB::rollBack();
-        }
-
         return $this->response->accepted();
     }
 
     public function detail(Request $request, $project)
     {
-
         $type = $project->type;
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
@@ -786,35 +808,34 @@ class ProjectController extends Controller
         if (isset($expendituresum)) {
             $user = Auth::guard('api')->user();
             $user->id = 2;
-            $setprivacy1 =array();
-            $Viewprivacy2 =array();
-            $array['moduleable_id']= $project->id;
-            $array['moduleable_type']= ModuleableType::PROJECT;
-            $array['is_privacy']=  PrivacyType::OTHER;
+            $setprivacy1 = array();
+            $Viewprivacy2 = array();
+            $array['moduleable_id'] = $project->id;
+            $array['moduleable_type'] = ModuleableType::PROJECT;
+            $array['is_privacy'] = PrivacyType::OTHER;
             $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-            foreach ($setprivacy as $key =>$v){
+            foreach ($setprivacy as $key => $v) {
 
-                $setprivacy1[]=array_values($v)[0];
+                $setprivacy1[] = array_values($v)[0];
 
             }
-            if($project ->creator_id != $user->id && $project->principal_id != $user->id){
+            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
-                $array['user_id']= $user->id;
+                $array['user_id'] = $user->id;
                 $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
                 unset($array);
-                if($Viewprivacy){
-                    foreach ($Viewprivacy as $key =>$v){
-                        $Viewprivacy1[]=array_values($v)[0];
+                if ($Viewprivacy) {
+                    foreach ($Viewprivacy as $key => $v) {
+                        $Viewprivacy1[] = array_values($v)[0];
                     }
-                    $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
-                }else{
+                    $setprivacy1 = array_diff($setprivacy1, $Viewprivacy1);
+                } else {
                     $setprivacy1 = array();
                 }
 
             }
-            if($project ->creator_id != $user->id && $project->principal_id != $user->id)
-            {
-                if(empty($setprivacy1)){
+            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+                if (empty($setprivacy1)) {
 
 //                    $array1['moduleable_id']= $project->id;
 //                    $array1['moduleable_type']= ModuleableType::PROJECT;
@@ -824,24 +845,23 @@ class ProjectController extends Controller
 //                        $setprivacy1[]=array_values($v)[0];
 //
 //                    }
-                    $setprivacy1 =  PrivacyType::getProject();
+                    $setprivacy1 = PrivacyType::getProject();
                 }
-                foreach ($setprivacy1 as $key =>$v){
-                    $Viewprivacy2[$v]=$key;
+                foreach ($setprivacy1 as $key => $v) {
+                    $Viewprivacy2[$v] = $key;
                 }
 
-                foreach ($Viewprivacy2 as $key2 => $val2)
-                {
+                foreach ($Viewprivacy2 as $key2 => $val2) {
 
-                  if($key2 === 'contractmoney'){
-                      $result->addMeta('contractmoney','');
-                  }
-                  if($key2 === 'expendituresum'){
-                      $result->addMeta('expendituresum','');
-                  }
+                    if ($key2 === 'contractmoney') {
+                        $result->addMeta('contractmoney', '');
+                    }
+                    if ($key2 === 'expendituresum') {
+                        $result->addMeta('expendituresum', '');
+                    }
 
                 }
-            }else {
+            } else {
                 $result->addMeta('contractmoney', $contractmoney);
 
                 $result->addMeta('expendituresum', $expendituresum->expendituresum);
@@ -849,7 +869,6 @@ class ProjectController extends Controller
 
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        // 操作日志
         $operate = new OperateEntity([
             'obj' => $project,
             'title' => null,
@@ -858,8 +877,9 @@ class ProjectController extends Controller
             'method' => OperateLogMethod::LOOK,
         ]);
         event(new OperateLogEvent([
-            $operate,
+            $operate
         ]));
+
         return $result;
     }
 
@@ -1088,7 +1108,7 @@ class ProjectController extends Controller
                 foreach ($tasks as $value) {
                     $id = hashid_decode($value);
                     $task = Task::find($id);
-                    if ($task){
+                    if ($task) {
                         $relate_task[] = $task->title;
                         ProjectRelate::create([
                             'project_id' => $project->id,
@@ -1106,7 +1126,7 @@ class ProjectController extends Controller
                 foreach ($projects as $value) {
                     $id = hashid_decode($value);
                     $temp_project = Project::find($id);
-                    if ($temp_project){
+                    if ($temp_project) {
                         $relate_project[] = $temp_project->title;
                         ProjectRelate::create([
                             'project_id' => $project->id,
@@ -1119,17 +1139,17 @@ class ProjectController extends Controller
             }
             //记录日志
             $start = null;
-            if(count($relate_project) != 0){
-                $start .= implode(",",$relate_project)."项目";
+            if (count($relate_project) != 0) {
+                $start .= implode(",", $relate_project) . "项目";
             }
-            if (count($relate_task) != 0){
-                $start .= ",".implode(",",$relate_task)."任务";
+            if (count($relate_task) != 0) {
+                $start .= "," . implode(",", $relate_task) . "任务";
             }
 
             $operate = new OperateEntity([
                 'obj' => $project,
                 'title' => null,
-                'start' => trim($start,","),
+                'start' => trim($start, ","),
                 'end' => null,
                 'method' => OperateLogMethod::ADD_RELATE,
             ]);
@@ -1297,6 +1317,7 @@ class ProjectController extends Controller
         }
         DB::commit();
     }
+
     private function editLog($obj, $field, $old, $new)
     {
         $operate = new OperateEntity([

@@ -760,33 +760,33 @@ class ProjectController extends Controller
         }
 //        dd($sql);
 
-//        DB::beginTransaction();
-//        try {
-//
-//            $user = Auth::guard('api')->user();
-//            $title = $user->name . "将你加入了项目";  //通知消息的标题
-//            $subheading = $user->name . "将你加入了项目";
-//            $module = Message::PROJECT;
-//            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
-//            $data = [];
-//            $data[] = [
-//                "title" => '项目名称', //通知消息中的消息内容标题
-//                'value' => $project->title,  //通知消息内容对应的值
-//            ];
-//            $principal = User::findOrFail($project->principal_id);
-//            $data[] = [
-//                'title' => '项目负责人',
-//                'value' => $principal->name
-//            ];
-//            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
-//            $authorization = $request->header()['authorization'][0];
-//
-//            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
-//            DB::commit();
-//        } catch (Exception $e) {
-//            DB::rollBack();
-//            Log::error($e);
-//        }
+        DB::beginTransaction();
+        try {
+
+            $user = Auth::guard('api')->user();
+            $title = $user->name . "将你加入了项目";  //通知消息的标题
+            $subheading = $user->name . "将你加入了项目";
+            $module = Message::PROJECT;
+            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
+            $data = [];
+            $data[] = [
+                "title" => '项目名称', //通知消息中的消息内容标题
+                'value' => $project->title,  //通知消息内容对应的值
+            ];
+            $principal = User::findOrFail($project->principal_id);
+            $data[] = [
+                'title' => '项目负责人',
+                'value' => $principal->name
+            ];
+            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
+            $authorization = $request->header()['authorization'][0];
+
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+        }
 
         DB::commit();
         return $this->response->accepted();

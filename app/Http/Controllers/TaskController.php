@@ -88,7 +88,8 @@ class TaskController extends Controller
                 $Arr['data'][] = $dataArr;
             }
         }else{
-            $Arr['data'][]=$dataArr;
+            //$Arr['data'][]=$dataArr;
+            $Arr['data']=$dataArr;
         }
 
         return $Arr;

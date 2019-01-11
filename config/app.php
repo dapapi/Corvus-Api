@@ -125,7 +125,7 @@ return [
     'QINIU_SECRET_KEY' => env('QINIU_SECRET_KEY'),
     'QINIU_BUCKET' => env('QINIU_BUCKET'),
     'QINIU_DOMAIN' => env('QINIU_DOMAIN'),
-    'websocket_uri' =>  env('WEBSOCKET_URI','ws://127.0.0.1:8081'),
+    'websocket_uri' =>  env('WEBSOCKET_URI','wss://sandbox-corvus.papitube.com:8081'),
 
     /*
     |--------------------------------------------------------------------------

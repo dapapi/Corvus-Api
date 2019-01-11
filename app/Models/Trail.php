@@ -91,21 +91,18 @@ class Trail extends Model
         $department_id = Department::where('name', '商业管理部')->first();
         if($department_id) {
             $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-            $user_ids = DepartmentUser::wherein('department_id', $department_ids)->where('user_id', $user->id)->get(['user_id'])->toArray();
-            if($user_ids){
-                $user_ids = DepartmentUser::wherein('department_id', $department_ids)->get(['user_id'])->toArray();
-               foreach ($user_ids as $val){
+            $is_papi = DepartmentUser::wherein('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
+            if($is_papi){
+                $user_list = DepartmentUser::wherein('department_id', $department_ids)->get(['user_id'])->toArray();
+               foreach ($user_list as $val){
                    $user_id[] = $val['user_id'];
                }
-
-                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => [$user_id]];
-
-                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => [$user_id]];
+                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => $user_id];
+                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
                 $array['op'] =  'or';
                 $rules = $array;
-                return (new SearchDataScope())->getCondition($query,$rules,$userid);
+                return (new SearchDataScope())->getCondition($query,$rules,$user_id);
             }
-
         }
             $rules = (new ScopeRepository())->getDataViewUsers();
         return (new SearchDataScope())->getCondition($query,$rules,$userid);

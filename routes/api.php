@@ -438,6 +438,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/entry', 'App\Http\Controllers\PersonnelManageController@entry');//
         $api->put('/audit/{user}', 'App\Http\Controllers\PersonnelManageController@audit');//
         $api->put('/personnel/position/{user}', 'App\Http\Controllers\PersonnelManageController@editPosition');//
+        //获取公司列表
+        $api->get('/company', 'App\Http\Controllers\PersonnelManageController@getCompany');
+
 
 
         $api->post('/materials', 'App\Http\Controllers\MaterialController@store');

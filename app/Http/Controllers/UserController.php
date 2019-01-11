@@ -114,7 +114,7 @@ class UserController extends Controller
         );
         $result = DB::table('users')->where('id', $id)->update($update);
         if ($result) {
-            return $this->response->errorInternal('修改成功!');
+            return $this->response->accepted(null,'修改成功!');
         } else {
             return $this->response->errorInternal('修改失败！');
         }

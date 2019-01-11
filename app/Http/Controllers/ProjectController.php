@@ -498,6 +498,7 @@ class ProjectController extends Controller
                 //更新之前的项目参与人
                 $last_participants = implode(",",array_column($project->participants()->get()->toArray(),'name'));
                 $project->update($payload);//更新项目
+
                 $projectId = $project->id;
                 $trail = $project->trail;
             //只有新增或者要删除的参与人不为空是才更新
@@ -746,9 +747,7 @@ class ProjectController extends Controller
 
                 }
                 //更新线索
-                DB::connection()->enableQueryLog();
                 $trail->update($payload['trail']);
-                $sql = DB::getQueryLog();
 
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
@@ -871,6 +870,16 @@ class ProjectController extends Controller
 
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
 
         return $result;
     }

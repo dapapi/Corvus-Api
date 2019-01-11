@@ -1015,10 +1015,11 @@ class TaskController extends Controller
                             'task_id' => $task->id,
                             'resource_id' => $resource->id,
                         ];
+                        $model = null;
                         switch ($resource->type) {
                             case ResourceType::BLOGGER:
-                                $blogger = Blogger::findOrFail($resourceableId);
-                                $array['resourceable_id'] = $blogger->id;
+                                $model = Blogger::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
                                 $array['resourceable_type'] = ModuleableType::BLOGGER;
                                 break;
                             case ResourceType::STAR:
@@ -1095,16 +1096,29 @@ class TaskController extends Controller
 
                         $task_resource = TaskResource::create($array);
                         // 操作日志
+                        if ($model != null){
+                            $operate = new OperateEntity([
+                                'obj' => $model,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::ADD_TASK_RESOURCE,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
                         $operate = new OperateEntity([
-                            'obj' => $model,
+                            'obj' => $task,
                             'title' => null,
                             'start' => null,
                             'end' => null,
-                            'method' => OperateLogMethod::ADD_TASK_RESOURCE,
+                            'method' => OperateLogMethod::CREATE,
                         ]);
                         event(new OperateLogEvent([
                             $operate,
                         ]));
+
                     } else {
                         throw new Exception('没有这个类型');
                     }

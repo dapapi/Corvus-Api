@@ -73,7 +73,7 @@ class OperateLogEventListener
     protected $add_work = '为该艺人新增了 %s 作品';
     protected $create_signing_contracts="%s 创建了签约合同";
     protected $create_rescission_contracts = "%s 创建了解约合同";
-    protected $add_star_task = "创建了关联资源为该%s的任务";
+    protected $add_resource_task = "创建了关联资源为该%s的任务";
     protected $add_production = "为该博主新增了 %s 做品";
 
 //    protected $add_trail_task = "创建了关联资源为该销售线索的任务";
@@ -298,7 +298,7 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::ADD_TASK_RESOURCE: //为艺人添加任务
                     $level = OperateLogLevel::LOW;
-                    $content = sprintf($this->add_star_task);
+                    $content = sprintf($this->add_resource_task,$typeName);
                     break;
                 case OperateLogMethod::CREATE_SIGNING_CONTRACTS: //创建签约合同
                     $level = OperateLogLevel::LOW;

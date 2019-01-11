@@ -1057,7 +1057,6 @@ class TaskController extends Controller
 //                                    $operate,
 //                                ]));
                                 break;
-                                break;
                             case ResourceType::CLIENT:
                                 $model = Client::findOrFail($resourceableId);
                                 $array['resourceable_id'] = $model->id;

@@ -754,7 +754,7 @@ class ProjectController extends Controller
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             DB::commit();
         } catch (Exception $exception) {
-            dd($exception);
+            DB::rollBack();
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());

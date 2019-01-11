@@ -60,20 +60,6 @@ class TrailController extends Controller
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
         })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
-//        if($department_id){
-//            $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-//            $user_ids = DepartmentUser::wherein('department_id',$department_ids)->where('user_id',$user->id)->get(['user_id'])->toArray();
-//            if(!$user_ids){
-//
-//            }
-//        }
-//
-//
-//
-//        dd($trails->get());
-
-//            ->orderBy('created_at', 'desc')->paginate($pageSize);
-
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
@@ -353,7 +339,6 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
-                    dd($e);
                     Log::error($e);
                     return $this->response->errorBadRequest("销售线索来源错误");
                 }

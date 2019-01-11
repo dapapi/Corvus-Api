@@ -8,6 +8,7 @@ use App\Helper\Generator;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
+use App\Http\Transformers\ApprovalGroupTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
 use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ControlTransformer;
@@ -19,6 +20,7 @@ use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Group;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
+use App\Models\ApprovalGroup;
 use App\Models\Contract;
 use App\Models\DataDictionary;
 use App\Models\Message;
@@ -601,16 +603,18 @@ class ApprovalFormController extends Controller
         return $result;
     }
 
-    // 获取group里的form_ids
-    public function getForms(GetFormIdsRequest $request)
+    // 获取group里的form_ids => 改为只给合同使用
+    public function getContractForms(Request $request)
     {
-        $type = $request->get('type');
-        if ($type)
-            $forms = ApprovalForm::whereNotIn('group_id', [1, 2])->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
-        else
-            $forms = ApprovalForm::where('group_id', 2)->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
+        $forms = ApprovalForm::where('group_id', 2)->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
 
         return $this->response->collection($forms, new ApprovalFormTransformer());
+    }
+
+    public function getGeneralForms(Request $request)
+    {
+        $groups = ApprovalGroup::whereNotIn('id', [1, 2])->get();
+        return $this->response->collection($groups, new ApprovalGroupTransformer());
     }
 
     public function instanceStore(InstanceStoreRequest $request, ApprovalForm $approval)

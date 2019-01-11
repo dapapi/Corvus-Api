@@ -36,6 +36,9 @@ class PrivacyUserTransformer extends TransformerAbstract
                 'field' => $privacyuser->moduleable_field,
               //  'user_ids' => $privacyuser->user_ids
             ];
+            if( $privacyuser->moduleable_field =='hatch_end_at'){
+                unset($array['field']);
+            }
         }
 
         return $array;
@@ -52,7 +55,7 @@ class PrivacyUserTransformer extends TransformerAbstract
     public function includeCreator(PrivacyUser $privacyuser)
     {
         $project = $privacyuser->user;
-        if (!$project)
+        if (!$project || $privacyuser->moduleable_field =='hatch_end_at' )
             return null;
         return $this->item($project, new UserTransformer());
     }

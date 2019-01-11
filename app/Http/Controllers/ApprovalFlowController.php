@@ -27,6 +27,7 @@ use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\OperateEntity;
 use App\Models\Star;
+use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
 use App\SignContractStatus;
@@ -210,7 +211,7 @@ class ApprovalFlowController extends Controller
                 ->orderBy('sort_number')
                 ->get();
         }
-        foreach ($chains as $chain) {
+        foreach ($chains as $key => $chain) {
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
                 'name' => $chain->next->name,
@@ -467,6 +468,7 @@ class ApprovalFlowController extends Controller
         $num = $instance->form_instance_number;
         $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
 
+        $count = $count + 1;
         $form = $instance->form;
         if ($form->change_type == 223) {
             $next = ChainFree::where('form_number', $num)->where('sort_number', $count)->first();
@@ -480,7 +482,7 @@ class ApprovalFlowController extends Controller
         } else {
             throw new ApprovalVerifyException('审批流不存在');
         }
-        $nextId = $next->next->id;
+        $nextId = $next->next_id;
         if (is_null($next->approver_type))
             $type = 245;
         else
@@ -641,6 +643,7 @@ class ApprovalFlowController extends Controller
         if (is_null($contract))
             return null;
 
+        // 签约解约处理
         if ($contract->star_type && $status == 232) {
             $starArr = explode(',', $contract->stars);
             DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
@@ -776,6 +779,11 @@ class ApprovalFlowController extends Controller
         if ($contract->project_id) {
             if ($status != 232)
                 $contract->project->delete();
+            if ($status == 232)
+                // todo 增加 Trail 的仓库封装带操作日志的一般数据库操作
+                $contract->project->trail->update([
+                    'progress_status' => Trail::STATUS_CONFIRMED
+                ]);
         }
     }
 }

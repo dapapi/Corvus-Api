@@ -34,6 +34,22 @@ class DepartmentTransformer extends TransformerAbstract
 
         }
 
+        $companyInfo = DB::table('departments as ds')//
+
+            ->join('data_dictionaries as dds', function ($join) {
+                $join->on('dds.id', '=', 'ds.company_id');
+            })
+            ->where('ds.id', $department->id)
+            ->select('ds.company_id', 'dds.name')->first();
+
+            if($companyInfo){
+                $array['company'] = $companyInfo->name;
+                $array['company_id'] = hashid_encode($companyInfo->company_id);
+            }else{
+                $array['company'] = '';
+                $array['company_id'] = '';
+            }
+
         return $array;
     }
 

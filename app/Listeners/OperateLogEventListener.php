@@ -320,10 +320,7 @@ class OperateLogEventListener
 //                    $level = OperateLogLevel::LOW;
 //                    $content = sprintf($this->add_client_task);
 //                    break;
-                case OperateLogMethod::ADD_CLIENT_TASK://为客户创建任务
-                    $level = OperateLogLevel::LOW;
-                    $content = sprintf($this->add_client_task);
-                    break;
+//
                 case OperateLogMethod::ADD_CLIENT_CONTRACTS://为客户创建联系人
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->add_client_contracts);

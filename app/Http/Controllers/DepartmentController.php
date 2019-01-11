@@ -48,6 +48,7 @@ class DepartmentController extends Controller
             "city"=> isset($payload['city']) ? $payload['city'] : '',
             "company_id"=> $payload['company_id'],
             "sort_number"=> ++$sortSum,
+            "order_by"=> 'sort_number',
         ];
         
         $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
@@ -111,6 +112,7 @@ class DepartmentController extends Controller
             "company_id"=> isset($payload['company_id']) ? $payload['company_id'] : '',
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
+
         $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
         DB::beginTransaction();
         try {

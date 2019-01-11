@@ -434,7 +434,6 @@ class ProjectController extends Controller
 
         DB::beginTransaction();
         try {
-
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
                 if($project->principal_id != $payload['principal_id']){
@@ -451,6 +450,7 @@ class ProjectController extends Controller
                             'method' => OperateLogMethod::UPDATE,
                         ]);
                         $arrayOperateLog[] = $operateName;
+
                     }catch (Exception $e){
                         Log::error($e);
                         DB::rollBack();
@@ -461,8 +461,9 @@ class ProjectController extends Controller
 
             }
 
-            if (!$request->has('type')){
-                $payload['type']   = $project->type;
+            if ($request->has('type')){
+                $payload['type']   = $request->type;
+
                 if($payload['type'] != $project->type){
                     //操作日志
                     $operateName = new OperateEntity([
@@ -473,6 +474,7 @@ class ProjectController extends Controller
                         'method' => OperateLogMethod::UPDATE,
                     ]);
                     $arrayOperateLog[] = $operateName;
+
                 }
 
 
@@ -587,8 +589,10 @@ class ProjectController extends Controller
                         continue;
                     }
 
+
                     if ($key == 'lock') {
 //                        $trail->lock_status = $val;
+
                         if ($val != $trail->lock_status){
                             $operateName = new OperateEntity([
                                 'obj' => $project,
@@ -598,6 +602,7 @@ class ProjectController extends Controller
                                 'method' => OperateLogMethod::UPDATE,
                             ]);
                             $arrayOperateLog[] = $operateName;
+
                             $operateName = new OperateEntity([
                                 'obj' => $trail,
                                 'title' => "是否锁价",
@@ -609,7 +614,6 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
-
 
 
                     if ($key == 'expectations') {

@@ -87,6 +87,7 @@ class Trail extends Model
     public function scopeSearchData($query)
     {
         $user = Auth::guard("api")->user();
+        $user->id = 5;
         $userid = $user->id;
         $department_id = Department::where('name', '商业管理部')->first();
         if($department_id) {
@@ -97,18 +98,16 @@ class Trail extends Model
                foreach ($user_ids as $val){
                    $user_id[] = $val['user_id'];
                }
-
                 $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => [$user_id]];
-
                 $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => [$user_id]];
                 $array['op'] =  'or';
                 $rules = $array;
                 return (new SearchDataScope())->getCondition($query,$rules,$userid);
             }
-
         }
             $rules = (new ScopeRepository())->getDataViewUsers();
-        return (new SearchDataScope())->getCondition($query,$rules,$userid);
+       // return (new SearchDataScope())->getCondition($query,$rules,$userid);
+        return (new SearchDataScope())->getCondition($query,$rules,$userid)->where('type','<>',4);
     }
 
     public function scopeCompleted($query)

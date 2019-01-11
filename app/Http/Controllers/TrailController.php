@@ -716,11 +716,7 @@ class TrailController extends Controller
                     return $this->response->errorInternal("推荐艺人关联失败");
                 }
             }
-
-
-            event(new OperateLogEvent($arrayOperateLog));
-
-
+            event(new OperateLogEvent($arrayOperateLog));//更新日志
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();

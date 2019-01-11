@@ -27,7 +27,7 @@ class DepartmentTransformer extends TransformerAbstract
         if (!empty($res)) {
             $array['is_department_principal'] = 1;
             $array['is_department_username'] = $res[0]->name;
-            $array['is_department_user_id'] = $res[0]->id;
+            $array['is_department_user_id'] = hashid_encode($res[0]->id);
         }else{
             $array['is_department_principal'] = 0;
             //$array['is_department_username'] = $res[0]['name'];

@@ -87,11 +87,12 @@ class Trail extends Model
     public function scopeSearchData($query)
     {
         $user = Auth::guard("api")->user();
+        $user->id = 43;
         $userid = $user->id;
         $department_id = Department::where('name', '商业管理部')->first();
         if($department_id) {
             $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-            $is_papi = DepartmentUser::wherein('department_id', $department_ids)->where('user_id',$userid);
+            $is_papi = DepartmentUser::wherein('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
             if($is_papi){
                 $user_list = DepartmentUser::wherein('department_id', $department_ids)->get(['user_id'])->toArray();
                foreach ($user_list as $val){

@@ -39,13 +39,17 @@ class DepartmentController extends Controller
     public function store(DepartmentRequest $departmentrequest,DepartmentUser $departmentUser)
     {
         $payload = $departmentrequest->all();
+        $departmentPid = hashid_decode($payload['department_pid']);
 
+        $sortSum = DB::table("departments")->where('department_pid',$departmentPid)->max('sort_number');
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
             "city"=> isset($payload['city']) ? $payload['city'] : '',
+            "company_id"=> $payload['company_id'],
+            "sort_number"=> ++$sortSum,
         ];
-
+        
         $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
         DB::beginTransaction();
         try {
@@ -104,6 +108,7 @@ class DepartmentController extends Controller
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
+            "company_id"=> $payload['company_id'],
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
         $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;

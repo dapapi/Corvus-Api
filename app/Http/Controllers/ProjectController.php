@@ -461,7 +461,7 @@ class ProjectController extends Controller
 
             }
 
-            if ($request->has('type')){
+            if (!$request->has('type') || $payload['type'] == ''){
                 $payload['type']   = $request->type;
 
                 if($payload['type'] != $project->type){

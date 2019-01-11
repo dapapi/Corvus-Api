@@ -462,7 +462,7 @@ class ProjectController extends Controller
             }
 
             if (!$request->has('type') || $payload['type'] == ''){
-                $payload['type']   = $request->type;
+                $payload['type']   = $project->type;
 
                 if($payload['type'] != $project->type){
                     //操作日志

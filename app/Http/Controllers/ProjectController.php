@@ -484,8 +484,7 @@ class ProjectController extends Controller
                     $fieldId = hashid_decode((int)$key);
                     $field = TemplateField::where('module_type', $payload['type'])->find($fieldId);
                     if (!$field) {
-                        DB::rollBack();
-                        return $this->response->errorBadRequest('字段与项目类型匹配错误');
+                        throw new Exception('字段与项目类型匹配错误');
                     }
                 }
             }
@@ -751,9 +750,7 @@ class ProjectController extends Controller
 
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
-            DB::commit();
         } catch (Exception $exception) {
-            DB::rollBack();
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());
@@ -788,6 +785,7 @@ class ProjectController extends Controller
 //            Log::error($e);
 //        }
 
+        DB::commit();
         return $this->response->accepted();
     }
 

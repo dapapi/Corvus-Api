@@ -183,7 +183,7 @@ class BloggerTransformer extends TransformerAbstract
         if($calendars){
             return $this->item($calendars,new CalendarTransformer());
         }else{
-            return $this->null();
+            return null;
         }
     }
 

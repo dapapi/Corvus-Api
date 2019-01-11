@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Transformers\UserTransformer;
 use App\Http\Transformers\JobTransformer;
+use App\Http\Transformers\DataDictionarieTransformer;
 
 use App\Events\OperateLogEvent;
 
@@ -21,6 +22,7 @@ use App\Models\PersonalSocialSecurity;
 use App\Models\PersonalSkills;
 use App\Models\DepartmentUser;
 use App\Models\RoleUser;
+use App\Models\DataDictionarie;
 
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
@@ -797,6 +799,12 @@ class PersonnelManageController extends Controller
     }
 
 
+    //获取企业名称
+    public function getCompany(Request $request, User $user)
+    {
+        $companys = DataDictionarie::where('val', 'company')->get();
+        return $this->response->collection($companys, new DataDictionarieTransformer());
 
+    }
 
 }

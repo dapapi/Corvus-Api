@@ -109,7 +109,7 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeTrails(Star $star)
     {
-        $trails = $star->trail()->get();
+        $trails = $star->trails;
         return $this->collection($trails,new TrailTransformer());
     }
     public function includePublicity(Star $star){
@@ -118,11 +118,12 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeCalendar(Star $star)
     {
-        $calendars = $star->calendars()->first();
+        $calendars = $star->calendar()->first();
         if($calendars){
         return $this->item($calendars,new CalendarTransformer());
        }else{
             return null;
         }
     }
+
 }

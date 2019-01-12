@@ -35,7 +35,7 @@ class ScheduleController extends Controller
     protected $moduleUserRepository;
     protected $affixRepository;
 
-    public function __construct(ModuleUserRepository $moduleUserRepository, AffixRepository $affixRepository,ScheduleRelatesRepository $scheduleRelatesRepository)
+    public function __construct(ModuleUserRepository $moduleUserRepository, AffixRepository $affixRepository, ScheduleRelatesRepository $scheduleRelatesRepository)
     {
         $this->moduleUserRepository = $moduleUserRepository;
         $this->affixRepository = $affixRepository;
@@ -124,11 +124,11 @@ class ScheduleController extends Controller
 //        return $this->response->collection($schedules, new ScheduleTransformer());
 
         //1.查询日历下的日程
-            //1.1查询选取日历范围内的日程
-            //1.2查询仅参与人可见但是我是参与人的日程
-            //1.3查询仅参与人可见但是我是创建人的日程
+        //1.1查询选取日历范围内的日程
+        //1.2查询仅参与人可见但是我是参与人的日程
+        //1.3查询仅参与人可见但是我是创建人的日程
         //2.查询会议室下的日程
-            //2.1会议室先关的日程（不管是否参与人可见）
+        //2.1会议室先关的日程（不管是否参与人可见）
 
         /*--------------开始----------------------*/
         if ($request->has('calendar_ids')) {
@@ -137,20 +137,20 @@ class ScheduleController extends Controller
             }
             unset($id);
             //日程仅参与人可见
-            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
-                $join->on('mu.moduleable_id','s.id')
-                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'")
-                    ->whereRaw("mu.type='".ModuleUserType::PARTICIPANT."'");
+            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+                $join->on('mu.moduleable_id', 's.id')
+                    ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                    ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
             })->select('mu.user_id');
 //->whereRaw("s.id=schedules.id")
-            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery){
-                $query->where(function ($query)use ($payload){
-                    $query->where('privacy',Schedule::OPEN);
-                    $query->whereIn('calendar_id',$payload['calendar_ids']);
-                })->orWhere(function ($query)use ($user,$subquery){
-                    $query->orWhere('creator_id',$user->id);
-                    $query->orWhere(function ($query)use ($user,$subquery){
-                        $query->where('privacy',Schedule::SECRET);
+            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery) {
+                $query->where(function ($query) use ($payload) {
+                    $query->where('privacy', Schedule::OPEN);
+                    $query->whereIn('calendar_id', $payload['calendar_ids']);
+                })->orWhere(function ($query) use ($user, $subquery) {
+                    $query->orWhere('creator_id', $user->id);
+                    $query->orWhere(function ($query) use ($user, $subquery) {
+                        $query->where('privacy', Schedule::SECRET);
                         $query->whereRaw("$user->id in ({$subquery->toSql()})");
                     });
                 });
@@ -164,85 +164,69 @@ class ScheduleController extends Controller
                 $id = hashid_decode($id);
             }
             unset($id);
-            if($payload['start_date'] == $payload['end_date']){
-                $payload['end_date']= date('Y-m-d 23:59:59',strtotime($payload['end_date']));
+            if ($payload['start_date'] == $payload['end_date']) {
+                $payload['end_date'] = date('Y-m-d 23:59:59', strtotime($payload['end_date']));
             }
 
             $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
-                ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
-                    ->whereRaw('c.deleted_at is null')
-                ->whereIn('material_id', $payload['material_ids'])->get();
-            return $this->response->collection($schedules, new ScheduleTransformer());
-        }
-
-
-    }
-    public function listIndex(Request $request)
-    {
-        $payload = $request->all();
-        $user = Auth::guard("api")->user();
-        /*--------------开始----------------------*/
-        if ($request->has('calendar_ids')) {
-
-                foreach ($payload['calendar_ids'] as $key => &$id) {
-                  if($key == 0 && $id == null){
-
-                      $payload['calendar_ids'] = array();
-                      break;
-                  }
-                    $id = hashid_decode($id);
-                }
-            unset($id);
-            $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.id')->leftJoin('module_users as mu',function ($join){
-                $join->on('moduleable_id','calendars.id')
-                    ->where('moduleable_type',ModuleableType::CALENDAR);
-            })->where(function ($query)use ($user){
-                $query->where('calendars.creator_id',$user->id);//创建人
-                $query->orWhere([['mu.user_id',$user->id],['calendars.privacy',Calendar::SECRET]]);//参与人
-                $query->orwhere('calendars.privacy',Calendar::OPEN);
-            })->get();
-            //日程仅参与人可见
-            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
-                $join->on('mu.moduleable_id','s.id')
-                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'")
-                    ->whereRaw("mu.type='".ModuleUserType::PARTICIPANT."'");
-            })->select('mu.user_id');
-            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery,$calendars){
-
-                $query->where(function ($query)use ($payload){
-                    if($payload['calendar_ids']){
-                    $query->where('privacy',Schedule::OPEN);
-                    $query->whereIn('calendar_id',$payload['calendar_ids']);
-                    }
-                })->orWhere(function ($query)use ($user,$subquery){
-                    $query->orWhere('creator_id',$user->id);
-                    $query->orWhere(function ($query)use ($user,$subquery){
-                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
-                    });
-                })->whereNotIn('calendar_id',$calendars);
-
-            })->mergeBindings($subquery)
-                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-                ->get();
-            return $this->response->collection($schedules, new ScheduleTransformer());
-        }
-        if ($request->has('material_ids')) {
-            foreach ($payload['material_ids'] as &$id) {
-                $id = hashid_decode($id);
-            }
-            unset($id);
-            if($payload['start_date'] == $payload['end_date']){
-                $payload['end_date']= date('Y-m-d 23:59:59',strtotime($payload['end_date']));
-            }
-
-            $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
-                ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
+                ->leftJoin('calendars as c', 'c.id', 'schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
                 ->whereRaw('c.deleted_at is null')
                 ->whereIn('material_id', $payload['material_ids'])->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
+
+
     }
-    public  function all(Request $request){
+
+    public function listIndex(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        if (!$request->has('calendar_ids')) {
+            $payload['calendar_ids'] = array();
+        } else {
+            foreach ($payload['calendar_ids'] as $key => &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+        }
+
+        $calendars = Calendar::select(DB::raw('distinct calendars.id'), 'calendars.id')->leftJoin('module_users as mu', function ($join) {
+            $join->on('moduleable_id', 'calendars.id')
+                ->where('moduleable_type', ModuleableType::CALENDAR);
+        })->where(function ($query) use ($user) {
+            $query->where('calendars.creator_id', $user->id);//创建人
+            $query->orWhere([['mu.user_id', $user->id], ['calendars.privacy', Calendar::SECRET]]);//参与人
+            $query->orwhere('calendars.privacy', Calendar::OPEN);
+        })->get();
+        //日程仅参与人可见
+        $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+            $join->on('mu.moduleable_id', 's.id')
+                ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+        })->select('mu.user_id');
+        $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery, $calendars) {
+
+            $query->where(function ($query) use ($payload) {
+                if ($payload['calendar_ids']) {
+                    $query->where('privacy', Schedule::OPEN);
+                    $query->whereIn('calendar_id', $payload['calendar_ids']);
+                }
+            })->orWhere(function ($query) use ($user, $subquery) {
+                $query->orWhere('creator_id', $user->id);
+                $query->orWhere(function ($query) use ($user, $subquery) {
+                    $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                });
+            })->whereNotIn('calendar_id', $calendars);
+
+        })->mergeBindings($subquery)
+            ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+            ->get();
+        return $this->response->collection($schedules, new ScheduleTransformer());
+    }
+
+    public function all(Request $request)
+    {
         $payload = $request->all();
         if ($request->has('calendar_ids')) {
             foreach ($payload['calendar_ids'] as &$id) {
@@ -251,9 +235,9 @@ class ScheduleController extends Controller
             unset($id);
 
 
-            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload){
-                $query->where(function ($query)use ($payload){
-                    $query->whereIn('calendar_id',$payload['calendar_ids']);
+            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload) {
+                $query->where(function ($query) use ($payload) {
+                    $query->whereIn('calendar_id', $payload['calendar_ids']);
                 });
             })
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
@@ -261,13 +245,15 @@ class ScheduleController extends Controller
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
     }
-    public  function hasauxiliary($request,$payload,$schedule,$module,$user){
 
-        if ($request->has('task_ids') && is_array($payload['task_ids'])){
-            $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+    public function hasauxiliary($request, $payload, $schedule, $module, $user)
+    {
+
+        if ($request->has('task_ids') && is_array($payload['task_ids'])) {
+            $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule, ModuleableType::TASK);
         }
-        if ($request->has('project_ids') && is_array($payload['project_ids'])){
-            $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+        if ($request->has('project_ids') && is_array($payload['project_ids'])) {
+            $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule, ModuleableType::PROJECT);
         }
 
         if ($request->has('participant_ids') && is_array($payload['participant_ids']))
@@ -294,113 +280,116 @@ class ScheduleController extends Controller
         }
 
     }
-    public  function hasrepeat($request,$payload,$module,$user){
+
+    public function hasrepeat($request, $payload, $module, $user)
+    {
 
         $array = array();
 
-        $array['end']   = date("Y",time())."-12-31";
+        $array['end'] = date("Y", time()) . "-12-31";
         if ($payload['is_allday'] == 1) {
             // 开始时间   Ymd 格式
-            $array['stime'] = date('Y-m-d',strtotime($payload['start_at']));
-            $array['etime'] = date('Y-m-d',strtotime($payload['end_at']));
-            $array['$ntime'] = date('Y-m-d',strtotime(now()));
+            $array['stime'] = date('Y-m-d', strtotime($payload['start_at']));
+            $array['etime'] = date('Y-m-d', strtotime($payload['end_at']));
+            $array['$ntime'] = date('Y-m-d', strtotime(now()));
 
         } else {
-            $array['sstime'] = date('Y-m-d H:i:s',strtotime($payload['start_at']));
-            $array['eetime']= date('Y-m-d H:i:s',strtotime($payload['end_at']));
-            $array['ntime'] = date('Y-m-d H:i:s',strtotime(now()));
+            $array['sstime'] = date('Y-m-d H:i:s', strtotime($payload['start_at']));
+            $array['eetime'] = date('Y-m-d H:i:s', strtotime($payload['end_at']));
+            $array['ntime'] = date('Y-m-d H:i:s', strtotime(now()));
         }
 
-        if($payload['is_allday'] == 1){
-            if($payload['repeat'] == 0){
+        if ($payload['is_allday'] == 1) {
+            if ($payload['repeat'] == 0) {
                 $schedule = Schedule::create($payload);
-                $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
-            }else if($payload['repeat'] == 1){
-                $timestamp = strtotime($array['end'])-strtotime($array['etime']);
-                $onedaytimestamp = 60*60*24;
-                $sumtimestamp = $timestamp/$onedaytimestamp;
-                for ($i=0;$i<$sumtimestamp+1;$i++){
-                    $start_time = date('Y-m-d',strtotime($array['stime']) + $onedaytimestamp * $i);
-                    $end_time = date('Y-m-d',strtotime($array['etime']) + $onedaytimestamp * $i);
-                    $payload['start_at'] =   $start_time;
-                    $payload['end_at'] =   $end_time;
+                $this->hasauxiliary($request, $payload, $schedule, $module, $user);
+            } else if ($payload['repeat'] == 1) {
+                $timestamp = strtotime($array['end']) - strtotime($array['etime']);
+                $onedaytimestamp = 60 * 60 * 24;
+                $sumtimestamp = $timestamp / $onedaytimestamp;
+                for ($i = 0; $i < $sumtimestamp + 1; $i++) {
+                    $start_time = date('Y-m-d', strtotime($array['stime']) + $onedaytimestamp * $i);
+                    $end_time = date('Y-m-d', strtotime($array['etime']) + $onedaytimestamp * $i);
+                    $payload['start_at'] = $start_time;
+                    $payload['end_at'] = $end_time;
                     $schedule = Schedule::create($payload);
-                   $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
+                    $this->hasauxiliary($request, $payload, $schedule, $module, $user);
                 }
-            }else if($payload['repeat'] == 2){
-                $timestamp = strtotime($array['end'])-strtotime($array['etime']);
-                $onedaytimestamp = 60*60*24*7;
-                $sumtimestamp = $timestamp/$onedaytimestamp;
-                for ($i=0;$i<$sumtimestamp+1;$i++){
-                    $start_time = date('Y-m-d',strtotime($array['stime']) + $onedaytimestamp * $i);
-                    $end_time = date('Y-m-d',strtotime($array['etime']) + $onedaytimestamp * $i);
-                    $payload['start_at'] =   $start_time;
-                    $payload['end_at'] =   $end_time;
+            } else if ($payload['repeat'] == 2) {
+                $timestamp = strtotime($array['end']) - strtotime($array['etime']);
+                $onedaytimestamp = 60 * 60 * 24 * 7;
+                $sumtimestamp = $timestamp / $onedaytimestamp;
+                for ($i = 0; $i < $sumtimestamp + 1; $i++) {
+                    $start_time = date('Y-m-d', strtotime($array['stime']) + $onedaytimestamp * $i);
+                    $end_time = date('Y-m-d', strtotime($array['etime']) + $onedaytimestamp * $i);
+                    $payload['start_at'] = $start_time;
+                    $payload['end_at'] = $end_time;
                     $schedule = Schedule::create($payload);
-                    $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
+                    $this->hasauxiliary($request, $payload, $schedule, $module, $user);
                 }
 
-            }else if($payload['repeat'] == 3){
-                $timestamp = strtotime($array['end'])-strtotime($array['etime']);
-                $onedaytimestamp = 60*60*24*7*31;
-                $sumtimestamp = ceil($timestamp/$onedaytimestamp);
-                for ($i=0;$i<$sumtimestamp;$i++){
-                    $start_time = date('Y-m-d',strtotime($array['stime']) + $onedaytimestamp * $i);
-                    $end_time = date('Y-m-d',strtotime($array['etime']) + $onedaytimestamp * $i);
-                    $payload['start_at'] =   $start_time;
-                    $payload['end_at'] =   $end_time;
+            } else if ($payload['repeat'] == 3) {
+                $timestamp = strtotime($array['end']) - strtotime($array['etime']);
+                $onedaytimestamp = 60 * 60 * 24 * 7 * 31;
+                $sumtimestamp = ceil($timestamp / $onedaytimestamp);
+                for ($i = 0; $i < $sumtimestamp; $i++) {
+                    $start_time = date('Y-m-d', strtotime($array['stime']) + $onedaytimestamp * $i);
+                    $end_time = date('Y-m-d', strtotime($array['etime']) + $onedaytimestamp * $i);
+                    $payload['start_at'] = $start_time;
+                    $payload['end_at'] = $end_time;
                     $schedule = Schedule::create($payload);
-                    $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
+                    $this->hasauxiliary($request, $payload, $schedule, $module, $user);
 
                 }
             }
-        }else{
-            if($payload['repeat'] == 0){
+        } else {
+            if ($payload['repeat'] == 0) {
                 $schedule = Schedule::create($payload);
-                $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
-            }else if($payload['repeat'] == 1){
-                $timestamp = strtotime($array['end'])-strtotime($array['eetime']);
-                $onedaytimestamp = 60*60*24;
-                $sumtimestamp = ceil($timestamp/$onedaytimestamp);
-                for ($i=0;$i<$sumtimestamp+1;$i++){
-                    $start_time = date('Y-m-d H:i:s',strtotime($array['sstime']) + $onedaytimestamp * $i);
-                    $end_time = date('Y-m-d H:i:s',strtotime($array['eetime']) + $onedaytimestamp * $i);
-                    $payload['start_at'] =   $start_time;
-                    $payload['end_at'] =   $end_time;
+                $this->hasauxiliary($request, $payload, $schedule, $module, $user);
+            } else if ($payload['repeat'] == 1) {
+                $timestamp = strtotime($array['end']) - strtotime($array['eetime']);
+                $onedaytimestamp = 60 * 60 * 24;
+                $sumtimestamp = ceil($timestamp / $onedaytimestamp);
+                for ($i = 0; $i < $sumtimestamp + 1; $i++) {
+                    $start_time = date('Y-m-d H:i:s', strtotime($array['sstime']) + $onedaytimestamp * $i);
+                    $end_time = date('Y-m-d H:i:s', strtotime($array['eetime']) + $onedaytimestamp * $i);
+                    $payload['start_at'] = $start_time;
+                    $payload['end_at'] = $end_time;
                     $schedule = Schedule::create($payload);
-                    $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
+                    $this->hasauxiliary($request, $payload, $schedule, $module, $user);
 
 
                 }
-            }else if($payload['repeat'] == 2){
-                $timestamp = strtotime($array['end'])-strtotime($array['eetime']);
-                $onedaytimestamp = 60*60*24*7;
-                $sumtimestamp = ceil($timestamp/$onedaytimestamp);
-                for ($i=0;$i<$sumtimestamp-1;$i++){
-                    $start_time = date('Y-m-d',strtotime($array['sstime']) + $onedaytimestamp * $i);
-                    $end_time = date('Y-m-d',strtotime($array['eetime']) + $onedaytimestamp * $i);
-                    $payload['start_at'] =   $start_time;
-                    $payload['end_at'] =   $end_time;
+            } else if ($payload['repeat'] == 2) {
+                $timestamp = strtotime($array['end']) - strtotime($array['eetime']);
+                $onedaytimestamp = 60 * 60 * 24 * 7;
+                $sumtimestamp = ceil($timestamp / $onedaytimestamp);
+                for ($i = 0; $i < $sumtimestamp - 1; $i++) {
+                    $start_time = date('Y-m-d', strtotime($array['sstime']) + $onedaytimestamp * $i);
+                    $end_time = date('Y-m-d', strtotime($array['eetime']) + $onedaytimestamp * $i);
+                    $payload['start_at'] = $start_time;
+                    $payload['end_at'] = $end_time;
                     $schedule = Schedule::create($payload);
-                    $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
+                    $this->hasauxiliary($request, $payload, $schedule, $module, $user);
                 }
-            }else if($payload['repeat'] == 3){
-                $timestamp = strtotime($array['end'])-strtotime($array['eetime']);
-                $onedaytimestamp = 60*60*24*7*31;
-                $sumtimestamp = ceil($timestamp/$onedaytimestamp);
-                for ($i=0;$i<$sumtimestamp;$i++){
-                    $start_time = date('Y-m-d',strtotime($array['sstime']) + $onedaytimestamp * $i);
-                    $end_time = date('Y-m-d',strtotime($array['eetime']) + $onedaytimestamp * $i);
-                    $payload['start_at'] =   $start_time;
-                    $payload['end_at'] =   $end_time;
+            } else if ($payload['repeat'] == 3) {
+                $timestamp = strtotime($array['end']) - strtotime($array['eetime']);
+                $onedaytimestamp = 60 * 60 * 24 * 7 * 31;
+                $sumtimestamp = ceil($timestamp / $onedaytimestamp);
+                for ($i = 0; $i < $sumtimestamp; $i++) {
+                    $start_time = date('Y-m-d', strtotime($array['sstime']) + $onedaytimestamp * $i);
+                    $end_time = date('Y-m-d', strtotime($array['eetime']) + $onedaytimestamp * $i);
+                    $payload['start_at'] = $start_time;
+                    $payload['end_at'] = $end_time;
                     $schedule = Schedule::create($payload);
-                    $this -> hasauxiliary($request,$payload,$schedule,$module,$user);
+                    $this->hasauxiliary($request, $payload, $schedule, $module, $user);
                 }
 
             }
         }
         return $schedule;
     }
+
     public function store(StoreScheduleRequest $request)
     {
         $payload = $request->all();
@@ -410,32 +399,32 @@ class ScheduleController extends Controller
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
         $calendar = Calendar::find($payload['calendar_id']);
-        if(!$calendar)
+        if (!$calendar)
             $this->response->errorInternal("日历不存在");
-        $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($calendar->privacy == Calendar::SECRET && ($user->id != $calendar->creator_id && !in_array($user->id,$participants)))
+        $participants = array_column($calendar->participants()->get()->toArray(), 'id');
+        if ($calendar->privacy == Calendar::SECRET && ($user->id != $calendar->creator_id && !in_array($user->id, $participants)))
             $this->response->errorInternal("你没有权限添加日程");
         if ($request->has('material_id'))
             $payload['material_id'] = hashid_decode($payload['material_id']);
-        if($request->has('material_id')&&$payload['material_id']){
+        if ($request->has('material_id') && $payload['material_id']) {
             if ($payload['is_allday'] == 1) {
                 // 开始时间   Ymd 格式
-                $array['start_at'] = date('Y-m-d',strtotime($payload['start_at']));
-                $array['end_at'] = date('Y-m-d',strtotime($payload['end_at']));
+                $array['start_at'] = date('Y-m-d', strtotime($payload['start_at']));
+                $array['end_at'] = date('Y-m-d', strtotime($payload['end_at']));
 
             } else {
-                $array['start_at'] = date('Y-m-d H:i:s',strtotime($payload['start_at']));
-                $array['end_at']= date('Y-m-d H:i:s',strtotime($payload['end_at']));
+                $array['start_at'] = date('Y-m-d H:i:s', strtotime($payload['start_at']));
+                $array['end_at'] = date('Y-m-d H:i:s', strtotime($payload['end_at']));
 
             }
-            $materials['material_id']= ['material_id',$payload['material_id']];
-            $materials['start_at'] = ['end_at','>=',$array['start_at']];
-            $materials['end_at']= ['start_at','<=',$array['end_at']];
-            $endmaterials = Schedule::where($materials['material_id'][0],$materials['material_id'][1])
-                ->where($materials['end_at'][0],$materials['end_at'][1],$materials['end_at'][2])
-                ->where($materials['start_at'][0],$materials['start_at'][1],$materials['start_at'][2])
+            $materials['material_id'] = ['material_id', $payload['material_id']];
+            $materials['start_at'] = ['end_at', '>=', $array['start_at']];
+            $materials['end_at'] = ['start_at', '<=', $array['end_at']];
+            $endmaterials = Schedule::where($materials['material_id'][0], $materials['material_id'][1])
+                ->where($materials['end_at'][0], $materials['end_at'][1], $materials['end_at'][2])
+                ->where($materials['start_at'][0], $materials['start_at'][1], $materials['start_at'][2])
                 ->orderby('start_at')->get(['id'])->toArray();
-            if($endmaterials){
+            if ($endmaterials) {
                 $this->response->errorForbidden("该时段会议室已被占用");
             }
         }
@@ -444,7 +433,7 @@ class ScheduleController extends Controller
 
         DB::beginTransaction();
         try {
-            $schedule =  $this -> hasrepeat($request,$payload,$module,$user);
+            $schedule = $this->hasrepeat($request, $payload, $module, $user);
 
         } catch (\Exception $exception) {
             Log::error($exception);
@@ -456,19 +445,20 @@ class ScheduleController extends Controller
 
         return $this->response->item($schedule, new ScheduleTransformer());
     }
-    public function storeSchedulesTask(StoreScheduleTaskRequest $request,Schedule $schedule)
+
+    public function storeSchedulesTask(StoreScheduleTaskRequest $request, Schedule $schedule)
     {
         $payload = $request->all();
-            DB::beginTransaction();
+        DB::beginTransaction();
         try {
 
-            if ($request->has('task_ids') && is_array($payload['task_ids'])){
-              $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule,ModuleableType::TASK);
+            if ($request->has('task_ids') && is_array($payload['task_ids'])) {
+                $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['task_ids'], $schedule, ModuleableType::TASK);
             }
 
-            if ($request->has('project_ids') && is_array($payload['project_ids'])){
+            if ($request->has('project_ids') && is_array($payload['project_ids'])) {
 
-                $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule,ModuleableType::PROJECT);
+                $result = $this->scheduleRelatesRepository->addScheduleRelate($payload['project_ids'], $schedule, ModuleableType::PROJECT);
             }
         } catch (Exception $e) {
             DB::rollBack();
@@ -479,48 +469,52 @@ class ScheduleController extends Controller
         return $this->response->accepted();
 
     }
-    public function indexSchedulesTask(Request $request,Schedule $schedule)
+
+    public function indexSchedulesTask(Request $request, Schedule $schedule)
     {
         $payload = $request->all();
         $array['schedule_id'] = $schedule->id;
-        if($request->has('type')){//姓名
-            $array[] = ['moduleable_type',$payload['type']];
+        if ($request->has('type')) {//姓名
+            $array[] = ['moduleable_type', $payload['type']];
         }
         $schedules = ScheduleRelate::where($array)->createDesc()->get();
         return $this->response->collection($schedules, new ScheduleRelateTransformer());
 
     }
-    public function removeSchedulesTask(Request $request,Schedule $schedule)
+
+    public function removeSchedulesTask(Request $request, Schedule $schedule)
     {
         $payload = $request->all();
         $array['schedule_id'] = $schedule->id;
-        if($request->has('delete_id')){
-            $array[] = ['id',hashid_decode($payload['delete_id'])];
+        if ($request->has('delete_id')) {
+            $array[] = ['id', hashid_decode($payload['delete_id'])];
             ScheduleRelate::where($array)->delete();
         }
     }
-    public function removeoneSchedulesRelate(Schedule $schedule,$model)
+
+    public function removeoneSchedulesRelate(Schedule $schedule, $model)
     {
 
         $array['schedule_id'] = $schedule->id;
         if ($model instanceof Task && $model->id) {
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::TASK;
-        }else if ($model instanceof Project && $model->id) {
+        } else if ($model instanceof Project && $model->id) {
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::PROJECT;
         }
         $is_ture = ScheduleRelate::where($array)->delete();
-        if(!$is_ture){
+        if (!$is_ture) {
             $this->response->errorInternal("删除失败");
         }
     }
+
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $users = $this->getPowerUsers($schedule);
 
         $user = Auth::guard("api")->user();
-        if(!in_array($user->id,$users)) {
+        if (!in_array($user->id, $users)) {
             return $this->response->errorInternal("你没有编辑该日程的权限");
         }
         $payload = $request->all();
@@ -529,8 +523,8 @@ class ScheduleController extends Controller
             $calendar = Calendar::find($payload['calendar_id']);
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
-            $participants = array_column($calendar->participants()->get()->toArray(),'id');
-            if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
+            $participants = array_column($calendar->participants()->get()->toArray(), 'id');
+            if ($user->id != $calendar->creator_id && !in_array($user->id, $participants))
                 $this->response->errorInternal("你没有权限修改日程");
         }
         if ($request->has('material_id') && $payload['material_id']) {
@@ -548,7 +542,7 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule->update($payload);
-            $this->hasauxiliary($request,$payload,$schedule,'',$user);
+            $this->hasauxiliary($request, $payload, $schedule, '', $user);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
             Log::error($exception);
@@ -564,7 +558,7 @@ class ScheduleController extends Controller
     {
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
-        if(!in_array($user->id,$users)) {
+        if (!in_array($user->id, $users)) {
             return $this->response->accepted();
         }
         return $this->response->item($schedule, new ScheduleTransformer());
@@ -574,7 +568,7 @@ class ScheduleController extends Controller
     {
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
-        if(!in_array($user->id,$users)) {
+        if (!in_array($user->id, $users)) {
             $this->response->errorInternal("你没有权限删除日程");
         }
 
@@ -586,8 +580,8 @@ class ScheduleController extends Controller
     {
         $calendar = $calendar = Calendar::find($schedule->calendar_id);
         $user = Auth::guard("api")->user();
-        $participants = array_column($calendar->participants()->get()->toArray(),'id');
-        if($user->id != $calendar->creator_id && !in_array($user->id,$participants))
+        $participants = array_column($calendar->participants()->get()->toArray(), 'id');
+        if ($user->id != $calendar->creator_id && !in_array($user->id, $participants))
             $this->response->errorInternal("你没有权限恢复日程");
         $schedule->restore();
         return $this->response->item($schedule, new ScheduleTransformer());
@@ -610,14 +604,14 @@ class ScheduleController extends Controller
         //日程的创建者，
         $users[] = $schedule->creator_id;
         //参与者
-        $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
+        $users = array_merge(array_column($schedule->participants()->get()->toArray(), 'id'), $users);
         //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
-        if($schedule->privacy == Schedule::OPEN){
+        if ($schedule->privacy == Schedule::OPEN) {
             $users[] = $user->id;
             $calendar = Calendar::find($schedule->calendar_id);
-            if($calendar != null){
+            if ($calendar != null) {
                 $users[] = $calendar->creator_id;
-                $users = array_merge($users,array_column($calendar->participants()->get()->toArray(),'id'));
+                $users = array_merge($users, array_column($calendar->participants()->get()->toArray(), 'id'));
             }
         }
         return $users;

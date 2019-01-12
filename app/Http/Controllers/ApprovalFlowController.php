@@ -417,21 +417,25 @@ class ApprovalFlowController extends Controller
      * 重复审批人出现会跳过中间审批人
      * @param $instance
      * @param $preId
+     * @param $close boolean 处理作废后标示结束
      * @return array [int $nextId, int $type]
      * @throws Exception
      */
-    private function getChainNext($instance, $preId)
+    private function getChainNext($instance, $preId, $close = false)
     {
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
         if (!$form)
             throw new Exception('form不存在');
 
+        if ($close)
+            return [0, 245];
+
         $formId = $form->form_id;
         $num = $instance->form_instance_number;
         $changeType = $form->change_type;
 
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程
             $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count)->first();
@@ -468,7 +472,7 @@ class ApprovalFlowController extends Controller
     private function getTransferNextChain($instance)
     {
         $num = $instance->form_instance_number;
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count('form_instance_number');
 
         $form = $instance->form;
         if ($form->change_type == 223) {
@@ -481,8 +485,10 @@ class ApprovalFlowController extends Controller
             $conditionId = $this->getCondition($instance->form_id, $value);
             $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
         }
-
-        $arr = $this->getChainNext($instance, $preId);
+        if ($preId == 0)
+            $arr = $this->getChainNext($instance, $preId, true);
+        else
+            $arr = $this->getChainNext($instance, $preId);
 
         return $arr;
     }

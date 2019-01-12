@@ -11,7 +11,8 @@ class StarAndBloggerTransfromer extends TransformerAbstract
         return [
             'id'    =>  hashid_encode($model->id),
             'name'  =>  $model->nickname,
-            'flag' =>  $model->flag
+            'flag' =>  $model->flag,
+            'sign_contract_status'  =>  $model->sign_contract_status,
         ];
     }
 }

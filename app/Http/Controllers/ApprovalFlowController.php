@@ -413,105 +413,79 @@ class ApprovalFlowController extends Controller
         return $instance;
     }
 
-//    /**
-//     * 重复审批人出现会跳过中间审批人
-//     * @param $instance
-//     * @param $preId
-//     * @return array [int $nextId, int $type]
-//     * @throws Exception
-//     */
-//    private function getChainNext($instance, $preId)
-//    {
-//        $form = ApprovalForm::where('form_id', $instance->form_id)->first();
-//
-//        if (!$form)
-//            throw new Exception('form不存在');
-//
-//        $formId = $form->form_id;
-//        $num = $instance->form_instance_number;
-//        $changeType = $form->change_type;
-//
-//        if ($changeType == 222) {
-//            // 固定流程
-//            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->first();
-//        } else if ($changeType == 223) {
-//            // 自由流程
-//            $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->first();
-//        } else if ($changeType == 224) {
-//            // 分支流程
-//            $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
-//            $value = $this->getValuesForCondition($formControlIds, $num);
-//            $conditionId = $this->getCondition($instance->form_id, $value);
-//            $chain = ChainFixed::where('form_id', $instance->form_id)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
-//        } else {
-//            throw new Exception('审批流转不存在');
-//        }
-//        if (is_null($chain)) {
-//            $now = Carbon::now();
-//
-//            return $this->getTransferNextChain($instance, $now);
-//        }
-//        if ($chain->next_id == 0)
-//            return [0, 245];
-//
-//        $next = $chain->next;
-//
-//        $type = $chain->approver_type;
-//        if (is_null($type))
-//            $type = 245;
-//
-//        return [$next->id, $type];
-//    }
+    /**
+     * 重复审批人出现会跳过中间审批人
+     * @param $instance
+     * @param $preId
+     * @return array [int $nextId, int $type]
+     * @throws Exception
+     */
+    private function getChainNext($instance, $preId)
+    {
+        $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
-    private function getChainNext($instance)
+        if (!$form)
+            throw new Exception('form不存在');
+
+        $formId = $form->form_id;
+        $num = $instance->form_instance_number;
+        $changeType = $form->change_type;
+
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
+        if ($changeType == 222) {
+            // 固定流程
+            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count)->first();
+        } else if ($changeType == 223) {
+            // 自由流程
+            $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->where('sort_number', $count)->first();
+        } else if ($changeType == 224) {
+            // 分支流程
+            $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
+            $value = $this->getValuesForCondition($formControlIds, $num);
+            $conditionId = $this->getCondition($instance->form_id, $value);
+            $chain = ChainFixed::where('form_id', $instance->form_id)->where('sort_number', $count)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
+        } else {
+            throw new Exception('审批流转不存在');
+        }
+        if (is_null($chain)) {
+            $now = Carbon::now();
+
+            return $this->getTransferNextChain($instance, $now);
+        }
+        if ($chain->next_id == 0)
+            return [0, 245];
+
+        $next = $chain->next;
+
+        $type = $chain->approver_type;
+        if (is_null($type))
+            $type = 245;
+
+        return [$next->id, $type];
+    }
+
+
+    private function getTransferNextChain($instance)
     {
         $num = $instance->form_instance_number;
         $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
 
-        $count = $count + 1;
         $form = $instance->form;
         if ($form->change_type == 223) {
-            $next = ChainFree::where('form_number', $num)->where('sort_number', $count)->first();
+            $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
         } else if ($form->change_type == 222) {
-            $next = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->first();
+            $preId = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->value('next_id');
         } else if ($form->change_type == 224) {
             $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
             $value = $this->getValuesForCondition($formControlIds, $num);
             $conditionId = $this->getCondition($instance->form_id, $value);
-            $next = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->first();
-        } else {
-            throw new ApprovalVerifyException('审批流不存在');
+            $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
         }
-        $nextId = $next->next_id;
-        if (is_null($next->approver_type))
-            $type = 245;
-        else
-            $type = $next->approver_type;
 
-        return [$nextId, $type];
+        $arr = $this->getChainNext($instance, $preId);
+
+        return $arr;
     }
-
-//    private function getTransferNextChain($instance)
-//    {
-//        $num = $instance->form_instance_number;
-//        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242])->count('form_instance_number');
-//
-//        $form = $instance->form;
-//        if ($form->change_type == 223) {
-//            $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
-//        } else if ($form->change_type == 222) {
-//            $preId = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->value('next_id');
-//        } else if ($form->change_type == 224) {
-//            $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
-//            $value = $this->getValuesForCondition($formControlIds, $num);
-//            $conditionId = $this->getCondition($instance->form_id, $value);
-//            $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
-//        }
-//
-//        $arr = $this->getChainNext($instance, $preId);
-//
-//        return $arr;
-//    }
 
     /**
      * @param $formId

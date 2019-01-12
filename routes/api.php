@@ -401,6 +401,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/schedules/getcalendar', 'App\Http\Controllers\ScheduleController@getCalendar');
         // schedule
         $api->get('/schedules', 'App\Http\Controllers\ScheduleController@index');
+        $api->get('/schedules/list', 'App\Http\Controllers\ScheduleController@listIndex');
         $api->get('/schedules/all', 'App\Http\Controllers\ScheduleController@all');
         $api->post('/schedules', 'App\Http\Controllers\ScheduleController@store');
         $api->post('/schedules/{schedule}/tasks', 'App\Http\Controllers\ScheduleController@storeSchedulesTask');

@@ -177,6 +177,71 @@ class ScheduleController extends Controller
 
 
     }
+    public function listIndex(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        /*--------------开始----------------------*/
+        if ($request->has('calendar_ids')) {
+
+                foreach ($payload['calendar_ids'] as $key => &$id) {
+                  if($key == 0 && $id == null){
+
+                      $payload['calendar_ids'] = array();
+                      break;
+                  }
+                    $id = hashid_decode($id);
+                }
+            unset($id);
+            $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.id')->leftJoin('module_users as mu',function ($join){
+                $join->on('moduleable_id','calendars.id')
+                    ->where('moduleable_type',ModuleableType::CALENDAR);
+            })->where(function ($query)use ($user){
+                $query->where('calendars.creator_id',$user->id);//创建人
+                $query->orWhere([['mu.user_id',$user->id],['calendars.privacy',Calendar::SECRET]]);//参与人
+                $query->orwhere('calendars.privacy',Calendar::OPEN);
+            })->get();
+            //日程仅参与人可见
+            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','s.id')
+                    ->whereRaw("mu.moduleable_type='".ModuleableType::SCHEDULE."'")
+                    ->whereRaw("mu.type='".ModuleUserType::PARTICIPANT."'");
+            })->select('mu.user_id');
+            $schedules = Schedule::select('schedules.*')->where(function ($query)use ($payload,$user,$subquery,$calendars){
+
+                $query->where(function ($query)use ($payload){
+                    if($payload['calendar_ids']){
+                    $query->where('privacy',Schedule::OPEN);
+                    $query->whereIn('calendar_id',$payload['calendar_ids']);
+                    }
+                })->orWhere(function ($query)use ($user,$subquery){
+                    $query->orWhere('creator_id',$user->id);
+                    $query->orWhere(function ($query)use ($user,$subquery){
+                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                    });
+                })->whereNotIn('calendar_id',$calendars);
+
+            })->mergeBindings($subquery)
+                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+                ->get();
+            return $this->response->collection($schedules, new ScheduleTransformer());
+        }
+        if ($request->has('material_ids')) {
+            foreach ($payload['material_ids'] as &$id) {
+                $id = hashid_decode($id);
+            }
+            unset($id);
+            if($payload['start_date'] == $payload['end_date']){
+                $payload['end_date']= date('Y-m-d 23:59:59',strtotime($payload['end_date']));
+            }
+
+            $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
+                ->leftJoin('calendars as c','c.id','schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
+                ->whereRaw('c.deleted_at is null')
+                ->whereIn('material_id', $payload['material_ids'])->get();
+            return $this->response->collection($schedules, new ScheduleTransformer());
+        }
+    }
     public  function all(Request $request){
         $payload = $request->all();
         if ($request->has('calendar_ids')) {

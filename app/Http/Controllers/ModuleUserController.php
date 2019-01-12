@@ -62,6 +62,7 @@ class ModuleUserController extends Controller
                         $departments = implode(",",array_column($participantUser->department()->get()->toArray(),'name'));
                         $start .= $participantUser->name . " 部门【".$departments."】 ";
                     } catch (Exception $e) {
+                        Log::error($e);
                     }
                 }
                 $start = substr($start, 0, strlen($start) - 1);

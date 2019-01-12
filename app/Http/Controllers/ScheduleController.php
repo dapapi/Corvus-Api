@@ -540,6 +540,7 @@ class ScheduleController extends Controller
 
     private function getPowerUsers($schedule)
     {
+        $user = Auth::guard("api")->user();
         $users = [];//记录可以查看日程的用户id
         //日程的创建者，
         $users[] = $schedule->creator_id;
@@ -547,6 +548,7 @@ class ScheduleController extends Controller
         $users = array_merge(array_column($schedule->participants()->get()->toArray(),'id'),$users);
         //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
         if($schedule->privacy == Schedule::OPEN){
+            $users[] = $user->id;
             $calendar = Calendar::find($schedule->calendar_id);
             if($calendar != null){
                 $users[] = $calendar->creator_id;

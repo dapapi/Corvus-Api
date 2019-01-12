@@ -485,7 +485,7 @@ class ApprovalFlowController extends Controller
             $conditionId = $this->getCondition($instance->form_id, $value);
             $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
         }
-        if ($preId == 0)
+        if ($preId == 0 && $count > 1)
             $arr = $this->getChainNext($instance, $preId, true);
         else
             $arr = $this->getChainNext($instance, $preId);

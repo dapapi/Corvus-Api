@@ -21,6 +21,7 @@ class OperateLogTransformer extends TransformerAbstract
 
         if ($operateLog->user_id) {
             $array['username'] = $operateLog->user->name;
+            $array['icon_url'] = $operateLog->user->icon_url;
         }
         return $array;
     }

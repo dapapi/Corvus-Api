@@ -87,29 +87,37 @@ class Trail extends Model
     public function scopeSearchData($query)
     {
         $user = Auth::guard("api")->user();
+        $extra = '';
+        $user->id = 44;
         $userid = $user->id;
         $department_id = Department::where('name', '商业管理部')->first();
-        if($department_id) {
+        if ($department_id) {
             $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-            $user_ids = DepartmentUser::wherein('department_id', $department_ids)->where('user_id', $user->id)->get(['user_id'])->toArray();
-            if($user_ids){
-                $user_ids = DepartmentUser::wherein('department_id', $department_ids)->get(['user_id'])->toArray();
-               foreach ($user_ids as $val){
-                   $user_id[] = $val['user_id'];
-               }
-
-                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => [$user_id]];
-
-                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => [$user_id]];
-                $array['op'] =  'or';
+            $is_papi = DepartmentUser::wherein('department_id', $department_ids)->where('user_id', $userid)->get(['user_id'])->toArray();
+            if ($is_papi) {
+                $user_list = DepartmentUser::wherein('department_id', $department_ids)->get(['user_id'])->toArray();
+                foreach ($user_list as $val) {
+                    $user_id[] = $val['user_id'];
+                }
+                $array['rules'][] = ['field' => 'creator_id', 'op' => 'in', 'value' => $user_id];
+                $array['rules'][] = ['field' => 'principal_id', 'op' => 'in', 'value' => $user_id];
+                $array['op'] = 'or';
                 $rules = $array;
-                return (new SearchDataScope())->getCondition($query,$rules,$userid);
+                $query1 = (new SearchDataScope())->getCondition($query, $rules, $userid)->where('lock_status', '1');
+                $extra = (new SearchDataScope())->getCondition($query, $rules, $userid)->where('lock_status', '1')->get()->toArray();
             }
-
         }
-            $rules = (new ScopeRepository())->getDataViewUsers();
-        return (new SearchDataScope())->getCondition($query,$rules,$userid);
+        $rules = (new ScopeRepository())->getDataViewUsers();
+
+
+//        if ($extra) {
+//
+//            return (new SearchDataScope())->getCondition($query, $rules, $userid);
+//        } else {
+//            return (new SearchDataScope())->getCondition($query, $rules, $userid);
+//        }
     }
+
 
     public function scopeCompleted($query)
     {

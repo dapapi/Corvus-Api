@@ -105,6 +105,8 @@ class ModuleUserRepository
             $array['moduleable_type'] = ModuleableType::PROJECT;
         }else if ($model instanceof Task && $model->id) {
             $array['moduleable_type'] = ModuleableType::TASK;
+        }else if($model instanceof Blogger && $model->id){
+            $array['moduleable_type'] = ModuleableType::BLOGGER;
         }
 
 

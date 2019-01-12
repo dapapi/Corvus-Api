@@ -704,7 +704,7 @@ class ApprovalFormController extends Controller
             if($approval->form_id == 9 || $approval->form_id == 10){
                 foreach ($controlValues as $value) {
                     if ($value['type'] == "project_id"){
-                        $project = Project::find(hashid_decode($value['id']));
+                        $project = Project::find(hashid_decode($value['value']['id']));
                         if($project){
                             $operate = new OperateEntity([
                                 'obj' => $project,

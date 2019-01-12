@@ -12,6 +12,9 @@ class Department extends Model
     protected $fillable = [
         'name',
         'department_pid',
+        'company_id',
+        'sort_number',
+        'order_by',
         'desc',
         'city',
     ];

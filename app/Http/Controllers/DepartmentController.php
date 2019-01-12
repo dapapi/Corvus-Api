@@ -252,12 +252,17 @@ class DepartmentController extends Controller
     }
 
 
-    //删除部门
+    //删除部门 TODO 删除父级部门 判断下级部门负责人是否存在多个部门 存在则不更新角色表 反之则删除 删除部门成员及其下属部门成员都更新为未分配部门
     public function remove(Request $request,Department $department)
     {
 
         $departmentId = $department->id;
         $departmentPid = $department->department_pid;
+
+        $depatmentRes = DB::table("departments")->where('department_pid', $departmentId)->first();
+        if($depatmentRes !==null){
+            return $this->response->errorInternal('该部门有下级部门');
+        }
 
         try {
 

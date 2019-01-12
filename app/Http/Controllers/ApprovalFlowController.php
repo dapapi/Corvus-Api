@@ -178,8 +178,6 @@ class ApprovalFlowController extends Controller
                 ],
                 'approval_stage' => 'doing'
             ];
-        } else {
-
         }
 
         list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);
@@ -436,18 +434,19 @@ class ApprovalFlowController extends Controller
         $changeType = $form->change_type;
 
         $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count('form_instance_number');
+        $now = Execute::where('form_instance_number', $num)->where('flow_type_id', 231)->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程
-            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count)->first();
+            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count + $now)->first();
         } else if ($changeType == 223) {
             // 自由流程
-            $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->where('sort_number', $count)->first();
+            $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->where('sort_number', $count + $now)->first();
         } else if ($changeType == 224) {
             // 分支流程
             $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
             $value = $this->getValuesForCondition($formControlIds, $num);
             $conditionId = $this->getCondition($instance->form_id, $value);
-            $chain = ChainFixed::where('form_id', $instance->form_id)->where('sort_number', $count)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
+            $chain = ChainFixed::where('form_id', $formId)->where('sort_number', $count + $now)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
         } else {
             throw new Exception('审批流转不存在');
         }
@@ -487,8 +486,9 @@ class ApprovalFlowController extends Controller
         }
         if ($preId == 0 && $count > 1)
             $arr = $this->getChainNext($instance, $preId, true);
-        else
+        else {
             $arr = $this->getChainNext($instance, $preId);
+        }
 
         return $arr;
     }

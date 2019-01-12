@@ -59,6 +59,9 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
+            if($request->has('type') && $payload['type'])
+                $query->where('type',$payload['type']);
+
         })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($trails, new TrailTransformer());
     }

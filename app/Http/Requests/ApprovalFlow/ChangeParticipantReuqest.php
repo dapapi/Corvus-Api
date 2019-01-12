@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Trail;
+namespace App\Http\Requests\ApprovalFlow;
 
-
-use App\Models\Trail;
 use Dingo\Api\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class FilterTrailRequest extends FormRequest
+class ChangeParticipantReuqest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,10 +25,8 @@ class FilterTrailRequest extends FormRequest
     public function rules()
     {
         return [
-            'keyword' => 'nullable',
-            'status' => 'nullable',
-            'principal_ids' => 'nullable',
-            'type'  => Rule::in([Trail::TYPE_BASE,Trail::TYPE_PAPI,Trail::TYPE_ENDORSEMENT,Trail::TYPE_VARIETY,Trail::TYPE_MOVIE])
+            'id' => 'required',
+            'operate' => 'boolean'
         ];
     }
 }

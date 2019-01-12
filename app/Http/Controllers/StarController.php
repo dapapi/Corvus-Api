@@ -8,8 +8,10 @@ use App\Events\OperateLogEvent;
 use App\Gender;
 use App\Http\Requests\StarRequest;
 use App\Http\Requests\StarUpdateRequest;
+use App\Http\Transformers\StarAndBloggerTransfromer;
 use App\Http\Transformers\StarTransformer;
 use App\Models\Affix;
+use App\Models\Blogger;
 use App\Models\OperateEntity;
 use App\Models\Star;
 use App\ModuleableType;
@@ -772,5 +774,12 @@ class StarController extends Controller
 //            ->get();
 //        $tasks = $star->tasks()->where('end_at','<',Carbon::now()->toDateString())->limit(5)->orderBy('created_at','desc')->get();
         return StarReportRepository::getFiveProjectAndTask($star->id);
+    }
+    //获取艺人和博主的列表
+    public function getStarAndBlogger(){
+        $first = DB::table("stars")->select('name','id',DB::raw('\'star\''));
+        $stars = Blogger::select('nickname','id',
+            DB::raw('\'blogger\' as flag'))->union($first)->get();
+        return $this->response->collection($stars,new StarAndBloggerTransfromer());
     }
 }

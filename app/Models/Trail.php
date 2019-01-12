@@ -96,27 +96,27 @@ class Trail extends Model
             $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
             if($is_papi){
                 $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
-                foreach ($user_list as $val){
-                    $user_id[] = $val['user_id'];
-                }
+                $user_id = array();
+
+               foreach ($user_list as $val){
+                   $user_id[] = $val['user_id'];
+               }
                 $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => $user_id];
                 $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
                 $array['op'] =  'or';
                 $rules = $array;
                 $extras =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
                 $extra = $extras->get()->toArray();
-
             }
         }else{
             $rules = (new ScopeRepository())->getDataViewUsers();
             return (new SearchDataScope())->getCondition($query,$rules,$userid);
         }
-        if($extra){
-            $rules = (new ScopeRepository())->getDataViewUsers();
-            return $this->orCondition($query,$rules);
-        }
-    }
 
+        $rules = (new ScopeRepository())->getDataViewUsers();
+        return $this->orCondition($query,$rules);
+
+    }
     public function orCondition($query,$rules)
     {
         if($rules == null){

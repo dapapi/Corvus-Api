@@ -8,6 +8,7 @@ use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\Traits\OperateLogTrait;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -87,13 +88,15 @@ class Trail extends Model
     public function scopeSearchData($query)
     {
         $user = Auth::guard("api")->user();
+        $extra = '';
+        $user->id = 200;
         $userid = $user->id;
         $department_id = Department::where('name', '商业管理部')->first();
         if($department_id) {
             $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-            $is_papi = DepartmentUser::wherein('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
+            $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
             if($is_papi){
-                $user_list = DepartmentUser::wherein('department_id', $department_ids)->get(['user_id'])->toArray();
+                $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
                foreach ($user_list as $val){
                    $user_id[] = $val['user_id'];
                }
@@ -101,13 +104,75 @@ class Trail extends Model
                 $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
                 $array['op'] =  'or';
                 $rules = $array;
-                return (new SearchDataScope())->getCondition($query,$rules,$user_id);
-            }
-        }
-            $rules = (new ScopeRepository())->getDataViewUsers();
-        return (new SearchDataScope())->getCondition($query,$rules,$userid);
-    }
+                $extras2 =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
+                $extra = $extras2->get()->toArray();
 
+            }
+        }else{
+            $rules = (new ScopeRepository())->getDataViewUsers();
+            return (new SearchDataScope())->getCondition($query,$rules,$userid);
+        }
+       if($extra){
+           $rules = (new ScopeRepository())->getDataViewUsers();
+           return $this->orCondition($query,$rules);
+       }
+    }
+    public function orCondition($query,$rules)
+    {
+        if($rules == null){
+            return $query->where(DB::raw('0 = 1')); //不查询任何数据
+        }
+        if($rules != null && count($rules) == 0){
+            return $query;
+        }
+        switch ($rules['op']){
+            case 'or':
+                $query->orwhere(function ($query)use ($rules){
+                    foreach ($rules['rules'] as $key => $value){
+                        switch ($value['op']){
+                            case 'in':
+                                if($value['value'] == null){
+                                    $condition[] = $query->orWhere(DB::raw("{$value['field']} in (null)"));
+                                }else{
+                                    $condition[] = $query->orWhereIn($value['field'],$value['value']);
+                                }
+                                break;
+                            case '>':
+                            case '>=':
+                            case '<':
+                            case '<=':
+                            case 'like':
+                                $condition[] = $query->orWhere($value['field'],$value['op'],$value['value']);
+                        }
+                    }
+                });
+                break;
+            case 'and':
+                $query->orwhere(function ($query)use ($rules){
+                    foreach ($rules['rules'] as $key => $value){
+                        switch ($value['op']){
+                            case 'in':
+                                if($value['value'] == null){
+                                    $condition[] = $query->where(DB::raw("{$value['field']} in (null)"));
+                                }else{
+                                    $condition[] = $query->whereIn($value['field'],$value['value']);
+                                }
+                                break;
+                            case '>':
+                            case '>=':
+                            case '<':
+                            case '<=':
+                            case 'like':
+                                $condition[] = $query->Where($value['field'],$value['op'],$value['value']);
+                        }
+                    }
+                });
+                break;
+            default:
+                break;
+        }
+        return $query;
+    }
     public function scopeCompleted($query)
     {
         $query->where('status',Project::STATUS_COMPLETE);

@@ -113,7 +113,7 @@ class Star extends Model
         return $this->hasMany(StarPlatform::class);
     }
 
-    public function trail()
+    public function trails()
     {
         return $this->morphToMany(Trail::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
@@ -124,8 +124,9 @@ class Star extends Model
     {
         return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PUBLICITY);
     }
-    public function calendars()
+    public function calendar()
     {
         return $this->morphOne(Calendar::class,'starable');
     }
+
 }

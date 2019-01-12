@@ -89,7 +89,6 @@ class Trail extends Model
     {
         $user = Auth::guard("api")->user();
         $extra = '';
-        $user->id = 200;
         $userid = $user->id;
         $department_id = Department::where('name', '商业管理部')->first();
         if($department_id) {

@@ -802,7 +802,7 @@ class PersonnelManageController extends Controller
     //获取企业名称
     public function getCompany(Request $request, User $user)
     {
-        $companys = DataDictionarie::where('val', 'company')->get();
+        $companys = DataDictionarie::where('parent_id', '413')->get();
         return $this->response->collection($companys, new DataDictionarieTransformer());
 
     }

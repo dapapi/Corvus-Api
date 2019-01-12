@@ -48,6 +48,7 @@ class DepartmentController extends Controller
             "city"=> isset($payload['city']) ? $payload['city'] : '',
             "company_id"=> $payload['company_id'],
             "sort_number"=> ++$sortSum,
+            "order_by"=> 'sort_number',
         ];
         
         $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
@@ -108,9 +109,10 @@ class DepartmentController extends Controller
         $departmentArr = [
             "department_pid"=>hashid_decode($payload['department_pid']),
             "name"=>$payload['name'],
-            "company_id"=> $payload['company_id'],
+            "company_id"=> isset($payload['company_id']) ? $payload['company_id'] : '',
             "city"=>isset($payload['city']) ? $payload['city'] : '',
         ];
+
         $userId = isset($payload['user_id']) ? hashid_decode($payload['user_id']) : 0;
         DB::beginTransaction();
         try {
@@ -387,7 +389,22 @@ class DepartmentController extends Controller
 
     public function show(Request $request,User $user)
     {
-        $data = $user->where('entry_status',3)->get()->toArray();
+        //$data = $user->where('entry_status',3)->get()->toArray();
+
+        $dataInfo = DB::table('users')//
+
+            ->leftJoin('position', function ($join) {
+                $join->on('position.id', '=', 'users.position_id');
+            })
+            ->leftJoin('department_user as du', function ($join) {
+                $join->on('du.user_id', '=', 'users.id');
+            })
+            ->leftJoin('departments as dt', function ($join) {
+                $join->on('dt.id', '=', 'du.department_id');
+            })
+            ->where('users.entry_status',3)
+            ->select('users.*','dt.name as department_name', 'position.name as position_name')->get()->toArray();
+        $data = json_decode(json_encode($dataInfo), true);
 
         $targetKey = 'name';
         $data = array_map(function ($item) use ($targetKey) {

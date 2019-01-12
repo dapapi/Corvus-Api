@@ -67,6 +67,7 @@ class SearchDataScope implements Scope
 //
 //            }
 //        }
+
         switch ($rules['op']){
             case 'or':
                 $query->where(function ($query)use ($rules){
@@ -78,7 +79,6 @@ class SearchDataScope implements Scope
                                 }else{
                                     $condition[] = $query->orWhereIn($value['field'],$value['value']);
                                 }
-
                                 break;
                             case '>':
                             case '>=':
@@ -86,7 +86,6 @@ class SearchDataScope implements Scope
                             case '<=':
                             case 'like':
                                 $condition[] = $query->orWhere($value['field'],$value['op'],$value['value']);
-
                         }
                     }
                 });
@@ -108,7 +107,6 @@ class SearchDataScope implements Scope
                             case '<=':
                             case 'like':
                                 $condition[] = $query->Where($value['field'],$value['op'],$value['value']);
-
                         }
                     }
                 });

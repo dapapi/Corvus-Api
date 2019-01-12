@@ -325,11 +325,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
-        // contract 合同
-        $api->get('/contracts/papi', 'App\Http\Controllers\ContractController@papiIndex');
-        $api->get('/contracts/qingyang', 'App\Http\Controllers\ContractController@qingyangIndex');
-        $api->get('/contracts/all', 'App\Http\Controllers\ContractController@all');
-
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

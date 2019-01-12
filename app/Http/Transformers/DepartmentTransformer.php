@@ -27,12 +27,28 @@ class DepartmentTransformer extends TransformerAbstract
         if (!empty($res)) {
             $array['is_department_principal'] = 1;
             $array['is_department_username'] = $res[0]->name;
-            $array['is_department_user_id'] = $res[0]->id;
+            $array['is_department_user_id'] = hashid_encode($res[0]->id);
         }else{
             $array['is_department_principal'] = 0;
             //$array['is_department_username'] = $res[0]['name'];
 
         }
+
+        $companyInfo = DB::table('departments as ds')//
+
+            ->join('data_dictionaries as dds', function ($join) {
+                $join->on('dds.id', '=', 'ds.company_id');
+            })
+            ->where('ds.id', $department->id)
+            ->select('ds.company_id', 'dds.name')->first();
+
+            if($companyInfo){
+                $array['company'] = $companyInfo->name;
+                $array['company_id'] = $companyInfo->company_id;
+            }else{
+                $array['company'] = '';
+                $array['company_id'] = '';
+            }
 
         return $array;
     }

@@ -88,34 +88,32 @@ class Trail extends Model
     {
         $user = Auth::guard("api")->user();
         $extra = '';
-        $user->id = 44;
         $userid = $user->id;
         $department_id = Department::where('name', '商业管理部')->first();
-        if ($department_id) {
+        if($department_id) {
             $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-            $is_papi = DepartmentUser::wherein('department_id', $department_ids)->where('user_id', $userid)->get(['user_id'])->toArray();
-            if ($is_papi) {
-                $user_list = DepartmentUser::wherein('department_id', $department_ids)->get(['user_id'])->toArray();
-                foreach ($user_list as $val) {
+            $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
+            if($is_papi){
+                $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
+                foreach ($user_list as $val){
                     $user_id[] = $val['user_id'];
                 }
-                $array['rules'][] = ['field' => 'creator_id', 'op' => 'in', 'value' => $user_id];
-                $array['rules'][] = ['field' => 'principal_id', 'op' => 'in', 'value' => $user_id];
-                $array['op'] = 'or';
+                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => $user_id];
+                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
+                $array['op'] =  'or';
                 $rules = $array;
-                $query1 = (new SearchDataScope())->getCondition($query, $rules, $userid)->where('lock_status', '1');
-                $extra = (new SearchDataScope())->getCondition($query, $rules, $userid)->where('lock_status', '1')->get()->toArray();
+                $extras =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
+                $extra = $extras->get()->toArray();
+
             }
+        }else{
+            $rules = (new ScopeRepository())->getDataViewUsers();
+            return (new SearchDataScope())->getCondition($query,$rules,$userid);
         }
-        $rules = (new ScopeRepository())->getDataViewUsers();
-
-
-//        if ($extra) {
-//
-//            return (new SearchDataScope())->getCondition($query, $rules, $userid);
-//        } else {
-//            return (new SearchDataScope())->getCondition($query, $rules, $userid);
-//        }
+        if($extra){
+            $rules = (new ScopeRepository())->getDataViewUsers();
+            return $this->orCondition($query,$rules);
+        }
     }
 
 

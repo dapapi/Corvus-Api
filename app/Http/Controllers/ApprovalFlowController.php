@@ -6,6 +6,7 @@ use App\Events\OperateLogEvent;
 use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
+use App\Http\Requests\ApprovalFlow\ChangeParticipantReuqest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
 use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ChainTransformer;
@@ -20,6 +21,7 @@ use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
+use App\Models\ApprovalForm\Participant;
 use App\Models\Blogger;
 use App\Models\Contract;
 use App\Models\DepartmentPrincipal;
@@ -395,6 +397,37 @@ class ApprovalFlowController extends Controller
         }
         DB::commit();
         return $this->response->created();
+    }
+
+    public function changeParticipant(ChangeParticipantReuqest $request, $instance)
+    {
+        $id = $request->get('id');
+        $operate = $request->get('operate', true);
+        if ($id)
+            $id = hashid_decode($id);
+
+        $num = $instance->form_instance_number;
+        $user = User::find($id);
+        if (is_null($user))
+            return $this->response->errorBadRequest('找不到对应用户');
+
+        try {
+            if ($operate) {
+                $participant = Participant::where('form_instance_number', $num)->where('notice_id', $id)->first();
+                if (is_null($participant))
+                    Participant::create([
+                        'form_instance_number' => $num,
+                        'notice_id' => $id,
+                        'notice_type' => 245,
+                        'created_at' => Carbon::now()
+                    ]);
+            } else
+                Participant::where('notice_id', $id)->where('form_instance_number', $num)->delete();
+        } catch (Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改知会人失败');
+        }
+        return $this->response->accepted();
     }
 
     /* 流转用辅助方法 */

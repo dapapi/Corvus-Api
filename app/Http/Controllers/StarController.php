@@ -776,10 +776,16 @@ class StarController extends Controller
         return StarReportRepository::getFiveProjectAndTask($star->id);
     }
     //获取艺人和博主的列表
-    public function getStarAndBlogger(){
-        $first = DB::table("stars")->select('name','id',DB::raw('\'star\''));
-        $stars = Blogger::select('nickname','id',
-            DB::raw('\'blogger\' as flag'))->union($first)->get();
+    public function getStarAndBlogger(Request $request){
+        $array = [];
+        $payload = $request->all();
+        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
+            $array[] = ['sign_contract_status', $payload['sign_contract_status']];
+        }
+        $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->where($array);
+        $stars = Blogger::select('nickname','id','sign_contract_status',
+            DB::raw('\'blogger\' as flag'))->where($array)->union($first)->get();
+
         return $this->response->collection($stars,new StarAndBloggerTransfromer());
     }
 }

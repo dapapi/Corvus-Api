@@ -461,24 +461,8 @@ class ProjectController extends Controller
 
             }
 
-            if (!$request->has('type') || $payload['type'] == '') {
+            if (!$request->has('type') || $payload['type'] == '')
                 $payload['type'] = $project->type;
-
-                if ($payload['type'] != $project->type) {
-                    //操作日志
-                    $operateName = new OperateEntity([
-                        'obj' => $project,
-                        'title' => "项目类型",
-                        'start' => $project->getProjectType($project->type),
-                        'end' => $project->getProjectType($payload['type']),
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateName;
-
-                }
-            } else {
-
-            }
 
 
             if ($request->has('fields')) {

@@ -8,6 +8,7 @@ use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\Traits\OperateLogTrait;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -116,7 +117,62 @@ class Trail extends Model
         }
     }
 
-
+    public function orCondition($query,$rules)
+    {
+        if($rules == null){
+            return $query->where(DB::raw('0 = 1')); //不查询任何数据
+        }
+        if($rules != null && count($rules) == 0){
+            return $query;
+        }
+        switch ($rules['op']){
+            case 'or':
+                $query->orwhere(function ($query)use ($rules){
+                    foreach ($rules['rules'] as $key => $value){
+                        switch ($value['op']){
+                            case 'in':
+                                if($value['value'] == null){
+                                    $condition[] = $query->orWhere(DB::raw("{$value['field']} in (null)"));
+                                }else{
+                                    $condition[] = $query->orWhereIn($value['field'],$value['value']);
+                                }
+                                break;
+                            case '>':
+                            case '>=':
+                            case '<':
+                            case '<=':
+                            case 'like':
+                                $condition[] = $query->orWhere($value['field'],$value['op'],$value['value']);
+                        }
+                    }
+                });
+                break;
+            case 'and':
+                $query->orwhere(function ($query)use ($rules){
+                    foreach ($rules['rules'] as $key => $value){
+                        switch ($value['op']){
+                            case 'in':
+                                if($value['value'] == null){
+                                    $condition[] = $query->where(DB::raw("{$value['field']} in (null)"));
+                                }else{
+                                    $condition[] = $query->whereIn($value['field'],$value['value']);
+                                }
+                                break;
+                            case '>':
+                            case '>=':
+                            case '<':
+                            case '<=':
+                            case 'like':
+                                $condition[] = $query->Where($value['field'],$value['op'],$value['value']);
+                        }
+                    }
+                });
+                break;
+            default:
+                break;
+        }
+        return $query;
+    }
     public function scopeCompleted($query)
     {
         $query->where('status',Project::STATUS_COMPLETE);

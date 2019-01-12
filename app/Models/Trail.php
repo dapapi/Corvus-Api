@@ -103,8 +103,8 @@ class Trail extends Model
                 $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
                 $array['op'] =  'or';
                 $rules = $array;
-                $extras2 =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
-                $extra = $extras2->get()->toArray();
+                $extras =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
+                $extra = $extras->get()->toArray();
 
             }
         }else{

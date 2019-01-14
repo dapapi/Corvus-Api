@@ -550,6 +550,12 @@ class ApprovalFormController extends Controller
         $result->addMeta('approval', $approval);
         $result->addMeta('notice', $manager->createData($notice)->toArray());
 
+        $form = $instance->form;
+        if ($form->group_id == 2) {
+            $contract = Contract::where('form_instance_number', $num)->first();
+            $result->addMeta('contract', $contract->contract_number);
+        }
+
         return $result;
     }
 

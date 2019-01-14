@@ -610,6 +610,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //知会我的
         $api->get('/approvals_contract/notify','App\Http\Controllers\ApprovalContractController@notify');
 
+        /*一般审批列表*/
+        //我申请列表
+        $api->get('/approvals_general/my','App\Http\Controllers\ApprovalGeneralController@myApply');
+        //我审批的 待审批
+        $api->get('/approvals_general/approval','App\Http\Controllers\ApprovalGeneralController@myApproval');
+        //知会我的
+        $api->get('/approvals_general/notify','App\Http\Controllers\ApprovalGeneralController@notify');
+
 
         // 获取审批实例
         $api->get('/approval_instances/{instance}', 'App\Http\Controllers\ApprovalFormController@detail');

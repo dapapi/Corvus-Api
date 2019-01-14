@@ -88,7 +88,12 @@ class ProjectController extends Controller
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
-        $projects = Project::orderBy('created_at', 'desc')->searchData()->get();
+        $status = $request->get('status', null);
+        if (is_null($status))
+            $projects = Project::orderBy('created_at', 'desc')->searchData()->get();
+        else
+            $projects = Project::orderBy('created_at', 'desc')->where('status', $status)->searchData()->get();
+
         return $this->response->collection($projects, new ProjectTransformer($isAll));
     }
 

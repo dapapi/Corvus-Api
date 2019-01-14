@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\NoFeatureInfoException;
 use App\Exceptions\NoRoleException;
 use App\Models\DepartmentUser;
 use App\Models\RoleResource;
@@ -218,8 +219,9 @@ class ScopeRepository
             $model_id = $resource->parent_id;
             //2.检查功能权限
             $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource->id)->get()->toArray();
-            if(empty($featureInfo)){//如果为空则表示没有权限
-                throw new NoRoleException("你没有访问{$resource->name}功能权限");
+//            dd($featureInfo);
+            if(count($featureInfo) == 0){//如果为空则表示没有权限
+                throw new NoFeatureInfoException("你没有访问{$resource->name}功能权限");
             }
             //如果是get请求则检查role_data_view表中是检查用户对该接口的权限
             if($method == "GET"){
@@ -229,7 +231,7 @@ class ScopeRepository
                 if($res != null){//检查访问模块是否在role_resource_view表中，则进行权限限制
                     //检查role_data_view表中的权限
                     //用户和角色是多对多的关系，所以可能一个用户对同一个模块有多重权限
-                    $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
+                    $viewSql = RoleDataView::whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
                     if(count($viewSql) != 0){//没有对应模块的权限记录，则不进行权限控制
                         //如果接口中传进了模型，则对模型进行权限控制
                         if($model != null){

@@ -28,6 +28,7 @@ use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\OperateEntity;
+use App\Models\Project;
 use App\Models\Star;
 use App\Models\Trail;
 use App\OperateLogMethod;
@@ -653,6 +654,13 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
         $contract = Contract::where('form_instance_number', $num)->first();
+        $project = Project::where('project_number', $num)->first();
+
+        if ($project && $status == 232)
+            $contract->project->trail->update([
+                'progress_status' => Trail::STATUS_CONFIRMED
+            ]);
+
         if (is_null($contract))
             return null;
 
@@ -792,11 +800,6 @@ class ApprovalFlowController extends Controller
         if ($contract->project_id) {
             if ($status != 232)
                 $contract->project->delete();
-            if ($status == 232)
-                // todo 增加 Trail 的仓库封装带操作日志的一般数据库操作
-                $contract->project->trail->update([
-                    'progress_status' => Trail::STATUS_CONFIRMED
-                ]);
         }
     }
 }

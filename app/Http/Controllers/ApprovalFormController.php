@@ -612,6 +612,7 @@ class ApprovalFormController extends Controller
     // 获取group里的form_ids => 改为只给合同使用
     public function getContractForms(Request $request)
     {
+        //2 表示合同审批
         $forms = ApprovalForm::where('group_id', 2)->orderBy('sort_number', 'asc')->select('form_id', 'name', 'change_type', 'modified')->get();
 
         return $this->response->collection($forms, new ApprovalFormTransformer());
@@ -619,6 +620,7 @@ class ApprovalFormController extends Controller
 
     public function getGeneralForms(Request $request)
     {
+        //除了1项目立项审批和2合同审批
         $groups = ApprovalGroup::whereNotIn('id', [1, 2])->get();
         return $this->response->collection($groups, new ApprovalGroupTransformer());
     }

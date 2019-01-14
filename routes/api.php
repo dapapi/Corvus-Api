@@ -171,6 +171,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/trails/{trail}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/clients/{client}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/clients/{client}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

@@ -74,8 +74,8 @@ class ApprovalGeneralController extends Controller
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->creator_id = hashid_encode($value->creator_id);
+
+            $value->creator_id = hashid_encode($value->apply_id);
 
         }
         return $data;
@@ -142,9 +142,7 @@ class ApprovalGeneralController extends Controller
 
             //部门负责人
             $dataPrincipal = DB::table('approval_flow_execute as afe')//
-                ->join('approval_form_business as bu', function ($join) {
-                    $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
-                })
+
                 ->join('approval_flow_change as recode', function ($join) {
                     $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
                 })
@@ -182,9 +180,9 @@ class ApprovalGeneralController extends Controller
         $arr['meta']['current_page'] = $count;
         $arr['meta']['total_pages'] = ceil($count/20);
 
-        foreach ($arr['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-        }
+//        foreach ($arr['data'] as $key => &$value) {
+//            $value->id = hashid_encode($value->id);
+//        }
         return $arr;
     }
 
@@ -242,7 +240,7 @@ class ApprovalGeneralController extends Controller
             ->join('users as us', function ($join) {
                 $join->on('afi.apply_id', '=', 'us.id');
             })
-            ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', $userId)
+            ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', 7)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*','us.name', 'afp.created_at')->get()->toArray();
 
@@ -291,7 +289,7 @@ class ApprovalGeneralController extends Controller
             ->whereIn('afi.form_status',$payload['status'])
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.form_instance_number','afe.notice_type','afi.form_status','creator.name')->get()->toArray();
-            dd($dataPrincipal);
+
 
         $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
 
@@ -311,9 +309,7 @@ class ApprovalGeneralController extends Controller
             $arr['meta']['current_page'] = $count;
             $arr['meta']['total_pages'] = ceil($count/20);
 
-            foreach ($arr['data'] as $key => &$value) {
-                $value->id = hashid_encode($value->id);
-            }
+           
             return $arr;
         }
 
@@ -341,7 +337,7 @@ class ApprovalGeneralController extends Controller
         ->where('afi.form_status','!=', 231)
         ->orderBy('afi.created_at', 'desc')
         ->select('afi.form_instance_number','afi.form_status','us.name', 'afi.created_at')->get()->toArray();
-     
+
         return $dataUser;
     }
 

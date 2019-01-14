@@ -55,8 +55,31 @@ class Client extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
+        $department_id = Department::where('name', '商业管理部')->first();
+        if($department_id) {
+            $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
+            $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
+            if($is_papi){
+                $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
+                $user_id = array();
+
+                foreach ($user_list as $val){
+                    $user_id[] = $val['user_id'];
+                }
+                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => $user_id];
+                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
+                $array['op'] =  'or';
+                $rules = $array;
+                $extras =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('grade','1');
+                $extra = $extras->get()->toArray();
+            }
+        }else{
+            $rules = (new ScopeRepository())->getDataViewUsers();
+            return (new SearchDataScope())->getCondition($query,$rules,$userid);
+        }
+
         $rules = (new ScopeRepository())->getDataViewUsers();
-        return (new SearchDataScope())->getCondition($query,$rules,$userid);
+        return (new Trail())->orCondition($query,$rules);
     }
     public function creator()
     {

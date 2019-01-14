@@ -74,8 +74,8 @@ class ApprovalGeneralController extends Controller
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->creator_id = hashid_encode($value->creator_id);
+
+            $value->creator_id = hashid_encode($value->apply_id);
 
         }
         return $data;
@@ -341,7 +341,7 @@ class ApprovalGeneralController extends Controller
         ->where('afi.form_status','!=', 231)
         ->orderBy('afi.created_at', 'desc')
         ->select('afi.form_instance_number','afi.form_status','us.name', 'afi.created_at')->get()->toArray();
-     
+
         return $dataUser;
     }
 

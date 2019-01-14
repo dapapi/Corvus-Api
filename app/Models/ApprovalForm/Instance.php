@@ -13,9 +13,9 @@ class Instance extends Model implements approvalinstanceinterface
     protected $fillable = [
         'form_instance_id',
         'form_id',
-        'form_instance_mumble',
+        'form_instance_number',
         'apply_id',
-        'form_type',
+        'form_status',
         'created_by',
         'created_at',
         'updated_by',

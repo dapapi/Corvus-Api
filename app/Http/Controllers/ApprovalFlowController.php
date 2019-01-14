@@ -657,7 +657,7 @@ class ApprovalFlowController extends Controller
         $project = Project::where('project_number', $num)->first();
 
         if ($project && $status == 232)
-            $contract->project->trail->update([
+            $project->trail->update([
                 'progress_status' => Trail::STATUS_CONFIRMED
             ]);
 

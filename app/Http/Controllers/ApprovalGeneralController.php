@@ -240,7 +240,7 @@ class ApprovalGeneralController extends Controller
             ->join('users as us', function ($join) {
                 $join->on('afi.apply_id', '=', 'us.id');
             })
-            ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', $userId)
+            ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', 7)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*','us.name', 'afp.created_at')->get()->toArray();
 
@@ -289,7 +289,7 @@ class ApprovalGeneralController extends Controller
             ->whereIn('afi.form_status',$payload['status'])
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.form_instance_number','afe.notice_type','afi.form_status','creator.name')->get()->toArray();
-            dd($dataPrincipal);
+
 
         $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
 
@@ -309,9 +309,7 @@ class ApprovalGeneralController extends Controller
             $arr['meta']['current_page'] = $count;
             $arr['meta']['total_pages'] = ceil($count/20);
 
-            foreach ($arr['data'] as $key => &$value) {
-                $value->id = hashid_encode($value->id);
-            }
+           
             return $arr;
         }
 

@@ -158,7 +158,7 @@ class ApprovalGeneralController extends Controller
                 ->join('approval_form_instances as afi', function ($join) {
                     $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
                 })
-                ->where('dp.user_id', 18)
+                ->where('dp.user_id', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*')->get()->toArray();

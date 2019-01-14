@@ -4,11 +4,13 @@ namespace App\Models\ApprovalForm;
 
 use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\DataDictionary;
+use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;
 
 class Instance extends Model implements approvalinstanceinterface
 {
     protected $table = 'approval_form_instances';
+    use OperateLogTrait;
 
     protected $fillable = [
         'form_instance_id',

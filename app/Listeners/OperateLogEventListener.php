@@ -10,6 +10,7 @@ use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\Contract;
 use App\Models\OperateLog;
 use App\Models\Production;
 use App\Models\Project;
@@ -171,9 +172,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Production){
                 $type = ModuleableType::PRODUCTION;
                 $typeName = "做品库";
-            }else if($operate->obj instanceof Instance){
-                $type = ModuleableType::INSTANCE;
-                $typeName = "审批";
+            }else if($operate->obj instanceof Contract){
+                $type = ModuleableType::CONTRACT;
+                $typeName = "合同";
             }
             //TODO
 

@@ -7,6 +7,7 @@ use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Transformers\OperateLogTransformer;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Client;
+use App\Models\Contract;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Blogger;
@@ -35,8 +36,9 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Instance $instance)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract)
     {
+
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 1);
@@ -59,8 +61,8 @@ class OperateLogController extends Controller
             $query = $client->operateLogs();
         }else if ($calendar && $calendar->id) {
             $query = $calendar->operateLogs();
-        }else if($instance && $instance->id){
-            $query = $instance->operateLogs();
+        }else if($contract && $contract->id){
+            $query = $contract->operateLogs();
         }
         //TODO 其他模块
 

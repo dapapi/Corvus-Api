@@ -27,7 +27,7 @@ abstract class ModuleableType
     const REPOSITORY = 'repository';
     const PROJECTBILLSRESOURCE = 'projectbillsresource';
     const PRODUCTION = "production";
-    const INSTANCE = "instance";
+    const CONTRACT = "contract";
 
 
 

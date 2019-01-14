@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -21,6 +22,7 @@ class Contract extends Model
         'updater_id',
         'updater_name',
     ];
+    use OperateLogTrait;
 
     public function project()
     {

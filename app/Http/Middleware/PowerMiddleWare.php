@@ -44,7 +44,7 @@ class PowerMiddleWare
             (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
         }catch(NoFeatureInfoException $e){
             Log::error($e);
-            return $next();
+            return response([]);
         }
 
 

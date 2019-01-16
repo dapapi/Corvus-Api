@@ -79,6 +79,9 @@ class Trail extends Model
         'progress_status',
         'resource',
         'resource_type',
+        'take_type',
+        'pool_type',
+        'receive',
         'fee',
         'desc',
     ];

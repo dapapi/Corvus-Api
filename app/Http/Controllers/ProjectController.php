@@ -65,7 +65,8 @@ class ProjectController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $projects = Project::where(function ($query) use ($request, $payload) {
+        $user = Auth::guard('api')->user();
+        $projects = Project::where(function ($query) use ($request, $payload,$user) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
@@ -77,10 +78,26 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-            if ($request->has('type'))
+            if ($request->has('type'))#项目类型
                 $query->where('type', $payload['type']);
-            if ($request->has('status'))
+            if ($request->has('status'))#项目状态
                 $query->where('status', $payload['status']);
+            if ($request->has('my')){
+                switch ($payload['my']){
+                    case 'my_principal'://我负责
+                        $query->where('principal_id', $user->id);
+                        break;
+                    case 'my_participant'://我参与
+                        $project_ids = $user->participantProjects()->select('moduleable_id')->get()->toArray();//获取参与人
+                        $query->whereIn('id',$project_ids);
+                        break;
+                    case 'my_create'://我创建
+                    default:
+                        $query->where('creator_id', $user->id);
+                        break;
+
+                }
+            }
         })->searchData()
             ->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer());

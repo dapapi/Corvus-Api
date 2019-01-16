@@ -26,6 +26,7 @@ class StoreCalendarRequest extends FormRequest
     {
         return [
             'title' => 'required',
+            'flag'  =>  'required',
             'color' => 'required',
             'privacy' => 'required|numeric',
             'star' => 'nullable|numeric',

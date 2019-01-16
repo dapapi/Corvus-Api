@@ -24,6 +24,7 @@ class EditCalendarRequest extends FormRequest
     public function rules()
     {
         return [
+            'flag'  =>  'required',
             'title' => 'nullable',
             'color' => 'nullable',
             'privacy' => 'nullable|numeric',

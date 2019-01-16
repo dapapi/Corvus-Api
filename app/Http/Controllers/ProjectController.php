@@ -172,7 +172,7 @@ class ProjectController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 0);
         $type = $request->get('type', 1);
-
+        $project_type = $request->get('project_type',null);
         $query = Project::select('projects.*');
 
         switch ($type) {
@@ -199,6 +199,9 @@ class ProjectController extends Controller
                 break;
             default:
                 break;
+        }
+        if ($project_type){
+            $query->where('type',$project_type);
         }
         $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
 

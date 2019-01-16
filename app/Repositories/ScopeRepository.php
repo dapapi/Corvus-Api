@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Exceptions\NoFeatureInfoException;
 use App\Exceptions\NoRoleException;
+use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\RoleResource;
 use App\Models\RoleResourceManage;
@@ -16,6 +17,7 @@ use App\Models\RoleDataManage;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class ScopeRepository
@@ -97,7 +99,12 @@ class ScopeRepository
             $arrayUserid = array_keys($result);//查看下属部门
         }elseif($dataDictionarieId == 22){//全部
             $arrayUserid = [];
-        }else{
+        }elseif($dataDictionarieId == 417){//本部门及同级部门
+            //获取本部门id
+            $departmentId = DepartmentUser::where('user_id',$userId)->first()->id;
+            $arrayUserid = $this->getMyDepartmentAndSameLevelDepartmentUserList($departmentId);
+        }
+        else{
             return null;
         }
         if($arr === true){
@@ -141,7 +148,27 @@ class ScopeRepository
         }
         return $arr;
     }
+    //获取本部门及同级部门用户列表
+    public function getMyDepartmentAndSameLevelDepartmentUserList($department_id)
+    {
+        try{
+            //获取父级部门id
+            $department = Department::findOrFail($department_id);
+            //获取所有同级部门
+            $departments = Department::where('department_pid',$department->department_pid)->get()->toArray();
+            //获取同级部门id列表
+            $department_ids = array_column($departments,'id');
+            //获取同级部门用户列表
+            $users = DepartmentUser::whereIn('department_id',$department_ids)->leftJoin('users as u','u.id','departments.user_id')->select('u.id')->get()->toArray();
+            $user_ids = array_column($users,'id');
+            return $user_ids;
+        }catch (\Exception $e){
+            Log::error($e);
+            //如果失败则返回null，表示查看不了任何数据
+            return null;
+        }
 
+    }
 
     /**
      * 判断用户是否有修改数据的权限

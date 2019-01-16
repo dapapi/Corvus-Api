@@ -53,8 +53,7 @@ class CalendarController extends Controller
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
 
-            //todo 暂时为硬编码
-            if ($user->company->name != '泰洋川禾') {
+            if ($payload['flag'] != 'blogger') {
                 $payload['starable_type'] = ModuleableType::BLOGGER;//博主
             } else {
                 $payload['starable_type'] = ModuleableType::STAR;//艺人
@@ -89,7 +88,7 @@ class CalendarController extends Controller
                 $operate
             ]));
         } catch (Exception $exception) {
-            dd($exception);
+
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建失败');

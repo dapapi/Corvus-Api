@@ -59,6 +59,7 @@ class UserTransformer extends TransformerAbstract
             'work_email' => $user->work_email,//'工作邮箱',
             'disable' => $user->disable,
             'entry_status' => $user->entry_status,
+            'organization_id'   =>  $user->department()->first()->company_id
         ];
 
         $companyInfo = DB::table('department_user as du')//

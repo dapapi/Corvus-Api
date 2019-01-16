@@ -3,6 +3,7 @@
 namespace App\Http\Transformers;
 
 use App\Models\Star;
+use App\ModuleableType;
 use League\Fractal\TransformerAbstract;
 
 class StarTransformer extends TransformerAbstract
@@ -22,6 +23,7 @@ class StarTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($star->id),
             'name' => $star->name,
+            'moduleable_type'   =>  ModuleableType::STAR,
             'desc' => $star->desc,
             'avatar' => $star->avatar,
             'gender' => $star->gender,
@@ -64,6 +66,7 @@ class StarTransformer extends TransformerAbstract
 
         $arraySimple = [
             'id' => hashid_encode($star->id),
+            'flag'   =>  ModuleableType::STAR,
             'name' => $star->name,
             'avatar' => $star->avatar,
             'status' =>$star->sign_contract_status

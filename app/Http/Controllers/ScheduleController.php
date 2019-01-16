@@ -401,6 +401,7 @@ class ScheduleController extends Controller
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
         $calendar = Calendar::find($payload['calendar_id']);
+
         if (!$calendar)
             $this->response->errorInternal("日历不存在");
         $participants = array_column($calendar->participants()->get()->toArray(), 'id');
@@ -438,6 +439,7 @@ class ScheduleController extends Controller
             $schedule = $this->hasrepeat($request, $payload, $module, $user);
 
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');

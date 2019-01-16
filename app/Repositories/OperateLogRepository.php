@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Affix;
 use App\Models\Blogger;
+use App\Models\Contract;
 use App\Models\Repository;
 use App\Models\Report;
 use App\Models\Calendar;
@@ -47,6 +48,8 @@ class OperateLogRepository
         }else if ($model instanceof Announcement && $model->id) {
             $obj = $model;
         }else if ($model instanceof Repository && $model->id) {
+            $obj = $model;
+        }else if ($model instanceof Contract && $model->id){
             $obj = $model;
         }
 

@@ -141,7 +141,9 @@ class ScheduleController extends Controller
                 $join->on('mu.moduleable_id', 's.id')
                     ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
                     ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
-            })->select('mu.user_id');
+
+            })->whereRaw("s.id=schedules.id")
+                ->select('mu.user_id');
 //->whereRaw("s.id=schedules.id")
             $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery) {
                 $query->where(function ($query) use ($payload) {

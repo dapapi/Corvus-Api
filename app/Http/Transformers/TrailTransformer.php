@@ -10,6 +10,8 @@ use App\User;
 use League\Fractal\ParamBag;
 use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
+use Illuminate\Support\Facades\DB;
+
 
 class TrailTransformer extends TransformerAbstract
 {
@@ -43,6 +45,8 @@ class TrailTransformer extends TransformerAbstract
                     'cooperation_type' => $trail->cooperation_type,
                     'desc' => $trail->desc,
                     'lock_status' => $trail->lock_status,
+                    'pool_type'=>$trail->pool_type,
+                    'take_type'=>$trail->take_type,
                     // 日志内容
                     'last_follow_up_at' => $trail->last_follow_up_at,
                     'last_updated_user' => $trail->last_updated_user,
@@ -67,6 +71,9 @@ class TrailTransformer extends TransformerAbstract
                     'cooperation_type' => $trail->cooperation_type,
                     'desc' => $trail->desc,
                     'lock_status' => $trail->lock_status,
+                    'pool_type'=>$trail->pool_type,
+                    'take_type'=>$trail->take_type,
+
                     // 日志内容
                     'last_follow_up_at' => $trail->last_follow_up_at,
                     'last_updated_user' => $trail->last_updated_user,
@@ -110,7 +117,16 @@ class TrailTransformer extends TransformerAbstract
                 'brand' => $trail->brand,
             ];
         }
+        //查询跟进信息
+        $operate = DB::table('operate_logs as og')//
+            ->where('og.logable_id', $trail->id)
+            ->select('og.created_at')->orderBy('created_at','desc')->first();
 
+        //查询负责人
+        $principal = DB::table('users')//
+        ->where('users.id', $trail->principal_id)
+            ->select('users.name')->first();
+        $array['principal_name'] = $principal;
         return $array;
     }
 

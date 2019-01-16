@@ -45,7 +45,6 @@ class ScheduleController extends Controller
 
     public function index(IndexScheduleRequest $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard("api")->user();
 

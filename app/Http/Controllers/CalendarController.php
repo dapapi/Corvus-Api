@@ -114,7 +114,7 @@ class CalendarController extends Controller
                 $payload['starable_type'] = ModuleableType::STAR;//艺人
             }
             //判断艺人是否已经关联日历
-            $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('starable_id',$payload['starable_id'])->get()->toArray();
+            $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('id','!=',$calendar->id)->where('starable_id',$payload['starable_id'])->get()->toArray();
             if(count($calendars) >= 1){
                 return $this->response->errorMethodNotAllowed("该艺人已存在相关日历");
             }

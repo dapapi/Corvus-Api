@@ -338,10 +338,10 @@ class ConsoleController extends Controller
         foreach ($dataDictionarie as $key=>$value){
 
             //本人相关 本部门 部门下属 全部
-            $reoureInfo = RoleResourceView::where('resource_id', $value['id'])->orderBy('sort_number')->get()->toArray();//获取查看功能的列表
+            $reoureInfo = RoleResourceView::where('resource_id', $value['id'])->get()->toArray();//获取查看功能的列表
             $info = array_column($reoureInfo, 'data_view_id');
 
-            $res = DataDictionarie::whereIn('id', $info)->get()->toArray();
+            $res = DataDictionarie::whereIn('id', $info)->orderBy('sort_number')->get()->toArray();
 
             $roleManage = $roleDataView->where('role_id',$roleId)->where('resource_id',$value['id'])->get()->toArray();
 

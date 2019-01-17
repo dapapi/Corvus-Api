@@ -40,13 +40,11 @@ class PowerMiddleWare
         }
         $operation = preg_replace('/\\d+/', '{id}', $request->path());
         $method = $request->method();
-        try{
-            (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
-        }catch(NoFeatureInfoException $e){
-            Log::error($e);
-            return response([]);
-        }
 
+        $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
+        if (is_array($res)){
+            return $res;
+        }
 
         return $next($request);
     }

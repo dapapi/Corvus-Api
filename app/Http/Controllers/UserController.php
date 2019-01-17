@@ -31,7 +31,8 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $users = User::orderBy('name')->get();
+        $users = User::where('entry_status',3)->orderBy('name')->get();//where('entry_status',3) 用户 状态等于3
+
         return $this->response->collection($users, new UserTransformer());
     }
 

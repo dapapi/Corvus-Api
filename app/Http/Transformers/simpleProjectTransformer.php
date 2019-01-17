@@ -10,7 +10,7 @@ class simpleProjectTransformer extends TransformerAbstract
     public function transform(Project $project)
     {
         return [
-            'id'    =>  $project->id,
+            'id'    =>  hashid_encode($project->id),
             'title' =>  $project->title
         ];
     }

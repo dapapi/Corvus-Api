@@ -46,14 +46,25 @@ class SeasPoolController extends Controller
         $department_id = Department::where('name', '商业管理部')->first();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $takeType = isset($payload['take_type']) ? $payload['take_type'] : 1;
+        $takeType = isset($payload['take_type']) ? $payload['take_type'] : 0;
+
+        $receive = isset($payload['receive_type']) ? $payload['receive_type'] : 0;
 
 
-        $trails = Trail::where(function ($query) use ($request, $payload, $takeType) {
+        $trails = Trail::where(function ($query) use ($request, $payload, $takeType,$receive) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($takeType)
+            if ($takeType ==1){
                 $query->where('take_type', $takeType);
+            }else{
+                $query->whereIn('take_type', [1,2]);
+            }
+            if ($receive ==1){
+                $query->where('take_type', $receive);
+            }elseif($receive ==2){
+                $query->where('take_type',2);
+            }
+
             if ($request->has('pool_type') && !is_null($payload['pool_type']))
                 $query->where('pool_type', $payload['pool_type']);
 
@@ -167,7 +178,7 @@ class SeasPoolController extends Controller
     public function refund(Request $request, Trail $trail)
     {
         $payload = $request->all();
-        dd($payload);
+
         $user = Auth::guard('api')->user();
         $userName = $user->name;
 

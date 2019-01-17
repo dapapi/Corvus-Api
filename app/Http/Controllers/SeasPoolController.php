@@ -48,14 +48,21 @@ class SeasPoolController extends Controller
 
         $takeType = isset($payload['take_type']) ? $payload['take_type'] : 0;
 
+        $receive = isset($payload['receive_type']) ? $payload['receive_type'] : 1;
 
-        $trails = Trail::where(function ($query) use ($request, $payload, $takeType) {
+
+        $trails = Trail::where(function ($query) use ($request, $payload, $takeType,$receive) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($takeType ==1){
                 $query->where('take_type', $takeType);
             }else{
                 $query->whereIn('take_type', [1,2]);
+            }
+            if ($receive ==1){
+                $query->where('take_type', $receive);
+            }else{
+                $query->where('take_type',2);
             }
 
             if ($request->has('pool_type') && !is_null($payload['pool_type']))

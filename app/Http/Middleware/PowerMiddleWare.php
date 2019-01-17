@@ -41,10 +41,11 @@ class PowerMiddleWare
         $operation = preg_replace('/\\d+/', '{id}', $request->path());
         $method = $request->method();
 
-        $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
-        if (is_array($res)){
-            return $res;
-        }
+            $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
+            if (is_array($res)){
+                return response([]);
+            }
+
 
         return $next($request);
     }

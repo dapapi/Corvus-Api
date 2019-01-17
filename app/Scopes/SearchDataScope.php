@@ -47,7 +47,7 @@ class SearchDataScope implements Scope
             return $query->whereRaw('0 = 1'); //不查询任何数据
         }
         if(is_array($rules) && count($rules) == 0){
-            return $query;
+            return $query->whereRaw('1 = 1');
         }
 //        $op_list = ['>','>=','<','<=','like','in'];
         //"{"rules":[{"field":"created_id","op":"in","value":[1,16,2]},{"field":"principal_id","op":"in","value":[1,16,2]}],"op":"or"}"

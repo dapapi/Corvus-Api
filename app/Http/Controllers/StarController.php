@@ -783,15 +783,13 @@ class StarController extends Controller
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
         $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where($array);
-//        DB::connection()->enableQueryLog();
         $stars = Blogger::select('nickname','id','sign_contract_status',
             DB::raw('\'blogger\' as flag'))
             ->where($array)
             ->searchData()
-//            ->union($first)
+            ->union($first)
             ->get();
-//        $sql = DB::getQueryLog();
-//        dd($sql);
+
 
 
         return $this->response->collection($stars,new StarAndBloggerTransfromer());

@@ -18,6 +18,7 @@ class Star extends Model
 {
     use SoftDeletes;
     use OperateLogTrait;
+    private  $model_dic_id = DataDictionarie::STAR;//数据字典中模块id
 
     protected $fillable = [
         'name',//姓名
@@ -63,7 +64,7 @@ class Star extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers();
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from stars as s 
             left join module_users as mu on mu.moduleable_id = s.id and 

@@ -20,6 +20,7 @@ class Trail extends Model
     }
 
     use OperateLogTrait;
+    private $model_dic_id = DataDictionarie::TRAIL; //数据字典中模块id
 
     // 线索来源类型
     const PERSONAL = 1;
@@ -112,11 +113,11 @@ class Trail extends Model
                 $extra = $extras->get()->toArray();
             }
         }else{
-            $rules = (new ScopeRepository())->getDataViewUsers();
+            $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
             return (new SearchDataScope())->getCondition($query,$rules,$userid);
         }
 
-        $rules = (new ScopeRepository())->getDataViewUsers();
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return $this->orCondition($query,$rules);
 
     }

@@ -18,7 +18,7 @@ class Client extends Model
     }
 
     use OperateLogTrait;
-
+    private $model_dic_id = DataDictionarie::CLIENT;//数据字典中模块id
     const TYPE_MOVIE = 1; // 影视项目
     const TYPE_VARIETY = 2; // 综艺项目
     const TYPE_ENDORSEMENT = 3; // 商务代言
@@ -74,11 +74,11 @@ class Client extends Model
                 $extra = $extras->get()->toArray();
             }
         }else{
-            $rules = (new ScopeRepository())->getDataViewUsers();
+            $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
             return (new SearchDataScope())->getCondition($query,$rules,$userid);
         }
 
-        $rules = (new ScopeRepository())->getDataViewUsers();
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return (new Trail())->orCondition($query,$rules);
     }
     public function creator()

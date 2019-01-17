@@ -62,6 +62,8 @@ class Trail extends Model
     const PRIORITY_A = 3;
     const PRIORITY_S = 4;
 
+    // 商业管理部
+    const  WORLDWIDE = 207;
 
 
     protected $fillable = [
@@ -94,9 +96,9 @@ class Trail extends Model
         $user = Auth::guard("api")->user();
         $extra = '';
         $userid = $user->id;
-        $department_id = Department::where('name', '商业管理部')->first();
+        $department_id =  $this::WORLDWIDE;
         if($department_id) {
-            $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
+            $department_ids = Department::where('department_pid', $this::WORLDWIDE)->get(['id']);
             $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
             if($is_papi){
                 $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();

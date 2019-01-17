@@ -15,8 +15,7 @@ class PrivacyUserRepository
 
     public function is_creator($array, $model)
     {
-
-        if ($array['user_id'] != $model->creator_id) {
+        if ($array['user_id'] != $model->creator_id && $array['user_id'] != $model->principal_id) {
 
             return false;
 

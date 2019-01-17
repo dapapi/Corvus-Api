@@ -198,6 +198,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //为多个博主艺人分配多个经纪人宣传人制作人
         $api->post('/distribution/person', 'App\Http\Controllers\ModuleUserController@addMore');
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
+        //导入 导出
+        //->middleware('export')
+        $api->get('/bloggers/export', 'App\Http\Controllers\BloggerController@export');
+        $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人

@@ -2,7 +2,9 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\NoFeatureInfoException;
 use App\Exceptions\NoRoleException;
+use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\RoleResource;
 use App\Models\RoleResourceManage;
@@ -15,6 +17,7 @@ use App\Models\RoleDataManage;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class ScopeRepository
@@ -96,7 +99,12 @@ class ScopeRepository
             $arrayUserid = array_keys($result);//查看下属部门
         }elseif($dataDictionarieId == 22){//全部
             $arrayUserid = [];
-        }else{
+        }elseif($dataDictionarieId == 417){//本部门及同级部门
+            //获取本部门id
+            $departmentId = DepartmentUser::where('user_id',$userId)->first()->id;
+            $arrayUserid = $this->getMyDepartmentAndSameLevelDepartmentUserList($departmentId);
+        }
+        else{
             return null;
         }
         if($arr === true){
@@ -140,7 +148,27 @@ class ScopeRepository
         }
         return $arr;
     }
+    //获取本部门及同级部门用户列表
+    public function getMyDepartmentAndSameLevelDepartmentUserList($department_id)
+    {
+        try{
+            //获取父级部门id
+            $department = Department::findOrFail($department_id);
+            //获取所有同级部门
+            $departments = Department::where('department_pid',$department->department_pid)->get()->toArray();
+            //获取同级部门id列表
+            $department_ids = array_column($departments,'id');
+            //获取同级部门用户列表
+            $users = DepartmentUser::whereIn('department_id',$department_ids)->leftJoin('users as u','u.id','departments.user_id')->select('u.id')->get()->toArray();
+            $user_ids = array_column($users,'id');
+            return $user_ids;
+        }catch (\Exception $e){
+            Log::error($e);
+            //如果失败则返回null，表示查看不了任何数据
+            return null;
+        }
 
+    }
 
     /**
      * 判断用户是否有修改数据的权限
@@ -218,8 +246,12 @@ class ScopeRepository
             $model_id = $resource->parent_id;
             //2.检查功能权限
             $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource->id)->get()->toArray();
-            if(empty($featureInfo)){//如果为空则表示没有权限
-                throw new NoRoleException("你没有访问{$resource->name}功能权限");
+//            dd($featureInfo);
+            if(count($featureInfo) == 0){//如果为空则表示没有权限
+                if($method == "GET"){
+                    return [];
+                }
+                throw new NoFeatureInfoException("你没有访问{$resource->name}功能权限");
             }
             //如果是get请求则检查role_data_view表中是检查用户对该接口的权限
             if($method == "GET"){
@@ -229,7 +261,7 @@ class ScopeRepository
                 if($res != null){//检查访问模块是否在role_resource_view表中，则进行权限限制
                     //检查role_data_view表中的权限
                     //用户和角色是多对多的关系，所以可能一个用户对同一个模块有多重权限
-                    $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
+                    $viewSql = RoleDataView::whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
                     if(count($viewSql) != 0){//没有对应模块的权限记录，则不进行权限控制
                         //如果接口中传进了模型，则对模型进行权限控制
                         if($model != null){

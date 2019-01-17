@@ -53,8 +53,7 @@ class CalendarController extends Controller
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
 
-            //todo 暂时为硬编码
-            if ($user->company->name != '泰洋川禾') {
+            if ($payload['flag'] == 'blogger') {
                 $payload['starable_type'] = ModuleableType::BLOGGER;//博主
             } else {
                 $payload['starable_type'] = ModuleableType::STAR;//艺人
@@ -89,7 +88,7 @@ class CalendarController extends Controller
                 $operate
             ]));
         } catch (Exception $exception) {
-            dd($exception);
+
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建失败');
@@ -109,14 +108,13 @@ class CalendarController extends Controller
         $payload = $request->all();
         if ($request->has('star')) {
             $payload['starable_id'] = hashid_decode($payload['star']);
-            //todo 暂时为硬编码
-            if ($user->company->name != '泰洋川禾') {
-                $payload['starable_type'] = ModuleableType::BLOGGER;
+            if ($payload['flag'] == 'blogger') {
+                $payload['starable_type'] = ModuleableType::BLOGGER;//博主
             } else {
-                $payload['starable_type'] = ModuleableType::STAR;
+                $payload['starable_type'] = ModuleableType::STAR;//艺人
             }
             //判断艺人是否已经关联日历
-            $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('starable_id',$payload['starable_id'])->get()->toArray();
+            $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('id','!=',$calendar->id)->where('starable_id',$payload['starable_id'])->get()->toArray();
             if(count($calendars) >= 1){
                 return $this->response->errorMethodNotAllowed("该艺人已存在相关日历");
             }

@@ -45,7 +45,6 @@ class ScheduleController extends Controller
 
     public function index(IndexScheduleRequest $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard("api")->user();
 
@@ -141,7 +140,9 @@ class ScheduleController extends Controller
                 $join->on('mu.moduleable_id', 's.id')
                     ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
                     ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
-            })->select('mu.user_id');
+
+            })->whereRaw("s.id=schedules.id")
+                ->select('mu.user_id');
 //->whereRaw("s.id=schedules.id")
             $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery) {
                 $query->where(function ($query) use ($payload) {
@@ -399,6 +400,7 @@ class ScheduleController extends Controller
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
         $calendar = Calendar::find($payload['calendar_id']);
+
         if (!$calendar)
             $this->response->errorInternal("日历不存在");
         $participants = array_column($calendar->participants()->get()->toArray(), 'id');
@@ -436,6 +438,7 @@ class ScheduleController extends Controller
             $schedule = $this->hasrepeat($request, $payload, $module, $user);
 
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');

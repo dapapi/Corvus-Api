@@ -2,11 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\NoFeatureInfoException;
 use App\Exceptions\NoRoleException;
 use App\Models\RoleUser;
 use App\Repositories\ScopeRepository;
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PowerMiddleWare
 {
@@ -38,7 +40,12 @@ class PowerMiddleWare
         }
         $operation = preg_replace('/\\d+/', '{id}', $request->path());
         $method = $request->method();
-        (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
+
+        $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
+        if (is_array($res)){
+            return $res;
+        }
+
         return $next($request);
     }
 }

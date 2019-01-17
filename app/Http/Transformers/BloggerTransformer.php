@@ -51,6 +51,7 @@ class BloggerTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
+            'moduleable_type'   =>  ModuleableType::BLOGGER,
             'platform_id' => $blogger->platform_id,    //平台
             'avatar' => $blogger->avatar,
             'communication_status' => $blogger->communication_status,//沟通状态
@@ -116,6 +117,7 @@ class BloggerTransformer extends TransformerAbstract
         $arraySimple = [
             'id' => hashid_encode($blogger->id),
             'nickname' => $blogger->nickname,
+            'flag'   =>  ModuleableType::BLOGGER,
             'avatar' => $blogger->avatar,
             'status' => $blogger->sign_contract_status,
         ];

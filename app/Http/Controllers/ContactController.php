@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Contact\EditContactRequest;
 use App\Http\Requests\Contact\StoreContactRequest;
 use App\Http\Transformers\ContactTransformer;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use Exception;
 use Illuminate\Http\Request;

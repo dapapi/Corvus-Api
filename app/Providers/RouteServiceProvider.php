@@ -10,6 +10,7 @@ use App\Models\ApprovalGroup;
 use App\Models\Blogger;
 use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
+use App\Models\Contract;
 use App\Models\DataDictionary;
 use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
@@ -452,7 +453,6 @@ class RouteServiceProvider extends ServiceProvider
                 $entity = Instance::where('form_instance_number',$num)->first();
                 if (!$entity)
                     $entity = Business::where('form_instance_number',$num)->first();
-
                 if (!$entity)
                     throw new Exception('number不存在');
             } catch (Exception $exception) {
@@ -515,6 +515,17 @@ class RouteServiceProvider extends ServiceProvider
             return $entity;
         });
 
+        Route::bind('contract', function ($value) {
+            try {
+                $entity = Contract::where('form_instance_number',$value)->first();
+                if ($entity == null){
+                    throw new Exception("合同不存在");
+                }
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
     }
 
     /**

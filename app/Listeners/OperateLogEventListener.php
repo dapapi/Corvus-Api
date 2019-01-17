@@ -4,10 +4,13 @@ namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
 use App\Models\Announcement;
+use App\Models\ApprovalForm\ApprovalForm;
+use App\Models\ApprovalForm\Instance;
 use App\Models\Attendance;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\Contract;
 use App\Models\OperateLog;
 use App\Models\Production;
 use App\Models\Project;
@@ -161,7 +164,7 @@ class OperateLogEventListener
                 $type = ModuleableType::GTOUPROLES;
                 $typeName = '分组';
             }else if($operate->obj instanceof ProjectBillsResource){
-                $type = ModuleableType::GTOUPROLES;
+                $type = ModuleableType::PROJECTBILLSRESOURCE;
                 $typeName = '分组';
             }else if($operate->obj instanceof Role) {
                 $type = ModuleableType::ROLE;
@@ -169,6 +172,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Production){
                 $type = ModuleableType::PRODUCTION;
                 $typeName = "做品库";
+            }else if($operate->obj instanceof Contract){
+                $type = ModuleableType::CONTRACT;
+                $typeName = "合同";
             }
             //TODO
 

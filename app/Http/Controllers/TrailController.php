@@ -870,14 +870,12 @@ class TrailController extends Controller
     public function filter(FilterTrailRequest $request)
     {
         $payload = $request->all();
-
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status') && !is_null($payload['status']))
-                $query->where('progress_status', $payload['status']);
+                $query->where('type', $payload['status']);
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -887,7 +885,6 @@ class TrailController extends Controller
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
         })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
-
         return $this->response->paginator($trails, new TrailTransformer());
     }
 

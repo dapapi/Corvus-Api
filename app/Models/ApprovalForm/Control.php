@@ -46,9 +46,25 @@ class Control extends Model
         return null;
     }
 
+    public function getSubTitleAttribute()
+    {
+        $property_value = $this->properties()->where('property_id', 72)->select('property_value')->first();
+        if ($property_value)
+            return $property_value->property_value;
+        return null;
+    }
+
     public function getPlaceholderAttribute()
     {
         $property_value = $this->properties()->where('property_id', 68)->select('property_value')->first();
+        if ($property_value)
+            return $property_value->property_value;
+        return null;
+    }
+
+    public function getSubPlaceholderAttribute()
+    {
+        $property_value = $this->properties()->where('property_id', 73)->select('property_value')->first();
         if ($property_value)
             return $property_value->property_value;
         return null;

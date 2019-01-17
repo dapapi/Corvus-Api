@@ -377,7 +377,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
         $api->delete('returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
         //获取审批通过的项目
-        $api->get('/getHasApprovalProject', 'App\Http\Controllers\ProjectController@getHasApprovalProject');
+        $api->get('/get_has_approval_project', 'App\Http\Controllers\ProjectController@getHasApprovalProject');
 
 
 

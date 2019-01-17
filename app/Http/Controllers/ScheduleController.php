@@ -438,7 +438,6 @@ class ScheduleController extends Controller
             $schedule = $this->hasrepeat($request, $payload, $module, $user);
 
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');

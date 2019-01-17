@@ -394,9 +394,9 @@ class ScheduleController extends Controller
         $payload = $request->all();
 
         $user = Auth::guard('api')->user();
-
-        $payload['repeat'] = $request->has('repeat')?$payload['repeat']:'0';
         $payload['creator_id'] = $user->id;
+        if(!$request->has('repeat') || $payload['repeat'] == null)
+            $payload['repeat'] = '0';
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
         $calendar = Calendar::find($payload['calendar_id']);

@@ -95,6 +95,7 @@ class privacyUserController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+        $user->id = 572;
         $array['user_id'] = $user->id;
         if ($model instanceof Blogger && $model->id) {
             $array['moduleable_id'] = $model->id;

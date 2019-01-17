@@ -69,7 +69,7 @@ class TaskController extends Controller
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
@@ -149,7 +149,7 @@ class TaskController extends Controller
         })
             ->mergeBindings($query)
             ->searchData()
-            ->orderBy('a.created_at', 'desc')
+            ->orderBy('a.updated_at', 'desc')//created_at
             ->paginate($pageSize);
 
         return $this->response->paginator($result, new TaskTransformer());
@@ -202,7 +202,7 @@ class TaskController extends Controller
 
         // $tasks = $query->createDesc()->paginate($pageSize);
 
-        $tasks = $query->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);;
+        $tasks = $query->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
@@ -231,7 +231,7 @@ class TaskController extends Controller
         })->searchData()
             ->mergeBindings($query)
             ->onlyTrashed()//只查询已删除的用户
-            ->orderBy('a.created_at', 'desc')
+            ->orderBy('a.updated_at', 'desc')//created_at
             ->paginate($pageSize);
 
         return $this->response->paginator($result, new TaskTransformer());
@@ -1196,7 +1196,7 @@ class TaskController extends Controller
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }

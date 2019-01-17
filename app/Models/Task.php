@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 class Task extends Model
 {
     use SoftDeletes;
-
+    private $model_dic_id = DataDictionarie::TRAIL;//数据字典中模块id
     protected $fillable = [
         'title',
         'type_id',
@@ -36,7 +36,7 @@ class Task extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers();
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from tasks as t 
             left join module_users as mu on mu.moduleable_id = t.id and 

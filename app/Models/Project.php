@@ -23,6 +23,8 @@ class Project extends Model
     }
     use OperateLogTrait;
 
+    private $model_dic_id = DataDictionarie::PROJECT;
+
     const TYPE_MOVIE = 1; // 影视项目
     const TYPE_VARIETY = 2; // 综艺项目
     const TYPE_ENDORSEMENT = 3; // 商务代言
@@ -84,7 +86,7 @@ class Project extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers();
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return (new SearchDataScope())->getCondition($query, $rules, $userid)->orWhereRaw("{$userid} in (
             select mu.user_id from projects as p
             left join module_users as mu on mu.moduleable_id = p.id and

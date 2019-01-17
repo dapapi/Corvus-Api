@@ -25,22 +25,24 @@ class ScopeRepository
 
     //数据字典中parent_id查看数据范围
     //根据19-本人相关 20-本部门  21-本人及下属部门 22-全部 替换userIds
-    public function getDataViewUsers(bool $arr=false){
+    public function getDataViewUsers($model_dic_id=null,bool $arr=false){
         $user = Auth::guard('api')->user();
         $userId = $user->id;
-        $path = request()->path();
-        $operation = preg_replace('/\\d+/', '{id}', $path);
+//        $path = request()->path();
+//        $operation = preg_replace('/\\d+/', '{id}', $path);
         $method = request()->getMethod();
-        return $this->getUserIds($userId,"/".$operation,$method,$arr);
+//        return $this->getUserIds($userId,"/".$operation,$method,$arr);
+        return $this->getUserIds($userId,$model_dic_id,$method,$arr);
     }
 
     /**
+     * 获取查询权限的规则
      * @param $userId
      * @param $operation
      * @param $method
      * @return array|null 返回空数组表示能查看所有数据  返回null表示不能查看任何数据  返回不为空的userid数组表示能查看着几个用户创建的负责的数据
      */
-    public function getUserIds($userId,$operation,$method,bool $arr=false)
+    public function getUserIds($userId,$model_dic_id,$method,bool $arr=false)
     {
 
         //获取用户角色列表
@@ -50,11 +52,12 @@ class ScopeRepository
         }
 
         //根据子级模块id 查询父级模块id
-        $resource = DataDictionarie::where([['val',$operation],['code',$method]])->select('parent_id')->first();
-        if($resource == null){
-            return null;
-        }
-        $resourceId = $resource->parent_id;
+//        $resource = DataDictionarie::where([['val',$operation],['code',$method]])->select('parent_id')->first();
+//        if($resource == null){
+//            return null;
+//        }
+//        $resourceId = $resource->parent_id;
+        $resourceId = $model_dic_id;
         $arrviewSql = array();
         //角色id 列表
         foreach ($roleIdList as $value){
@@ -68,7 +71,6 @@ class ScopeRepository
             return null;
         }
         $dataDictionarieId = max(array_column($viewSql,'data_view_id'));//获取用户对要访问的模块最大的权限
-
         $dataViewSql = RoleDataView::where('resource_id',$resourceId)->where('data_view_id',$dataDictionarieId)->get()->toArray();
         //查询本人相关 19
         if($dataDictionarieId == 19){

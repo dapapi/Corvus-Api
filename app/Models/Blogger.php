@@ -16,6 +16,7 @@ class Blogger extends Model
 {
     use SoftDeletes;
     use OperateLogTrait;
+    private $model_dic_id = DataDictionarie::BLOGGER;//模型在数据字典中对应的id
     protected $fillable = [
         'nickname',
         'communication_status',//沟通状态
@@ -54,7 +55,7 @@ class Blogger extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers();
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from bloggers as b 
             left join module_users as mu on mu.moduleable_id = b.id and 

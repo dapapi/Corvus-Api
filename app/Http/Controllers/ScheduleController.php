@@ -205,7 +205,7 @@ class ScheduleController extends Controller
             $join->on('mu.moduleable_id', 's.id')
                 ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
-        })->select('mu.user_id');
+        })->whereRaw("s.id=schedules.id")->select('mu.user_id');
         $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery, $calendars) {
 
             $query->where(function ($query) use ($payload) {
@@ -286,8 +286,7 @@ class ScheduleController extends Controller
     {
 
         $array = array();
-
-        $array['end'] = date("Y", time()) . "-12-31";
+        $array['end'] = date("Y", time()) . "-12-31 23:59:59";
         if ($payload['is_allday'] == 1) {
             // 开始时间   Ymd 格式
             $array['stime'] = date('Y-m-d', strtotime($payload['start_at']));
@@ -299,7 +298,6 @@ class ScheduleController extends Controller
             $array['eetime'] = date('Y-m-d H:i:s', strtotime($payload['end_at']));
             $array['ntime'] = date('Y-m-d H:i:s', strtotime(now()));
         }
-
         if ($payload['is_allday'] == 1) {
             if ($payload['repeat'] == 0) {
                 $schedule = Schedule::create($payload);
@@ -308,7 +306,7 @@ class ScheduleController extends Controller
                 $timestamp = strtotime($array['end']) - strtotime($array['etime']);
                 $onedaytimestamp = 60 * 60 * 24;
                 $sumtimestamp = $timestamp / $onedaytimestamp;
-                for ($i = 0; $i < $sumtimestamp + 1; $i++) {
+                for ($i = 0; $i < $sumtimestamp; $i++) {
                     $start_time = date('Y-m-d', strtotime($array['stime']) + $onedaytimestamp * $i);
                     $end_time = date('Y-m-d', strtotime($array['etime']) + $onedaytimestamp * $i);
                     $payload['start_at'] = $start_time;
@@ -320,7 +318,7 @@ class ScheduleController extends Controller
                 $timestamp = strtotime($array['end']) - strtotime($array['etime']);
                 $onedaytimestamp = 60 * 60 * 24 * 7;
                 $sumtimestamp = $timestamp / $onedaytimestamp;
-                for ($i = 0; $i < $sumtimestamp + 1; $i++) {
+                for ($i = 0; $i < $sumtimestamp; $i++) {
                     $start_time = date('Y-m-d', strtotime($array['stime']) + $onedaytimestamp * $i);
                     $end_time = date('Y-m-d', strtotime($array['etime']) + $onedaytimestamp * $i);
                     $payload['start_at'] = $start_time;
@@ -331,7 +329,7 @@ class ScheduleController extends Controller
 
             } else if ($payload['repeat'] == 3) {
                 $timestamp = strtotime($array['end']) - strtotime($array['etime']);
-                $onedaytimestamp = 60 * 60 * 24 * 7 * 31;
+                $onedaytimestamp = 60 * 60 * 24 * 31;
                 $sumtimestamp = ceil($timestamp / $onedaytimestamp);
                 for ($i = 0; $i < $sumtimestamp; $i++) {
                     $start_time = date('Y-m-d', strtotime($array['stime']) + $onedaytimestamp * $i);
@@ -351,7 +349,7 @@ class ScheduleController extends Controller
                 $timestamp = strtotime($array['end']) - strtotime($array['eetime']);
                 $onedaytimestamp = 60 * 60 * 24;
                 $sumtimestamp = ceil($timestamp / $onedaytimestamp);
-                for ($i = 0; $i < $sumtimestamp + 1; $i++) {
+                for ($i = 0; $i < $sumtimestamp; $i++) {
                     $start_time = date('Y-m-d H:i:s', strtotime($array['sstime']) + $onedaytimestamp * $i);
                     $end_time = date('Y-m-d H:i:s', strtotime($array['eetime']) + $onedaytimestamp * $i);
                     $payload['start_at'] = $start_time;
@@ -365,7 +363,7 @@ class ScheduleController extends Controller
                 $timestamp = strtotime($array['end']) - strtotime($array['eetime']);
                 $onedaytimestamp = 60 * 60 * 24 * 7;
                 $sumtimestamp = ceil($timestamp / $onedaytimestamp);
-                for ($i = 0; $i < $sumtimestamp - 1; $i++) {
+                for ($i = 0; $i < $sumtimestamp; $i++) {
                     $start_time = date('Y-m-d', strtotime($array['sstime']) + $onedaytimestamp * $i);
                     $end_time = date('Y-m-d', strtotime($array['eetime']) + $onedaytimestamp * $i);
                     $payload['start_at'] = $start_time;
@@ -375,7 +373,7 @@ class ScheduleController extends Controller
                 }
             } else if ($payload['repeat'] == 3) {
                 $timestamp = strtotime($array['end']) - strtotime($array['eetime']);
-                $onedaytimestamp = 60 * 60 * 24 * 7 * 31;
+                $onedaytimestamp = 60 * 60 * 24 * 31;
                 $sumtimestamp = ceil($timestamp / $onedaytimestamp);
                 for ($i = 0; $i < $sumtimestamp; $i++) {
                     $start_time = date('Y-m-d', strtotime($array['sstime']) + $onedaytimestamp * $i);
@@ -397,6 +395,8 @@ class ScheduleController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
+        if(!$request->has('repeat') || $payload['repeat'] == null)
+            $payload['repeat'] = '0';
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
         $calendar = Calendar::find($payload['calendar_id']);
@@ -438,7 +438,6 @@ class ScheduleController extends Controller
             $schedule = $this->hasrepeat($request, $payload, $module, $user);
 
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');

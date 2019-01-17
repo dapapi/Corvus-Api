@@ -13,6 +13,7 @@ use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
 use App\Http\Transformers\ProjectTransformer;
+use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
@@ -1341,4 +1342,17 @@ class ProjectController extends Controller
             $operate,
         ]));
     }
+
+    /**
+     * 获取已经审批通过的项目
+     */
+    public function getHasApprovalProject()
+    {
+        $res = Project::select('projects.id','projects.title')->Join('approval_form_business','projects.project_number','approval_form_business.form_instance_number')
+            ->where('form_status',232)//232 签约通过
+            ->get();
+        return $this->response->collection($res,new simpleProjectTransformer());
+    }
+
 }
+

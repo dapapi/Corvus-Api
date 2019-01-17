@@ -43,10 +43,10 @@ class SearchDataScope implements Scope
      */
     public function getCondition($query,$rules,$userid)
     {
-        if($rules == null){
-            return $query->where(DB::raw('0 = 1')); //不查询任何数据
+        if($rules === null){
+            return $query->whereRaw('0 = 1'); //不查询任何数据
         }
-        if($rules != null && count($rules) == 0){
+        if(is_array($rules) && count($rules) == 0){
             return $query;
         }
 //        $op_list = ['>','>=','<','<=','like','in'];
@@ -75,7 +75,7 @@ class SearchDataScope implements Scope
                         switch ($value['op']){
                             case 'in':
                                 if($value['value'] == null){
-                                    $condition[] = $query->orWhere(DB::raw("{$value['field']} in (null)"));
+                                    $condition[] = $query->orWhereRaw("{$value['field']} in (null)");
                                 }else{
                                     $condition[] = $query->orWhereIn($value['field'],$value['value']);
                                 }
@@ -96,7 +96,7 @@ class SearchDataScope implements Scope
                         switch ($value['op']){
                             case 'in':
                                 if($value['value'] == null){
-                                    $condition[] = $query->where(DB::raw("{$value['field']} in (null)"));
+                                    $condition[] = $query->whereRaw("{$value['field']} in (null)");
                                 }else{
                                     $condition[] = $query->whereIn($value['field'],$value['value']);
                                 }

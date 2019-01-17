@@ -53,6 +53,7 @@ class BloggerRequest extends FormRequest
                 BloggerLevel::S,
                 BloggerLevel::A,
                 BloggerLevel::B,
+                BloggerLevel::C
             ]),
             'hatch_star_at' => 'date',//孵化期开始时间
             'hatch_end_at' => 'date',//孵化期结束时间

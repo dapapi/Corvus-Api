@@ -52,8 +52,12 @@ class SeasPoolController extends Controller
         $trails = Trail::where(function ($query) use ($request, $payload, $takeType) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($takeType)
+            if ($takeType ==1){
                 $query->where('take_type', $takeType);
+            }else{
+                $query->whereIn('take_type', [1,2]);
+            }
+
             if ($request->has('pool_type') && !is_null($payload['pool_type']))
                 $query->where('pool_type', $payload['pool_type']);
 
@@ -167,7 +171,7 @@ class SeasPoolController extends Controller
     public function refund(Request $request, Trail $trail)
     {
         $payload = $request->all();
-        
+
         $user = Auth::guard('api')->user();
         $userName = $user->name;
 

@@ -167,7 +167,7 @@ class SeasPoolController extends Controller
     public function refund(Request $request, Trail $trail)
     {
         $payload = $request->all();
-        dd($payload);
+        
         $user = Auth::guard('api')->user();
         $userName = $user->name;
 

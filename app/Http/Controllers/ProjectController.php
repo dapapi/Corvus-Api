@@ -1349,6 +1349,7 @@ class ProjectController extends Controller
     public function getHasApprovalProject()
     {
         $res = Project::select('projects.id','projects.title')->Join('approval_form_business','projects.project_number','approval_form_business.form_instance_number')
+            ->searchData()
             ->where('form_status',232)//232 签约通过
             ->get();
         return $this->response->collection($res,new simpleProjectTransformer());

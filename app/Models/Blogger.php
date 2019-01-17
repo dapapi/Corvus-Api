@@ -111,4 +111,8 @@ class Blogger extends Model
     {
         return $this->morphOne(Calendar::class,'starable');
     }
+    public function schedules()
+    {
+        return $this->belongsTo(Schedule::class,'calendar_id','id');
+    }
 }

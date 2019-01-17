@@ -643,6 +643,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // 获取审批实例
         $api->get('/approval_instances/{instance}', 'App\Http\Controllers\ApprovalFormController@detail');
+        $api->get('/approvals/specific_contract', 'App\Http\Controllers\ApprovalFormController@getContractForm');
         // 合同和普通审批新建
         $api->post('/approvals/{approval}', 'App\Http\Controllers\ApprovalFormController@instanceStore');
         // 审批流

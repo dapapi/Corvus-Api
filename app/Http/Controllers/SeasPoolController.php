@@ -46,14 +46,25 @@ class SeasPoolController extends Controller
         $department_id = Department::where('name', '商业管理部')->first();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $takeType = isset($payload['take_type']) ? $payload['take_type'] : 1;
+        $takeType = isset($payload['take_type']) ? $payload['take_type'] : 0;
+
+        $receive = isset($payload['receive_type']) ? $payload['receive_type'] : 0;
 
 
-        $trails = Trail::where(function ($query) use ($request, $payload, $takeType) {
+        $trails = Trail::where(function ($query) use ($request, $payload, $takeType,$receive) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($takeType == 2)
-                $query->where('take_type', 2);
+            if ($takeType ==1){
+                $query->where('take_type', $takeType);
+            }else{
+                $query->whereIn('take_type', [1,2]);
+            }
+            if ($receive ==1){
+                $query->where('take_type', $receive);
+            }elseif($receive ==2){
+                $query->where('take_type',2);
+            }
+
             if ($request->has('pool_type') && !is_null($payload['pool_type']))
                 $query->where('pool_type', $payload['pool_type']);
 
@@ -63,32 +74,43 @@ class SeasPoolController extends Controller
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
-    public function receive(Request $request, Trail $trail)
+    public function receive(Request $request)
     {
+        $payload = $request->all();
 
         $user = Auth::guard('api')->user();
         $userName = $user->name;
         $content = $userName . '领取销售线索';
         DB::beginTransaction();
         try {
-            //修改领取销售线索状态
-            $array = [
-                'principal_id' => $user->id,
-                'take_type' => 2
-            ];
+            if(!empty($payload['id'])){
+               foreach ($payload['id'] as $valId){
+                    //修改领取销售线索状态
+                   $array = [
+                       'principal_id' => $user->id,
+                       'take_type' => 2
+                   ];
 
-            $trail->update($array);
-            // 操作日志
-            $operate = new OperateEntity([
-                'obj' => $trail,
-                'title' => null,
-                'start' => $content,
-                'end' => null,
-                'method' => OperateLogMethod::FOLLOW_UP,
-            ]);
-            event(new OperateLogEvent([
-                $operate,
-            ]));
+                   $num = DB::table('trails')->where('id',hashid_decode($valId))->update($array);
+
+                   $trail = Trail::where('id',hashid_decode($valId))->first();
+
+                   // 操作日志
+                   $operate = new OperateEntity([
+                       'obj' => $trail,
+                       'title' => null,
+                       'start' => $content,
+                       'end' => null,
+                       'method' => OperateLogMethod::FOLLOW_UP,
+                   ]);
+
+                   event(new OperateLogEvent([
+                       $operate,
+                   ]));
+               }
+
+            }
+
         } catch (Exception $e) {
             Log::error($e);
             return $this->response->errorInternal('跟进失败');
@@ -97,7 +119,7 @@ class SeasPoolController extends Controller
 
     }
 
-    public function allot(Request $request, Trail $trail)
+    public function allot(Request $request)
     {
         $payload = $request->all();
 
@@ -114,25 +136,38 @@ class SeasPoolController extends Controller
         DB::beginTransaction();
         try {
 
-            //修改分配销售线索状态
-            $array = [
-                'principal_id' => $userId,
-                'take_type' => 2
-            ];
 
-            $trail->update($array);
+            if(!empty($payload['id'])){
+                foreach ($payload['id'] as $valId){
+                    //修改领取销售线索状态
 
-            // 操作日志
-            $operate = new OperateEntity([
-                'obj' => $trail,
-                'title' => null,
-                'start' => $content,
-                'end' => null,
-                'method' => OperateLogMethod::FOLLOW_UP,
-            ]);
-            event(new OperateLogEvent([
-                $operate,
-            ]));
+                    //修改分配销售线索状态
+                    $array = [
+                        'principal_id' => $userId,
+                        'take_type' => 2
+                    ];
+
+                    $num = DB::table('trails')->where('id',hashid_decode($valId))->update($array);
+
+                    $trail = Trail::where('id',hashid_decode($valId))->first();
+
+                    // 操作日志
+                    $operate = new OperateEntity([
+                        'obj' => $trail,
+                        'title' => null,
+                        'start' => $content,
+                        'end' => null,
+                        'method' => OperateLogMethod::FOLLOW_UP,
+                    ]);
+
+                    event(new OperateLogEvent([
+                        $operate,
+                    ]));
+                }
+
+            }
+
+
         } catch (Exception $e) {
             Log::error($e);
             return $this->response->errorInternal('跟进失败');

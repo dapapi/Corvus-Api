@@ -40,6 +40,11 @@ class FormControlTransformer extends TransformerAbstract
             $arr['control_enums'] = $control->enum;
         }
 
+        if (in_array($control->control_id, [81])) {
+            $arr['control_title_sub'] = $control->sub_title;
+            $arr['control_placeholder_sub'] = $control->sub_placeholder;
+        }
+
         return $arr;
     }
 }

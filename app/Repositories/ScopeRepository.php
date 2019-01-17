@@ -103,7 +103,7 @@ class ScopeRepository
             return $arrayUserid;
         }elseif($dataDictionarieId == 417){//本部门及同级部门
             //获取本部门id
-            $departmentId = DepartmentUser::where('user_id',$userId)->first()->id;
+            $departmentId = DepartmentUser::where('user_id',$userId)->first()->department_id;
             $arrayUserid = $this->getMyDepartmentAndSameLevelDepartmentUserList($departmentId);
         }else{
             return null;
@@ -160,7 +160,7 @@ class ScopeRepository
             //获取同级部门id列表
             $department_ids = array_column($departments,'id');
             //获取同级部门用户列表
-            $users = DepartmentUser::whereIn('department_id',$department_ids)->leftJoin('users as u','u.id','departments.user_id')->select('u.id')->get()->toArray();
+            $users = DepartmentUser::whereIn('department_user.department_id',$department_ids)->leftJoin('users as u','u.id','department_user.user_id')->select('u.id')->get()->toArray();
             $user_ids = array_column($users,'id');
             return $user_ids;
         }catch (\Exception $e){

@@ -377,7 +377,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('projects/{project}/returned/{projectreturnedmoney}/money', 'App\Http\Controllers\ProjectController@addProjectRecord');
         $api->delete('returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
         //获取审批通过的项目
-        $api->get('/getHasApprovalProject', 'App\Http\Controllers\ProjectController@getHasApprovalProject');
+        $api->get('/get_has_approval_project', 'App\Http\Controllers\ProjectController@getHasApprovalProject');
 
 
 
@@ -547,14 +547,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/position/disable', 'App\Http\Controllers\DepartmentController@disableList');
         $api->put('/position/disable/{user}', 'App\Http\Controllers\DepartmentController@disableEdit');
 
+        
         /*公海池*/
         $api->get('/pool/index','App\Http\Controllers\SeasPoolController@index');
         //领取
-        $api->post('/pool/receive/{trail}','App\Http\Controllers\SeasPoolController@receive');
+        $api->post('/pool/receive','App\Http\Controllers\SeasPoolController@receive');
         //分配
-        $api->post('/pool/allot/{trail}','App\Http\Controllers\SeasPoolController@allot');
+        $api->post('/pool/allot','App\Http\Controllers\SeasPoolController@allot');
         //退回
         $api->post('/pool/refund/{trail}','App\Http\Controllers\SeasPoolController@refund');
+
+
 
 
 

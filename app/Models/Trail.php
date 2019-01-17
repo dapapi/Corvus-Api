@@ -123,10 +123,10 @@ class Trail extends Model
     }
     public function orCondition($query,$rules)
     {
-        if($rules == null){
+        if($rules === null){
             return $query->where(DB::raw('0 = 1')); //不查询任何数据
         }
-        if($rules != null && count($rules) == 0){
+        if(is_array($rules) && count($rules) == 0){
             return $query;
         }
         switch ($rules['op']){

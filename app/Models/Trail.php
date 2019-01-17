@@ -136,7 +136,7 @@ class Trail extends Model
                         switch ($value['op']){
                             case 'in':
                                 if($value['value'] == null){
-                                    $condition[] = $query->orWhere(DB::raw("{$value['field']} in (null)"));
+                                    $condition[] = $query->orWhere("{$value['field']}");
                                 }else{
                                     $condition[] = $query->orWhereIn($value['field'],$value['value']);
                                 }

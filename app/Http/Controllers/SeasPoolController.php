@@ -61,7 +61,7 @@ class SeasPoolController extends Controller
             }
             if ($receive ==1){
                 $query->where('take_type', $receive);
-            }else{
+            }elseif($receive ==2){
                 $query->where('take_type',2);
             }
 

@@ -225,7 +225,6 @@ class ApprovalFlowController extends Controller
             ];
         }
 
-        dd($array);
         return $this->response->array(['data' => $array]);
     }
 

@@ -11,8 +11,10 @@ use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
+use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
 use App\Models\Blogger;
+use App\Imports\TrailsImport;
 use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
 use App\Models\Department;
@@ -30,12 +32,14 @@ use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\ScopeRepository;
 use App\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
-use Maatwebsite\Excel\Excel;
+//use Maatwebsite\Excel\Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TrailController extends Controller
 {
@@ -957,14 +961,23 @@ class TrailController extends Controller
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
-    public function import()
+    public function import(ExcelImportRequest $request)
     {
-
+        DB::beginTransaction();
+        try {
+            Excel::import(new TrailsImport(), $request->file('file'));
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+        }
+        DB::commit();
+        return $this->response->created();
     }
 
     public function export(Request $request)
     {
         $file = '当前线索导出' . date('YmdHis', time()) . '.xlsx';
-        return (new TrailsExport())->download($file);
+        return (new TrailsExport($request))->download($file);
     }
 }

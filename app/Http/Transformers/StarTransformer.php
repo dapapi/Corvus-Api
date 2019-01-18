@@ -5,6 +5,8 @@ namespace App\Http\Transformers;
 use App\Models\Star;
 use App\ModuleableType;
 use League\Fractal\TransformerAbstract;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class StarTransformer extends TransformerAbstract
 {
@@ -16,7 +18,7 @@ class StarTransformer extends TransformerAbstract
         $this->isAll = $isAll;
     }
 
-    protected $availableIncludes = ['creator', 'tasks', 'trails','affixes','broker', 'publicity','project','works','calendar'];
+    protected $availableIncludes = ['creator', 'tasks', 'trails','affixes','broker', 'publicity','project','works','calendar','schedule'];
 
     public function transform(Star $star)
     {
@@ -128,5 +130,15 @@ class StarTransformer extends TransformerAbstract
             return null;
         }
     }
+    public function includeSchedule(Star $star)
+    {
 
+        $calendars = $star->calendar()->first();
+        if($calendars){
+            $calendar = $calendars->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+            return $this->collection($calendar,new ScheduleTransformer());
+        }else{
+            return null;
+        }
+    }
 }

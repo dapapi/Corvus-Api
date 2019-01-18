@@ -22,7 +22,7 @@ class FormControlTransformer extends TransformerAbstract
                 'data_dictionary_name' => $control->dictionary->name
             ],
             'related_field' => $control->relate,
-            'form_control_pid' => $control->pid ? hashid_encode($control->pid) : 0,
+            'form_control_pid' => $control->pid ? 1 : 0,
             'sort_number' => $control->sort_number,
             'required' => $control->required,
             'control_title' => $control->title,

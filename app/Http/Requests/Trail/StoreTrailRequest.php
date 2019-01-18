@@ -4,6 +4,7 @@ namespace App\Http\Requests\Trail;
 
 
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreTrailRequest extends FormRequest
 {
@@ -42,8 +43,12 @@ class StoreTrailRequest extends FormRequest
             'cooperation_type' => 'nullable|numeric', // 合作类型
             'status' => 'nullable|numeric',
             'priority' => 'required|numeric',
-            'recommendations' => 'nullable|array',
-            'expectations' => 'nullable|array',
+            'recommendations' => 'nullable|array', //推荐艺人
+            'recommendations.*.id' =>  'nullable|integer',
+            'recommendations.*flag'    =>  ['nullable',Rule::in('star','blogger')],
+            'expectations' => 'required|array', //目标艺人
+            'expectations.*.id' =>  'required|integer',
+            'expectations.*.flag'    =>  ['required',Rule::in('star','blogger')],
             'fee' => 'required|numeric',
             'lock' => 'nullable|boolean',
             'desc' => 'nullable',
@@ -69,6 +74,12 @@ class StoreTrailRequest extends FormRequest
             'cooperation_type.numeric' => '合作类型填数值',
             'status.numeric' => '线索状态填数值',
             'recommendations.array' => '推荐艺人数组',
+            'recommendations.*.id.integer'  =>  '推荐艺人id必须为数字',
+            'recommendations.*.flag'    =>  '推荐艺人参数错误!',
+            'expectations.required' =>  '目标艺人为必填',
+            'expectations.*.id.required' => '目标艺人id不能为空',
+            'expectations.*.id.integer' =>  '目标艺人id必须为数字',
+            'expectations.*.flag.required'   =>  '目标艺人参数错误',
             'expectations.array' => '目标艺人数组',
             'fee.numeric' => '预计费用填数值',
             'lock' => '是否锁价需布尔值',

@@ -42,7 +42,7 @@ class ScopeRepository
      * @param $method
      * @return array|null 返回空数组表示能查看所有数据  返回null表示不能查看任何数据  返回不为空的userid数组表示能查看着几个用户创建的负责的数据
      */
-    public function getUserIds($userId,$model_dic_id,$method,bool $arr=false)
+    public function getUserIds($userId,$operation,$method,bool $arr=false)
     {
 
         //获取用户角色列表
@@ -50,14 +50,17 @@ class ScopeRepository
         if(count($roleIdList) == 0){//用户没有角色
             return null;
         }
+        if (is_int($operation)){//如果是数字传入的直接是模块id
+            $resourceId = $operation;
+        }else{
+//            根据子级模块id 查询父级模块id
+            $resource = DataDictionarie::where([['val',$operation],['code',$method]])->select('parent_id')->first();
+            if($resource == null){
+                return null;
+            }
+            $resourceId = $resource->parent_id;
+        }
 
-        //根据子级模块id 查询父级模块id
-//        $resource = DataDictionarie::where([['val',$operation],['code',$method]])->select('parent_id')->first();
-//        if($resource == null){
-//            return null;
-//        }
-//        $resourceId = $resource->parent_id;
-        $resourceId = $model_dic_id;
         $arrviewSql = array();
         //角色id 列表
         foreach ($roleIdList as $value){

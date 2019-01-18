@@ -58,10 +58,29 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $payload = $request->all();
-
+        $user = Auth::guard("api")->user();
+        $my = $request->get('my',0);
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $tasks = Task::where(function($query) use ($request, $payload) {
+        $query = Task::select('tasks.*');
+        switch ($my) {
+            case 2://我参与
+                $query = $user->participantTasks();
+                break;
+            case 3://我负责
+                $query->where('principal_id', $user->id);
+                break;
+            case 4://我分配
+                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                break;
+            case 1://我创建
+                $query->where('creator_id', $user->id);
+                break;
+            default:
+                break;
+        }
+//        dd($query->toSql());
+        $tasks = $query->where(function($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
@@ -70,7 +89,6 @@ class TaskController extends Controller
                 $query->where('status', $payload['status']);
 
         })->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
-
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
@@ -1173,7 +1191,7 @@ class TaskController extends Controller
 
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
         }catch (Exception $e){
-
+            Log::error($e);
         }
         DB::commit();
         return $this->response->item(Task::find($task->id), new TaskTransformer());

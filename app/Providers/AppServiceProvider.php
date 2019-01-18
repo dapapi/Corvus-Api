@@ -6,6 +6,7 @@ use App\Models\Blogger;
 use App\Models\Calendar;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\Contract;
 use App\Models\Project;
 use App\Models\Schedule;
 use App\Models\Announcement;
@@ -52,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::ANNOUNCEMENT => Announcement::class,
             ModuleableType::DEPARTMENT => Department::class,
             ModuleableType::REPOSITORY => Repository::class,
+            ModuleableType::CONTRACT => Contract::class,
 
             //TODO
         ]);

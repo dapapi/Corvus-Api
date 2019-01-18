@@ -78,12 +78,14 @@ class OperateLogController extends Controller
                 break;
         }
         $operateLogs = $query->createDesc()->paginate($pageSize);
+
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
                 $operateLog->content = '!!!!!!!';
                 //TODO 隐私字段裁切处理
             }
         }
+
         return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
     public function myIndex(Request $request, Issues $issues)

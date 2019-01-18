@@ -224,9 +224,9 @@ class ClientController extends Controller
         return $this->response->created();
     }
 
-    public function export()
+    public function export(Request $request)
     {
         $file = '当前用户导出'. date('YmdHis', time()).'.xlsx';
-        return (new ClientsExport())->download($file);
+        return (new ClientsExport($request))->download($file);
     }
 }

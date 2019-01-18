@@ -40,7 +40,7 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
                 if ($key == 0)
                     continue ;
                 $client = Client::create([
-                    'type' => $row[0],
+                    'type' => $this->type($row[0]),
                     'company' => $row[1],
                     'grade' => $row[2] == '直客' ? 1 : 2,
                     'principal_id' => $this->principal($row[3]),
@@ -70,6 +70,24 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
         return 800;
     }
 
+    private function type($type)
+    {
+        switch ($type) {
+            case '影视客户':
+                $type = '1';
+                break;
+            case '综艺客户':
+                $type = '2';
+                break;
+            case '商务代言':
+                $type = '3';
+                break;
+            case 'papi客户':
+                $type = '4';
+                break;
+        }
+        return $type;
+    }
     private function principal($principal_name)
     {
         $user = User::where('name', $principal_name)->first();

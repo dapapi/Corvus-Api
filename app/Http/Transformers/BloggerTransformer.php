@@ -192,9 +192,10 @@ class BloggerTransformer extends TransformerAbstract
     public function includeSchedule(Blogger $blogger)
     {
 
-        $calendars = $blogger->calendars()->first()->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+        $calendars = $blogger->calendars()->first();
         if($calendars){
-            return $this->collection($calendars,new ScheduleTransformer());
+            $calendar = $calendars->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+            return $this->collection($calendar,new ScheduleTransformer());
         }else{
             return null;
         }

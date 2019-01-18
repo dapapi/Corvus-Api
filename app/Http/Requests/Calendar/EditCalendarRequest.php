@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Calendar;
 
-use Illuminate\Foundation\Http\FormRequest;
+
+use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EditCalendarRequest extends FormRequest
 {
@@ -24,11 +26,12 @@ class EditCalendarRequest extends FormRequest
     public function rules()
     {
         return [
-            'flag'  =>  'required',
+
             'title' => 'required',
             'color' => 'required',
             'privacy' => 'nullable|numeric',
-            'star' => 'nullable|numeric',
+            'star.id' => 'nullable|numeric',
+            'star.flag' =>  ['nullable',Rule::in(['star','blogger'])],
             'participant_ids' => 'nullable|array',
             'participant_del_ids' => 'nullable|array',
         ];
@@ -36,11 +39,11 @@ class EditCalendarRequest extends FormRequest
     public function messages()
     {
         return [
-          'flag.required'   =>  '关联艺人参数错误',
+          'star.flag.required'   =>  '关联艺人参数错误',
             'title.required' =>  '日历标题不能为空',
             'color.required'    =>  '日历颜色不能为空',
             'privacy.numberic'  =>  '是否公开参数错误',
-            'star.number'  =>  '艺人错误',
+            'star.id.number'  =>  '艺人错误',
             'participant_ids.array' =>  '参与人参数错误',
             'participant_del_ids.array' =>  '参与人参数错误'
         ];

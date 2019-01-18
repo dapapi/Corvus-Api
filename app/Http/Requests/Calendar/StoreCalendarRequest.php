@@ -4,6 +4,7 @@ namespace App\Http\Requests\Calendar;
 
 
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCalendarRequest extends FormRequest
 {
@@ -26,10 +27,10 @@ class StoreCalendarRequest extends FormRequest
     {
         return [
             'title' => 'required',
-            'flag'  =>  'required',
+            'star.flag'  =>  ['nullable',Rule::in(['star','blogger'])],
             'color' => 'required',
             'privacy' => 'required|numeric',
-            'star' => 'nullable|numeric',
+            'star.id' => 'nullable|numeric',
             'participant_ids' => 'nullable|array',
         ];
     }

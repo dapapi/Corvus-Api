@@ -41,6 +41,7 @@ use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
+use App\Repositories\TrailStarRepository;
 use App\User;
 use Exception;
 use Illuminate\Http\Request;

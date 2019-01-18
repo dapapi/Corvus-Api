@@ -6,6 +6,7 @@ namespace App\Http\Requests\Project;
 use App\Models\Project;
 use App\Models\TemplateField;
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreProjectRequest extends FormRequest
@@ -37,8 +38,10 @@ class StoreProjectRequest extends FormRequest
             'trail.lock' => 'nullable|boolean',
             'trail.resource_type' => 'nullable|numeric',
             'trail.resource' => 'nullable',
-            'trail.recommendations' => 'nullable|array',
-            'trail.expectations' => 'nullable|array',
+            'trail.recommendations.*.id' => 'required|integer',
+            'trail.recommendations.*.flag' => ['required',Rule::in(['star','blogger'])],
+            'trail.expectations.*.id' => 'required|integer',
+            'trail.expectations.*.flag' => ['required',Rule::in(['star','blogger'])],
             'fields' => 'required_unless:type,'. Project::TYPE_BASE .'|array',
             'participant_ids' => 'nullable|array',
             'start_at' => 'nullable|date',

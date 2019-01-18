@@ -40,8 +40,12 @@ class EditTrailRequest extends FormRequest
             'status' => ['nullable',Rule::in([Trail::PRIORITY_A,Trail::PRIORITY_B,Trail::PRIORITY_C,Trail::PRIORITY_S])],
             'cooperation_type' => 'nullable|numeric', // 合作类型
             'priority' => 'nullable|numeric',
-            'recommendations' => 'nullable|array',
-            'expectations' => 'nullable|array',
+            'recommendations' => 'nullable|array', //推荐艺人
+            'recommendations.*.id' =>  'nullable|integer',
+            'recommendations.*flag'    =>  ['nullable',Rule::in('star','blogger')],
+            'expectations' => 'required|array', //目标艺人
+            'expectations.*.id' =>  'required|integer',
+            'expectations.*.flag'    =>  ['required',Rule::in('star','blogger')],
             'fee' => 'nullable|numeric',
             'lock' => 'nullable|boolean',
             'desc' => 'nullable',

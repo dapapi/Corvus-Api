@@ -43,7 +43,10 @@ class PowerMiddleWare
 
             $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
             if (is_array($res)){
-                return response([]);
+                $array = [
+                  "data"=>[]
+                ];
+                return response(json_encode($array));
             }
 
 

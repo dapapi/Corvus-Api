@@ -7,8 +7,7 @@ abstract class BloggerLevel
     const S = 1;
     const A = 2;
     const B = 3;
-
-
+    const C = 4;
     /**
      * @param $key
      * @return string
@@ -25,6 +24,9 @@ abstract class BloggerLevel
                 break;
             case BloggerLevel::B:
                 $start = 'B';
+                break;
+            case BloggerLevel::C:
+                $start = 'C';
                 break;
         }
         return $start;

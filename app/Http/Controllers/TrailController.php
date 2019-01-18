@@ -588,7 +588,7 @@ class TrailController extends Controller
                     //获取现在关联的艺人和博主
                     $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
                     $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
-                    $repository->store($trail,$payload['recommendations'],TrailStar::EXPECTATION);
+                    $repository->store($trail,$payload['expectations'],TrailStar::EXPECTATION);
                     //获取更新之后的艺人和博主列表
                     $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
 //                    $start = null;

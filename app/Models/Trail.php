@@ -62,6 +62,8 @@ class Trail extends Model
     const PRIORITY_A = 3;
     const PRIORITY_S = 4;
 
+    // 商业管理部
+    const  WORLDWIDE = 207;
 
 
     protected $fillable = [
@@ -92,30 +94,30 @@ class Trail extends Model
     public function scopeSearchData($query)
     {
         $user = Auth::guard("api")->user();
-//        $extra = '';
-//        $userid = $user->id;
-//        $department_id = Department::where('name', '商业管理部')->first();
-//        if($department_id) {
-//            $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-//            $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
-//            if($is_papi){
-//                $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
-//                $user_id = array();
-//
-//               foreach ($user_list as $val){
-//                   $user_id[] = $val['user_id'];
-//               }
-//                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => $user_id];
-//                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
-//                $array['op'] =  'or';
-//                $rules = $array;
-//                $extras =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
-//                $extra = $extras->get()->toArray();
-//            }
-//        }else{
-//            $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
-//            return (new SearchDataScope())->getCondition($query,$rules,$userid);
-//        }
+        $extra = '';
+        $userid = $user->id;
+        $department_id =  $this::WORLDWIDE;
+        if($department_id) {
+            $department_ids = Department::where('department_pid', $this::WORLDWIDE)->get(['id']);
+            $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
+            if($is_papi){
+                $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
+                $user_id = array();
+
+               foreach ($user_list as $val){
+                   $user_id[] = $val['user_id'];
+               }
+                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => $user_id];
+                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
+                $array['op'] =  'or';
+                $rules = $array;
+                $extras =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
+                $extra = $extras->get()->toArray();
+            }
+        }else{
+            $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
+            return (new SearchDataScope())->getCondition($query,$rules,$userid);
+        }
 
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return $this->orCondition($query,$rules);

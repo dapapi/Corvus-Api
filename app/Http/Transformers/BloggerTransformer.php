@@ -6,11 +6,12 @@ use App\PrivacyType;
 use App\Models\Blogger;
 use League\Fractal\TransformerAbstract;
 use App\Models\PrivacyUser;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 class BloggerTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses','calendar'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses','calendar','schedule'];
 
     private $isAll;
 
@@ -184,6 +185,16 @@ class BloggerTransformer extends TransformerAbstract
         $calendars = $blogger->calendars()->first();
         if($calendars){
             return $this->item($calendars,new CalendarTransformer());
+        }else{
+            return null;
+        }
+    }
+    public function includeSchedule(Blogger $blogger)
+    {
+
+        $calendars = $blogger->calendars()->first()->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+        if($calendars){
+            return $this->collection($calendars,new ScheduleTransformer());
         }else{
             return null;
         }

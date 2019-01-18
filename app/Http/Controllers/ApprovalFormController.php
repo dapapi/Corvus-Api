@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Exceptions\ApprovalVerifyException;
 use App\Helper\Generator;
+use App\Http\Requests\Approval\GetContractFormRequest;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
@@ -327,7 +328,7 @@ class ApprovalFormController extends Controller
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)
             ->orderBy('afc.change_at', 'desc')
             ->groupBy('afb.form_instance_number')
-            ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id','afc.change_at')->get()->toArray();
+            ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id', 'afc.change_at')->get()->toArray();
 
         return $dataUser;
     }
@@ -504,7 +505,7 @@ class ApprovalFormController extends Controller
                 $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
             })
             ->where('afc.notice_type', '!=', 237)->where('afc.notice_type', '!=', 238)->where('afc.notice_id', $userId)
-            ->where('afb.form_status','!=', 231)
+            ->where('afb.form_status', '!=', 231)
             ->orderBy('ph.created_at', 'desc')
             ->groupBy('afb.form_instance_number')
             ->select('ph.id', 'afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at')->get()->toArray();
@@ -709,11 +710,11 @@ class ApprovalFormController extends Controller
             }
             //记录日志
             //泰洋项目合同，papi醒目合同
-            if($approval->form_id == 9 || $approval->form_id == 10){
+            if ($approval->form_id == 9 || $approval->form_id == 10) {
                 foreach ($controlValues as $value) {
-                    if ($value['type'] == "project_id"){
+                    if ($value['type'] == "project_id") {
                         $project = Project::find(hashid_decode($value['value']['id']));
-                        if($project){
+                        if ($project) {
                             $operate = new OperateEntity([
                                 'obj' => $project,
                                 'title' => null,
@@ -729,8 +730,8 @@ class ApprovalFormController extends Controller
                         try {
 
                             $user = Auth::guard('api')->user();
-                            $title = $project->title."项目成单了";  //通知消息的标题
-                            $subheading = $project->title."项目成单了";
+                            $title = $project->title . "项目成单了";  //通知消息的标题
+                            $subheading = $project->title . "项目成单了";
                             $module = Message::PROJECT;
                             $link = URL::action("ProjectController@detail", ["project" => $project->id]);
                             $data = [];
@@ -744,8 +745,8 @@ class ApprovalFormController extends Controller
                                 'value' => $principal->name
                             ];
                             //发送给创建人的直属领导
-                            $department = DepartmentUser::where('user_id',$user->id)->first();
-                            $leader = DepartmentUser::where('department_id',$department->id)->where('type',1)->first();
+                            $department = DepartmentUser::where('user_id', $user->id)->first();
+                            $leader = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
                             $send_user = [$leader->id];
                             $authorization = $request->header()['authorization'][0];
 
@@ -771,6 +772,36 @@ class ApprovalFormController extends Controller
 
         DB::commit();
         return $this->response->created();
+    }
+
+    /**
+     * todo 暂为硬编码
+     * @param GetContractFormRequest $request
+     * $request->type projects stars bloggers
+     * $request->status 1: 泰洋项目 签约 2：papi项目 解约
+     * @return \Dingo\Api\Http\Response
+     */
+    public function getContractForm(GetContractFormRequest $request)
+    {
+        $type = $request->get('type');
+        $status = $request->get('status');
+
+        if ($type == 'projects' && $status == 1)
+            $form = ApprovalForm::where('form_id', 9)->select('form_id', 'name', 'change_type', 'modified')->first();
+        elseif ($type == 'projects' && $status == 2)
+            $form = ApprovalForm::where('form_id', 10)->select('form_id', 'name', 'change_type', 'modified')->first();
+        elseif ($type == 'stars' && $status == 1)
+            $form = ApprovalForm::where('form_id', 7)->select('form_id', 'name', 'change_type', 'modified')->first();
+        elseif ($type == 'stars' && $status == 2)
+            $form = ApprovalForm::where('form_id', 8)->select('form_id', 'name', 'change_type', 'modified')->first();
+        elseif ($type == 'bloggers' && $status == 1)
+            $form = ApprovalForm::where('form_id', 5)->select('form_id', 'name', 'change_type', 'modified')->first();
+        elseif ($type == 'bloggers' && $status == 2)
+            $form = ApprovalForm::where('form_id', 6)->select('form_id', 'name', 'change_type', 'modified')->first();
+        else
+            return $this->response->errorBadRequest('参数错误');
+
+        return $this->response->item($form, new ApprovalFormTransformer());
     }
 
     private function instanceValueStore($num, $key, $value, $type = null)

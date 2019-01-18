@@ -1191,7 +1191,6 @@ class TaskController extends Controller
 
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
         }catch (Exception $e){
-            dd($e);
             Log::error($e);
         }
         DB::commit();

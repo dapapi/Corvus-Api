@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\ApprovalForm\Business;
+use App\Models\ApprovalForm\Instance;
 use App\Models\Blogger;
 use App\Models\Calendar;
 use App\Models\Client;
@@ -54,6 +56,8 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::DEPARTMENT => Department::class,
             ModuleableType::REPOSITORY => Repository::class,
             ModuleableType::CONTRACT => Contract::class,
+            ModuleableType::BUSINESS => Business::class,
+            ModuleableType::INSTANCE => Instance::class,
 
             //TODO
         ]);

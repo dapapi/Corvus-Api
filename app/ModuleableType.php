@@ -28,6 +28,8 @@ abstract class ModuleableType
     const PROJECTBILLSRESOURCE = 'projectbillsresource';
     const PRODUCTION = "production";
     const CONTRACT = "contract";
+    const INSTANCE = "instance";
+    const BUSINESS = "business";
 
 
 

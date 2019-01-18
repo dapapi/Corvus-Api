@@ -2,7 +2,7 @@
 
 namespace App\Imports;
 
-use App\Models\Client;
+use App\Models\Blogger;
 use App\User;
 use Exception;
 use Illuminate\Support\Collection;
@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMappedCells;
 
-class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
+class BloggersImport implements ToCollection, WithBatchInserts, WithChunkReading
 {
 //    public function mapping(): array
 //    {
@@ -39,27 +39,21 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
             foreach ($rows as $key => $row) {
                 if ($key == 0)
                     continue ;
-                $client = Client::create([
-                    'type' => $row[0],
-                    'company' => $row[1],
-                    'grade' => $row[2] == '直客' ? 1 : 2,
-                    'principal_id' => $this->principal($row[3]),
+               Blogger::create([
+                    'nickname' => $row[0],
+                    'platform' => $this->plat($row[1]),
+                    'type_id' => $this->type($row[2]),
+                    'communication_status' => $this->sign($row[3]),
                     'creator_id' => $user->id,
-                    'size' => $row[8] == '上市公司' ? 2 : 1,
+                    'intention' => $row[4]== '是'?'1':'0',
+                    'sign_contract_other' => $row[5]== '是'?'1':'0'
                 ]);
-                $client->contacts()->create([
-                    'name' => $row[4],
-                    'type' => $row[6] == '是' ? 2 : 1,
-                    'phone' => $row[5],
-                    'position' => $row[7],
-                ]);
+
             }
         } catch (Exception $exception) {
             throw $exception;
         }
     }
-
-
     public function batchSize(): int
     {
         return 800;
@@ -70,12 +64,116 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
         return 800;
     }
 
-    private function principal($principal_name)
+    /**
+     * @param string $type
+     * @return string $type
+     */
+    private function sign($type)
     {
-        $user = User::where('name', $principal_name)->first();
-        if ($user)
-            return $user->id;
-        else
-            throw new Exception('负责人不存在');
+        switch ($type) {
+            case '初步接触':
+                $type = '1';
+                break;
+            case '沟通中':
+                $type = '2';
+                break;
+            case '合同中':
+                $type = '3';
+                break;
+            case '沟通完成':
+                $type = '4';
+                break;
+        }
+        return $type;
+    }
+    /**
+     * @param string $type
+     * @return string $type
+     */
+    private function plat($type)
+    {
+
+        switch ($type) {
+            case '微博':
+                $type = '1';
+                break;
+            case '抖音':
+                $type = '2';
+                break;
+            case '小红书':
+                $type = '3';
+                break;
+            case '全平台':
+                $type = '4';
+                break;
+        }
+        return $type;
+    }
+    /**
+     * @param string $type
+     * @return string $type
+     */
+    private function type($type)
+    {
+        switch ($type) {
+            case '搞笑剧情':
+                $type = '1';
+                break;
+            case '美食':
+                $type = '2';
+                break;
+            case '美妆':
+                $type = '3';
+                break;
+            case '颜值':
+                $type = '4';
+                break;
+            case '生活方式':
+                $type = '5';
+                break;
+            case '生活测评':
+                $type = '6';
+                break;
+            case '萌宠':
+                $type = '7';
+                break;
+            case '时尚':
+                $type = '8';
+                break;
+            case '旅行':
+                $type = '9';
+                break;
+            case '动画':
+                $type = '10';
+                break;
+            case '母婴':
+                $type = '11';
+                break;
+            case '情感':
+                $type = '12';
+                break;
+            case '摄影':
+                $type = '13';
+                break;
+            case '舞蹈':
+                $type = '14';
+                break;
+            case '影视':
+                $type = '15';
+                break;
+            case '游戏':
+                $type = '16';
+                break;
+            case '数码':
+                $type = '17';
+                break;
+            case '街访':
+                $type = '18';
+                break;
+            case '其他':
+                $type = '19';
+                break;
+        }
+        return $type;
     }
 }

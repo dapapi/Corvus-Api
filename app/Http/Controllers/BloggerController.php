@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\BloggerLevel;
 use App\CommunicationStatus;
 use App\Gender;
+use App\Exports\BloggersExport;
 use App\Http\Requests\BloggerRequest;
 use App\Http\Requests\BloggerUpdateRequest;
 use App\Http\Requests\BloggerProductionRequest;
@@ -14,6 +15,8 @@ use App\Http\Transformers\BloggerDepartmentUserTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
 use App\Http\Transformers\ProductionTransformer;
 use App\Http\Transformers\ReviewQuestionnaireShowTransformer;
+use App\Http\Requests\Excel\ExcelImportRequest;
+use App\Imports\BloggersImport;
 use App\Models\Blogger;
 use App\Models\Production;
 use App\Models\DepartmentUser;
@@ -41,6 +44,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 class BloggerController extends Controller
 {
 
@@ -58,7 +62,7 @@ class BloggerController extends Controller
         $status = $request->get('status', config('app.status'));
         $array = [];//查询条件
         //合同
-        $status = empty($status)?$array[] = ['sign_contract_status',1]:$array[] = ['sign_contract_status',$status];
+        $status = empty($status) ? $array[] = ['sign_contract_status',1] : $array[] = ['sign_contract_status',$status];
         if($request->has('name')){//姓名
             $array[] = ['nickname','like','%'.$payload['name'].'%'];
         }
@@ -680,7 +684,8 @@ class BloggerController extends Controller
     {
         $payload = $request->all();
         $blooger_id = $payload['blogger_id'];
-        $blogger = Blogger::findOrFail($blooger_id);
+        $blogger = Blogger::withTrashed()->findOrFail($blooger_id);
+
         unset($payload['blogger_id']);
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -818,5 +823,24 @@ class BloggerController extends Controller
             return $data;
         }
         return $this->response->item($taskselect, new ReviewQuestionnaireShowTransformer());
+    }
+    public function import(ExcelImportRequest $request)
+    {
+        DB::beginTransaction();
+        try {
+            Excel::import(new BloggersImport(), $request->file('file'));
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+        }
+        DB::commit();
+        return $this->response->created();
+    }
+
+    public function export(Request $request)
+    {
+        $file = '当前博主导出' . date('YmdHis', time()) . '.xlsx';
+        return (new BloggersExport($request))->download($file);
     }
 }

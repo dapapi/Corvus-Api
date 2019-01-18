@@ -46,7 +46,7 @@ class PowerMiddleWare
                 $array = [
                   "data"=>[]
                 ];
-                return response(json_encode($array));
+                return response($array);
             }
 
 

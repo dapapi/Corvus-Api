@@ -16,11 +16,33 @@ class ClientsExport implements FromQuery, WithMapping, WithHeadings
     /**
      * @return \Illuminate\Support\Collection
      */
-    public function query()
+    public function __construct($request)
     {
-        return Client::query();
+        $this->request = $request;
     }
 
+
+    public function query()
+    {
+        $request = $this->request;
+        $payload =  $request->all();
+        $clients = Client::where(function ($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('grade'))
+                $query->where('grade', $payload['grade']);
+            if ($request->has('principal_ids') && count($payload['principal_ids'])) {
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->query()->whereIn('principal_id', $payload['principal_ids']);
+            }
+        });
+        return  $clients->searchData()->orderBy('created_at', 'desc');
+
+
+    }
     /**
      * @param Client $client
      * @return array

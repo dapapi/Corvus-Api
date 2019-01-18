@@ -47,10 +47,7 @@ class TrailController extends Controller
     public function index(FilterTrailRequest $request)
     {
         $payload = $request->all();
-        $user = Auth::guard('api')->user();
-        $department_id = Department::where('name', '商业管理部')->first();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');

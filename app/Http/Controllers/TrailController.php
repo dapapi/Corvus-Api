@@ -11,8 +11,10 @@ use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
+use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
 use App\Models\Blogger;
+use App\Imports\TrailsImport;
 use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
 use App\Models\Department;
@@ -29,13 +31,16 @@ use App\Models\TrailStar;
 use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\ScopeRepository;
+use App\Repositories\TrailStarRepository;
 use App\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
-use Maatwebsite\Excel\Excel;
+//use Maatwebsite\Excel\Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TrailController extends Controller
 {
@@ -79,7 +84,6 @@ class TrailController extends Controller
     public function store(StoreTrailRequest $request)
     {
         $payload = $request->all();
-
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
 
@@ -96,6 +100,7 @@ class TrailController extends Controller
         }
 
         if (array_key_exists('id', $payload['contact'])) {
+
             $contact = Contact::find(hashid_decode($payload['contact']['id']));
             if (!$contact)
                 return $this->response->errorBadRequest('联系人不存在');
@@ -166,60 +171,62 @@ class TrailController extends Controller
             $trail = Trail::create($payload);
 
             if ($request->has('expectations') && is_array($payload['expectations'])) {
-                if ($trail->type == Trail::TYPE_PAPI) {
-                    $starableType = ModuleableType::BLOGGER;
-                } else {
-                    $starableType = ModuleableType::STAR;
-                }
-                foreach ($payload['expectations'] as $expectation) {
-                    $starId = hashid_decode($expectation);
-
-                    if ($starableType == ModuleableType::BLOGGER) {
-                        if (Blogger::find($starId))
-                            TrailStar::create([
-                                'trail_id' => $trail->id,
-                                'starable_id' => $starId,
-                                'starable_type' => $starableType,
-                                'type' => TrailStar::EXPECTATION,
-                            ]);
-                    } else {
-                        if (Star::find($starId))
-                            TrailStar::create([
-                                'trail_id' => $trail->id,
-                                'starable_id' => $starId,
-                                'starable_type' => $starableType,
-                                'type' => TrailStar::EXPECTATION,
-                            ]);
-                    }
-                }
+                (new TrailStarRepository())->store($trail,$payload['expectations'],TrailStar::EXPECTATION);
+//                if ($trail->type == Trail::TYPE_PAPI) {
+//                    $starableType = ModuleableType::BLOGGER;
+//                } else {
+//                    $starableType = ModuleableType::STAR;
+//                }
+//                foreach ($payload['expectations'] as $expectation) {
+//                    $starId = hashid_decode($expectation);
+//
+//                    if ($starableType == ModuleableType::BLOGGER) {
+//                        if (Blogger::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::EXPECTATION,
+//                            ]);
+//                    } else {
+//                        if (Star::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::EXPECTATION,
+//                            ]);
+//                    }
+//                }
             }
 
             if ($request->has('recommendations') && is_array($payload['recommendations'])) {
-                if ($trail->type == Trail::TYPE_PAPI) {
-                    $starableType = ModuleableType::BLOGGER;
-                } else {
-                    $starableType = ModuleableType::STAR;
-                }
-                foreach ($payload['recommendations'] as $recommendation) {
-                    $starId = hashid_decode($recommendation);
-                    if ($starableType == ModuleableType::BLOGGER) {
-                        if (Blogger::find($starId))
-                            TrailStar::create([
-                                'trail_id' => $trail->id,
-                                'starable_id' => $starId,
-                                'starable_type' => $starableType,
-                                'type' => TrailStar::RECOMMENDATION,
-                            ]);
-                    } else {
-                        if (Star::find($starId))
-                            TrailStar::create([
-                                'trail_id' => $trail->id,
-                                'starable_id' => $starId,
-                                'starable_type' => $starableType,
-                                'type' => TrailStar::RECOMMENDATION,
-                            ]);
-                    }
-                }
+                (new TrailStarRepository())->store($trail,$payload['recommendations'],TrailStar::RECOMMENDATION);
+//                if ($trail->type == Trail::TYPE_PAPI) {
+//                    $starableType = ModuleableType::BLOGGER;
+//                } else {
+//                    $starableType = ModuleableType::STAR;
+//                }
+//                foreach ($payload['recommendations'] as $recommendation) {
+//                    $starId = hashid_decode($recommendation);
+//                    if ($starableType == ModuleableType::BLOGGER) {
+//                        if (Blogger::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::RECOMMENDATION,
+//                            ]);
+//                    } else {
+//                        if (Star::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::RECOMMENDATION,
+//                            ]);
+//                    }
+//                }
             }
 
             // 操作日志
@@ -234,6 +241,7 @@ class TrailController extends Controller
                 $operate,
             ]));
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建线索失败');
@@ -276,6 +284,7 @@ class TrailController extends Controller
     public function edit(EditTrailRequest $request, Trail $trail)
     {
         $payload = $request->all();
+
         $array = [];
         $arrayOperateLog = [];
         if($request->has('title') && !is_null($payload['title'])){//销售线索名称
@@ -578,65 +587,72 @@ class TrailController extends Controller
 
             if ($request->has('expectations') && is_array($payload['expectations'])) {
                 try{
-                    $start = null;
-                    $end = null;
-                    if ($trail->type == Trail::TYPE_PAPI) {
-                        $starableType = ModuleableType::BLOGGER;
-                        //获取当前的博主
-                        $blogger_list = $trail->bloggerExpectations()->get()->toArray();
-                        if(count($blogger_list)!=0){
-                            $bloggers = array_column($blogger_list,'nickname');
-                            $start = implode(",",$bloggers);
-                        }
-                    } else {
-                        $starableType = ModuleableType::STAR;
-                        //获取当前的艺人
-                        $star_list = $trail->expectations()->get()->toArray();
-                        if(count($star_list)!=0){
-                            $stars = array_column($star_list,'name');
-                            $start = implode(",",$stars);
-                        }
-
-                    }
-                    //删除之前的目标艺人或者博主
-                    TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
-                    foreach ($payload['expectations'] as $expectation) {
-                        $starId = hashid_decode($expectation);
-                        if ($starableType == ModuleableType::BLOGGER) {
-                            if ($blogger = Blogger::find($starId))
-                                $end .= ",".$blogger->nickname;
-                                TrailStar::create([
-                                    'trail_id' => $trail->id,
-                                    'starable_id' => $starId,
-                                    'starable_type' => $starableType,
-                                    'type' => TrailStar::EXPECTATION,
-                                ]);
-                        } else {
-                            if ($star = Star::find($starId))
-                                $end .= ",".$star->name;
-                            TrailStar::create([
-                                'trail_id' => $trail->id,
-                                'starable_id' => $starId,
-                                'starable_type' => $starableType,
-                                'type' => TrailStar::EXPECTATION,
-                            ]);
-                        }
-                    }
-                    if($starableType == ModuleableType::BLOGGER){
-                        $title = "关联目标博主";
-                    }else{
-                        $title = "关联目标艺人";
-                    }
-
+                    $repository = new TrailStarRepository();
+                    //获取现在关联的艺人和博主
+                    $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                    $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
+                    $repository->store($trail,$payload['expectations'],TrailStar::EXPECTATION);
+                    //获取更新之后的艺人和博主列表
+                    $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+//                    $start = null;
+//                    $end = null;
+//                    if ($trail->type == Trail::TYPE_PAPI) {
+//                        $starableType = ModuleableType::BLOGGER;
+//                        //获取当前的博主
+//                        $blogger_list = $trail->bloggerExpectations()->get()->toArray();
+//                        if(count($blogger_list)!=0){
+//                            $bloggers = array_column($blogger_list,'nickname');
+//                            $start = implode(",",$bloggers);
+//                        }
+//                    } else {
+//                        $starableType = ModuleableType::STAR;
+//                        //获取当前的艺人
+//                        $star_list = $trail->expectations()->get()->toArray();
+//                        if(count($star_list)!=0){
+//                            $stars = array_column($star_list,'name');
+//                            $start = implode(",",$stars);
+//                        }
+//
+//                    }
+//                    //删除之前的目标艺人或者博主
+//                    TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
+//                    foreach ($payload['expectations'] as $expectation) {
+//                        $starId = hashid_decode($expectation);
+//                        if ($starableType == ModuleableType::BLOGGER) {
+//                            if ($blogger = Blogger::find($starId))
+//                                $end .= ",".$blogger->nickname;
+//                                TrailStar::create([
+//                                    'trail_id' => $trail->id,
+//                                    'starable_id' => $starId,
+//                                    'starable_type' => $starableType,
+//                                    'type' => TrailStar::EXPECTATION,
+//                                ]);
+//                        } else {
+//                            if ($star = Star::find($starId))
+//                                $end .= ",".$star->name;
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::EXPECTATION,
+//                            ]);
+//                        }
+//                    }
+//                    if($starableType == ModuleableType::BLOGGER){
+//                        $title = "关联目标博主";
+//                    }else{
+//                        $title = "关联目标艺人";
+//                    }
                     $operateName = new OperateEntity([
                         'obj' => $trail,
-                        'title' => $title,
+                        'title' => "关联目标艺人",
                         'start' => $start,
                         'end' => trim($end,","),
                         'method' => OperateLogMethod::UPDATE,
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
+                    dd($e);
                     return $this->response->errorInternal("目标艺人关联失败");
                 }
 
@@ -645,54 +661,61 @@ class TrailController extends Controller
 
             if ($request->has('recommendations') && is_array($payload['recommendations'])) {
                 try{
-                    $start = null;
-                    $end = null;
-                    if ($trail->type == Trail::TYPE_PAPI) {
-                        $starableType = ModuleableType::BLOGGER;
-                        //当前关联的博主
-                        $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
-                        $bloggers = array_column($blogger_list,'nickname');
-                        $start = implode(",",$bloggers);
-                    } else {
-                        $starableType = ModuleableType::STAR;
-                        $star_list = $trail->recommendations()->get()->toArray();
-                        $stars = array_column($star_list,'name');
-                        $start = implode(",",$stars);
-                    }
-                    //删除
-                    TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
-                    foreach ($payload['recommendations'] as $recommendation) {
-                        $starId = hashid_decode($recommendation);
-
-                        if ($starableType == ModuleableType::BLOGGER) {
-                            if ($blogger = Blogger::find($starId))
-                                $end .= $blogger->nickname;
-                                TrailStar::create([
-                                    'trail_id' => $trail->id,
-                                    'starable_id' => $starId,
-                                    'starable_type' => $starableType,
-                                    'type' => TrailStar::RECOMMENDATION,
-                                ]);
-                        } else {
-                            if ($star = Star::find($starId))
-                                $end .= $star->name;
-                                TrailStar::create([
-                                    'trail_id' => $trail->id,
-                                    'starable_id' => $starId,
-                                    'starable_type' => $starableType,
-                                    'type' => TrailStar::RECOMMENDATION,
-                                ]);
-                        }
-                    }
-
-                    if($starableType == ModuleableType::BLOGGER){
-                        $title = "关联推荐博主";
-                    }else{
-                        $title = "关联推荐艺人";
-                    }
+                    $repository = new TrailStarRepository();
+                    //获取现在关联的艺人和博主
+                    $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                    $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
+                    $repository->store($trail,$payload['recommendations'],TrailStar::EXPECTATION);
+                    //获取更新之后的艺人和博主列表
+                    $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+//                    $start = null;
+//                    $end = null;
+//                    if ($trail->type == Trail::TYPE_PAPI) {
+//                        $starableType = ModuleableType::BLOGGER;
+//                        //当前关联的博主
+//                        $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
+//                        $bloggers = array_column($blogger_list,'nickname');
+//                        $start = implode(",",$bloggers);
+//                    } else {
+//                        $starableType = ModuleableType::STAR;
+//                        $star_list = $trail->recommendations()->get()->toArray();
+//                        $stars = array_column($star_list,'name');
+//                        $start = implode(",",$stars);
+//                    }
+//                    //删除
+//                    TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
+//                    foreach ($payload['recommendations'] as $recommendation) {
+//                        $starId = hashid_decode($recommendation);
+//
+//                        if ($starableType == ModuleableType::BLOGGER) {
+//                            if ($blogger = Blogger::find($starId))
+//                                $end .= $blogger->nickname;
+//                                TrailStar::create([
+//                                    'trail_id' => $trail->id,
+//                                    'starable_id' => $starId,
+//                                    'starable_type' => $starableType,
+//                                    'type' => TrailStar::RECOMMENDATION,
+//                                ]);
+//                        } else {
+//                            if ($star = Star::find($starId))
+//                                $end .= $star->name;
+//                                TrailStar::create([
+//                                    'trail_id' => $trail->id,
+//                                    'starable_id' => $starId,
+//                                    'starable_type' => $starableType,
+//                                    'type' => TrailStar::RECOMMENDATION,
+//                                ]);
+//                        }
+//                    }
+//
+//                    if($starableType == ModuleableType::BLOGGER){
+//                        $title = "关联推荐博主";
+//                    }else{
+//                        $title = "关联推荐艺人";
+//                    }
                     $operateName = new OperateEntity([
                         'obj' => $trail,
-                        'title' => $title,
+                        'title' => "关联推荐艺人",
                         'start' => $start,
                         'end' => trim($end,","),
                         'method' => OperateLogMethod::UPDATE,
@@ -706,6 +729,7 @@ class TrailController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('修改销售线索失败');
@@ -716,20 +740,19 @@ class TrailController extends Controller
         if($trail->lock_status == 1){
             DB::beginTransaction();
             try {
-
                 $user = Auth::guard('api')->user();
-                $title = $trail->title." 锁价金额为".$payload['fee'].'元';  //通知消息的标题
-                $subheading = $trail->title." 锁价金额为".$payload['fee'].'元';
+                $title = $trail->title." 锁价金额为".$trail->fee.'元';  //通知消息的标题
+                $subheading = $trail->title." 锁价金额为".$trail->fee.'元';
                 $module = Message::PROJECT;
                 $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
                 $data = [];
                 $data[] = [
-                    "title" => '线索名臣', //通知消息中的消息内容标题
+                    "title" => $title, //通知消息中的消息内容标题
                     'value' => $trail->title,  //通知消息内容对应的值
                 ];
                 $data[] = [
                     'title' => '预计订单费用',
-                    'value' => $payload['fee'],
+                    'value' => $trail->fee,
                 ];
                 //TODO 发给papi商务组，商务组暂时没建立
 //            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
@@ -957,14 +980,23 @@ class TrailController extends Controller
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
-    public function import()
+    public function import(ExcelImportRequest $request)
     {
-
+        DB::beginTransaction();
+        try {
+            Excel::import(new TrailsImport(), $request->file('file'));
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+        }
+        DB::commit();
+        return $this->response->created();
     }
 
     public function export(Request $request)
     {
         $file = '当前线索导出' . date('YmdHis', time()) . '.xlsx';
-        return (new TrailsExport())->download($file);
+        return (new TrailsExport($request))->download($file);
     }
 }

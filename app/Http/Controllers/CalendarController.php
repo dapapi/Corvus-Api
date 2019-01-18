@@ -51,9 +51,9 @@ class CalendarController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('star')) {
-            $payload['starable_id'] = hashid_decode($payload['star']);
+            $payload['starable_id'] = hashid_decode($payload['star']['id']);
 
-            if ($payload['flag'] == 'blogger') {
+            if ($payload['star']['flag'] == 'blogger') {
                 $payload['starable_type'] = ModuleableType::BLOGGER;//博主
             } else {
                 $payload['starable_type'] = ModuleableType::STAR;//艺人
@@ -107,8 +107,8 @@ class CalendarController extends Controller
         }
         $payload = $request->all();
         if ($request->has('star')) {
-            $payload['starable_id'] = hashid_decode($payload['star']);
-            if ($payload['flag'] == 'blogger') {
+            $payload['starable_id'] = hashid_decode($payload['star']['id']);
+            if ($payload['star']['flag'] == 'blogger') {
                 $payload['starable_type'] = ModuleableType::BLOGGER;//博主
             } else {
                 $payload['starable_type'] = ModuleableType::STAR;//艺人

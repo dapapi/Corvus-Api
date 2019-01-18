@@ -197,7 +197,7 @@ class ApprovalFlowController extends Controller
             $condition = $this->getCondition($formId, $value);
         }
 
-        $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->first();
+        $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->first();
         $chains = ChainFixed::where('form_id', $formId)
             ->where('condition_id', $condition)
             ->where('next_id', '!=', 0)
@@ -225,6 +225,7 @@ class ApprovalFlowController extends Controller
             ];
         }
 
+        dd($array);
         return $this->response->array(['data' => $array]);
     }
 

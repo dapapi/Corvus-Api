@@ -169,8 +169,14 @@ class ModuleUserRepository
         'type' => $type,
     ];
 
+          if($model){
+              if ($model instanceof Calendar) {
+                $array['moduleable_type'] = ModuleableType::CALENDAR;
+            }
+        }else{
+              $array['moduleable_type'] = ModuleableType::SCHEDULE;
+          }
 
-    $array['moduleable_type'] = ModuleableType::SCHEDULE;
 
     //TODO 还有其他类型
     foreach ($particalendarsIds as $key => $value)
@@ -205,6 +211,7 @@ class ModuleUserRepository
             {
                 $array['moduleable_id'] =$value;
                 $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $value)->where('user_id', $participantUser->id)->where('type', $type)->first();
+
                 if (!$moduleUser) {//不存在则添加
 
                     ModuleUser::create($array);

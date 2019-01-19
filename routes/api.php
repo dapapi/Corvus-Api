@@ -553,7 +553,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         
         /*公海池*/
-        $api->get('/pool/index','App\Http\Controllers\SeasPoolController@index');
+        $api->get('/pool','App\Http\Controllers\SeasPoolController@index');
         //领取
         $api->post('/pool/receive','App\Http\Controllers\SeasPoolController@receive');
         //分配

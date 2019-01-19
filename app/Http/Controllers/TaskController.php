@@ -1201,8 +1201,6 @@ class TaskController extends Controller
 
     public function filter(FilterTaskRequest $request)
     {
-
-
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 

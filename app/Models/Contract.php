@@ -32,4 +32,8 @@ class Contract extends Model
     {
         return $this->belongsTo(Project::class, 'project_id', 'id');
     }
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable');
+    }
 }

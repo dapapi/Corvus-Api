@@ -516,7 +516,8 @@ class ApprovalFormController extends Controller
     // 获取一般审批表单
     public function getForm(Request $request, ApprovalForm $approval)
     {
-        return $this->response->item($approval, new ApprovalFormTransformer());
+        $num = $request->get('number', null);
+        return $this->response->item($approval, new ApprovalFormTransformer($num));
     }
 
     private function getInstance($instance)

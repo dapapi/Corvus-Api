@@ -173,6 +173,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/clients/{client}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/contracts/{contract}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/contracts/{contract}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -511,6 +513,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 //        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
 
         $api->get('/users', 'App\Http\Controllers\UserController@index');
+        $api->get('/user/all', 'App\Http\Controllers\UserController@all');
 
 
         /*组织架构 部门管理*/
@@ -632,6 +635,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_contract/thenapproval','App\Http\Controllers\ApprovalContractController@myThenApproval');
         //知会我的
         $api->get('/approvals_contract/notify','App\Http\Controllers\ApprovalContractController@notify');
+
+        /*合同管理*/
+        //项目合同
+        $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
+        //经济合同
+        $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');
+
+        //项目详情合同列表
+        $api->get('/approvals_contract/projectList','App\Http\Controllers\ApprovalContractController@projectList');
+
 
         /*一般审批列表*/
         //我申请列表

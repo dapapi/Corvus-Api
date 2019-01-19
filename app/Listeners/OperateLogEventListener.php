@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\OperateLogEvent;
 use App\Models\Announcement;
 use App\Models\ApprovalForm\ApprovalForm;
+use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Attendance;
 use App\Models\Blogger;
@@ -102,7 +103,6 @@ class OperateLogEventListener
         }
         $operateList = $event->operateList;
         foreach ($operateList as $operate) {
-            $id = $operate->obj->id;
             if ($operate->obj instanceof Task) {
                 $type = ModuleableType::TASK;
                 $typeName = '任务';
@@ -175,9 +175,20 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Contract){
                 $type = ModuleableType::CONTRACT;
                 $typeName = "合同";
+            }else if($operate->obj instanceof Instance){
+                $type = ModuleableType::INSTANCE;
+                $typeName = "一般审批审批";
+                $operate->obj->id = $operate->obj->form_instance_id;
+            }else if ($operate->obj instanceof Business){
+                if ($operate->obj->busubess_type == "projects"){
+                    $typeName = "项目审批";
+                }else{
+                    $typeName = "合同审批";
+                }
+                $type = ModuleableType::BUSINESS;
             }
             //TODO
-
+            $id = $operate->obj->id;
             $title = $operate->title;
             $start = $operate->start;
             $end = $operate->end;

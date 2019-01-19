@@ -22,6 +22,11 @@ class StarTransformer extends TransformerAbstract
 
     public function transform(Star $star)
     {
+        //假头像
+        $sub_str = substr($star->avatar,0,1);
+        if ($sub_str == "#" || $sub_str == null){
+            $star->avatar = "https://res-crm.papitube.com/image/artist-no-avatar.png";
+        }
         $array = [
             'id' => hashid_encode($star->id),
             'name' => $star->name,

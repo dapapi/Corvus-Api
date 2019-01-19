@@ -429,4 +429,158 @@ class ApprovalContractController extends Controller
         return $dataUser;
     }
 
+
+    //项目合同
+    public function project(Request $request){
+
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
+        $payload['keyword'] = isset($payload['keyword']) ? $payload['keyword'] : '';
+        $payload['number'] = isset($payload['number']) ? $payload['number'] : '';
+        $payload['type'] = isset($payload['type']) ? $payload['type'] : '';
+
+        $data = DB::table('approval_form_business as afb')//
+            ->join('approval_forms as af', function ($join) {
+                $join->on('af.form_id', '=','afb.form_id');
+            })
+            ->join('contracts as cs', function ($join) {
+                $join->on('afb.form_instance_number', '=','cs.form_instance_number');
+            })
+
+            ->join('projects as ps', function ($join) {
+                $join->on('ps.id', '=', 'cs.project_id');
+            })
+            ->join('users as us', function ($join) {
+                $join->on('us.id', '=', 'ps.creator_id');
+            })
+
+            ->whereIn('afb.form_id',[9,10])
+            ->where('cs.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if($payload['number'])
+                $data->Where('afb.form_instance_number',$payload['number']);
+
+            if($payload['type'])
+            $data->Where('afb.form_id',$payload['type']);
+
+        $res = $data->orderBy('cs.created_at', 'desc')
+            ->select('afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status')->get()->toArray();
+
+        $count = count($res);//总条数
+        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($res,$start,$pageSize);
+
+        $arr = array();
+        $arr['total'] = $count;
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = $count;
+        $arr['meta']['current_page'] = $count;
+        $arr['meta']['total_pages'] = ceil($count/20);
+
+        return $arr;
+    }
+
+    //经济合同
+    public function economic(Request $request){
+
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
+        $payload['keyword'] = isset($payload['keyword']) ? $payload['keyword'] : '';
+        $payload['number'] = isset($payload['number']) ? $payload['number'] : '';
+        $payload['type'] = isset($payload['type']) ? $payload['type'] : '';
+        $payload['talent'] = isset($payload['talent']) ? $payload['talent'] : '';
+
+        $data = DB::table('approval_form_business as afb')//
+            ->join('approval_forms as af', function ($join) {
+                $join->on('af.form_id', '=','afb.form_id');
+            })
+
+            ->join('contracts as cs', function ($join) {
+                $join->on('afb.form_instance_number', '=','cs.form_instance_number');
+            });
+            if($payload['talent']=='bloggers'){
+
+                $data->join('bloggers as bs', function ($join) {
+                    $join->on('cs.stars', '=', 'bs.id')->where('cs.star_type','=','bloggers');
+                });
+            }elseif($payload['talent']=='stars'){
+
+
+                $data->join('stars as s', function ($join) {
+                    $join->on('cs.stars', '=', 's.id')->where('cs.star_type','=','stars');
+                });
+            }else{
+
+                $data->leftjoin('stars as s', function ($join) {
+                    $join->on('cs.stars', '=', 's.id');
+                });
+                $data->leftjoin('bloggers as bs', function ($join) {
+                    $join->on('cs.stars', '=', 'bs.id');
+                });
+            }
+            $data->join('users as us', function ($join) {
+                $join->on('us.id', '=', 'cs.creator_id');
+            })
+
+            ->whereIn('afb.form_id',[5,6,7,8])
+            ->where('cs.title', 'LIKE', '%' . $payload['keyword'] . '%');
+        if($payload['number'])
+            $data->Where('afb.form_instance_number',$payload['number']);
+
+        if($payload['type'])
+            $data->Where('afb.form_id',$payload['type']);
+
+        $res = $data->orderBy('cs.created_at', 'desc')
+            ->select('afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status','cs.star_type','cs.stars')->get()->toArray();
+
+        $count = count($res);//总条数
+        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($res,$start,$pageSize);
+
+        $arr = array();
+        $arr['total'] = $count;
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = $count;
+        $arr['meta']['current_page'] = $count;
+        $arr['meta']['total_pages'] = ceil($count/20);
+
+        return $arr;
+    }
+
+    //项目详情合同列表
+    public function projectList(Request $request){
+
+        $payload = $request->all();
+
+        $projects = hashid_decode($payload['project_id']);
+
+        $data = DB::table('approval_form_business as afb')//
+            ->join('approval_forms as af', function ($join) {
+                $join->on('af.form_id', '=','afb.form_id');
+            })
+            ->join('contracts as cs', function ($join) {
+                $join->on('afb.form_instance_number', '=','cs.form_instance_number');
+            })
+
+            ->join('projects as ps', function ($join) {
+                $join->on('ps.id', '=', 'cs.project_id');
+            })
+
+
+            ->where('cs.project_id',$projects)
+            ->orderBy('cs.created_at', 'desc')
+            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name','cs.created_at','afb.form_status','cs.stars')->get()->toArray();
+        $dataInfo = json_decode(json_encode($data), true);
+        if(!empty($dataInfo)){
+            foreach ($dataInfo as &$value){
+                $starsId = explode(',',$value['stars']);
+                $value['stars_name'] = DB::table('users')->whereIn('users.id',$starsId)->select('users.name')->get()->toArray();
+
+            }
+        }
+        $result['data'] = $dataInfo;
+        return $result;
+    }
+
 }

@@ -29,6 +29,11 @@ class UserTransformer extends TransformerAbstract
    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
     {
+        //假头像
+        $sub_str = substr($user->icon_url,0,1);
+        if ($sub_str == "#" || $sub_str == null){
+            $user->icon_url = "https://res-crm.papitube.com/image/artist-no-avatar.png";
+        }
         $array = [
             'id' => hashid_encode($user->id),
             'phone' => $user->phone,

@@ -824,7 +824,9 @@ class ProjectController extends Controller
             ];
             $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
             $authorization = $request->header()['authorization'][0];
-
+            foreach($payload['participant_ids'] as &$participant_id){
+                hashid_decode($participant_id);
+            }
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
             DB::commit();
         } catch (Exception $e) {

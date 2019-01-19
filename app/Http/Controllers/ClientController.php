@@ -119,7 +119,7 @@ class ClientController extends Controller
                     }
 
                     $comment = $columns->getColumn($key)->getComment();
-                    $this->editLog($client, $comment, $lastValue, $value);
+                    $this->editLog($client, $comment, $lastValue, $value);//修改客户日志
                 }
 
             }

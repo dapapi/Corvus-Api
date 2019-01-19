@@ -20,6 +20,7 @@ class ProjectCourseTransformer extends TransformerAbstract
             $array = [
                 'id' => hashid_encode($projectStatusLogs->id),
                 'user' =>  $projectStatusLogs->creator->name,
+                'icon_url'  => "https://res-crm.papitube.com/image/artist-no-avatar.png", //假头像
                 'content' => $projectStatusLogs->content,
                 'status' => boolval($projectStatusLogs->status),
                 'created_at' => $projectStatusLogs->created_at->toDatetimeString(),

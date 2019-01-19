@@ -513,6 +513,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 //        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
 
         $api->get('/users', 'App\Http\Controllers\UserController@index');
+        $api->get('/user/all', 'App\Http\Controllers\UserController@all');
 
 
         /*组织架构 部门管理*/

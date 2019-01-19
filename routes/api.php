@@ -677,6 +677,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
         $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
+        //移动端获取消息
+        $api->get('/mobile_get_message','App\Http\Controllers\MessageController@MobileGetMessage');
+
 
         //数据字典
         //列表

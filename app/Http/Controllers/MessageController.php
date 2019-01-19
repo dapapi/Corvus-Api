@@ -140,4 +140,87 @@ class MessageController extends Controller
         return $result;
     }
 
+    public function MobileGetMessage(Request $request)
+    {
+        return [
+            [
+                'module_name'   =>  '任务助手',
+                'message'   =>  [
+                    [
+                        'message_id'    => 12345,
+                        "link"  =>  'http://xxx.com/ccc',
+                        "created_at"    =>  "2019-01-19 14:10:48",
+                        "message_title" =>  '哈哈哈',
+                        "body" => [
+                                    [
+                                        "title"=> "任务名称",
+                                        "value"=>"一个任务1"
+                                    ],
+                                    [
+                                        "title"=>"负责人",
+                                        "value"=>"校林峰",
+                                    ]
+                                ]
+                    ],
+                    [
+                        'message_id'    => 12346,
+                        "link"  =>  'http://xxx.com/ccc',
+                        "created_at"    =>  "2019-01-19 14:10:48",
+                        "message_title" =>  "哈哈哈哈",
+                        "body" => [
+                            [
+                                "title"=> "任务名称",
+                                "value"=>"一个任务1"
+                            ],
+                            [
+                                "title"=>"负责人",
+                                "value"=>"校林峰",
+                            ]
+                        ]
+                    ],
+
+                ]
+            ],
+            [
+                'module_name'   =>  '艺人助手',
+                'message'   =>  [
+                    [
+                        'message_id'    => 12345,
+                        "link"  =>  'http://xxx.com/ccc',
+                        "created_at"    =>  "2019-01-19 14:10:48",
+                        "message_title" =>  '哈哈哈',
+                        "body" => [
+                            [
+                                "title"=> "任务名称",
+                                "value"=>"一个任务1"
+                            ],
+                            [
+                                "title"=>"负责人",
+                                "value"=>"校林峰",
+                            ]
+                        ]
+                    ],
+                    [
+                        'message_id'    => 12346,
+                        "link"  =>  'http://xxx.com/ccc',
+                        "created_at"    =>  "2019-01-19 14:10:48",
+                        "message_title" =>  "哈哈哈哈",
+                        "body" => [
+                            [
+                                "title"=> "任务名称",
+                                "value"=>"一个任务1"
+                            ],
+                            [
+                                "title"=>"负责人",
+                                "value"=>"校林峰",
+                            ]
+                        ]
+                    ],
+
+                ]
+            ],
+
+        ];
+    }
+
 }

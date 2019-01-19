@@ -3,6 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Trail;
+use App\User;
+use Exception;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -12,9 +14,30 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
 {
     use Exportable;
 
+    public function __construct($request)
+    {
+        $this->request = $request;
+    }
+
     public function query()
     {
-        return Trail::query();
+        $request = $this->request;
+        $payload =  $request->all();
+        $trails = Trail::where(function ($query) use ($request, $payload) {
+            if ($request->has('keyword') && $payload['keyword'])
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('status') && !is_null($payload['status']))
+                $query->where('type', $payload['status']);
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->query()->whereIn('principal_id', $payload['principal_ids']);
+            }
+        });
+        return $trails->searchData()->orderBy('created_at', 'desc');
     }
 
     /**
@@ -25,20 +48,36 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
     {
         $brand = $trail->brand;
         $company = $trail->client->company;
-        $grade = $trail->client->grade == 1 ? '直客' : '代理公司';
+        $grade = $this->type($trail->type);
         $title = $trail->title;
         $principal = $trail->principal->name;
+        $expectations = $trail->bloggerExpectations;
+        if (count($expectations) <= 0) {
+            $expectations = $trail->expectations;
+            if (count($expectations))
+                $expectations = $this->starsStr($expectations);
+            else
+                $expectations= '';
+        } else {
+            if (count($expectations))
 
-        if (count($trail->expectations))
-            $expectations = $this->starsStr($trail->expectations);
-        else
-            $expectations= '';
-
-        if (count($trail->recommendations))
-            $recommendations = $this->starsStr($trail->recommendations);
-        else
-            $recommendations = '';
-
+                $expectations = $this->starsStr($expectations);
+            else
+                $expectations= '';
+        }
+        $recommendations = $trail->bloggerRecommendations;
+        if (count($recommendations) <= 0) {
+            $recommendations = $trail->recommendations;
+            if (count($recommendations))
+                $recommendations = $this->starsStr($recommendations);
+            else
+                $recommendations = '';
+        } else {
+            if (count($recommendations))
+                $recommendations = $this->starsStr($recommendations);
+            else
+                $recommendations = '';
+        }
         $fee = $trail->fee;
         $resource_type = $this->resourceType($trail->resource_type);
         if ($trail->contact) {
@@ -48,7 +87,6 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
             $contact = '';
             $phone = '';
         }
-
         return [
             $brand,
             $company,
@@ -58,7 +96,7 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
             $expectations,
             $recommendations,
             $fee,
-            $resource_type,
+           // $resource_type,
             $contact,
             $phone,
         ];
@@ -69,13 +107,13 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
         return [
             '品牌名称',
             '公司名称',
-            '级别',
+            '线索类型',
             '线索名称',
             '负责人',
             '目标艺人',
             '推荐艺人',
             '预计费用',
-            '线索来源',
+           // '线索来源',
             '联系人',
             '联系人电话 '
         ];
@@ -124,7 +162,24 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
         }
         return $type;
     }
-
+    private  function type($type)
+    {
+        switch ($type) {
+            case 1:
+                $type = '影视线索';
+                break;
+            case 2:
+                $type = '综艺线索';
+                break;
+            case 3:
+                $type = '商务线索';
+                break;
+            case 4:
+                $type = '商务线索';
+                break;
+        }
+        return $type;
+    }
     private function starsStr($stars): string
     {
         $starsStr = '';
@@ -133,5 +188,13 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
             $starsStr .= ',';
         }
         return substr($starsStr, 0, strlen($starsStr) - 1);
+    }
+    private function principal($principal_name)
+    {
+        $user = User::where('name', $principal_name)->first();
+        if ($user)
+            return $user->id;
+        else
+            return '';
     }
 }

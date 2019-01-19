@@ -35,7 +35,7 @@ class TrailTransformer extends TransformerAbstract
                     'title' => $trail->title,
                     'brand' => $trail->brand,
                     'industry_id' => is_null($trail->industry) ? null : hashid_encode($trail->industry->id),
-                    'industry' => $trail->industry->name,
+                    'industry' => is_null($trail->industry) ? null : $trail->industry->name,
                     'resource_type' => $trail->resource_type,
                     'type' => $trail->type,
                     'fee' => $trail->fee,

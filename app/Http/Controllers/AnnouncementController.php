@@ -99,7 +99,7 @@ class AnnouncementController extends Controller
             if(!empty($payload['scope']))
             {
                 $scope = $payload['scope'];
-                $len = count($payload['scope']);
+                $len = count($scope);
                 if($len >= 2){
                     $array = array();
 
@@ -121,7 +121,6 @@ class AnnouncementController extends Controller
                     $data = AnnouncementScope::create($arr);
                 }
             }catch (\Exception $e) {
-                dd($e);
                 DB::rollBack();
                 Log::error($e);
                 return $this->response->errorInternal('创建失败');
@@ -130,6 +129,7 @@ class AnnouncementController extends Controller
         }else{
             return $this->response->errorInternal('创建失败');
         }
+        return $this->response->item($star, new AnnouncementTransformer());
 
     }
     public function remove(Announcement $announcement)

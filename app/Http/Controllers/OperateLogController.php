@@ -82,7 +82,9 @@ class OperateLogController extends Controller
             default:
                 break;
         }
-        $operateLogs = $query->createDesc()->get();
+
+        $operateLogs = $query->createDesc()->paginate($pageSize);
+
 
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {

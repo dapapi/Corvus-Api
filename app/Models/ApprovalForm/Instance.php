@@ -44,6 +44,6 @@ class Instance extends Model implements approvalinstanceinterface
 
     public function operateLogs()
     {
-        return $this->morphMany(OperateLog::class, 'logable');
+        return $this->morphMany(OperateLog::class, 'logable','','','form_instance_id');
     }
 }

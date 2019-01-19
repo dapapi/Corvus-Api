@@ -570,16 +570,19 @@ class ApprovalContractController extends Controller
 
             ->where('cs.project_id',$projects)
             ->orderBy('cs.created_at', 'desc')
-            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name','cs.created_at','afb.form_status','cs.stars')->get()->toArray();
+            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name','cs.created_at','afb.form_status','cs.stars','cs.contract_money')->get()->toArray();
         $dataInfo = json_decode(json_encode($data), true);
+        $sum = 0;
         if(!empty($dataInfo)){
             foreach ($dataInfo as &$value){
                 $starsId = explode(',',$value['stars']);
                 $value['stars_name'] = DB::table('users')->whereIn('users.id',$starsId)->select('users.name')->get()->toArray();
+                $sum += $value['contract_money'];
 
             }
         }
         $result['data'] = $dataInfo;
+        $result['money'] = $sum;
         return $result;
     }
 

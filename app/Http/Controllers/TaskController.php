@@ -422,8 +422,8 @@ class TaskController extends Controller
             ];
 
             $recives = array_column($task->participants()->get()->toArray(),'name');
-            $recives[] = hashid_encode($task->creator_id);//创建人
-            $recives[] = hashid_encode($task->principal_id);//负责人
+            $recives[] = $task->creator_id;//创建人
+            $recives[] = $task->principal_id;//负责人
             $authorization = $request->header()['authorization'][0];
 
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);

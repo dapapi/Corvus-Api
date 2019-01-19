@@ -636,6 +636,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //知会我的
         $api->get('/approvals_contract/notify','App\Http\Controllers\ApprovalContractController@notify');
 
+        /*合同管理*/
+        //项目合同
+        $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
+        //经济合同
+        $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');
+
+        //项目详情合同列表
+        $api->get('/approvals_contract/projectList','App\Http\Controllers\ApprovalContractController@projectList');
+
+
         /*一般审批列表*/
         //我申请列表
         $api->get('/approvals_general/my','App\Http\Controllers\ApprovalGeneralController@myApply');

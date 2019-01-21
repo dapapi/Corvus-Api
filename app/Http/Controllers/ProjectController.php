@@ -1221,7 +1221,7 @@ class ProjectController extends Controller
         $ploay = $request;
         $approval  = (new ApprovalContractController())->projectList($request,$project);
         $contract_id = $ploay['contract_id'];
-        $contract_id = '20190118274451221';
+//        $contract_id = '20190118274451221';
         $project_id = $project->id;
         $project = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id, 'p_id' => 0])->createDesc()->get();
         $contractReturnedMoney = $approval['money'];

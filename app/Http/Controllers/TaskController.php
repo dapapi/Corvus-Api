@@ -421,11 +421,10 @@ class TaskController extends Controller
                 'value' => $principal->name
             ];
 
-            $recives = array_column($task->participants()->get()->toArray(),'name');
-            $recives[] = hashid_encode($task->creator_id);//创建人
-            $recives[] = hashid_encode($task->principal_id);//负责人
+            $recives = array_column($task->participants()->get()->toArray(),'id');
+            $recives[] = $task->creator_id;//创建人
+            $recives[] = $task->principal_id;//负责人
             $authorization = $request->header()['authorization'][0];
-
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
         }catch (Exception $e){
 
@@ -1184,24 +1183,24 @@ class TaskController extends Controller
                 'value' => $principal->name
             ];
 
-            $recives = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;//参与人
-            $recives[] = hashid_encode($task->creator_id);//创建人
+//            $recives = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;//参与人
+            $recives = array_column($task->participants()->get()->toArray(),'id');
+            $recives[] = $task->creator_id;//创建人
             $recives[] = $payload['principal_id'];//负责人
             $authorization = $request->header()['authorization'][0];
-
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
+
+            DB::commit();
         }catch (Exception $e){
+            DB::rollBack();
             Log::error($e);
         }
-        DB::commit();
         return $this->response->item(Task::find($task->id), new TaskTransformer());
 //        return $this->response->created();
     }
 
     public function filter(FilterTaskRequest $request)
     {
-
-
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 

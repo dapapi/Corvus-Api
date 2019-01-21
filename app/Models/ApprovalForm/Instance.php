@@ -4,6 +4,7 @@ namespace App\Models\ApprovalForm;
 
 use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\DataDictionary;
+use App\Models\OperateLog;
 use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;
 
@@ -38,5 +39,11 @@ class Instance extends Model implements approvalinstanceinterface
     public function fields()
     {
         return $this->hasMany(InstanceValue::class, 'form_instance_number', 'form_instance_number');
+    }
+
+
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable','','','form_instance_id');
     }
 }

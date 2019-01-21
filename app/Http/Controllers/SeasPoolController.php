@@ -39,7 +39,7 @@ use Maatwebsite\Excel\Excel;
 
 class SeasPoolController extends Controller
 {
-    public function index(FilterTrailRequest $request)
+    public function index(Request $request)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -57,7 +57,7 @@ class SeasPoolController extends Controller
             if ($takeType ==1){
                 $query->where('take_type', $takeType);
             }else{
-                $query->whereIn('take_type', [1,2]);
+                $query->whereIn('pool_type', [1,2,3]);
             }
             if ($receive ==1){
                 $query->where('take_type', $receive);
@@ -71,6 +71,7 @@ class SeasPoolController extends Controller
 
             //->searchData()
         })->orderBy('created_at', 'desc')->paginate($pageSize);
+
         return $this->response->paginator($trails, new TrailTransformer());
     }
 

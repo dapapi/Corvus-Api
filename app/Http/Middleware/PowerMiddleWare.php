@@ -44,7 +44,19 @@ class PowerMiddleWare
             $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
             if (is_array($res)){
                 $array = [
-                  "data"=>[]
+                  "data"=>[],
+                  "meta"=>[
+                      'pagination'  =>  [
+                          'total'   =>  0,
+                          'count'   =>  0,
+                          'per_page'    =>  0,
+                          'current_page'    =>  0,
+                          'total_pages' =>  0,
+                          'links'   =>  [
+                              'next'    =>  'https://sandbox-api-crm.papitube.com'
+                          ]
+                      ]
+                  ]
                 ];
                 return response($array);
             }

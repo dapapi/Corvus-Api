@@ -29,15 +29,12 @@ class MessageRepository
 
         DB::table('message_datas')->insert($data);
         //todo 消息发送对列优化
+        $recives_data = [];
         if ($recives == null){//如果recives为null表示全员接收
             $recives = User::select('id')->get()->toArray();
-        }else{
-            foreach ($recives as &$recive){
-                hashid_decode($recive);
-            }
-        }
 
-        $recives_data = [];
+        }
+        $recives = array_unique($recives);//去重
         foreach ($recives as $recive){
             $recives_data[] = [
                 'message_id'  =>  $message->id,
@@ -46,10 +43,15 @@ class MessageRepository
             ];
         }
 
+
+
+
 //        $message_state = new MessageState();
         DB::table("message_states")->insert($recives_data);
-
         $send_message = new SendMessage();
+        foreach ($recives as &$recive){
+            $recive = hashid_encode($recive);
+        }
         $send_message->login($authorization,$user->id,$user->name,$title,$subheading,$link,$data,$recives);
 
 //        $send_message->sendMessage($title,$subheading,$link,$data,$recives);

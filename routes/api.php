@@ -174,7 +174,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/contracts/{contract}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/contracts/{contract}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
-        $api->post('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         //stars
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -517,6 +517,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 //        $api->get("/reportfrom/bloggerprojectanalysis", "App\Http\Controllers\ReportFormController@bloggerProjectAnalysis");
 
         $api->get('/users', 'App\Http\Controllers\UserController@index');
+        $api->get('/user/all', 'App\Http\Controllers\UserController@all');
 
 
         /*组织架构 部门管理*/
@@ -556,7 +557,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         
         /*公海池*/
-        $api->get('/pool/index','App\Http\Controllers\SeasPoolController@index');
+        $api->get('/pool','App\Http\Controllers\SeasPoolController@index');
         //领取
         $api->post('/pool/receive','App\Http\Controllers\SeasPoolController@receive');
         //分配
@@ -639,6 +640,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //知会我的
         $api->get('/approvals_contract/notify','App\Http\Controllers\ApprovalContractController@notify');
 
+        /*合同管理*/
+        //项目合同
+        $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
+        //经济合同
+        $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');
+
+        //项目详情合同列表
+        $api->get('/approvals_contract/projectList','App\Http\Controllers\ApprovalContractController@projectList');
+
+
         /*一般审批列表*/
         //我申请列表
         $api->get('/approvals_general/my','App\Http\Controllers\ApprovalGeneralController@myApply');
@@ -670,6 +681,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //更改消息状态
         $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
         $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
+        //移动端获取消息
+        $api->get('/mobile_get_message','App\Http\Controllers\MessageController@MobileGetMessage');
+
 
         //数据字典
         //列表

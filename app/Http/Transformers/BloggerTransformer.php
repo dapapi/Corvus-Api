@@ -23,6 +23,12 @@ class BloggerTransformer extends TransformerAbstract
 
     public function transform(Blogger $blogger)
     {
+        //假头像
+        $sub_str = substr($blogger->avatar,0,1);
+        if ($sub_str == "#" || $sub_str == null){
+            $blogger->avatar = "https://res-crm.papitube.com/image/artist-no-avatar.png";
+        }
+
         $user = Auth::guard('api')->user();
         $setprivacy1 =array();
         $Viewprivacy2 =array();

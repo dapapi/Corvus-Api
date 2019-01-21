@@ -36,6 +36,18 @@ class UserController extends Controller
         return $this->response->collection($users, new UserTransformer());
     }
 
+
+    public function all(Request $request)
+    {
+        $users = DB::select('select users.name,users.id,users.icon_url from users where users.entry_status = 3');
+        $arr['data'] = $users;
+
+        foreach ($arr['data'] as $key => &$value) {
+            $value->id = hashid_encode($value->id);
+        }
+        return  $arr;
+    }
+
     public function my(Request $request)
     {
         $user = Auth::guard('api')->user();

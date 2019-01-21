@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Transformers\OperateLogTransformer;
+use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Client;
 use App\Models\Contract;
@@ -36,7 +37,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business)
     {
 
         $payload = $request->all();
@@ -63,6 +64,10 @@ class OperateLogController extends Controller
             $query = $calendar->operateLogs();
         }else if($contract && $contract->id){
             $query = $contract->operateLogs();
+        }else if($instance && $instance->form_instance_id){
+            $query = $instance->operateLogs();
+        }else if($business && $business->id){
+            $query = $business->operateLogs();
         }
         //TODO 其他模块
 
@@ -77,7 +82,9 @@ class OperateLogController extends Controller
             default:
                 break;
         }
+
         $operateLogs = $query->createDesc()->paginate($pageSize);
+
 
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {

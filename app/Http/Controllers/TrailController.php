@@ -232,7 +232,6 @@ class TrailController extends Controller
                 $operate,
             ]));
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建线索失败');
@@ -643,7 +642,6 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
-                    dd($e);
                     return $this->response->errorInternal("目标艺人关联失败");
                 }
 
@@ -720,7 +718,6 @@ class TrailController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('修改销售线索失败');
@@ -839,10 +836,10 @@ class TrailController extends Controller
 
     public function refuse(RefuseTrailReuqest $request, Trail $trail)
     {
-        $power = (new ScopeRepository())->checkMangePower($trail->creator_id, $trail->principal_id, []);
-        if (!$power) {
-            return $this->response->errorInternal("你没有更改线索状态的权限");
-        }
+//        $power = (new ScopeRepository())->checkMangePower($trail->creator_id, $trail->principal_id, []);
+//        if (!$power) {
+//            return $this->response->errorInternal("你没有更改线索状态的权限");
+//        }
         $type = $request->get('type');
         $reason = $request->get('reason');
 
@@ -977,11 +974,15 @@ class TrailController extends Controller
     {
         DB::beginTransaction();
         try {
-            Excel::import(new TrailsImport(), $request->file('file'));
+
+            $clientName = $request->file('file') -> getClientOriginalName();
+            Excel::import(new TrailsImport($clientName), $request->file('file'));
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+            //return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
         }
         DB::commit();
         return $this->response->created();
@@ -989,6 +990,7 @@ class TrailController extends Controller
 
     public function export(Request $request)
     {
+
         $file = '当前线索导出' . date('YmdHis', time()) . '.xlsx';
         return (new TrailsExport($request))->download($file);
     }

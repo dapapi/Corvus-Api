@@ -103,7 +103,6 @@ class Trail extends Model
             if($is_papi){
                 $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
                 $user_id = array();
-
                foreach ($user_list as $val){
                    $user_id[] = $val['user_id'];
                }
@@ -120,7 +119,7 @@ class Trail extends Model
         }
 
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
-        return $this->orCondition($query,$rules);
+        return $this->orCondition($query,$rules)->where("pool_type");
 
     }
     public function orCondition($query,$rules)

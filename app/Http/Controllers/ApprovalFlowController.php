@@ -660,6 +660,8 @@ class ApprovalFlowController extends Controller
             $project->trail->update([
                 'progress_status' => Trail::STATUS_CONFIRMED
             ]);
+        else if ($project && $status != 232)
+            $project->delete();
 
         if (is_null($contract))
             return null;
@@ -797,9 +799,6 @@ class ApprovalFlowController extends Controller
             }
         }
 
-        if ($contract->project_id) {
-            if ($status != 232)
-                $contract->project->delete();
-        }
+
     }
 }

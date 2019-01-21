@@ -333,7 +333,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
+
+
+        // 自定义筛选post集中
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
+        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

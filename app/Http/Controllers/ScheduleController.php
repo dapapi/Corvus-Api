@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\AffixType;
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Schedule\EditScheduleRequest;
 use App\Http\Requests\Schedule\IndexScheduleRequest;
 use App\Http\Requests\Schedule\StoreScheduleRequest;
@@ -11,6 +12,7 @@ use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
 use App\Http\Transformers\ScheduleRelateTransformer;
 use App\Models\Calendar;
+use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\ScheduleRelate;
 use App\Models\Material;
@@ -21,6 +23,7 @@ use App\Models\Schedule;
 use App\Models\TaskResource;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\ScheduleRelatesRepository;
 use App\Repositories\ModuleUserRepository;
@@ -436,14 +439,27 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $schedule,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
 
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');
         }
-
         DB::commit();
+        //向参与人发送消息
+
+
 
         return $this->response->item($schedule, new ScheduleTransformer());
     }
@@ -514,7 +530,6 @@ class ScheduleController extends Controller
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $users = $this->getPowerUsers($schedule);
-
         $user = Auth::guard("api")->user();
         if (!in_array($user->id, $users)) {
             return $this->response->errorInternal("你没有编辑该日程的权限");
@@ -525,9 +540,9 @@ class ScheduleController extends Controller
             $calendar = Calendar::find($payload['calendar_id']);
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
-            $participants = array_column($calendar->participants()->get()->toArray(), 'id');
-            if ($user->id != $calendar->creator_id && !in_array($user->id, $participants))
-                $this->response->errorInternal("你没有权限修改日程");
+//            $participants = array_column($calendar->participants()->get()->toArray(), 'id');
+//            if ($user->id != $calendar->creator_id && !in_array($user->id, $participants))
+//                $this->response->errorInternal("你没有权限修改日程");
         }
         if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);
@@ -543,7 +558,67 @@ class ScheduleController extends Controller
             $payload['participant_del_ids'] = [];
         DB::beginTransaction();
         try {
+            $old_schedule = clone $schedule;
             $schedule->update($payload);
+
+            if ($old_schedule->start_at != $schedule->start_at || $old_schedule->end_at != $schedule->end_at){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "日程时间",
+                    'start' => $old_schedule->start_at."-".$old_schedule->end_at,
+                    'end' => $schedule->start_at."-".$schedule->end_at,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            $start_participants = implode(",",array_column($old_schedule->participants()->toArray(),'name'));
+            $end_participants = implode(",",array_column($schedule->participants()->toArray(),'name'));
+            if ($start_participants != $end_participants){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "参与人",
+                    'start' => $start_participants,
+                    'end' => $end_participants,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            $old_material = $old_schedule->material()->first();
+            $material = $schedule->material()->first();
+            if ($old_material->id != $material->id){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "会议室",
+                    'start' => $old_material->name,
+                    'end' => $material->name,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            if($old_schedule->position != $schedule->position){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "位置",
+                    'start' => $old_schedule->position,
+                    'end' => $schedule->position,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+
+
             $this->hasauxiliary($request, $payload, $schedule, '', $user);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
@@ -563,6 +638,17 @@ class ScheduleController extends Controller
         if (!in_array($user->id, $users)) {
             return $this->response->accepted();
         }
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $schedule,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
         return $this->response->item($schedule, new ScheduleTransformer());
     }
 

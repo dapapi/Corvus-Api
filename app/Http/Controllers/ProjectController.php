@@ -802,7 +802,7 @@ class ProjectController extends Controller
             DB::rollBack();
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());
         }
-//        dd($sql);
+        DB::commit();
 
         DB::beginTransaction();
         try {
@@ -822,7 +822,7 @@ class ProjectController extends Controller
                 'title' => '项目负责人',
                 'value' => $principal->name
             ];
-            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
+            $participant_ids = implode(",",array_column($project->participants()->where('id')->toArray(),'id'));
             $authorization = $request->header()['authorization'][0];
             foreach($payload['participant_ids'] as &$participant_id){
                 hashid_decode($participant_id);
@@ -834,7 +834,7 @@ class ProjectController extends Controller
             Log::error($e);
         }
 
-        DB::commit();
+
         return $this->response->accepted();
     }
 

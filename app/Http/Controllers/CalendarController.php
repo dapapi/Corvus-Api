@@ -125,8 +125,24 @@ class CalendarController extends Controller
         if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
             $payload['participant_del_ids'] = [];
         try {
+            //获取未更新之前的参与人
+            $start_participants = implode(",",array_column($calendar->participants()->where('name')->get()->toArray(),'name'));
             $calendar->update($payload);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
+            //更新之后的参与人
+            $end_participants = implode(",",array_column($calendar->participants()->where('name')->get()->toArray(),'name'));
+            //记录日志
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $calendar,
+                'title' => "参与人",
+                'start' => $start_participants,
+                'end' => $end_participants,
+                'method' => OperateLogMethod::UPDATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
 
         } catch (Exception $exception) {
             Log::error($exception);

@@ -98,7 +98,6 @@ class ScopeController extends Controller
                 $dataArr = json_decode($dataViewSql[0]['data_view_sql'],true);
                 $resArr = array();
                foreach ($dataArr as $value){
-                   dd($value);
                    if(is_array($value))
                    {
                    $resArr[0]['field']=$value[0]['field'];

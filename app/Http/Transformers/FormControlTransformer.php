@@ -45,7 +45,7 @@ class FormControlTransformer extends TransformerAbstract
             $arr['control_placeholder_sub'] = $control->sub_placeholder;
         }
 
-        if ($this->num)
+        if ($this->num && !is_null($control->value($this->num)))
             $arr['control_value'] = $control->value($this->num)->form_control_value;
         else
             $arr['control_value'] = null;

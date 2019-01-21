@@ -41,6 +41,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //修改密码
         $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
 
+
+        // 自定义筛选集中
+        $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
+        $api->get('/stars/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
+        $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
+
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
@@ -324,7 +333,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
-        $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
@@ -334,10 +342,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
 
-
-        // 自定义筛选post集中
-        $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
-        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -661,7 +665,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         // 获取审批实例
-        $api->get('/approval_instances/{instance}', 'App\Http\Controllers\ApprovalFormController@detail');
+        $api->get('/approval_instances/{instance}', 'App\Http\Controllers\
+        @detail');
         $api->get('/approvals/specific_contract', 'App\Http\Controllers\ApprovalFormController@getContractForm');
         // 合同和普通审批新建
         $api->post('/approvals/{approval}', 'App\Http\Controllers\ApprovalFormController@instanceStore');

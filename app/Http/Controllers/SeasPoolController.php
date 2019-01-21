@@ -91,6 +91,13 @@ class SeasPoolController extends Controller
                        'principal_id' => $user->id,
                        'take_type' => 2
                    ];
+                    //判断是否领取
+                   $principal = DB::table('trails')->select('principal_id')->where('id',hashid_decode($valId))->get()->toArray();
+                   if($principal[0]->principal_id !==0){
+
+                       return $this->response->errorInternal('该销售线索有负责人');
+
+                   }
 
                    $num = DB::table('trails')->where('id',hashid_decode($valId))->update($array);
 
@@ -147,6 +154,14 @@ class SeasPoolController extends Controller
                         'principal_id' => $userId,
                         'take_type' => 2
                     ];
+                    //判断是否领取
+                    $principal = DB::table('trails')->select('principal_id')->where('id',hashid_decode($valId))->get()->toArray();
+
+                    if($principal[0]->principal_id !==0){
+
+                        return $this->response->errorInternal('该销售线索有负责人');
+
+                    }
 
                     $num = DB::table('trails')->where('id',hashid_decode($valId))->update($array);
 
@@ -179,6 +194,7 @@ class SeasPoolController extends Controller
     public function refund(Request $request, Trail $trail)
     {
         $payload = $request->all();
+        $trailId = $trail->id;
 
         $user = Auth::guard('api')->user();
         $userName = $user->name;
@@ -193,6 +209,13 @@ class SeasPoolController extends Controller
                 'principal_id' => '',
                 'take_type' => 1
             ];
+            $principal = DB::table('trails')->select('principal_id')->where('id',$trailId)->where('principal_id',$user->id)->count();
+
+            if($principal==0){
+                return $this->response->errorInternal('该销售线索没有退回权限');
+
+            }
+
             $trail->update($array);
             // 操作日志
             $operate = new OperateEntity([

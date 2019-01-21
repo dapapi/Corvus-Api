@@ -306,7 +306,9 @@ class ScopeRepository
     }
     private function checkDataViewPower($model)
     {
+
         $model = $model->searchData()->find($model->id);
+
         if($model == null){
             return false;
         }

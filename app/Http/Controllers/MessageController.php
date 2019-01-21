@@ -121,106 +121,130 @@ class MessageController extends Controller
     public function getModules(Request $request)
     {
         $user = Auth::guard('api')->user();
-        //获取消息模块
-        $subquery = DB::table(DB::raw('message_states as ms'))
-            ->leftJoin('messages as m',function ($join){
-                $join->on('m.id','ms.message_id')
-                    ->where('ms.state',MessageState::UN_READ);
-            })
-            ->where('ms.user_id',$user->id)
-            ->select('m.module',DB::raw("count('DISTINCT ms.message_id') as un_read"))
-            ->groupBy('m.module');
-
-        $result = (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
-            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.id')
-            ->mergeBindings($subquery)
-            ->where('dd.parent_id',206)
-            ->groupBy('dd.id')
-            ->get(['dd.id','dd.val','dd.name','m.un_read']);
-        return $result;
+//        //获取消息模块
+//        $subquery = DB::table(DB::raw('message_states as ms'))
+//            ->leftJoin('messages as m',function ($join){
+//                $join->on('m.id','ms.message_id')
+//                    ->where('ms.state',MessageState::UN_READ);
+//            })
+//            ->where('ms.user_id',$user->id)
+//            ->select("m.id",'m.module',DB::raw("count('DISTINCT ms.message_id') as un_read"),"m.title","m.created_at","ms.state")
+//            ->orderBy("m.created_at","desc")
+//            ->groupBy('m.module');
+//
+//        $result = (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
+//            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.id')
+//            ->mergeBindings($subquery)
+//            ->where('dd.parent_id',206)
+//            ->orderBy("m.created_at","desc")
+//            ->groupBy('dd.id')
+//            ->get(['dd.id','dd.val','dd.name','m.un_read',"m.title","m.created_at","m.state","m.id as m_id"]);
+//        return $result;
+        $messageRepository = new MessageRepository();
+        $modules = $messageRepository->getModules();
+        foreach ($modules as &$module){
+            //获取某块对应的用户未读消息
+            $un_read = $messageRepository->getUnMessageNum($user->id,$module['id']);
+            //获取模块对应的用户最新消息
+            $lastMessage = $messageRepository->getLastNewsByModule($module['id'],$user->id);
+            $module['unread'] = $un_read;
+            $module['laset_mesage'] = $lastMessage;
+        }
+        return $modules;
     }
 
     public function MobileGetMessage(Request $request)
     {
-        return [
-            [
-                'module_name'   =>  '任务助手',
-                'message'   =>  [
-                    [
-                        'message_id'    => 12345,
-                        "link"  =>  'http://xxx.com/ccc',
-                        "created_at"    =>  "2019-01-19 14:10:48",
-                        "message_title" =>  '哈哈哈',
-                        "body" => [
-                                    [
-                                        "title"=> "任务名称",
-                                        "value"=>"一个任务1"
-                                    ],
-                                    [
-                                        "title"=>"负责人",
-                                        "value"=>"校林峰",
-                                    ]
-                                ]
-                    ],
-                    [
-                        'message_id'    => 12346,
-                        "link"  =>  'http://xxx.com/ccc',
-                        "created_at"    =>  "2019-01-19 14:10:48",
-                        "message_title" =>  "哈哈哈哈",
-                        "body" => [
-                            [
-                                "title"=> "任务名称",
-                                "value"=>"一个任务1"
-                            ],
-                            [
-                                "title"=>"负责人",
-                                "value"=>"校林峰",
-                            ]
-                        ]
-                    ],
-
-                ]
-            ],
-            [
-                'module_name'   =>  '艺人助手',
-                'message'   =>  [
-                    [
-                        'message_id'    => 12345,
-                        "link"  =>  'http://xxx.com/ccc',
-                        "created_at"    =>  "2019-01-19 14:10:48",
-                        "message_title" =>  '哈哈哈',
-                        "body" => [
-                            [
-                                "title"=> "任务名称",
-                                "value"=>"一个任务1"
-                            ],
-                            [
-                                "title"=>"负责人",
-                                "value"=>"校林峰",
-                            ]
-                        ]
-                    ],
-                    [
-                        'message_id'    => 12346,
-                        "link"  =>  'http://xxx.com/ccc',
-                        "created_at"    =>  "2019-01-19 14:10:48",
-                        "message_title" =>  "哈哈哈哈",
-                        "body" => [
-                            [
-                                "title"=> "任务名称",
-                                "value"=>"一个任务1"
-                            ],
-                            [
-                                "title"=>"负责人",
-                                "value"=>"校林峰",
-                            ]
-                        ]
-                    ],
-
-                ]
-            ],
-
-        ];
+        $user = Auth::guard('api')->user();
+        $message = DB::table("data_dictionaries as dd")
+            ->leftJoin("messages as m", 'm.module', 'dd.id')
+            ->leftJoin("message_datas as md", 'md.message_id', "m.id")
+            ->leftJoin("message_states as ms", 'ms.message_id', 'm.id')
+            ->where('parent_id', 206)
+            ->where('ms.user_id', $user->id)
+            ->select("dd.name as module_name", "m.id as message_id", "m.title as message_title", "m.link", "m.created_at", "md.title", "md.value", "ms.state")
+            ->get()->toArray();
+        $res = [];
+        return $message;
+//        return [
+//            [
+//                'module_name'   =>  '任务助手',
+//                'message'   =>  [
+//                    [
+//                        'message_id'    => 12345,
+//                        "link"  =>  'http://xxx.com/ccc',
+//                        "created_at"    =>  "2019-01-19 14:10:48",
+//                        "message_title" =>  '哈哈哈',
+//                        "body" => [
+//                                    [
+//                                        "title"=> "任务名称",
+//                                        "value"=>"一个任务1"
+//                                    ],
+//                                    [
+//                                        "title"=>"负责人",
+//                                        "value"=>"校林峰",
+//                                    ]
+//                                ]
+//                    ],
+//                    [
+//                        'message_id'    => 12346,
+//                        "link"  =>  'http://xxx.com/ccc',
+//                        "created_at"    =>  "2019-01-19 14:10:48",
+//                        "message_title" =>  "哈哈哈哈",
+//                        "body" => [
+//                            [
+//                                "title"=> "任务名称",
+//                                "value"=>"一个任务1"
+//                            ],
+//                            [
+//                                "title"=>"负责人",
+//                                "value"=>"校林峰",
+//                            ]
+//                        ]
+//                    ],
+//
+//                ]
+//            ],
+//            [
+//                'module_name'   =>  '艺人助手',
+//                'message'   =>  [
+//                    [
+//                        'message_id'    => 12345,
+//                        "link"  =>  'http://xxx.com/ccc',
+//                        "created_at"    =>  "2019-01-19 14:10:48",
+//                        "message_title" =>  '哈哈哈',
+//                        "body" => [
+//                            [
+//                                "title"=> "任务名称",
+//                                "value"=>"一个任务1"
+//                            ],
+//                            [
+//                                "title"=>"负责人",
+//                                "value"=>"校林峰",
+//                            ]
+//                        ]
+//                    ],
+//                    [
+//                        'message_id'    => 12346,
+//                        "link"  =>  'http://xxx.com/ccc',
+//                        "created_at"    =>  "2019-01-19 14:10:48",
+//                        "message_title" =>  "哈哈哈哈",
+//                        "body" => [
+//                            [
+//                                "title"=> "任务名称",
+//                                "value"=>"一个任务1"
+//                            ],
+//                            [
+//                                "title"=>"负责人",
+//                                "value"=>"校林峰",
+//                            ]
+//                        ]
+//                    ],
+//
+//                ]
+//            ],
+//
+//        ];
     }
 
 }

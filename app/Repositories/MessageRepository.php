@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Helper\SendMessage;
+use App\Models\DataDictionarie;
 use App\Models\Message;
 use App\Models\MessageData;
 use App\Models\MessageState;
@@ -56,5 +57,34 @@ class MessageRepository
 
 //        $send_message->sendMessage($title,$subheading,$link,$data,$recives);
     }
+
+    /**
+     * 获取用户消息条数
+     * @param $user_id
+     * @param null $state
+     * @return mixed
+     */
+    public function getUnMessageNum($user_id,$module,$state=null)
+    {
+        $query = Message::where('ms.user_id',$user_id)->where("messages.module",$module)
+            ->leftJoin('message_states as ms',"ms.message_id","messages.id")
+        ;
+        if ($state){
+            $query->where('state',$state);
+        }
+        return $query->count();
+    }
+    //获取所有消息模块
+    public function getModules()
+    {
+        return DataDictionarie::select("id","val","name")->where("parent_id",206)->get()->toArray();
+    }
+    //获取用户某模块最新消息
+    public function getLastNewsByModule($module,$user_id)
+    {
+        return Message::where("messages.module",$module)->leftJoin("message_states as ms","ms.user_id","messages.id")
+            ->where("ms.user_id",$user_id)->select('messages.title','ms.state',"ms.created_at")->first();
+    }
+
 
 }

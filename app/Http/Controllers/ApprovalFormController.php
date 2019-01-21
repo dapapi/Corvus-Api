@@ -899,7 +899,7 @@ class ApprovalFormController extends Controller
                 break;
             case 9:
             case 10:
-                $string = $this->company . $this->type;
+                $string = $this->company .'-'. $this->type;
                 break;
             default:
                 throw new Exception('合同编号生成错误');

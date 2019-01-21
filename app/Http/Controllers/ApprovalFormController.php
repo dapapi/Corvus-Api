@@ -205,6 +205,18 @@ class ApprovalFormController extends Controller
             $result = $this->getInstance($instance);
         }
 
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $instance,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::UPDATE,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
+
         return $result;
     }
 
@@ -687,6 +699,17 @@ class ApprovalFormController extends Controller
                     'updated_at' => Carbon::now(),
                 ]);
             }
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $instance,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
             foreach ($controlValues as $value) {
                 $this->instanceValueStore($num, $value['key'], $value['value'], $value['type']);
             }
@@ -754,6 +777,7 @@ class ApprovalFormController extends Controller
                             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user);
                             DB::commit();
                         } catch (Exception $e) {
+                            Log::error($e);
                             DB::rollBack();
                         }
 

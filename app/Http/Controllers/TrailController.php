@@ -642,6 +642,7 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
+                    Log::error($e);
                     return $this->response->errorInternal("目标艺人关联失败");
                 }
 
@@ -713,6 +714,7 @@ class TrailController extends Controller
 
 
                 }catch (\Exception $e){
+                    Log::error($e);
                     return $this->response->errorInternal("推荐艺人关联失败");
                 }
             }

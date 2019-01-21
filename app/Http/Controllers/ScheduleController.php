@@ -558,24 +558,66 @@ class ScheduleController extends Controller
             $payload['participant_del_ids'] = [];
         DB::beginTransaction();
         try {
-            $old_start_at = $schedule->start_at;
-            $old_end_at = $schedule->end_at;
+            $old_schedule = clone $schedule;
             $schedule->update($payload);
-            $start_at = $schedule->start_at;
-            $end_at = $schedule->end_at;
-            if ($old_start_at != $start_at || $old_end_at != $end_at){
+
+            if ($old_schedule->start_at != $schedule->start_at || $old_schedule->end_at != $schedule->end_at){
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $schedule,
                     'title' => "日程时间",
-                    'start' => $old_start_at."-".$old_end_at,
-                    'end' => $start_at."-".$end_at,
+                    'start' => $old_schedule->start_at."-".$old_schedule->end_at,
+                    'end' => $schedule->start_at."-".$schedule->end_at,
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 event(new OperateLogEvent([
                     $operate
                 ]));
             }
+            $start_participants = implode(",",array_column($old_schedule->participants()->toArray(),'name'));
+            $end_participants = implode(",",array_column($schedule->participants()->toArray(),'name'));
+            if ($start_participants != $end_participants){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "参与人",
+                    'start' => $start_participants,
+                    'end' => $end_participants,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            $old_material = $old_schedule->material()->first();
+            $material = $schedule->material()->first();
+            if ($old_material->id != $material->id){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "会议室",
+                    'start' => $old_material->name,
+                    'end' => $material->name,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            if($old_schedule->position != $schedule->position){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "位置",
+                    'start' => $old_schedule->position,
+                    'end' => $schedule->position,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+
 
             $this->hasauxiliary($request, $payload, $schedule, '', $user);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);

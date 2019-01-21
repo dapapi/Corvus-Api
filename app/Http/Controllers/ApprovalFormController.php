@@ -819,8 +819,12 @@ class ApprovalFormController extends Controller
                 if ($type == 'contract_number') {
                     $this->company = $this->getCompanyCode($value);
                 } else {
-                    if ($type == 'type')
-                        $this->type = $this->formatType($value);
+                    if ($type == 'type') {
+                        $dataType = $this->formatType($value);
+                        $this->contract->update([
+                            'type' => $dataType
+                        ]);
+                    }
 
                     if ($type == 'stars')
                         $this->contract->update([
@@ -907,12 +911,18 @@ class ApprovalFormController extends Controller
 
     private function formatType($type)
     {
-        if (strpos($type, '收入') !== false)
+        if (strpos($type, '收入') !== false) {
             $this->type = 'SR';
-        elseif (strpos($type, '成本') !== false)
+            return '收入';
+        }
+        elseif (strpos($type, '成本') !== false) {
             $this->type = 'ZC';
-        elseif (strpos($type, '无金额') !== false)
+            return '成本';
+        }
+        elseif (strpos($type, '无金额') !== false){
             $this->type = 'W';
+            return '无金额';
+        }
         else
             $this->type = null;
     }

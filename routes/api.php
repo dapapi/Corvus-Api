@@ -41,6 +41,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //修改密码
         $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
 
+
+        // 自定义筛选集中
+        $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
+        $api->get('/stars/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
+        $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
+
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
@@ -333,12 +342,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
 
-
-        // 自定义筛选集中
-        $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
-        $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
-        $api->get('/stars/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
-        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

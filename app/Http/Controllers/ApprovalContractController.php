@@ -2,41 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Helper\Generator;
-use App\Http\Requests\Approval\GetFormIdsRequest;
-use App\Http\Requests\Approval\InstanceStoreRequest;
-use App\Http\Transformers\ApprovalFormTransformer;
-use App\Models\ApprovalForm\ApprovalForm;
-use App\Http\Transformers\FormControlTransformer;
-use App\Models\ApprovalForm\Group;
-use App\Models\ApprovalForm\Instance;
-use App\Models\ApprovalForm\InstanceValue;
-use App\Models\Contract;
-use App\Models\DataDictionary;
-use App\Models\ProjectHistorie;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use App\Models\Project;
 use App\Models\DataDictionarie;
-use App\User;
-use App\Http\Transformers\ProjectTransformer;
 use App\Models\RoleUser;
-use App\Models\ApprovalForm\Business;
-use App\Models\ApprovalFlow\Execute;
-use App\Models\ApprovalFlow\ChainFixed;
-use App\Models\ApprovalFlow\Change;
-use App\Models\ApprovalForm\Participant;
-use App\Http\Transformers\TemplateFieldTransformer;
-use App\Models\TemplateField;
-
-
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Exception;
-use League\Fractal;
-use League\Fractal\Manager;
-use League\Fractal\Serializer\DataArraySerializer;
+
 
 class ApprovalContractController extends Controller
 {

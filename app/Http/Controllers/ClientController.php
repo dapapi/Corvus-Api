@@ -8,6 +8,7 @@ use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\FilterClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Excel\ExcelImportRequest;
+use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Transformers\ClientTransformer;
 use App\Imports\ClientsImport;
 use App\Models\Client;
@@ -228,5 +229,47 @@ class ClientController extends Controller
     {
         $file = '当前用户导出'. date('YmdHis', time()).'.xlsx';
         return (new ClientsExport($request))->download($file);
+    }
+
+    /**
+     * 暂时不用列表了，逻辑要换
+     * @param FilterRequest $request
+     * @return \Dingo\Api\Http\Response
+     */
+    public function getFilter(FilterRequest $request)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $all = $request->get('all', false);
+
+        $query = Client::query();
+        $conditions = $request->get('conditions');
+        foreach ($conditions as $condition) {
+            $field = $condition['field'];
+            $operator = $condition['operator'];
+            $type = $condition['type'];
+            if ($operator == 'LIKE') {
+                $value = '%' . $condition['value'] . '%';
+                $query->whereRaw("$field $operator ?", [$value]);
+            } else if ($operator == 'in') {
+                $value = $condition['value'];
+                if ($type >= 5)
+                    foreach ($value as &$v) {
+                        $v = hashid_decode($v);
+                    }
+                unset($v);
+                $query->whereIn($field, $value);
+            } else {
+                $value = $condition['value'];
+                $query->whereRaw("$field $operator ?", [$value]);
+            }
+
+        }
+        // 这句用来检查绑定的参数
+        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
+
+        $clients = $query->orderBy('created_at', 'desc')->paginate($pageSize);
+
+        return $this->response->paginator($clients, new ClientTransformer(!$all));
     }
 }

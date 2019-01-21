@@ -467,7 +467,7 @@ class ApprovalFlowController extends Controller
         $formId = $form->form_id;
         $num = $instance->form_instance_number;
         $changeType = $form->change_type;
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243,])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [237, 241, 242, 243,])->count('form_instance_number');
         $now = Execute::where('form_instance_number', $num)->where('flow_type_id', 231)->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程

@@ -91,6 +91,13 @@ class SeasPoolController extends Controller
                        'principal_id' => $user->id,
                        'take_type' => 2
                    ];
+                    //判断是否领取
+                   $principal = DB::table('trails')->select('principal_id')->where('id',hashid_decode($valId))->get()->toArray();
+                   if($principal[0]->principal_id !==0){
+
+                       return $this->response->errorInternal('该销售线索有负责人');
+
+                   }
 
                    $num = DB::table('trails')->where('id',hashid_decode($valId))->update($array);
 
@@ -147,6 +154,14 @@ class SeasPoolController extends Controller
                         'principal_id' => $userId,
                         'take_type' => 2
                     ];
+                    //判断是否领取
+                    $principal = DB::table('trails')->select('principal_id')->where('id',hashid_decode($valId))->get()->toArray();
+
+                    if($principal[0]->principal_id !==0){
+
+                        return $this->response->errorInternal('该销售线索有负责人');
+
+                    }
 
                     $num = DB::table('trails')->where('id',hashid_decode($valId))->update($array);
 

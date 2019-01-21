@@ -819,13 +819,6 @@ class ApprovalFormController extends Controller
                 if ($type == 'contract_number') {
                     $this->company = $this->getCompanyCode($value);
                 } else {
-                    if ($type == 'type') {
-                        $dataType = $this->formatType($value);
-                        $this->contract->update([
-                            'type' => $dataType
-                        ]);
-                    }
-
                     if ($type == 'stars')
                         $this->contract->update([
                             'star_type' => $this->starType
@@ -839,6 +832,13 @@ class ApprovalFormController extends Controller
                         $this->contract->update([
                             $type => $value
                         ]);
+
+                    if ($type == 'type') {
+                        $dataType = $this->formatType($value);
+                        $this->contract->update([
+                            'type' => $dataType
+                        ]);
+                    }
                 }
             }
         } catch (Exception $exception) {

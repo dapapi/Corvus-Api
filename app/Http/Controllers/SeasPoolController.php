@@ -194,6 +194,7 @@ class SeasPoolController extends Controller
     public function refund(Request $request, Trail $trail)
     {
         $payload = $request->all();
+        $trailId = $trail->id;
 
         $user = Auth::guard('api')->user();
         $userName = $user->name;
@@ -208,6 +209,13 @@ class SeasPoolController extends Controller
                 'principal_id' => '',
                 'take_type' => 1
             ];
+            $principal = DB::table('trails')->select('principal_id')->where('id',$trailId)->where('principal_id',$user->id)->count();
+
+            if($principal==0){
+                return $this->response->errorInternal('该销售线索没有退回权限');
+
+            }
+
             $trail->update($array);
             // 操作日志
             $operate = new OperateEntity([

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\AffixType;
+use App\Events\OperateLogEvent;
 use App\Http\Requests\Schedule\EditScheduleRequest;
 use App\Http\Requests\Schedule\IndexScheduleRequest;
 use App\Http\Requests\Schedule\StoreScheduleRequest;
@@ -11,6 +12,7 @@ use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
 use App\Http\Transformers\ScheduleRelateTransformer;
 use App\Models\Calendar;
+use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\ScheduleRelate;
 use App\Models\Material;
@@ -21,6 +23,7 @@ use App\Models\Schedule;
 use App\Models\TaskResource;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\ScheduleRelatesRepository;
 use App\Repositories\ModuleUserRepository;
@@ -436,14 +439,25 @@ class ScheduleController extends Controller
         DB::beginTransaction();
         try {
             $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $schedule,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
 
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');
         }
-
         DB::commit();
+
 
         return $this->response->item($schedule, new ScheduleTransformer());
     }
@@ -563,6 +577,17 @@ class ScheduleController extends Controller
         if (!in_array($user->id, $users)) {
             return $this->response->accepted();
         }
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $schedule,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
         return $this->response->item($schedule, new ScheduleTransformer());
     }
 

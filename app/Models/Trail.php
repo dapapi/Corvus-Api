@@ -117,7 +117,6 @@ class Trail extends Model
             $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
             return (new SearchDataScope())->getCondition($query,$rules,$userid);
         }
-
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return $this->orCondition($query,$rules)->where("pool_type");
 

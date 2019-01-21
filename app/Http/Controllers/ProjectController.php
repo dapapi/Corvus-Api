@@ -822,7 +822,7 @@ class ProjectController extends Controller
                 'title' => '项目负责人',
                 'value' => $principal->name
             ];
-            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
+            $participant_ids = implode(",",array_column($project->participants()->where('name')->toArray(),'name'));
             $authorization = $request->header()['authorization'][0];
             foreach($payload['participant_ids'] as &$participant_id){
                 hashid_decode($participant_id);

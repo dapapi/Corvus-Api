@@ -306,7 +306,9 @@ class ScopeRepository
     }
     private function checkDataViewPower($model)
     {
+        DB::connection()->enableQueryLog();
         $model = $model->searchData()->find($model->id);
+        dd(DB::getQueryLog());
         if($model == null){
             return false;
         }

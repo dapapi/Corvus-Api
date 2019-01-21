@@ -853,7 +853,6 @@ class ProjectController extends Controller
         $manager->setSerializer(new DataArraySerializer());
         if (isset($expendituresum)) {
             $user = Auth::guard('api')->user();
-            $user->id = 2;
             $setprivacy1 = array();
             $Viewprivacy2 = array();
             $array['moduleable_id'] = $project->id;
@@ -878,7 +877,6 @@ class ProjectController extends Controller
                 } else {
                     $setprivacy1 = array();
                 }
-
             }
             if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
                 if (empty($setprivacy1)) {
@@ -896,7 +894,6 @@ class ProjectController extends Controller
                 foreach ($setprivacy1 as $key => $v) {
                     $Viewprivacy2[$v] = $key;
                 }
-
                 foreach ($Viewprivacy2 as $key2 => $val2) {
 
                     if ($key2 === 'contractmoney') {
@@ -1081,7 +1078,8 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-
+            if ($request->has('type'))#项目类型
+                $query->where('type', $payload['type']);
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 
@@ -1221,17 +1219,21 @@ class ProjectController extends Controller
 
     public function indexReturnedMoney(Request $request, Project $project)
     {
-        $contract_id = 22;
+        $ploay = $request;
+        $approval  = (new ApprovalContractController())->projectList($request,$project);
+        $contract_id = $ploay['contract_id'];
+//        $contract_id = '20190118274451221';
         $project_id = $project->id;
         $project = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id, 'p_id' => 0])->createDesc()->get();
-        $contractReturnedMoney = 10000000000;
+        $contractReturnedMoney = $approval['money'];
+
         $alreadyReturnedMoney = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id])->wherein('project_returned_money_type_id', [1, 2, 3, 4])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
         $notReturnedMoney = $contractReturnedMoney - $alreadyReturnedMoney->toArray()['alreadysum'];
         $alreadyinvoice = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id])->wherein('project_returned_money_type_id', [5, 6])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
 
 
         $result = $this->response->collection($project, new ProjectReturnedMoneyTransformer());
-
+        $result->addMeta('appoval', $approval);
         $result->addMeta('contractReturnedMoney', $contractReturnedMoney);
         $result->addMeta('alreadyReturnedMoney', $alreadyReturnedMoney->alreadysum);
         $result->addMeta('notReturnedMoney', $notReturnedMoney);

@@ -324,7 +324,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
-        $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
@@ -333,7 +332,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
+
+
+        // 自定义筛选集中
+        $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
+        $api->get('/stars/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -553,7 +558,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         
         /*公海池*/
-        $api->get('/pool/index','App\Http\Controllers\SeasPoolController@index');
+        $api->get('/pool','App\Http\Controllers\SeasPoolController@index');
         //领取
         $api->post('/pool/receive','App\Http\Controllers\SeasPoolController@receive');
         //分配

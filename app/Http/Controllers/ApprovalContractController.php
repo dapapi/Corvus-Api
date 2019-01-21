@@ -549,11 +549,15 @@ class ApprovalContractController extends Controller
     }
 
     //项目详情合同列表
-    public function projectList(Request $request){
+    public function projectList(Request $request,$model = null){
 
         $payload = $request->all();
-
-        $projects = hashid_decode($payload['project_id']);
+        if($model)
+        {
+            $projects = $model->id;
+        }else{
+            $projects = hashid_decode($payload['project_id']);
+        }
 
         $data = DB::table('approval_form_business as afb')//
             ->join('approval_forms as af', function ($join) {
@@ -562,24 +566,24 @@ class ApprovalContractController extends Controller
             ->join('contracts as cs', function ($join) {
                 $join->on('afb.form_instance_number', '=','cs.form_instance_number');
             })
-
             ->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
             })
-
-
             ->where('cs.project_id',$projects)
             ->orderBy('cs.created_at', 'desc')
-            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name','cs.created_at','afb.form_status','cs.stars')->get()->toArray();
+            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name','cs.created_at','afb.form_status','cs.stars','cs.contract_money')->get()->toArray();
         $dataInfo = json_decode(json_encode($data), true);
+        $sum = 0;
         if(!empty($dataInfo)){
             foreach ($dataInfo as &$value){
                 $starsId = explode(',',$value['stars']);
                 $value['stars_name'] = DB::table('users')->whereIn('users.id',$starsId)->select('users.name')->get()->toArray();
+                $sum += $value['contract_money'];
 
             }
         }
         $result['data'] = $dataInfo;
+        $result['money'] = $sum;
         return $result;
     }
 

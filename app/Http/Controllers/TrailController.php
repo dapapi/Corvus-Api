@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Exports\TrailsExport;
-use App\Http\Requests\Filter\TrailFilterRequest;
+use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Trail\EditTrailRequest;
 use App\Http\Requests\Trail\FilterTrailRequest;
 use App\Http\Requests\Trail\RefuseTrailReuqest;
@@ -13,22 +13,16 @@ use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
-use App\Models\Blogger;
 use App\Imports\TrailsImport;
 use App\Models\DataDictionarie;
-use App\Models\DataDictionary;
-use App\Models\Department;
-use App\Models\DepartmentUser;
 use App\Models\FilterJoin;
 use App\Models\Industry;
 use App\Models\Message;
 use App\Models\OperateEntity;
-use App\Models\Star;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Trail;
 use App\Models\TrailStar;
-use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
@@ -926,7 +920,7 @@ class TrailController extends Controller
      *  3. sql返回带分页带eloquent模型
      * @param $request
      */
-    public function getFilter(TrailFilterRequest $request)
+    public function getFilter(FilterRequest $request)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
@@ -965,6 +959,8 @@ class TrailController extends Controller
             }
 
         }
+
+        // 这句用来检查绑定的参数
         $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
 //        dd($sql_with_bindings);
         $result = $query->pluck('ids')->toArray();

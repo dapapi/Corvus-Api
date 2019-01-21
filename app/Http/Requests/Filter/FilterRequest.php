@@ -4,7 +4,7 @@ namespace App\Http\Requests\Filter;
 
 use Dingo\Api\Http\FormRequest;
 
-class TrailFilterRequest extends FormRequest
+class FilterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -446,6 +446,7 @@ class ApprovalFlowController extends Controller
     }
 
     /**
+     * todo 网速慢问题
      * 重复审批人出现会跳过中间审批人
      * @param $instance
      * @param $preId
@@ -466,8 +467,7 @@ class ApprovalFlowController extends Controller
         $formId = $form->form_id;
         $num = $instance->form_instance_number;
         $changeType = $form->change_type;
-
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243,])->count('form_instance_number');
         $now = Execute::where('form_instance_number', $num)->where('flow_type_id', 231)->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程
@@ -476,6 +476,7 @@ class ApprovalFlowController extends Controller
             // 自由流程
             $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->where('sort_number', $count + $now)->first();
         } else if ($changeType == 224) {
+
             // 分支流程
             $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
             $value = $this->getValuesForCondition($formControlIds, $num);
@@ -505,7 +506,7 @@ class ApprovalFlowController extends Controller
     private function getTransferNextChain($instance)
     {
         $num = $instance->form_instance_number;
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [240, 241, 242, 243])->count('form_instance_number');
 
         $form = $instance->form;
         if ($form->change_type == 223) {

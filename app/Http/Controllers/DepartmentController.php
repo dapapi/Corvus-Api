@@ -647,7 +647,11 @@ class DepartmentController extends Controller
             if($asc>=-12838 and $asc<=-12557)return "W";
             if($asc>=-12556 and $asc<=-11848)return "X";
             if($asc>=-11847 and $asc<=-11056)return "Y";
-            if($asc>=-11055 and $asc<=-10247)return "Z";
+            if($asc>=-11055 and $asc<=-10247){
+                return "Z";
+            }else{
+                return "WZ";
+            }
 
         }else if(ord($s)>=48 and ord($s)<=57){ //数字开头
             switch(iconv_substr($s,0,1,'utf-8')){

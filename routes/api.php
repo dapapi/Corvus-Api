@@ -369,6 +369,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
+        $api->get('/projects/filter_type', 'App\Http\Controllers\ProjectController@filterType');
         $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');

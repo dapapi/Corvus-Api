@@ -1078,7 +1078,8 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-
+            if ($request->has('type'))#项目类型
+                $query->where('type', $payload['type']);
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 

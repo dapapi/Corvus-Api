@@ -58,7 +58,7 @@ class TrailController extends Controller
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
 
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
@@ -67,7 +67,7 @@ class TrailController extends Controller
         $type = $request->get('type', '1,2,3,4,5');
         $typeArr = explode(',', $type);
         $clients = Trail::whereIn('type', $typeArr)->orderBy('created_at', 'desc')
-            ->searchData()
+            ->searchData()->poolType()
             ->get();
         return $this->response->collection($clients, new TrailTransformer());
     }
@@ -812,7 +812,7 @@ class TrailController extends Controller
         switch ($type) {
             case 'clients':
                 $trails = Trail::where('client_id', $id)
-                    ->searchData()
+                    ->searchData()->poolType()
                     ->paginate($pageSize);
                 break;
             default:
@@ -828,7 +828,7 @@ class TrailController extends Controller
         $type = $reuqest->get('type');
 
         $trails = Trail::where('type', $type)
-            ->searchData()
+            ->searchData()->poolType()
             ->get();
 
         return $this->response->collection($trails, new TrailTransformer());
@@ -895,7 +895,7 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($trails, new TrailTransformer());
     }
 

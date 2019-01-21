@@ -118,7 +118,7 @@ class Trail extends Model
             return (new SearchDataScope())->getCondition($query,$rules,$userid);
         }
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
-        return $this->orCondition($query,$rules)->where("pool_type");
+        return $this->orCondition($query,$rules);
 
     }
     public function orCondition($query,$rules)
@@ -180,6 +180,9 @@ class Trail extends Model
     public function scopeCompleted($query)
     {
         $query->where('status',Project::STATUS_COMPLETE);
+    }
+    public function scopePoolType($query,$type=null){
+        $query->where("pool_type",$type);
     }
 
     public function principal()

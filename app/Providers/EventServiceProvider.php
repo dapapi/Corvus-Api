@@ -16,9 +16,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\OperateLogEvent' => [
             'App\Listeners\OperateLogEventListener',
         ],
-//        'App\Events\MessageEvent'   =>  [
-//            'App\Listeners\MessageEventListener',
-//        ],
+        'App\Events\MessageEvent'   =>  [
+            'App\Listeners\MessageEventListener',
+        ],
     ];
 
     /**

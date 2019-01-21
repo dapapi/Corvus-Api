@@ -457,6 +457,8 @@ class ScheduleController extends Controller
             return $this->response->errorInternal('创建日程失败');
         }
         DB::commit();
+        //向参与人发送消息
+
 
 
         return $this->response->item($schedule, new ScheduleTransformer());
@@ -528,7 +530,6 @@ class ScheduleController extends Controller
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $users = $this->getPowerUsers($schedule);
-
         $user = Auth::guard("api")->user();
         if (!in_array($user->id, $users)) {
             return $this->response->errorInternal("你没有编辑该日程的权限");
@@ -539,9 +540,9 @@ class ScheduleController extends Controller
             $calendar = Calendar::find($payload['calendar_id']);
             if (!$calendar)
                 return $this->response->errorBadRequest('日历id不存在');
-            $participants = array_column($calendar->participants()->get()->toArray(), 'id');
-            if ($user->id != $calendar->creator_id && !in_array($user->id, $participants))
-                $this->response->errorInternal("你没有权限修改日程");
+//            $participants = array_column($calendar->participants()->get()->toArray(), 'id');
+//            if ($user->id != $calendar->creator_id && !in_array($user->id, $participants))
+//                $this->response->errorInternal("你没有权限修改日程");
         }
         if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);
@@ -557,7 +558,25 @@ class ScheduleController extends Controller
             $payload['participant_del_ids'] = [];
         DB::beginTransaction();
         try {
+            $old_start_at = $schedule->start_at;
+            $old_end_at = $schedule->end_at;
             $schedule->update($payload);
+            $start_at = $schedule->start_at;
+            $end_at = $schedule->end_at;
+            if ($old_start_at != $start_at || $old_end_at != $end_at){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "日程时间",
+                    'start' => $old_start_at."-".$old_end_at,
+                    'end' => $start_at."-".$end_at,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+
             $this->hasauxiliary($request, $payload, $schedule, '', $user);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {

@@ -819,9 +819,6 @@ class ApprovalFormController extends Controller
                 if ($type == 'contract_number') {
                     $this->company = $this->getCompanyCode($value);
                 } else {
-                    if ($type == 'type')
-                        $this->type = $this->formatType($value);
-
                     if ($type == 'stars')
                         $this->contract->update([
                             'star_type' => $this->starType
@@ -835,6 +832,13 @@ class ApprovalFormController extends Controller
                         $this->contract->update([
                             $type => $value
                         ]);
+
+                    if ($type == 'type') {
+                        $dataType = $this->formatType($value);
+                        $this->contract->update([
+                            'type' => $dataType
+                        ]);
+                    }
                 }
             }
         } catch (Exception $exception) {
@@ -895,7 +899,7 @@ class ApprovalFormController extends Controller
                 break;
             case 9:
             case 10:
-                $string = $this->company . $this->type;
+                $string = $this->company .'-'. $this->type;
                 break;
             default:
                 throw new Exception('合同编号生成错误');
@@ -907,12 +911,18 @@ class ApprovalFormController extends Controller
 
     private function formatType($type)
     {
-        if (strpos($type, '收入') !== false)
+        if (strpos($type, '收入') !== false) {
             $this->type = 'SR';
-        elseif (strpos($type, '成本') !== false)
+            return '收入';
+        }
+        elseif (strpos($type, '成本') !== false) {
             $this->type = 'ZC';
-        elseif (strpos($type, '无金额') !== false)
+            return '成本';
+        }
+        elseif (strpos($type, '无金额') !== false){
             $this->type = 'W';
+            return '无金额';
+        }
         else
             $this->type = null;
     }

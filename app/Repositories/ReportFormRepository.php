@@ -986,6 +986,7 @@ class ReportFormRepository
             ->leftJoin('users as u','u.id','=','mu.user_id')
             ->leftJoin('department_user as du','du.user_id','=','u.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
+            ->leftJoin('projects as p','p.trail_id','=','t.id')
             ->groupBy('t.type','t.industry_id')
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->where($arr);

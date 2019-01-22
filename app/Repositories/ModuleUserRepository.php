@@ -24,7 +24,8 @@ class ModuleUserRepository
      * @param $task
      * @param $project
      * @param $type
-     */  public function addModuleUserAll($participantIds, $model, $type)
+     */
+    public function addModuleUserAll($participantIds, $model, $type)
 {
 
     $array = [
@@ -169,10 +170,10 @@ class ModuleUserRepository
         'type' => $type,
     ];
 
-          if($model){
+       if($model){
               if ($model instanceof Calendar) {
                 $array['moduleable_type'] = ModuleableType::CALENDAR;
-            }
+              }
         }else{
               $array['moduleable_type'] = ModuleableType::SCHEDULE;
           }
@@ -185,7 +186,7 @@ class ModuleUserRepository
         $particalendarsIds[$key] = hashid_decode($value);
     }
 
-    $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->wherein('moduleable_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
+    $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->whereIn('moduleable_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
     foreach ($participantDeleteIds as $key => &$participantDeleteId) {
         try {
 

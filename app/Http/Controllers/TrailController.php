@@ -888,8 +888,10 @@ class TrailController extends Controller
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']))
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
                 $query->where('type', $payload['status']);
+            else
+                $query->wherein('type', [$payload['status']]);
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -901,27 +903,7 @@ class TrailController extends Controller
         })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($trails, new TrailTransformer());
     }
-    public function filterType(FilterTrailRequest $request)
-    {
-        $payload = $request->all();
-        $data = [3,4];
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $trails = Trail::where(function ($query) use ($request, $payload,$data) {
-            if ($request->has('keyword') && $payload['keyword'])
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
-                $query->wherein('type', $data);
-            if ($request->has('principal_ids') && $payload['principal_ids']) {
-                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
-                foreach ($payload['principal_ids'] as &$id) {
-                    $id = hashid_decode((int)$id);
-                }
-                unset($id);
-                $query->whereIn('principal_id', $payload['principal_ids']);
-            }
-        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
-        return $this->response->paginator($trails, new TrailTransformer());
-    }
     private function editLog($obj, $field, $old, $new)
     {
         $operate = new OperateEntity([

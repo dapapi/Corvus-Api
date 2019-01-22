@@ -43,7 +43,6 @@ class Client extends Model
         'principal_id',
         'creator_id',
         'size',             // 规模
-        'keyman',           // 决策关键人
         'desc',
         'type',             // 商务客户
         'status',
@@ -104,5 +103,11 @@ class Client extends Model
     public function affixes()
     {
         return $this->morphMany(Affix::class, 'affixable');
+    }
+
+    public function getKeymanAttribute()
+    {
+        $contacts = $this->contacts()->where('type', Contact::TYPE_KEY)->pluck('name');
+        return implode("、", $contacts);
     }
 }

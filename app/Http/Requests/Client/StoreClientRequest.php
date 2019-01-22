@@ -38,7 +38,6 @@ class StoreClientRequest extends FormRequest
             'contact.phone' => ['required', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
             'contact.position' => 'required',
             'contact.type' => 'required|numeric',
-            'keyman' => 'nullable',
             'desc' => 'nullable',
         ];
     }

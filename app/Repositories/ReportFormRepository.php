@@ -1001,19 +1001,19 @@ class ReportFormRepository
             $query->where('p.type',Project::TYPE_MOVIE)//电影
             ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
         })->where('tfv.field_id',7)//影视类型
-        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as total'),'p.type','tfv.value')
             ->groupBy(DB::raw('p.type,tfv.value'))->get()->toArray();
 
         $result2 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
         })->where('tfv.field_id',40)//电影商务
-        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as p_total'),'p.type','tfv.value')
+        ->select(DB::raw('DISTINCT p.id as project_id'),DB::raw('count(DISTINCT p.id) as total'),'p.type','tfv.value')
             ->groupBy(DB::raw('p.type,tfv.value'))->get()->toArray();
 
         $result = array_merge($result1,$result2);
 
         $list = [];
-        $sum = array_sum(array_column($result->toArray(),'total'));
+        $sum = array_sum(array_column($result,'total'));
         foreach ($result as $value){
             if(!isset($list[$value['type']])){
                 $list[$value['type']]['type'] = $value['type'];

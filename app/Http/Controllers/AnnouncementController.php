@@ -149,7 +149,6 @@ class AnnouncementController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('删除失败');

@@ -146,7 +146,6 @@ class OperateLogController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
-            dd($e);
             Log::error($e);
             return $this->response->errorInternal('跟进失败');
         }

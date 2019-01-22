@@ -1085,7 +1085,7 @@ class ProjectController extends Controller
             if ($request->has('type'))#项目类型
                 $query->where('type', $payload['type']);
             if ($request->has('status'))
-                $query->where('status', $payload['status']);
+                $query->where('projects.status', $payload['status']);
 
         })->searchData()
             ->leftJoin('operate_logs',function($join){
@@ -1125,9 +1125,10 @@ class ProjectController extends Controller
             }
             if($request->has('administration'))
                 $query->where('principal_id','<>' ,$userid);
+
                 $query->wherein('type', $data);
             if ($request->has('status'))
-                $query->where('status', $payload['status']);
+                $query->where('projects.status', $payload['status']);
 
         })->searchData()
             ->leftJoin('operate_logs',function($join){

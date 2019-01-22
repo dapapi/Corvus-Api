@@ -166,7 +166,7 @@ class ProjectTransformer extends TransformerAbstract
             $trail = $project->trail;
             if (!$trail)
                 return null;
-            if($trail->type != '4')
+            if($trail->type == '5')
                 return $this->item($trail, new TrailTransformer());
             if (!$setprivacy)
                 return $this->item($trail, new TrailTransformer(true,$setprivacy));

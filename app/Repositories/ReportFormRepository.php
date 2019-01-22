@@ -1013,7 +1013,7 @@ class ReportFormRepository
         $result = array_merge($result1,$result2);
 
         $list = [];
-        $sum = array_sum(array_column($result->toArray(),'total'));
+        $sum = array_sum(array_column($result,'total'));
         foreach ($result as $value){
             if(!isset($list[$value['type']])){
                 $list[$value['type']]['type'] = $value['type'];

@@ -23,13 +23,13 @@ class ClientTransformer extends TransformerAbstract
                 'id' => hashid_encode($client->id),
                 'company' => $client->company,
                 'grade' => $client->grade,
+                'ketman' => $client->keyman,
                 'type' => $client->type,
                 'province' => $client->province,
                 'city' => $client->city,
                 'district' => $client->district,
                 'address' => $client->address,
                 'size' => $client->size,
-                'keyman' => $client->keyman,
                 'desc' => $client->desc,
                 'created_at' => $client->created_at->toDateTimeString(),
                 'updated_at' => $client->updated_at->toDateTimeString(),
@@ -43,7 +43,9 @@ class ClientTransformer extends TransformerAbstract
                 'id' => hashid_encode($client->id),
                 'company' => $client->company,
                 'grade' => $client->grade,
+                'ketman' => $client->keyman,
             ];
+
         }
 
 

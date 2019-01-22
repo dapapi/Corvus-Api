@@ -220,10 +220,10 @@ class ProjectController extends Controller
             default:
                 break;
         }
-        if ($request->has('project_type') && $project_type <> '3,4'){
+        if ($request->has('project_type') && $project_type <> '3,4' ){
             $query->where('type',$project_type);
 
-        }else{
+        }else if( $project_type == '3,4'){
             $query->whereIn('type',[$project_type]);
         }
         $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);

@@ -18,6 +18,7 @@ use App\Models\ApprovalFlow\Condition;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Http\Transformers\FormControlTransformer;
 use App\Models\ApprovalForm\Control;
+use App\Models\ApprovalForm\DetailValue;
 use App\Models\ApprovalForm\Group;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
@@ -668,7 +669,7 @@ class ApprovalFormController extends Controller
 
         DB::beginTransaction();
         try {
-            // 一般审批可以自定义
+            // todo 待验证   一般审批可以自定义
             if (!$type && $chains) {
                 $flow = new ApprovalFlowController();
                 $flow->storeFreeChains($chains, $num);
@@ -829,39 +830,54 @@ class ApprovalFormController extends Controller
         return $this->response->item($form, new ApprovalFormTransformer());
     }
 
+    // todo 分支写的太差，优化结构
     private function instanceValueStore($num, $key, $value, $type = null)
     {
         try {
             $key = hashid_decode($key);
-            list($value, $ids) = $this->formatValue($value);
-            InstanceValue::create([
-                'form_instance_number' => $num,
-                'form_control_id' => $key,
-                'form_control_value' => $value,
-            ]);
-            if ($type) {
-                if ($type == 'contract_number') {
-                    $this->company = $this->getCompanyCode($value);
-                } else {
-                    if ($type == 'stars')
-                        $this->contract->update([
-                            'star_type' => $this->starType
+            $controlId = Control::where('form_control_id', $key)->value('control_id');
+            if ($controlId == 88) {
+                foreach ($value as $sort => $item) {
+                    foreach ($item as $control) {
+                        DetailValue::create([
+                            'form_instance_number' => $num,
+                            'form_control_id' => $control['key'],
+                            'value' => $control['value'],
+                            'sort_number' => $sort
                         ]);
+                    }
+                }
+            } else {
+                list($value, $ids) = $this->formatValue($value);
+                InstanceValue::create([
+                    'form_instance_number' => $num,
+                    'form_control_id' => $key,
+                    'form_control_value' => $value,
+                ]);
+                if ($type) {
+                    if ($type == 'contract_number') {
+                        $this->company = $this->getCompanyCode($value);
+                    } else {
+                        if ($type == 'stars')
+                            $this->contract->update([
+                                'star_type' => $this->starType
+                            ]);
 
-                    if (in_array($type, ['project_id', 'client_id', 'stars']))
-                        $this->contract->update([
-                            $type => $ids
-                        ]);
-                    else
-                        $this->contract->update([
-                            $type => $value
-                        ]);
+                        if (in_array($type, ['project_id', 'client_id', 'stars']))
+                            $this->contract->update([
+                                $type => $ids
+                            ]);
+                        else
+                            $this->contract->update([
+                                $type => $value
+                            ]);
 
-                    if ($type == 'type') {
-                        $dataType = $this->formatType($value);
-                        $this->contract->update([
-                            'type' => $dataType
-                        ]);
+                        if ($type == 'type') {
+                            $dataType = $this->formatType($value);
+                            $this->contract->update([
+                                'type' => $dataType
+                            ]);
+                        }
                     }
                 }
             }
@@ -886,6 +902,7 @@ class ApprovalFormController extends Controller
             return [$value, ''];
         }
 
+        // 多文件上传时
         if (array_key_exists('fileUrl', $value[0])) {
             $str = '';
             foreach ($value as $item) {
@@ -895,6 +912,7 @@ class ApprovalFormController extends Controller
             return [$value, ''];
         }
 
+        // 多选框时
         if (array_key_exists('id', $value[0])) {
             $idArr = [];
             $nameArr = [];
@@ -906,7 +924,6 @@ class ApprovalFormController extends Controller
             $ids = implode(',', $idArr);
             return [$names, $ids];
         }
-
 
     }
 

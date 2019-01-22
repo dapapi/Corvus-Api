@@ -274,7 +274,6 @@ class TrailController extends Controller
     public function edit(EditTrailRequest $request, Trail $trail)
     {
         $payload = $request->all();
-
         $array = [];
         $arrayOperateLog = [];
         if($request->has('title') && !is_null($payload['title'])){//销售线索名称
@@ -654,7 +653,7 @@ class TrailController extends Controller
                     $repository = new TrailStarRepository();
                     //获取现在关联的艺人和博主
                     $start = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
-                    $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
+                    $repository->deleteTrailStar($trail->id,TrailStar::RECOMMENDATION);
                     $repository->store($trail,$payload['recommendations'],TrailStar::RECOMMENDATION);
                     //获取更新之后的艺人和博主列表
                     $end = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);

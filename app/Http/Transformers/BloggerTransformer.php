@@ -3,6 +3,7 @@
 namespace App\Http\Transformers;
 use App\ModuleableType;
 use App\PrivacyType;
+use App\TaskStatus;
 use App\Models\Blogger;
 use League\Fractal\TransformerAbstract;
 use App\Models\PrivacyUser;
@@ -168,7 +169,7 @@ class BloggerTransformer extends TransformerAbstract
 
     public function includeTasks(Blogger $blogger)
     {
-        $tasks = $blogger->tasks()->createDesc()->get();
+        $tasks = $blogger->tasks()->where('status',TaskStatus::NORMAL)->orderBy('created_at','desc')->limit(3)->createDesc()->get();
         return $this->collection($tasks, new TaskTransformer());
     }
     public function includeOperateLogs(Blogger $blogger)

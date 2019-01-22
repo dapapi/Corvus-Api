@@ -133,6 +133,28 @@ class ModuleUserController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+    public function addBatch(ModuleUserAllRequest $request, $model, $type)
+    {
+        $payload = $request->all();
+
+        if (!$request->has('person_ids') && !$request->has('calendars_ids'))
+            return $this->response->noContent();
+
+        $participantIds = $request->get('person_ids', []);//参与人或宣传人ID数组
+        $particalendarsIds = $request->get('calendars_ids', []);
+
+        DB::beginTransaction();
+        try {
+
+            $result = $this->moduleUserRepository->addModuleUserBatch($participantIds,$particalendarsIds, $model, $type);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal();
+        }
+        DB::commit();
+        return $this->response->accepted();
+    }
     /**
      * 参与人
      *
@@ -149,6 +171,10 @@ class ModuleUserController extends Controller
     public function addModuleUserAllParticipant(ModuleUserAllRequest $request,Calendar $model)
     {
         return $this->addAll($request, $model, ModuleUserType::PARTICIPANT);
+    }
+    public function addModuleUserBatchParticipant(ModuleUserAllRequest $request,Calendar $model)
+    {
+        return $this->addBatch($request, $model, ModuleUserType::PARTICIPANT);
     }
 
     /**

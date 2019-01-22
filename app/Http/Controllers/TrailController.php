@@ -901,7 +901,27 @@ class TrailController extends Controller
         })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($trails, new TrailTransformer());
     }
+    public function filterType(FilterTrailRequest $request)
+    {
+        $payload = $request->all();
+        $data = [3,4];
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $trails = Trail::where(function ($query) use ($request, $payload,$data) {
+            if ($request->has('keyword') && $payload['keyword'])
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
+                $query->wherein('type', $data);
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
+        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
+        return $this->response->paginator($trails, new TrailTransformer());
+    }
     private function editLog($obj, $field, $old, $new)
     {
         $operate = new OperateEntity([
@@ -965,9 +985,9 @@ class TrailController extends Controller
         }
 
         // 这句用来检查绑定的参数
-        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
+ //       $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
 //        dd($sql_with_bindings);
-        $result = $query->pluck('ids')->toArray();
+ //       $result = $query->pluck('ids')->toArray();
 
 //        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
         $trails = $query->orderBy('created_at', 'desc')->paginate($pageSize);

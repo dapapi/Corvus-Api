@@ -1066,8 +1066,9 @@ class ProjectController extends Controller
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $projects = Project::where(function ($query) use ($request, $payload) {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $projects = Project::where(function ($query) use ($request, $payload,$userid) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
@@ -1079,13 +1080,70 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
+            if($request->has('administration'))
+                $query->where('principal_id','<>' ,$userid);
             if ($request->has('type'))#项目类型
                 $query->where('type', $payload['type']);
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()
+            ->leftJoin('operate_logs',function($join){
+            $join->on('projects.id','operate_logs.logable_id')
+            ->where('logable_type',ModuleableType::PROJECT)
+            ->where('operate_logs.method','2');
+        })->groupBy('projects.id')
+            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
+                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc'])
+//        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
+//
+//        dd($sql_with_bindings);
+            ->paginate($pageSize);
+               //  修改项目排序   按跟进时间  和 创建时间排序
+        return $this->response->paginator($projects, new ProjectTransformer());
 
+    }
+    public function filterType(Request $request)
+    {
+        $payload = $request->all();
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $data = [3,4];
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $projects = Project::where(function ($query) use ($request, $payload,$data,$userid) {
+            if ($request->has('keyword'))
+                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
+            if($request->has('administration'))
+                $query->where('principal_id','<>' ,$userid);
+                $query->wherein('type', $data);
+            if ($request->has('status'))
+                $query->where('status', $payload['status']);
+
+        })->searchData()
+            ->leftJoin('operate_logs',function($join){
+                $join->on('projects.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::PROJECT)
+                    ->where('operate_logs.method','2');
+            })->groupBy('projects.id')
+            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
+                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc'])
+//        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
+//
+//        dd($sql_with_bindings);
+
+//项目的3,4  商务
+
+            ->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer());
 
     }

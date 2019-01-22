@@ -183,8 +183,7 @@ class BloggerTransformer extends TransformerAbstract
     }
     public function includePublicity(Blogger $blogger){
         $users = $blogger->publicity()->get();
-
-        return $this->collection($users,new UsersTransformer());
+        return $this->collection($users,new UserTransformer());
     }
     public function includeCalendar(Blogger $blogger)
     {

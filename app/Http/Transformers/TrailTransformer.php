@@ -54,7 +54,7 @@ class TrailTransformer extends TransformerAbstract
                     'last_updated_at' => $trail->last_updated_at,
                     'refused_at' => $trail->refused_at,
                     'refused_user' => $trail->refused_user,
-                    'created_at' => $trail->created_at->toDateTimeString(),
+                    'created_at' => $trail->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒
                     'creator' => $trail->creator->name,
                 ];
             }else{
@@ -81,7 +81,7 @@ class TrailTransformer extends TransformerAbstract
                     'last_updated_at' => $trail->last_updated_at,
                     'refused_at' => $trail->refused_at,
                     'refused_user' => $trail->refused_user,
-                    'created_at' => $trail->created_at->toDateTimeString(),
+                    'created_at' => $trail->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒
                     'creator' => $trail->creator->name,
                 ];
             }

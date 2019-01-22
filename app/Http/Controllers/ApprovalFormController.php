@@ -635,7 +635,7 @@ class ApprovalFormController extends Controller
     public function getGeneralForms(Request $request)
     {
         //除了1项目立项审批和2合同审批
-        $groups = ApprovalGroup::whereNotIn('id', [1, 2])->get();
+        $groups = ApprovalGroup::whereNotIn('id', [1, 2])->orderBy('sort_number')->get();
         return $this->response->collection($groups, new ApprovalGroupTransformer());
     }
 

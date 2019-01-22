@@ -642,7 +642,6 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
-                    dd($e);
                     Log::error($e);
                     return $this->response->errorInternal("目标艺人关联失败");
                 }
@@ -654,11 +653,11 @@ class TrailController extends Controller
                 try{
                     $repository = new TrailStarRepository();
                     //获取现在关联的艺人和博主
-                    $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                    $start = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
                     $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
-                    $repository->store($trail,$payload['recommendations'],TrailStar::EXPECTATION);
+                    $repository->store($trail,$payload['recommendations'],TrailStar::RECOMMENDATION);
                     //获取更新之后的艺人和博主列表
-                    $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                    $end = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
 //                    $start = null;
 //                    $end = null;
 //                    if ($trail->type == Trail::TYPE_PAPI) {
@@ -781,9 +780,7 @@ class TrailController extends Controller
     public function detail(Request $request, Trail $trail)
     {
         $trail = $trail->searchData()->find($trail->id);
-        if ($trail == null) {
-            return $this->response->errorInternal("你没有查看该数据的权限");
-        }
+
         // 操作日志
         $operate = new OperateEntity([
             'obj' => $trail,

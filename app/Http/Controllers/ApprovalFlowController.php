@@ -261,6 +261,18 @@ class ApprovalFlowController extends Controller
             else
                 $this->createOrUpdateHandler($num, $userId, $type, 232);
 
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $instance,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::APPROVAL_AGREE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
+
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -270,6 +282,7 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+
         return $this->response->created();
     }
 
@@ -290,6 +303,18 @@ class ApprovalFlowController extends Controller
             $this->storeRecord($num, $userId, $now, 240, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 245, 233);
+
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $instance,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::APPROVAL_REFUSE,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -325,6 +350,17 @@ class ApprovalFlowController extends Controller
             $this->storeRecord($num, $userId, $now, 241, $comment);
 
             $this->createOrUpdateHandler($num, $nextId, 245);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $instance,
+                'title' => User::find($nextId)->name,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::APPROVAL_TRANSFER,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -360,6 +396,17 @@ class ApprovalFlowController extends Controller
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 245, 234);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $instance,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::APPROVAL_CANCEL,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -391,6 +438,17 @@ class ApprovalFlowController extends Controller
             $this->storeRecord($num, $userId, $now, 243, $comment);
 
             $this->createOrUpdateHandler($num, $userId, 245, 235);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $instance,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::APPROVAL_DISCARD,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);

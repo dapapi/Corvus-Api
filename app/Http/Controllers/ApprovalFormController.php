@@ -211,7 +211,7 @@ class ApprovalFormController extends Controller
             'title' => null,
             'start' => null,
             'end' => null,
-            'method' => OperateLogMethod::UPDATE,
+            'method' => OperateLogMethod::LOOK,
         ]);
         event(new OperateLogEvent([
             $operate

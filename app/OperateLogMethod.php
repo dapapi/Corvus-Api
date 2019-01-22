@@ -49,6 +49,11 @@ abstract class OperateLogMethod
     const STATUS_FROZEN = 35;//项目撤单
     const ADD_PRIVACY = 36;//隐私设置
     const CREATE_CONTRACTS = 37;//创建合同
+    const APPROVAL_AGREE = 38;//审批同意
+    const APPROVAL_REFUSE = 39;//拒绝审批
+    const APPROVAL_TRANSFER = 40;//转交审批
+    const APPROVAL_CANCEL = 41;//撤销审批
+    const APPROVAL_DISCARD = 42;//作废审批
 
 
 }

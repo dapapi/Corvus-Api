@@ -642,7 +642,6 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
-                    dd($e);
                     Log::error($e);
                     return $this->response->errorInternal("目标艺人关联失败");
                 }
@@ -654,11 +653,11 @@ class TrailController extends Controller
                 try{
                     $repository = new TrailStarRepository();
                     //获取现在关联的艺人和博主
-                    $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                    $start = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
                     $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
-                    $repository->store($trail,$payload['recommendations'],TrailStar::EXPECTATION);
+                    $repository->store($trail,$payload['recommendations'],TrailStar::RECOMMENDATION);
                     //获取更新之后的艺人和博主列表
-                    $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                    $end = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
 //                    $start = null;
 //                    $end = null;
 //                    if ($trail->type == Trail::TYPE_PAPI) {
@@ -781,9 +780,7 @@ class TrailController extends Controller
     public function detail(Request $request, Trail $trail)
     {
         $trail = $trail->searchData()->find($trail->id);
-        if ($trail == null) {
-            return $this->response->errorInternal("你没有查看该数据的权限");
-        }
+
         // 操作日志
         $operate = new OperateEntity([
             'obj' => $trail,
@@ -888,8 +885,10 @@ class TrailController extends Controller
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']))
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
                 $query->where('type', $payload['status']);
+            else
+                $query->wherein('type', [$payload['status']]);
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -901,27 +900,7 @@ class TrailController extends Controller
         })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($trails, new TrailTransformer());
     }
-    public function filterType(FilterTrailRequest $request)
-    {
-        $payload = $request->all();
-        $data = [3,4];
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $trails = Trail::where(function ($query) use ($request, $payload,$data) {
-            if ($request->has('keyword') && $payload['keyword'])
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
-                $query->wherein('type', $data);
-            if ($request->has('principal_ids') && $payload['principal_ids']) {
-                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
-                foreach ($payload['principal_ids'] as &$id) {
-                    $id = hashid_decode((int)$id);
-                }
-                unset($id);
-                $query->whereIn('principal_id', $payload['principal_ids']);
-            }
-        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
-        return $this->response->paginator($trails, new TrailTransformer());
-    }
     private function editLog($obj, $field, $old, $new)
     {
         $operate = new OperateEntity([

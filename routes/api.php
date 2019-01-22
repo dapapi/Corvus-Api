@@ -335,7 +335,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('export');
         $api->post('/trails/import', 'App\Http\Controllers\TrailController@import');
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
-        $api->get('/trails/filter_type', 'App\Http\Controllers\TrailController@filterType');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
@@ -378,7 +377,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
-        $api->get('/projects/filter_type', 'App\Http\Controllers\ProjectController@filterType');
+
         $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');

@@ -92,6 +92,9 @@ class OperateLogEventListener
     protected $approval_transfer = "转交审批给%s";
     protected $approval_cancel = "撤销了该审批";
     protected $approval_discard = "作废了该审批";
+    protected $allot = "将销售线索分配给了%s";
+    protected $recevie = "领取了销售线索";
+    protected $return_trail = "退回了销售线索,原因是:%s";
 
     /**
      * Handle the event.
@@ -381,6 +384,18 @@ class OperateLogEventListener
                 case OperateLogMethod::APPROVAL_DISCARD://作废
                     $level = OperateLogLevel::HIGH;
                     $content = $this->approval_discard;
+                    break;
+                case OperateLogMethod::ALLOT://分配销售线索
+                    $level = OperateLogLevel::HIGH;
+                    $content = sprintf($this->allot,$title);
+                    break;
+                case OperateLogMethod::RECEIVE://领取销售线索
+                    $level = OperateLogLevel::HIGH;
+                    $content = $this->recevie;
+                    break;
+                case OperateLogMethod::REFUND_TRAIL://退回销售线索
+                    $level = OperateLogLevel::HIGH;
+                    $content = sprintf($this->return_trail,$title);
                     break;
             }
             OperateLog::create([

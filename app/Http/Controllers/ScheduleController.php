@@ -574,8 +574,8 @@ class ScheduleController extends Controller
                     $operate
                 ]));
             }
-            $start_participants = implode(",",array_column($old_schedule->participants()->toArray(),'name'));
-            $end_participants = implode(",",array_column($schedule->participants()->toArray(),'name'));
+            $start_participants = implode(",",array_column($old_schedule->participants()->get()->toArray(),'name'));
+            $end_participants = implode(",",array_column($schedule->participants()->get()->toArray(),'name'));
             if ($start_participants != $end_participants){
                 // 操作日志
                 $operate = new OperateEntity([
@@ -611,6 +611,32 @@ class ScheduleController extends Controller
                     'title' => "位置",
                     'start' => $old_schedule->position,
                     'end' => $schedule->position,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            if($old_schedule->remind != $schedule->remind){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "提醒",
+                    'start' => $old_schedule->remind,
+                    'end' => $schedule->remind,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            if($old_schedule->repeat != $schedule->repeat){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "重复",
+                    'start' => $old_schedule->repeat,
+                    'end' => $schedule->repeat,
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 event(new OperateLogEvent([

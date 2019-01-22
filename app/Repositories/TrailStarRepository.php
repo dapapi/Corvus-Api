@@ -44,7 +44,7 @@ class TrailStarRepository
      * @param $type 推荐艺人或者目标艺人
      */
     public function deleteTrailStar($trail_id,$type){
-        TrailStar::where('trail_id',$trail_id)->where('type',$type)->delete();
+      TrailStar::where('trail_id',$trail_id)->where('type',$type)->delete();
     }
 
     /**

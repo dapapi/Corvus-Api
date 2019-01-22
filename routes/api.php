@@ -49,6 +49,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
         $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
+        $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/projects/filter', 'App\Http\Controllers\ProejctController@getFilter');
+        $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
 
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
@@ -373,6 +377,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
+        $api->get('/projects/filter_type', 'App\Http\Controllers\ProjectController@filterType');
         $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');

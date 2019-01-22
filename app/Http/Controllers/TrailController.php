@@ -928,12 +928,13 @@ class TrailController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $user = Auth::guard('api')->user();
-        $company = $user->company->name;
+//        $company = $user->company->name;
 
-        $joinSql = FilterJoin::where('company', $company)->where('table_name', 'trails')->first()->join_sql;
+//        $joinSql = FilterJoin::where('company', $company)->where('table_name', 'trails')->first()->join_sql;
 
-        $query = DB::table('trails')->selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
+//        $query = DB::table('trails')->selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
 
+        $query = Trail::query();
         $keyword = $request->get('keyword', '');
         if ($keyword !== '') {
             // todo 本表中字符型字段模糊查询; 本表中枚举使用的字段也需要加入
@@ -968,7 +969,8 @@ class TrailController extends Controller
 //        dd($sql_with_bindings);
         $result = $query->pluck('ids')->toArray();
 
-        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
+//        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = $query->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }

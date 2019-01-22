@@ -16,7 +16,6 @@ class CanClientCreate
     public function handle($request, Closure $next)
     {
         $user = auth()->user();
-        dd($user);
         return $next($request);
     }
 }

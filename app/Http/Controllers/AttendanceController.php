@@ -91,6 +91,7 @@ class AttendanceController extends Controller
                     // 操作日志 ...
                 } catch (Exception $e) {
                     dd($e);
+                    Log::error($e);
                 }
             }
         }

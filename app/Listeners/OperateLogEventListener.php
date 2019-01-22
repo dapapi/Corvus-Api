@@ -87,7 +87,11 @@ class OperateLogEventListener
     protected $status_frozen = "进行了撤单,撤单原因为%s";
     protected $add_privacy = "对该%s进行了隐私设置";
     protected $create_contracts = "创建了合同";
-
+    protected $approval_agree = "同意了该审批";
+    protected $approval_refuse = "拒绝了该审批";
+    protected $approval_transfer = "转交审批给%s";
+    protected $approval_cancel = "撤销了该审批";
+    protected $approval_discard = "作废了该审批";
 
     /**
      * Handle the event.
@@ -356,9 +360,27 @@ class OperateLogEventListener
                     break;
                 case OperateLogMethod::CREATE_CONTRACTS://创建合同
                     $level = OperateLogLevel::LOW;
-
                     $content = $this->create_contracts;
-
+                    break;
+                case OperateLogMethod::APPROVAL_AGREE://审批同意
+                    $level = OperateLogLevel::HIGH;
+                    $content = $this->approval_agree;
+                    break;
+                case OperateLogMethod::APPROVAL_REFUSE://拒接审批
+                    $level = OperateLogLevel::HIGH;
+                    $content = $this->approval_refuse;
+                    break;
+                case OperateLogMethod::APPROVAL_TRANSFER://转交审批
+                    $level = OperateLogLevel::HIGH;
+                    $content = sprintf($this->approval_refuse,$title);
+                    break;
+                case OperateLogMethod::APPROVAL_CANCEL://撤销审批
+                    $level = OperateLogLevel::HIGH;
+                    $content = $this->approval_cancel;
+                    break;
+                case OperateLogMethod::APPROVAL_DISCARD://作废
+                    $level = OperateLogLevel::HIGH;
+                    $content = $this->approval_discard;
                     break;
             }
             OperateLog::create([

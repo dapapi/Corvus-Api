@@ -1089,8 +1089,8 @@ class ProjectController extends Controller
             ->where('logable_type',ModuleableType::PROJECT)
             ->where('operate_logs.method','2');
         })->groupBy('projects.id')
-            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','project_number','title','type','privacy','projects.status',
-                'projected_expenditure','start_at','end_at','projects.created_at','projects.updated_at','desc'])
+            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
+                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc'])
 //        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
 //
 //        dd($sql_with_bindings);
@@ -1128,13 +1128,13 @@ class ProjectController extends Controller
                     ->where('logable_type',ModuleableType::PROJECT)
                     ->where('operate_logs.method','2');
             })->groupBy('projects.id')
-            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','project_number','title','type','privacy','projects.status',
-                'projected_expenditure','start_at','end_at','projects.created_at','projects.updated_at','desc'])
+            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
+                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc'])
 //        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
 //
 //        dd($sql_with_bindings);
 
-
+//项目的3,4  商务
 
             ->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer());

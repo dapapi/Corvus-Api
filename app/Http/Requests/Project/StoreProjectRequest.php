@@ -42,7 +42,6 @@ class StoreProjectRequest extends FormRequest
             'trail.recommendations.*.flag' => ['required',Rule::in(['star','blogger'])],
             'trail.expectations.*.id' => 'required|integer',
             'trail.expectations.*.flag' => ['required',Rule::in(['star','blogger'])],
-            'fields' => 'required_unless:type,'. Project::TYPE_BASE .'|array',
             'participant_ids' => 'nullable|array',
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|date|after:start_at',

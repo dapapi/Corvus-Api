@@ -107,7 +107,7 @@ class Client extends Model
 
     public function getKeymanAttribute()
     {
-        $contacts = $this->contacts()->where('type', Contact::TYPE_KEY)->pluck('name');
-        return implode("、", $contacts);
+        $contacts = $this->contacts()->where('type', Contact::TYPE_KEY)->pluck('name')->toArray();
+        return implode(",", $contacts);
     }
 }

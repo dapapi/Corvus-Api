@@ -1073,7 +1073,6 @@ class ProjectController extends Controller
         $projects = Project::where(function ($query) use ($request, $payload,$userid) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -1086,12 +1085,12 @@ class ProjectController extends Controller
 //                $query->where('principal_id','<>' ,$userid);
 //            if($request->has('principal_id'))
 //                $query->where('principal_id',$userid);
+
             if ($request->has('type') && $payload['type'] <> '3,4'){
                 $query->where('type', $payload['type']);
-            }else{
-                $query->whereIn('type', [$payload['type']]);
+            }else if($payload['type'] == '3,4'){
+                $query->whereIn('type',[$payload['type']]);
             }
-
             if ($request->has('status'))
                 $query->where('projects.status', $payload['status']);
 

@@ -54,6 +54,9 @@ abstract class OperateLogMethod
     const APPROVAL_TRANSFER = 40;//转交审批
     const APPROVAL_CANCEL = 41;//撤销审批
     const APPROVAL_DISCARD = 42;//作废审批
+    const ALLOT = 43;//分配销售线索
+    const RECEIVE = 44;//领取销售线索
+    const REFUND_TRAIL = 45;//退回线索
 
 
 }

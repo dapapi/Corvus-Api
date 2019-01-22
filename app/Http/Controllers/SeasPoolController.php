@@ -81,7 +81,6 @@ class SeasPoolController extends Controller
 
         $user = Auth::guard('api')->user();
         $userName = $user->name;
-        $content = $userName . '领取销售线索';
         DB::beginTransaction();
         try {
             if(!empty($payload['id'])){
@@ -107,9 +106,9 @@ class SeasPoolController extends Controller
                    $operate = new OperateEntity([
                        'obj' => $trail,
                        'title' => null,
-                       'start' => $content,
+                       'start' => null,
                        'end' => null,
-                       'method' => OperateLogMethod::FOLLOW_UP,
+                       'method' => OperateLogMethod::RECEIVE,
                    ]);
 
                    event(new OperateLogEvent([
@@ -140,7 +139,6 @@ class SeasPoolController extends Controller
         }
         $userId = hashid_decode($payload['user_id']);
         $userInfo = DB::table('users')->where('users.id', $userId)->select('users.name')->first();
-        $content = $userName . '将该销售线索分配给' . $userInfo->name;
         DB::beginTransaction();
         try {
 
@@ -170,10 +168,10 @@ class SeasPoolController extends Controller
                     // 操作日志
                     $operate = new OperateEntity([
                         'obj' => $trail,
-                        'title' => null,
-                        'start' => $content,
+                        'title' => $userInfo->name,
+                        'start' => null,
                         'end' => null,
-                        'method' => OperateLogMethod::FOLLOW_UP,
+                        'method' => OperateLogMethod::ALLOT,
                     ]);
 
                     event(new OperateLogEvent([
@@ -186,7 +184,7 @@ class SeasPoolController extends Controller
 
         } catch (Exception $e) {
             Log::error($e);
-            return $this->response->errorInternal('跟进失败');
+            return $this->response->errorInternal('分配失败');
         }
         DB::commit();
     }
@@ -220,17 +218,17 @@ class SeasPoolController extends Controller
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $trail,
-                'title' => null,
-                'start' => $content,
+                'title' => $content,
+                'start' => null,
                 'end' => null,
-                'method' => OperateLogMethod::CANCEL,
+                'method' => OperateLogMethod::REFUND_TRAIL,
             ]);
             event(new OperateLogEvent([
                 $operate,
             ]));
         } catch (Exception $e) {
             Log::error($e);
-            return $this->response->errorInternal('跟进失败');
+            return $this->response->errorInternal('销售线索退回失败');
         }
         DB::commit();
     }

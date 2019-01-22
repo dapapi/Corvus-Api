@@ -223,7 +223,8 @@ class ProjectController extends Controller
         if ($request->has('project_type') && $project_type <> '3,4' ){
             $query->where('type',$project_type);
 
-        }else if( $project_type == '3,4'){
+        }
+        if($request->has('project_type') && $project_type == '3,4'){
             $query->whereIn('type',[$project_type]);
         }
         $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
@@ -1070,6 +1071,7 @@ class ProjectController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $user = Auth::guard("api")->user();
         $userid = $user->id;
+
         $projects = Project::where(function ($query) use ($request, $payload,$userid) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
@@ -1088,7 +1090,8 @@ class ProjectController extends Controller
 
             if ($request->has('type') && $payload['type'] <> '3,4'){
                 $query->where('type', $payload['type']);
-            }else if($payload['type'] == '3,4'){
+            }
+            if($request->has('type')&&$payload['type'] == '3,4'){
                 $query->whereIn('type',[$payload['type']]);
             }
             if ($request->has('status'))

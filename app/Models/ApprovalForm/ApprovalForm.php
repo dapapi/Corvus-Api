@@ -12,6 +12,7 @@ class ApprovalForm extends Model
 {
     use SoftDeletes;
     protected $table = 'approval_forms';
+    protected $primaryKey = 'form_id';
 
     protected $fillable = [
         'form_id',

@@ -20,7 +20,7 @@ class ProjectReturnedMoneyTransformer extends TransformerAbstract
                 'project_id' => hashid_encode($projectReturnedMoney->project_id),
 //                'creator_id' => hashid_encode($projectReturnedMoney->creator_id),
                 'principal_id' => hashid_encode($projectReturnedMoney->principal_id),
-                'issue_name' => $projectReturnedMoney->issue_name,
+                'issue_name' => '第'.$projectReturnedMoney->issue_name.'期',
                 'plan_returned_money' => $projectReturnedMoney->plan_returned_money,
                 'plan_returned_time' =>  date('Y-m-d',strtotime($projectReturnedMoney->plan_returned_time)),
           //      'project_returned_money_type_id' => $projectReturnedMoney->project_returned_money_type_id,
@@ -39,16 +39,22 @@ class ProjectReturnedMoneyTransformer extends TransformerAbstract
     }
     public function includePracticalSum(ProjectReturnedMoney $projectReturnedMoney)
     {
-        $reviewanswer = $projectReturnedMoney->practicalsum;
-        return $this->collection($reviewanswer, new ProjectReturnedMoneyPracticalTransformer());
+        $reviewanswer = $projectReturnedMoney->practicalsum->first();
+        if(!$reviewanswer){
+            return null;
+        }
+        return $this->item($reviewanswer, new ProjectReturnedMoneyPracticalTransformer());
 
     }
 
     public function includeInvoiceSum(ProjectReturnedMoney $projectReturnedMoney)
     {
 
-        $reviewanswer = $projectReturnedMoney->invoiceSum;
-        return $this->collection($reviewanswer, new ProjectReturnedMoneyInvoiceTransformer());
+        $reviewanswer = $projectReturnedMoney->invoiceSum->first();
+        if(!$reviewanswer){
+            return null;
+        }
+        return $this->item($reviewanswer, new ProjectReturnedMoneyInvoiceTransformer());
 
     }
 }

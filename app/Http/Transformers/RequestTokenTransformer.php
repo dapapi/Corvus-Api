@@ -12,7 +12,7 @@ class RequestTokenTransformer extends TransformerAbstract {
     public function transform(RequestVerityToken $requestVerityToken) {
         return [
             'token' => $requestVerityToken->token,
-            'created_at' => $requestVerityToken->created_at->toDateTimeString(),
+            'created_at' => $requestVerityToken->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
             'expired_in' => (int)$requestVerityToken->expired_in
         ];
     }

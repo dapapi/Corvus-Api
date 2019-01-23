@@ -70,11 +70,13 @@ class ScopeRepository
 
         //根据roleid数组查找所有对应的模块权限，取最大值,用户和角色是一对多的
         $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$arrRoleId)->where('resource_id',$resourceId)->get()->toArray();
+
         if(count($viewSql) == 0){//没有对应模块的权限
             return null;
         }
         $dataDictionarieId = max(array_column($viewSql,'data_view_id'));//获取用户对要访问的模块最大的权限
         $dataViewSql = RoleDataView::where('resource_id',$resourceId)->where('data_view_id',$dataDictionarieId)->get()->toArray();
+
         //查询本人相关 19
         if($dataDictionarieId == 19){
 //                $dataArr = json_decode($viewSql[0]['data_view_sql'],true);

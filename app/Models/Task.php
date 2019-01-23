@@ -8,6 +8,7 @@ use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\Traits\OperateLogTrait;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,7 @@ class Task extends Model
 {
     use SoftDeletes;
     use OperateLogTrait;
-    private $model_dic_id = DataDictionarie::TRAIL;//数据字典中模块id
+    private $model_dic_id = DataDictionarie::TASK;//数据字典中模块id
     protected $fillable = [
         'title',
         'type_id',
@@ -49,6 +50,11 @@ class Task extends Model
     public function scopeCreateDesc($query)
     {
         return $query->orderBy('created_at', 'desc');
+    }
+    public function scopeStopAsc($query)
+    {
+        $now = Carbon::now()->toDateTimeString();
+        return $query->orderBy('stop_at')->where('stop_at',$now);
     }
 
     public function pTask()

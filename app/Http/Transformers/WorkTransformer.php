@@ -19,8 +19,8 @@ class WorkTransformer extends TransformerAbstract
             'works_type' => $work->works_type,
             'role' => $work->role,
             'co_star' => $work->co_star,
-            'created_at' => $work->created_at->toDatetimeString(),
-            'updated_at' => $work->updated_at->toDatetimeString(),
+            'created_at' => $work->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'updated_at' => $work->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
             // 'deleted_at' => $star->deleted_at,
         ];
         return $array;

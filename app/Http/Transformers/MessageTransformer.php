@@ -15,7 +15,7 @@ class MessageTransformer extends TransformerAbstract
             'title' =>  $message->title,
             'state' =>  $message->state,
             'module_data_id'    =>$message->module_data_id == null ? null : hashid_encode($message->module_data_id),
-            'created_at'    =>  $message->created_at,
+            'created_at'    =>  $message->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
             'body'  =>  $message->data()->get(),
         ];
     }

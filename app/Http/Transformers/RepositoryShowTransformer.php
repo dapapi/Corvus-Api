@@ -30,8 +30,8 @@ class RepositoryShowTransformer extends TransformerAbstract
             'stick' => $repository->stick, //是否选择置顶  默认  0   无附件    1 有附件
             'comments_no' => $repository->comments_no,
             'delete_at' => $repository->delete_at,
-            'created_at' => $repository->created_at->toDatetimeString(),
-            'updated_at' => $repository->updated_at->toDatetimeString()
+            'created_at' => $repository->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'updated_at' => $repository->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
 
 
         ];

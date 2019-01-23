@@ -8,6 +8,7 @@ use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
 use App\Models\DepartmentPrincipal;
 
+
 class UserTransformer extends TransformerAbstract
 {
     protected $availableIncludes = [
@@ -45,8 +46,8 @@ class UserTransformer extends TransformerAbstract
             'department' => $user->department,
             'position' => $user->position,
             'hire_shape' => $user->hire_shape,
-            'entry_time' => $user->entry_time,
-            'archive_time' => $user->archive_time,
+            'entry_time' => $user->entry_time,//时间去掉秒,
+            'archive_time' => $user->archive_time,//时间去掉秒,
             'position_type' => $user->position_type,
             'en_name' => $user->en_name, // '英文',
             'gender' => $user->gender,//性别',

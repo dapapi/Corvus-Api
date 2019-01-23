@@ -16,8 +16,8 @@ class RecordTransformer extends TransformerAbstract
             'unit_name' => $record->unit_name,
             'department' => $record->department,
             'position' => $record->position,
-            'entry_time' => $record->entry_time,
-            'departure_time' => $record->departure_time,
+            'entry_time' => $record->entry_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'departure_time' => $record->departure_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
             'monthly_pay' => $record->monthly_pay,
             'departure_why' => $record->departure_why,
 

@@ -1084,10 +1084,10 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-//            if($request->has('administration'))
-//                $query->where('principal_id','<>' ,$userid);
-//            if($request->has('principal_id'))
-//                $query->where('principal_id',$userid);
+            if($request->has('administration'))
+                $query->where('principal_id','<>' ,$userid);
+            if($request->has('principal_id'))
+                $query->where('principal_id',$userid);
 
             if ($request->has('type') && $payload['type'] <> '3,4'){
                 $query->where('type', $payload['type']);

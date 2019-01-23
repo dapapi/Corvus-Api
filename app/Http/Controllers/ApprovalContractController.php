@@ -523,6 +523,10 @@ class ApprovalContractController extends Controller
     public function projectList(Request $request,$model = null){
 
         $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
+
+
         if($model)
         {
             $projects = $model->id;
@@ -542,7 +546,7 @@ class ApprovalContractController extends Controller
             })
             ->where('cs.project_id',$projects)
             ->orderBy('cs.created_at', 'desc')
-            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name','cs.created_at','afb.form_status','cs.stars','cs.contract_money','cs.type')->get()->toArray();
+            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name',DB::raw("DATE_FORMAT(cs.created_at,'%Y-%m-%d %h:%i') as created_at"),'afb.form_status','cs.stars','cs.contract_money','cs.type')->get()->toArray();
         $dataInfo = json_decode(json_encode($data), true);
         $sum = 0;
         if(!empty($dataInfo)){
@@ -553,9 +557,18 @@ class ApprovalContractController extends Controller
 
             }
         }
-        $result['data'] = $dataInfo;
-        $result['money'] = $sum;
-        return $result;
+        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($dataInfo,$start,$pageSize);
+        $count = count($article);//总条数
+        $arr = array();
+        $arr['total'] = $count;
+        $arr['data'] = $article;
+        $arr['money'] = $sum;
+        $arr['meta']['pagination'] = $count;
+        $arr['meta']['current_page'] = $count;
+        $arr['meta']['total_pages'] = ceil($count/20);
+
+        return $arr;
     }
 
 }

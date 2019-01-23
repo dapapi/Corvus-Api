@@ -13,52 +13,45 @@ use App\Http\Transformers\ApprovalGroupTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
 use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ControlTransformer;
+use App\Http\Transformers\ProjectHistoriesTransformer;
+use App\Http\Transformers\TemplateFieldHistoriesTransformer;
 use App\Interfaces\ApprovalInstanceInterface;
+use App\Models\ApprovalFlow\ChainFixed;
+use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalFlow\Condition;
+use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
-use App\Http\Transformers\FormControlTransformer;
+use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
-use App\Models\ApprovalForm\Group;
+use App\Models\ApprovalForm\DetailValue;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
+use App\Models\ApprovalForm\Participant;
 use App\Models\ApprovalGroup;
 use App\Models\Contract;
+use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
+use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\OperateEntity;
+use App\Models\Project;
 use App\Models\ProjectHistorie;
+use App\Models\RoleUser;
 use App\Models\TemplateFieldHistories;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use App\Models\Project;
-use App\Models\DataDictionarie;
-use App\Models\DepartmentPrincipal;
-use App\Models\DepartmentUser;
 use App\User;
-use App\Http\Transformers\ProjectTransformer;
-use App\Http\Transformers\ProjectHistoriesTransformer;
-use App\Http\Transformers\TemplateFieldHistoriesTransformer;
-
-use App\Models\RoleUser;
-use App\Models\ApprovalForm\Business;
-use App\Models\ApprovalFlow\Execute;
-use App\Models\ApprovalFlow\ChainFixed;
-use App\Models\ApprovalFlow\Change;
-use App\Models\ApprovalForm\Participant;
-use App\Http\Transformers\TemplateFieldTransformer;
-use App\Models\TemplateField;
-
-
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use League\Fractal;
 use League\Fractal\Manager;
 use League\Fractal\Serializer\DataArraySerializer;
+
 
 class ApprovalFormController extends Controller
 {
@@ -537,7 +530,7 @@ class ApprovalFormController extends Controller
         $num = $instance->form_instance_number;
         $result = $this->response->item($instance, new ApprovalInstanceTransformer());
 
-        $data = Control::where('form_id', $instance->form_id)->orderBy('sort_number')->get();
+        $data = Control::where('form_id', $instance->form_id)->where('control_id', '!=', 88)->where('pid', 0)->orderBy('sort_number')->get();
         $resource = new Fractal\Resource\Collection($data, new ControlTransformer($num));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
@@ -568,6 +561,24 @@ class ApprovalFormController extends Controller
         if ($form->group_id == 2) {
             $contract = Contract::where('form_instance_number', $num)->first();
             $result->addMeta('contract', $contract->contract_number);
+        }
+
+        // todo 明细单列
+        $detailControl = Control::where('form_id', $instance->form_id)->where('control_id', 88)->first();
+
+        if ($detailControl) {
+            $detailArr = [];
+            foreach (DetailValue::where('form_instance_number', $num)->cursor() as $item) {
+                $detailArr[$item->sort_number][] = [
+                    'key' => hashid_encode($item->form_control_id),
+                    'values' => [
+                        'data' => [
+                            'value' => $item->value
+                        ]
+                    ]
+                ];
+            }
+            $result->addMeta('detail_control', $detailArr);
         }
 
         return $result;
@@ -668,7 +679,7 @@ class ApprovalFormController extends Controller
 
         DB::beginTransaction();
         try {
-            // 一般审批可以自定义
+            // todo 待验证   一般审批可以自定义
             if (!$type && $chains) {
                 $flow = new ApprovalFlowController();
                 $flow->storeFreeChains($chains, $num);
@@ -750,40 +761,8 @@ class ApprovalFormController extends Controller
                                 $operate,
                             ]));
                         }
-                        DB::beginTransaction();
-                        try {
-
-                            $user = Auth::guard('api')->user();
-                            $title = $project->title . "项目成单了";  //通知消息的标题
-                            $subheading = $project->title . "项目成单了";
-                            $module = Message::PROJECT;
-                            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
-                            $data = [];
-                            $data[] = [
-                                "title" => '项目名称', //通知消息中的消息内容标题
-                                'value' => $project->title,  //通知消息内容对应的值
-                            ];
-                            $principal = User::findOrFail($project->principal_id);
-                            $data[] = [
-                                'title' => '项目负责人',
-                                'value' => $principal->name
-                            ];
-                            //发送给创建人的直属领导
-                            $department = DepartmentUser::where('user_id', $user->id)->first();
-                            $leader = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
-                            $send_user = [$leader->id];
-                            $authorization = $request->header()['authorization'][0];
-
-                            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user);
-                            DB::commit();
-                        } catch (Exception $e) {
-                            Log::error($e);
-                            DB::rollBack();
-                        }
-
                     }
                 }
-
             }
 
         } catch (ApprovalVerifyException $exception) {
@@ -795,7 +774,38 @@ class ApprovalFormController extends Controller
             return $this->response->errorInternal('新建审批失败');
         }
 
+        // 发送消息
+        DB::beginTransaction();
+        try {
+
+            $user = Auth::guard('api')->user();
+            $title = $project->title . "项目成单了";  //通知消息的标题
+            $subheading = $project->title . "项目成单了";
+            $module = Message::PROJECT;
+            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
+            $data = [];
+            $data[] = [
+                "title" => '项目名称', //通知消息中的消息内容标题
+                'value' => $project->title,  //通知消息内容对应的值
+            ];
+            $principal = User::findOrFail($project->principal_id);
+            $data[] = [
+                'title' => '项目负责人',
+                'value' => $principal->name
+            ];
+            //发送给创建人的直属领导
+            $department = DepartmentUser::where('user_id', $user->id)->first();
+            $leader = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
+            $send_user = [$leader->id];
+            $authorization = $request->header()['authorization'][0];
+
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user);
+        } catch (Exception $e) {
+            Log::error($e);
+            DB::rollBack();
+        }
         DB::commit();
+
         return $this->response->created();
     }
 
@@ -829,39 +839,54 @@ class ApprovalFormController extends Controller
         return $this->response->item($form, new ApprovalFormTransformer());
     }
 
+    // todo 分支写的太差，优化结构
     private function instanceValueStore($num, $key, $value, $type = null)
     {
         try {
             $key = hashid_decode($key);
-            list($value, $ids) = $this->formatValue($value);
-            InstanceValue::create([
-                'form_instance_number' => $num,
-                'form_control_id' => $key,
-                'form_control_value' => $value,
-            ]);
-            if ($type) {
-                if ($type == 'contract_number') {
-                    $this->company = $this->getCompanyCode($value);
-                } else {
-                    if ($type == 'stars')
-                        $this->contract->update([
-                            'star_type' => $this->starType
+            $controlId = Control::where('form_control_id', $key)->value('control_id');
+            if ($controlId == 88) {
+                foreach ($value as $sort => $item) {
+                    foreach ($item as $control) {
+                        DetailValue::create([
+                            'form_instance_number' => $num,
+                            'form_control_id' => $control['key'],
+                            'value' => $control['value'],
+                            'sort_number' => $sort
                         ]);
+                    }
+                }
+            } else {
+                list($value, $ids) = $this->formatValue($value);
+                InstanceValue::create([
+                    'form_instance_number' => $num,
+                    'form_control_id' => $key,
+                    'form_control_value' => $value,
+                ]);
+                if ($type) {
+                    if ($type == 'contract_number') {
+                        $this->company = $this->getCompanyCode($value);
+                    } else {
+                        if ($type == 'stars')
+                            $this->contract->update([
+                                'star_type' => $this->starType
+                            ]);
 
-                    if (in_array($type, ['project_id', 'client_id', 'stars']))
-                        $this->contract->update([
-                            $type => $ids
-                        ]);
-                    else
-                        $this->contract->update([
-                            $type => $value
-                        ]);
+                        if (in_array($type, ['project_id', 'client_id', 'stars']))
+                            $this->contract->update([
+                                $type => $ids
+                            ]);
+                        else
+                            $this->contract->update([
+                                $type => $value
+                            ]);
 
-                    if ($type == 'type') {
-                        $dataType = $this->formatType($value);
-                        $this->contract->update([
-                            'type' => $dataType
-                        ]);
+                        if ($type == 'type') {
+                            $dataType = $this->formatType($value);
+                            $this->contract->update([
+                                'type' => $dataType
+                            ]);
+                        }
                     }
                 }
             }
@@ -886,6 +911,7 @@ class ApprovalFormController extends Controller
             return [$value, ''];
         }
 
+        // 多文件上传时
         if (array_key_exists('fileUrl', $value[0])) {
             $str = '';
             foreach ($value as $item) {
@@ -895,6 +921,7 @@ class ApprovalFormController extends Controller
             return [$value, ''];
         }
 
+        // 多选框时
         if (array_key_exists('id', $value[0])) {
             $idArr = [];
             $nameArr = [];
@@ -906,7 +933,6 @@ class ApprovalFormController extends Controller
             $ids = implode(',', $idArr);
             return [$names, $ids];
         }
-
 
     }
 
@@ -923,7 +949,7 @@ class ApprovalFormController extends Controller
                 break;
             case 9:
             case 10:
-                $string = $this->company .'-'. $this->type;
+                $string = $this->company . '-' . $this->type;
                 break;
             default:
                 throw new Exception('合同编号生成错误');
@@ -938,16 +964,13 @@ class ApprovalFormController extends Controller
         if (strpos($type, '收入') !== false) {
             $this->type = 'SR';
             return '收入';
-        }
-        elseif (strpos($type, '成本') !== false) {
+        } elseif (strpos($type, '成本') !== false) {
             $this->type = 'ZC';
             return '成本';
-        }
-        elseif (strpos($type, '无金额') !== false){
+        } elseif (strpos($type, '无金额') !== false) {
             $this->type = 'W';
             return '无金额';
-        }
-        else
+        } else
             $this->type = null;
     }
 

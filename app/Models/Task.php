@@ -17,7 +17,7 @@ class Task extends Model
 {
     use SoftDeletes;
     use OperateLogTrait;
-    private $model_dic_id = DataDictionarie::TRAIL;//数据字典中模块id
+    private $model_dic_id = DataDictionarie::TASK;//数据字典中模块id
     protected $fillable = [
         'title',
         'type_id',

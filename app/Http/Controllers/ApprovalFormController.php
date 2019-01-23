@@ -585,7 +585,6 @@ class ApprovalFormController extends Controller
         return $result;
     }
 
-    // todo 拆成两个
     private function getProject(Request $request, ProjectHistorie $project)
     {
         $payload = $request->all();

@@ -106,22 +106,22 @@ class ApprovalFlowController extends Controller
         DB::beginTransaction();
         try {
             foreach ($chains as $key => &$chain) {
-                $chain = hashid_decode($chain);
+                $chain['id'] = hashid_decode($chain['id']);
                 if ($key)
-                    $preId = $chains[$key - 1];
+                    $preId = $chains[$key - 1]['id'];
                 else
                     $preId = 0;
 
                 ChainFree::create([
                     'form_number' => $formNumber,
                     'pre_id' => $preId,
-                    'next_id' => $chain,
+                    'next_id' => $chain['id'],
                     'sort_number' => $key + 1
                 ]);
             }
             ChainFree::create([
                 'form_number' => $formNumber,
-                'pre_id' => $chains[count($chains) - 1],
+                'pre_id' => $chains[count($chains) - 1]['id'],
                 'next_id' => 0,
                 'sort_number' => count($chains) + 1,
             ]);

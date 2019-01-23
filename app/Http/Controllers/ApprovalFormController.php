@@ -629,7 +629,7 @@ class ApprovalFormController extends Controller
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $project);
-        $result->addMeta('participant', $participant);
+        $result->addMeta('notice', $participant);
 
         return $result;
     }

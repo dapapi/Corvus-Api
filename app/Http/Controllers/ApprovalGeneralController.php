@@ -61,6 +61,12 @@ class ApprovalGeneralController extends Controller
             ->join('users', function ($join) {
                 $join->on('afi.apply_id', '=', 'users.id');
             })
+            ->join('approval_forms as af', function ($join) {
+                $join->on('af.form_id', '=', 'afi.form_id');
+            })
+            ->join('approval_form_groups as afg', function ($join) {
+                $join->on('afg.id', '=', 'af.group_id');
+            })
 //
 //            ->where(function ($query) use ($payload, $request) {
 //                if ($request->has('keyword')) {
@@ -70,7 +76,7 @@ class ApprovalGeneralController extends Controller
             ->where('afi.apply_id', $user->id)
             ->whereIn('afi.form_status', $payload['status'])
             ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*', 'users.name')
+            ->select('afi.*', 'users.name','afg.name as group_name','afg.id as group_id')
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key => &$value) {

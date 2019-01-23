@@ -127,7 +127,6 @@ class ModuleUserRepository
         $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->whereIn('user_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
         foreach ($participantDeleteIds as $key => &$participantDeleteId) {
             try {
-
                  $moduleUser = ModuleUser::where($participantDeleteId)->first();
                 if ($moduleUser) {//数据存在则从数据库中删除
                     $moduleUser->delete();
@@ -146,26 +145,21 @@ class ModuleUserRepository
 
                 $participantUser = User::findOrFail($participantId);
                 $array['user_id'] = $participantUser->id;
-                foreach ($participantIds as $key => $value)
-                {
-                    $array['moduleable_id'] = $model->id;
-                    $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $model->id)->where('user_id', $participantUser->id)->where('type', $type)->first();
-                    if (!$moduleUser) {//不存在则添加
-                        ModuleUser::create($array);
-
-                    } else {//存在则从列表中删除
-                        array_splice($participantIds, $key, 1);
+                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantUser->id)->where('type', $type)->first();
+                if (!$moduleUser) {//不存在则添加
+                    ModuleUser::create($array);
+                } else {//存在则从列表中删除
+                    array_splice($participantIds, $key, 1);
 //                    $participantDeleteIds[] = $participantId;
 //                    //要求一个接口可以完成添加人和删除人,已经存在的删除
 //                    $moduleUser->delete();
-                    }
                 }
-
-
             } catch (Exception $e) {
                 array_splice($participantIds, $key, 1);
             }
+
         }
+
         //返回添加成功或者删除成功的参与人和宣传人
         return [$participantIds, $participantDeleteIds];
     }

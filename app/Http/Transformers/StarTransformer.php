@@ -50,8 +50,8 @@ class StarTransformer extends TransformerAbstract
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,
-            'created_at' => $star->created_at->toDatetimeString(),
-            'updated_at' => $star->updated_at->toDatetimeString(),
+            'created_at' => $star->created_at->formatLocalized('%Y-%m-%d %H:%I'),
+            'updated_at' => $star->updated_at->formatLocalized('%Y-%m-%d %H:%I'),
             'deleted_at' => $star->deleted_at,
 
             'platform'  =>  $star->platform,

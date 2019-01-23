@@ -703,5 +703,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //艺人项目列表
         $api->get("/stars/{star}/project","App\Http\Controllers\ProjectController@getProjectList");
+        $api->get("/bloggers/{blogger}/project","App\Http\Controllers\ProjectController@getProjectList");
     });
 });

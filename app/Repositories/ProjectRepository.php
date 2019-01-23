@@ -45,7 +45,7 @@ class ProjectRepository
     /**
      * 获取艺人签约合同
      */
-    public static function getSignContractProjectBySatr($star_id,$pageSize)
+    public static function getSignContractProjectBySatr($id,$star_type,$pageSize)
     {
 //        //查询艺人下的项目
 //        $contracts = Contract::whereRaw("find_in_set({$star_id},stars)")
@@ -72,7 +72,8 @@ class ProjectRepository
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
             })
-            ->where('afe.flow_type_id',232)->whereRaw("find_in_set({$star_id},c.stars)")
+            ->where('afe.flow_type_id',232)->whereRaw("find_in_set({$id},c.stars)")
+            ->where("star_type",$star_type)
             ->select("p.id","p.title");
         return $query->paginate($pageSize);
 

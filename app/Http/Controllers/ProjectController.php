@@ -1462,10 +1462,18 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer(!$all));
     }
 
-    public function getProjectList(Request $request,Star $star)
+    public function getProjectList(Request $request,Star $star,Blogger $blogger)
     {
+        if ($star){
+            $star_type = "stars";
+            $id = $star->id;
+        }else{
+            $star_type = "bloggers";
+            $id = $blogger->id;
+        }
+
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $projects = ProjectRepository::getSignContractProjectBySatr($star->id,$pageSize);
+        $projects = ProjectRepository::getSignContractProjectBySatr($id,$star_type,$pageSize);
         return $this->response->paginator($projects,new StarProjectTransformer());
     }
 

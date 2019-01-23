@@ -564,9 +564,12 @@ class ApprovalContractController extends Controller
         $arr['total'] = $count;
         $arr['data'] = $article;
         $arr['money'] = $sum;
-        $arr['meta']['pagination'] = $count;
-        $arr['meta']['current_page'] = $count;
-        $arr['meta']['total_pages'] = ceil($count/20);
+        $arr['meta']['pagination']['total'] = $count;
+        $arr['meta']['pagination']['count'] = $count;
+        $arr['meta']['pagination']['per_page'] = $count;
+        $arr['meta']['pagination']['current_page'] = $payload['page'];
+        $arr['meta']['pagination']['total_pages'] = ceil($count/20);
+
 
         return $arr;
     }

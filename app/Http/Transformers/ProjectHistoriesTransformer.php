@@ -32,13 +32,13 @@ class ProjectHistoriesTransformer extends TransformerAbstract
                 'status' => $project->status,
                 'start_at' => $project->start_at,
                 'end_at' => $project->end_at,
-                'created_at' => $project->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-                'updated_at' => $project->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+                'created_at' => $project->created_at->toDateTimeString(),
+                'updated_at' => $project->updated_at->toDateTimeString(),
                 'desc' => $project->desc,
                 // 日志内容
-                'last_follow_up_at' => $project->last_follow_up_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+                'last_follow_up_at' => $project->last_follow_up_at,
                 'last_updated_user' => $project->last_updated_user,
-                'last_updated_at' => $project->last_updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+                'last_updated_at' => $project->last_updated_at,
 
             ];
         } else {

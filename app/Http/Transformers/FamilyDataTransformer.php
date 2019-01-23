@@ -15,7 +15,7 @@ class FamilyDataTransformer extends TransformerAbstract
             'user_id' => $familyData->user_id,
             'name' => $familyData->name,
             'relation' => $familyData->relation,
-            'birth_time' => $familyData->birth_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'birth_time' => $familyData->birth_time,
             'work_units' => $familyData->work_units,
             'position' => $familyData->position,
             'contact_phone' => $familyData->contact_phone,

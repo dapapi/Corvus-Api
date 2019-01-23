@@ -15,8 +15,8 @@ class EducationTransformer extends TransformerAbstract
             'user_id' => $edu->user_id,
             'school' => $edu->school,
             'specialty' => $edu->specialty,
-            'start_time' => $edu->start_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-            'end_time' => $edu->end_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'start_time' => $edu->start_time,
+            'end_time' => $edu->end_time,
             'degree' => $edu->degree,
             'graduate' => $edu->graduate,
         ];

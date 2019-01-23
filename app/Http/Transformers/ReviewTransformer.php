@@ -26,10 +26,10 @@ class ReviewTransformer extends TransformerAbstract
             'title' => $bulletinreview->title,
             'titles' =>  explode(';',substr($bulletinreview->titles,0,strlen($bulletinreview->titles)-1)),
             'countstatus' => $bulletinreview->countstatus,
-            'created_time' => $bulletinreview->created_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'created_time' => $bulletinreview->created_time->toDatetimeString(),//时间去掉秒,
             'status' => $bulletinreview->status,
-            'created_at' => $bulletinreview->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
-            'updated_at' => $bulletinreview->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'created_at' => $bulletinreview->created_at->toDatetimeString(),//时间去掉秒,
+            'updated_at' => $bulletinreview->updated_at->toDatetimeString(),//时间去掉秒,
 
         ];
 
@@ -41,8 +41,8 @@ class ReviewTransformer extends TransformerAbstract
             'member' => $bulletinreview->memberName->name,
             'title' => $bulletinreview->title,
             'status' => $bulletinreview->status,
-            'created_at' => $bulletinreview->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
-            'updated_at' => $bulletinreview->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'created_at' => $bulletinreview->created_at->toDatetimeString(),//时间去掉秒,
+            'updated_at' => $bulletinreview->updated_at->toDatetimeString(),//时间去掉秒,
         ];
 
         return $this->isAll ? $array :$arraySimple;

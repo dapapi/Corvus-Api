@@ -27,13 +27,13 @@ class JobTransformer extends TransformerAbstract
             'work_city' => $job->work_city,
             'taxcity' => $job->taxcity,
 
-            'contract_start_time' => $job->contract_start_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-            'contract_end_time' => $job->contract_end_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'contract_start_time' => $job->contract_start_time,
+            'contract_end_time' => $job->contract_end_time,
             'recruitment_ditch' => $job->recruitment_ditch,
             'recruitment_type' => $job->recruitment_type,
             'other_ditch' => $job->other_ditch,
             'user_id' => $job->user_id,
-            'entry_time' => $job->entry_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'entry_time' => $job->entry_time,
         ];
 
 

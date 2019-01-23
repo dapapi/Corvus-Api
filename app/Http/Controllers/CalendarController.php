@@ -128,7 +128,8 @@ class CalendarController extends Controller
             //获取未更新之前的参与人
             $start_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
             $calendar->update($payload);
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
+            $a = $this->moduleUserRepository->addModuleUserss($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
+          dd($a);
             //更新之后的参与人
             $end_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
 

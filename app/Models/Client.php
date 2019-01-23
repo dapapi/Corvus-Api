@@ -112,11 +112,16 @@ class Client extends Model
     }
     public function getGrade($grade)
     {
-        if ($grade == Client::GRADE_NORMAL){
+        if ($grade == Client::GRADE_NORMAL) {
             return "直客";
         }
-        if ($grade == Client::GRADE_PROXY){
+        if ($grade == Client::GRADE_PROXY) {
             return "代理公司";
         }
+    }
+
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class, 'client_id', 'id');
     }
 }

@@ -15,7 +15,7 @@ class OperateLogTransformer extends TransformerAbstract
             'method' => $operateLog->method,
             'status' => $operateLog->status,
             'level' => $operateLog->level,
-            'created_at' => $operateLog->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'created_at' => $operateLog->created_at->toDatetimeString(),
             'user' => hashid_encode($operateLog->user_id),
         ];
 

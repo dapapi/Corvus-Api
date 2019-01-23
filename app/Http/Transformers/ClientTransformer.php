@@ -32,8 +32,8 @@ class ClientTransformer extends TransformerAbstract
                 'address' => $client->address,
                 'size' => $client->size,
                 'desc' => $client->desc,
-                'created_at' => $client->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-                'updated_at' => $client->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+                'created_at' => $client->created_at->toDateTimeString(),
+                'updated_at' => $client->updated_at->toDateTimeString(),
                 // 日志内容
                 'last_follow_up_at' => $client->last_follow_up_at,
                 'last_updated_user' => $client->last_updated_user,

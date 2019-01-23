@@ -40,8 +40,8 @@ class ContractPapiTransformer extends TransformerAbstract
             'scanning_affix' => $contractPapi->scanning_affix,//scanning_affix_id
             'scanning' => $contractPapi->scanning,//份数
             'contract_affix' => $contractPapi->contract_affix,//附件类别
-            'created_at'=> $contractPapi->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,, //创建时间
-            'updated_at' => $contractPapi->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'created_at'=> $contractPapi->created_at->toDateTimeString(), //创建时间
+            'updated_at' => $contractPapi->updated_at->toDateTimeString()
         ];
         $arraySimple = [
             'id' => hashid_encode($contractPapi->id),

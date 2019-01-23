@@ -24,8 +24,8 @@ class LaunchTransformer extends TransformerAbstract
             'id' => hashid_encode($Launch->id),
             'title' => $Launch->title,
 
-            'created_at' => $Launch->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-            'updated_at' => $Launch->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'created_at' => $Launch->created_at->toDatetimeString(),
+            'updated_at' => $Launch->updated_at->toDatetimeString(),
 
 
         ];

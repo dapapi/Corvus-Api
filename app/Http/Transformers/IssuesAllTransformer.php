@@ -28,8 +28,8 @@ class IssuesAllTransformer extends TransformerAbstract
             'accessory' => $Issues->accessory,
             'type' =>$Issues->type,
             'required' =>$Issues->required,
-            'created_at' => $Issues->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-            'updated_at' => $Issues->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'created_at' => $Issues->created_at->toDatetimeString(),
+            'updated_at' => $Issues->updated_at->toDatetimeString()
 
 
         ];
@@ -45,8 +45,8 @@ class IssuesAllTransformer extends TransformerAbstract
             'accessory' => $Issues->accessory,
             'type' =>$Issues->type,
             'required' =>$Issues->required,
-            'created_at' => $Issues->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-            'updated_at' => $Issues->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'created_at' => $Issues->created_at->toDatetimeString(),
+            'updated_at' => $Issues->updated_at->toDatetimeString()
 
 
         ];

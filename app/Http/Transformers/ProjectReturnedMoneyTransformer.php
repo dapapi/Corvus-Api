@@ -25,8 +25,8 @@ class ProjectReturnedMoneyTransformer extends TransformerAbstract
                 'plan_returned_time' =>  date('Y-m-d',strtotime($projectReturnedMoney->plan_returned_time)),
           //      'project_returned_money_type_id' => $projectReturnedMoney->project_returned_money_type_id,
                 'desc' => $projectReturnedMoney->desc,
-                'created_at'=> $projectReturnedMoney->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-                'updated_at' => $projectReturnedMoney->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+                'created_at'=> $projectReturnedMoney->created_at->toDateTimeString(),
+                'updated_at' => $projectReturnedMoney->updated_at->toDateTimeString()
             ];
 
 

@@ -4,7 +4,6 @@ namespace App\Http\Transformers;
 
 use App\Models\Star;
 use App\ModuleableType;
-use App\TaskStatus;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -50,8 +49,8 @@ class StarTransformer extends TransformerAbstract
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,
-            'created_at' => $star->created_at->formatLocalized('%Y-%m-%d %H:%I'),
-            'updated_at' => $star->updated_at->formatLocalized('%Y-%m-%d %H:%I'),
+            'created_at' => $star->created_at->toDatetimeString(),
+            'updated_at' => $star->updated_at->toDatetimeString(),
             'deleted_at' => $star->deleted_at,
 
             'platform'  =>  $star->platform,
@@ -99,8 +98,7 @@ class StarTransformer extends TransformerAbstract
 
     public function includeTasks(Star $star)
     {
-        $tasks = $star->tasks()->where("status",TaskStatus::NORMAL)
-            ->stopAsc()->limit(3)->get();
+        $tasks = $star->tasks()->createDesc()->get();
         return $this->collection($tasks, new TaskTransformer());
     }
 

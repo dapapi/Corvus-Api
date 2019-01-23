@@ -15,8 +15,8 @@ class AnnouncementScopeTransformer extends TransformerAbstract
             'id' => hashid_encode($announcementScope->id),
             'announcement_id' => hashid_encode($announcementScope->announcement_id),  //公告id
             'department_id' => hashid_encode($announcementScope->department_id), // 部门id
-            'created_at' => $announcementScope->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
-            'updated_at' => $announcementScope->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'created_at' => $announcementScope->created_at->toDateTimeString(),//时间去掉秒,,
+            'updated_at' => $announcementScope->updated_at->toDateTimeString(),//时间去掉秒,
 
 
         ];

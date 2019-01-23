@@ -28,6 +28,7 @@ class StoreClientRequest extends FormRequest
             'company' => 'required|unique:clients',
             'grade' => 'required|numeric',
             'type' => 'required|numeric',
+            'client_rating' => 'required|numeric',
             'province' => 'nullable',
             'city' => 'nullable',
             'district' => 'nullable',

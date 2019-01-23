@@ -25,6 +25,7 @@ class ClientTransformer extends TransformerAbstract
                 'grade' => $client->grade,
                 'keyman' => $client->keyman,
                 'type' => $client->type,
+                'client_rating' => $client->client_rating,
                 'province' => $client->province,
                 'city' => $client->city,
                 'district' => $client->district,

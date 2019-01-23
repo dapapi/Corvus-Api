@@ -564,8 +564,7 @@ class ApprovalFormController extends Controller
         }
 
         // todo 明细单列
-        $detailControl = Control::where('form_id', $instance->form_id)->where('pid', 1)->orderBy('sort_number')->get();
-        $resource = new Fractal\Resource\Collection($data, new ControlTransformer($num));
+        $detailControl = Control::where('form_id', $instance->form_id)->where('control_id', 88)->first();
 
         if ($detailControl) {
             $detailArr = [];

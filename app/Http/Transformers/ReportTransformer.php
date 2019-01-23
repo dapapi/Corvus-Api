@@ -30,8 +30,8 @@ class ReportTransformer extends TransformerAbstract
            // 'review_id' => $report->status['id'],
             'delete_at' => $report->delete_at,
            // 'created_id' => $report->created_id,
-            'created_at' => $report->created_at->toDatetimeString(),
-            'updated_at' => $report->updated_at->toDatetimeString(),
+            'created_at' => $report->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'updated_at' => $report->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
             //'issues_id' => $report->issues_id,
 
         ];

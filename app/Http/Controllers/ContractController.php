@@ -11,8 +11,10 @@ use App\Http\Requests\BloggerProductionRequest;
 use App\Http\Requests\BloggerProducerRequest;
 use App\Http\Transformers\ContractPapiTransformer;
 use App\Http\Transformers\BloggerTypeTransformer;
+use App\Http\Transformers\ContractTransformer;
 use App\Http\Transformers\ProductionTransformer;
 use App\Models\Blogger;
+use App\Models\Client;
 use App\Models\Production;
 use App\Models\BloggerType;
 use App\Models\ContractPapi;
@@ -673,5 +675,12 @@ class ContractController extends Controller
         $producer_id = BloggerProducer::where($array)->get(['producer_id']);
         $stars = Production::wherein('id',$producer_id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($stars, new ProductionTransformer());
+    }
+
+    public function getClientContracts(Request $request, Client $client)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $contracts = $client->contracts()->paginate($pageSize);
+        return $this->response->paginator($contracts, new ContractTransformer(false));
     }
 }

@@ -19,7 +19,7 @@ class CommentLogTransformer extends TransformerAbstract
             'method' => $commentLog->method,
             'status' => $commentLog->status,
             'level' => $commentLog->level,
-            'created_at' => $commentLog->created_at->toDatetimeString(),
+            'created_at' => $commentLog->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
             'user' => hashid_encode($commentLog->user_id),
         ];
 

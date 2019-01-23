@@ -50,8 +50,8 @@ class StarTransformer extends TransformerAbstract
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,
-            'created_at' => $star->created_at->toDatetimeString(),
-            'updated_at' => $star->updated_at->toDatetimeString(),
+            'created_at' => $star->created_at->formatLocalized('%Y-%m-%d %H:%I'),
+            'updated_at' => $star->updated_at->formatLocalized('%Y-%m-%d %H:%I'),
             'deleted_at' => $star->deleted_at,
 
             'platform'  =>  $star->platform,
@@ -100,7 +100,7 @@ class StarTransformer extends TransformerAbstract
     public function includeTasks(Star $star)
     {
         $tasks = $star->tasks()->where("status",TaskStatus::NORMAL)
-            ->createDesc()->limit(5)->get();
+            ->stopAsc()->limit(3)->get();
         return $this->collection($tasks, new TaskTransformer());
     }
 

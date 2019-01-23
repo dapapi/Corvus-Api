@@ -30,9 +30,9 @@ class AnnouncementTransformer extends TransformerAbstract
             'accessory' => $announcement->accessory, //附件
             'accessory_name'=> $announcement->accessory_name,
             'stick' => $announcement->stick, //默认 0  未读  1 读
-            'delete_at' => $announcement->delete_at,
-            'created_at' => $announcement->created_at->toDatetimeString(),
-            'updated_at' => $announcement->updated_at->toDatetimeString()
+            'delete_at' => $announcement->delete_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'created_at' => $announcement->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'updated_at' => $announcement->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
 
 
         ];

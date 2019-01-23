@@ -25,7 +25,7 @@ class DetailTransformer extends TransformerAbstract
             'responsibility' => $detail->responsibility,
             'contract' => $detail->contract,
             'address' => $detail->address,
-            'entry_time' => $detail->entry_time,
+            'entry_time' => $detail->entry_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
 
         ];
     }

@@ -27,8 +27,8 @@ class ReviewQuestionTransformer extends TransformerAbstract
             'title'=> $reviewquestion->title,
             'type'=> $reviewquestion->type,
             'sort'=> $reviewquestion->sort,
-            'created_at'=> $reviewquestion->created_at->toDateTimeString(),
-            'updated_at' => $reviewquestion->updated_at->toDateTimeString()
+            'created_at'=> $reviewquestion->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'updated_at' => $reviewquestion->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒
         ];
         $arraySimple = [
             'id' => hashid_encode($reviewquestion->id),

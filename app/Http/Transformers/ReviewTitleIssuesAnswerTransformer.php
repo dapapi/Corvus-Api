@@ -18,8 +18,8 @@ class ReviewTitleIssuesAnswerTransformer extends TransformerAbstract
             'issues' => $bulletinreviewtitleissuesanswer->issues,
             'type' => $bulletinreviewtitleissuesanswer->type,
             'answer' => $bulletinreviewtitleissuesanswer->answer,
-            'created_at' => $bulletinreviewtitleissuesanswer->created_at->toDatetimeString(),
-            'updated_at' => $bulletinreviewtitleissuesanswer->updated_at->toDatetimeString(),
+            'created_at' => $bulletinreviewtitleissuesanswer->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'updated_at' => $bulletinreviewtitleissuesanswer->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
 
 
         ];

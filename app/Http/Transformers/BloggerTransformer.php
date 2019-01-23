@@ -85,9 +85,9 @@ class BloggerTransformer extends TransformerAbstract
             'weibo_fans_num'=> $blogger->weibo_fans_num,//微博粉丝数
             'xiaohongshu_url'=> $blogger->xiaohongshu_url,//微博url
             'xiaohongshu_fans_num'=> $blogger->xiaohongshu_fans_num,//微博粉丝数
-            'created_at'=> $blogger->created_at->toDateTimeString(),
+            'created_at'=> $blogger->created_at->formatLocalized('%Y-%m-%d %H:%I'),
             'last_updated_user' => $blogger->last_updated_user,
-            'updated_at' => $blogger->updated_at->toDateTimeString()
+            'updated_at' => $blogger->updated_at->formatLocalized('%Y-%m-%d %H:%I')
         ];
 
         if(!$setprivacy1 && $blogger ->creator_id != $user->id){
@@ -169,7 +169,7 @@ class BloggerTransformer extends TransformerAbstract
 
     public function includeTasks(Blogger $blogger)
     {
-        $tasks = $blogger->tasks()->where('status',TaskStatus::NORMAL)->orderBy('created_at','desc')->limit(5)->createDesc()->get();
+        $tasks = $blogger->tasks()->where('status',TaskStatus::NORMAL)->limit(3)->stopAsc()->get();
         return $this->collection($tasks, new TaskTransformer());
     }
     public function includeOperateLogs(Blogger $blogger)

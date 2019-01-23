@@ -110,4 +110,13 @@ class Client extends Model
         $contacts = $this->contacts()->where('type', Contact::TYPE_KEY)->pluck('name')->toArray();
         return implode(",", $contacts);
     }
+    public function getGrade($grade)
+    {
+        if ($grade == Client::GRADE_NORMAL){
+            return "直客";
+        }
+        if ($grade == Client::GRADE_PROXY){
+            return "代理公司";
+        }
+    }
 }

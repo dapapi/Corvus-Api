@@ -22,6 +22,7 @@ class MessageRepository
         $message->subheading = $subheading;
         $message->module = $module;
         $message->link = $link;
+        $message->module_data_id    =  $module_data_id;
         $message->save();
 
         foreach ($data as &$value){
@@ -41,7 +42,6 @@ class MessageRepository
                 'message_id'  =>  $message->id,
                 'user_id' =>  $recive,
                 'created_at'    =>  Carbon::now()->toDateTimeString(),
-                'module_data_id'    =>  $module_data_id,
             ];
         }
 

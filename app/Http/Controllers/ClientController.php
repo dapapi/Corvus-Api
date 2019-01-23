@@ -118,7 +118,10 @@ class ClientController extends Controller
                         $lastValue = User::find($client->principal_id)->name;
                         $value = User::findOrFail($value)->name;
                     }
-
+                    if ($key == "grade"){
+                        $lastValue = $client->getGrade($client->grade);
+                        $value = $client->getGrade($value);
+                    }
                     $comment = $columns->getColumn($key)->getComment();
                     $this->editLog($client, $comment, $lastValue, $value);//修改客户日志
                 }

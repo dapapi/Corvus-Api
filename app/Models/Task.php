@@ -6,6 +6,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
+use App\Traits\OperateLogTrait;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 class Task extends Model
 {
     use SoftDeletes;
+    use OperateLogTrait;
     private $model_dic_id = DataDictionarie::TRAIL;//数据字典中模块id
     protected $fillable = [
         'title',

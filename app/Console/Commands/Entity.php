@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class Entity extends Command
 {
@@ -55,9 +56,12 @@ class Entity extends Command
             $content .= "     */\n";
             $content .= '   $private '.$column."\n\n";
         }
+        dd($this->getStub());
         $class_file = file_get_contents($this->getStub());
 
         $class_file = str_replace("@content",$content,$class_file);
+        $path = __DIR__."../../Entity/";
+        Storage::disk("local")->put($path.$this->argument("name")."php",$class_file);
 
     }
 }

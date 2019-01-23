@@ -3,11 +3,11 @@
 namespace App\Http\Transformers;
 
 use App\Models\Task;
+use App\Traits\OperateLogTrait;
 use League\Fractal\TransformerAbstract;
 
 class TaskTransformer extends TransformerAbstract
 {
-
     protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type','operateLogs',  'relate_tasks', 'relate_projects'];
 
     protected $defaultIncludes = ['principal','type','resource'];
@@ -28,6 +28,10 @@ class TaskTransformer extends TransformerAbstract
             'created_at' => $task->created_at->toDatetimeString(),
             'updated_at' => $task->updated_at->toDatetimeString(),
             'deleted_at' => $task->deleted_at,
+            // 日志内容
+            'last_updated_user' => $task->last_updated_user,
+            'last_updated_at'   =>  $task->last_updated_at,
+            'last_follow_up_at' => $task->last_follow_up_at,
         ];
 
         $array['task_p'] = true;

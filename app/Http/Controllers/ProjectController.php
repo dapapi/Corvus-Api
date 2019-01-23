@@ -833,7 +833,7 @@ class ProjectController extends Controller
             foreach($payload['participant_ids'] as &$participant_id){
                 hashid_decode($participant_id);
             }
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids,$project->id);
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();

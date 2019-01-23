@@ -14,6 +14,7 @@ class MessageTransformer extends TransformerAbstract
             'link'  =>  $message->link,
             'title' =>  $message->title,
             'state' =>  $message->state,
+            'module_data_id'    =>$message->module_data_id == null ? null : hashid_encode($message->module_data_id),
             'created_at'    =>  $message->created_at,
             'body'  =>  $message->data()->get(),
         ];

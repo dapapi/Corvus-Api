@@ -719,7 +719,6 @@ class TrailController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('修改销售线索失败');

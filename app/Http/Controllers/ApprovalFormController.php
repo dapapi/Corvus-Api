@@ -799,7 +799,7 @@ class ApprovalFormController extends Controller
             $send_user = [$leader->id];
             $authorization = $request->header()['authorization'][0];
 
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user,$project->id);
         } catch (Exception $e) {
             Log::error($e);
             DB::rollBack();

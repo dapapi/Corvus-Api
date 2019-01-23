@@ -1188,7 +1188,7 @@ class TaskController extends Controller
             $recives[] = $task->creator_id;//创建人
             $recives[] = $payload['principal_id'];//负责人
             $authorization = $request->header()['authorization'][0];
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
 
             DB::commit();
         }catch (Exception $e){

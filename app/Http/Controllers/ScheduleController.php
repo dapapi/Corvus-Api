@@ -213,7 +213,7 @@ class ScheduleController extends Controller
 
             $query->where(function ($query) use ($payload) {
                 if ($payload['calendar_ids']) {
-                   // $query->where('privacy', Schedule::OPEN);
+                    $query->where('privacy', Schedule::OPEN);
                     $query->whereIn('calendar_id', $payload['calendar_ids']);
                 }
             })->orWhere(function ($query) use ($user, $subquery) {

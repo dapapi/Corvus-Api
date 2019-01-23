@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Entity\PersonalDetailEntity;
 use App\Http\Transformers\MessageTransform;
 use App\Models\DataDictionarie;
 use App\Models\Message;

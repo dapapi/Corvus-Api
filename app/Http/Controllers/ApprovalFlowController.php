@@ -106,22 +106,22 @@ class ApprovalFlowController extends Controller
         DB::beginTransaction();
         try {
             foreach ($chains as $key => &$chain) {
-                $chain = hashid_decode($chain);
+                $chain['id'] = hashid_decode($chain['id']);
                 if ($key)
-                    $preId = $chains[$key - 1];
+                    $preId = $chains[$key - 1]['id'];
                 else
                     $preId = 0;
 
                 ChainFree::create([
                     'form_number' => $formNumber,
                     'pre_id' => $preId,
-                    'next_id' => $chain,
+                    'next_id' => $chain['id'],
                     'sort_number' => $key + 1
                 ]);
             }
             ChainFree::create([
                 'form_number' => $formNumber,
-                'pre_id' => $chains[count($chains) - 1],
+                'pre_id' => $chains[count($chains) - 1]['id'],
                 'next_id' => 0,
                 'sort_number' => count($chains) + 1,
             ]);
@@ -129,7 +129,7 @@ class ApprovalFlowController extends Controller
 
             $this->storeRecord($formNumber, $user->id, $now, 237);
 
-            $this->createOrUpdateHandler($formNumber, $chains[0], 245, 231);
+            $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 245, 231);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -504,7 +504,6 @@ class ApprovalFlowController extends Controller
     }
 
     /**
-     * todo 嵌套问题
      * 重复审批人出现会跳过中间审批人
      * @param $instance
      * @param $preId
@@ -695,11 +694,24 @@ class ApprovalFlowController extends Controller
         return implode(',', $resultArr);
     }
 
+    /**
+     * 实现逻辑
+     * 遍历数字类型的字段的条件
+     * 如果值大于需要的条件值就视为符合条件
+     * 数值条件记录例：
+     *  condition    sort_number
+     *      0              1
+     *      100            2
+     *      200            3
+     * @param $formId
+     * @param $value
+     * @return int
+     */
     private function numberForCondition($formId, $value)
     {
         $result = 0;
         foreach (Condition::where('form_id', $formId)->orderBy('sort_number', 'desc')->cursor() as $item) {
-            if ($value > $item->condition) {
+            if ($value * 1 >= $item->condition * 1) {
                 $result = $item->condition;
                 break;
             } else {

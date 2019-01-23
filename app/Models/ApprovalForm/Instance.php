@@ -15,7 +15,6 @@ class Instance extends Model implements approvalinstanceinterface
     use OperateLogTrait;
 
     protected $fillable = [
-        'form_instance_id',
         'form_id',
         'form_instance_number',
         'apply_id',

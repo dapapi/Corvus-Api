@@ -203,13 +203,30 @@ class ScheduleController extends Controller
             $query->orWhere([['mu.user_id', $user->id], ['calendars.privacy', Calendar::SECRET]]);//参与人
             $query->orwhere('calendars.privacy', Calendar::OPEN);
         })->get();
+        $data = $calendars->toArray();
+        if($request->has('calendar_ids')){
+            $len = count($payload['calendar_ids']);
+            for($i=0;$i<$len;$i++)
+            {
+                foreach ($data as  $key => $value){
+
+                    if($value['id'] == $payload['calendar_ids'][$i])
+                    {
+                        unset($data[$key]);
+                    }
+
+                }
+            }
+          //  dd(array_diff($payload['calendar_ids'],$calendars->toArray()));
+        }
         //日程仅参与人可见
         $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
             $join->on('mu.moduleable_id', 's.id')
                 ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
         })->whereRaw("s.id=schedules.id")->select('mu.user_id');
-        $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery, $calendars) {
+
+        $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery, $calendars,$data) {
 
             $query->where(function ($query) use ($payload) {
                 if ($payload['calendar_ids']) {
@@ -221,7 +238,7 @@ class ScheduleController extends Controller
                 $query->orWhere(function ($query) use ($user, $subquery) {
                     $query->whereRaw("$user->id in ({$subquery->toSql()})");
                 });
-            })->whereNotIn('calendar_id', $calendars);
+            })->whereNotIn('calendar_id', $data);
 
         })->mergeBindings($subquery)
             ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])

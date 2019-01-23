@@ -17,6 +17,7 @@ use App\Http\Transformers\ProjectHistoriesTransformer;
 use App\Http\Transformers\TemplateFieldHistoriesTransformer;
 use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\ApprovalFlow\ChainFixed;
+use App\Models\ApprovalFlow\ChainFree;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalFlow\Condition;
 use App\Models\ApprovalFlow\Execute;
@@ -999,6 +1000,8 @@ class ApprovalFormController extends Controller
 
         $executeInfo = ChainFixed::where('form_id', $formId)->where('condition_id', $conditionId)->orderBy('sort_number')->first();
         if (is_null($executeInfo))
+            $executeInfo = ChainFree::where('form_number', $num)->orderBy('sort_number')->first();
+        else
             throw new ApprovalVerifyException('审批流不存在');
 
         try {

@@ -45,8 +45,6 @@ class MessageRepository
         }
 
 
-
-
 //        $message_state = new MessageState();
         DB::table("message_states")->insert($recives_data);
         $send_message = new SendMessage();
@@ -77,14 +75,29 @@ class MessageRepository
     //获取所有消息模块
     public function getModules()
     {
-        return DataDictionarie::select("id","val","name")->where("parent_id",206)->get()->toArray();
+        return DataDictionarie::select("id","val","name","icon")->where("parent_id",206)->get()->toArray();
     }
     //获取用户某模块最新消息
     public function getLastNewsByModule($module,$user_id)
     {
-        return Message::where("messages.module",$module)->leftJoin("message_states as ms","ms.user_id","messages.id")
+        return Message::where("messages.module",$module)->leftJoin("message_states as ms","ms.message_id","messages.id")
             ->where("ms.user_id",$user_id)->select('messages.title','ms.state',"ms.created_at")->first();
     }
-
+    //获取用户消息
+    public function getMessageList($module,$user_id,$state)
+    {
+        $arr = [];
+        if($module != null){
+            $arr[] = ['m.module', $module];
+        }
+        if($state != null){
+            $arr[]  =   ['ms.state',$state];
+        }
+        return Message::
+            leftJoin("message_states as ms","ms.message_id","messages.id")
+            ->where($arr)
+            ->where("ms.user_id",$user_id)
+            ->select('messages.id','messages.link','messages.module','messages.title','ms.state',"ms.created_at");
+    }
 
 }

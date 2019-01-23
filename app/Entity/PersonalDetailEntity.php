@@ -10,7 +10,7 @@ namespace App\Entity;
 class PersonalDetailEntity
 {
     /*
-     * @desc
+     * @desc 主键id
      */
     private $id;
 }

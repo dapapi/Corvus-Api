@@ -100,14 +100,19 @@ class ModuleUserRepository
         ];
         if ($model instanceof Schedule && $model->id) {
             $array['moduleable_type'] = ModuleableType::SCHEDULE;
+            $array['moduleable_id'] = $model->id;
         } else if ($model instanceof Calendar && $model->id) {
             $array['moduleable_type'] = ModuleableType::CALENDAR;
+            $array['moduleable_id'] = $model->id;
         }else if ($model instanceof Project && $model->id) {
             $array['moduleable_type'] = ModuleableType::PROJECT;
+            $array['moduleable_id'] = $model->id;
         }else if ($model instanceof Task && $model->id) {
             $array['moduleable_type'] = ModuleableType::TASK;
+            $array['moduleable_id'] = $model->id;
         }else if($model instanceof Blogger && $model->id){
             $array['moduleable_type'] = ModuleableType::BLOGGER;
+            $array['moduleable_id'] = $model->id;
         }
 
 
@@ -118,8 +123,8 @@ class ModuleUserRepository
 
             $particalendarsIds[$key] = hashid_decode($value);
         }
-        $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->wherein('moduleable_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
 
+        $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->whereIn('user_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
         foreach ($participantDeleteIds as $key => &$participantDeleteId) {
             try {
 

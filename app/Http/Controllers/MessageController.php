@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Entity\PersonalDetailEntity;
 use App\Http\Transformers\MessageTransform;
+use App\Http\Transformers\MessageTransformer;
 use App\Models\DataDictionarie;
 use App\Models\Message;
 use App\Models\MessageState;
@@ -17,6 +19,12 @@ use Illuminate\Support\Facades\Auth;
 
 class MessageController extends Controller
 {
+    private $messageReposirory;
+    public function __construct(MessageRepository $messageReposirory)
+    {
+        $this->messageReposirory = $messageReposirory;
+    }
+
     public function index(Request $request)
     {
         $module = $request->get('module',null);
@@ -150,21 +158,29 @@ class MessageController extends Controller
             $module['unread'] = $un_read;
             $module['laset_mesage'] = $lastMessage;
         }
-        return $modules;
+        return ["data" => $modules];
     }
 
     public function MobileGetMessage(Request $request)
     {
+//        $user = Auth::guard('api')->user();
+//        $message = DB::table("data_dictionaries as dd")
+//            ->leftJoin("messages as m", 'm.module', 'dd.id')
+//            ->leftJoin("message_datas as md", 'md.message_id', "m.id")
+//            ->leftJoin("message_states as ms", 'ms.message_id', 'm.id')
+//            ->where('parent_id', 206)
+//            ->where('ms.user_id', $user->id)
+//            ->select("dd.name as module_name","dd.icon", "m.id as message_id", "m.title as message_title", "m.link", "m.created_at", "md.title", "md.value", "ms.state")
+//            ->get()->toArray();
+//        return ["data" => $message];
+        $module = $request->get('module',null);
+        $state = $request->get('state',null);
         $user = Auth::guard('api')->user();
-        $message = DB::table("data_dictionaries as dd")
-            ->leftJoin("messages as m", 'm.module', 'dd.id')
-            ->leftJoin("message_datas as md", 'md.message_id', "m.id")
-            ->leftJoin("message_states as ms", 'ms.message_id', 'm.id')
-            ->where('parent_id', 206)
-            ->where('ms.user_id', $user->id)
-            ->select("dd.name as module_name","dd.icon", "m.id as message_id", "m.title as message_title", "m.link", "m.created_at", "md.title", "md.value", "ms.state")
-            ->get()->toArray();
-        return ["data" => $message];
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        //获取消息
+        $message = $this->messageReposirory->getMessageList($module,$user->id,$state)->paginate($pageSize);
+        return $this->response->paginator($message,new MessageTransformer());
+
     }
 
 }

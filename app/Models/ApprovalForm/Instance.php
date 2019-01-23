@@ -28,7 +28,7 @@ class Instance extends Model implements approvalinstanceinterface
 
     public function form()
     {
-        return $this->belongsTo(ApprovalForm::class, 'form_id', 'id');
+        return $this->belongsTo(ApprovalForm::class, 'form_id', 'form_id');
     }
 
     public function status()

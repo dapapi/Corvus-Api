@@ -24,10 +24,10 @@ class StarProjectTransformer extends TransformerAbstract
     private function getCompanyName($project)
     {
         $result = $project->leftJoin("trails as t",function ($join){
-            $join->on("project.trail_id","t,id");
+            $join->on("projects.trail_id","t.id");
         })->leftJoin("clients as c",function ($join){
             $join->on("c.id","t.client_id");
-        })->select('company')->where('project.id',$project->id)
+        })->select('company')->where('projects.id',$project->id)
             ->first();
         return $result == null ? null : $result->company;
     }

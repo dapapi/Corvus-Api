@@ -178,7 +178,7 @@ class MessageController extends Controller
         $user = Auth::guard('api')->user();
         //获取消息
         $message = $this->messageReposirory->getMessageList($module,$user->id,$state);
-        return $this->response->collection($message,new MessageTransformer());
+        return $this->response->paginator($message,new MessageTransformer());
 
     }
 

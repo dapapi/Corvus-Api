@@ -694,11 +694,24 @@ class ApprovalFlowController extends Controller
         return implode(',', $resultArr);
     }
 
+    /**
+     * 实现逻辑
+     * 遍历数字类型的字段的条件
+     * 如果值大于需要的条件值就视为符合条件
+     * 数值条件记录例：
+     *  condition    sort_number
+     *      0              1
+     *      100            2
+     *      200            3
+     * @param $formId
+     * @param $value
+     * @return int
+     */
     private function numberForCondition($formId, $value)
     {
         $result = 0;
         foreach (Condition::where('form_id', $formId)->orderBy('sort_number', 'desc')->cursor() as $item) {
-            if ($value > $item->condition) {
+            if ($value * 1 >= $item->condition * 1) {
                 $result = $item->condition;
                 break;
             } else {

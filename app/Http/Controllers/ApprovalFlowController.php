@@ -504,7 +504,7 @@ class ApprovalFlowController extends Controller
     }
 
     /**
-     * todo 网速慢问题
+     * todo 嵌套问题
      * 重复审批人出现会跳过中间审批人
      * @param $instance
      * @param $preId
@@ -525,7 +525,7 @@ class ApprovalFlowController extends Controller
         $formId = $form->form_id;
         $num = $instance->form_instance_number;
         $changeType = $form->change_type;
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [240, 241, 242, 243,])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243,])->count('form_instance_number');
         $now = Execute::where('form_instance_number', $num)->where('flow_type_id', 231)->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程
@@ -578,9 +578,21 @@ class ApprovalFlowController extends Controller
             $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
         }
         if ($preId == 0 && $count > 1)
-            $arr = $this->getChainNext($instance, $preId, true);
+            $arr = [0, 245];
         else {
-            $arr = $this->getChainNext($instance, $preId);
+            if ($form->change_type == 223) {
+                $chain = ChainFree::where('form_number', $num)->where('sort_number', $count + 1)->first();
+                $arr = [$chain->next_id, 245];
+            } else if ($form->change_type == 222) {
+                $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count + 1)->first();
+                $arr = [$chain->next_id, $chain->approval_type];
+            } else if ($form->change_type == 224) {
+                $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
+                $value = $this->getValuesForCondition($formControlIds, $num);
+                $conditionId = $this->getCondition($instance->form_id, $value);
+                $chain = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count + 1)->first();
+                $arr = [$chain->next_id, $chain->approval_type];
+            }
         }
 
         return $arr;

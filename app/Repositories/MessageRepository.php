@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 class MessageRepository
 {
     //向数据库添加消息，向前端推消息
-    public function addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$recives){
+    public function addMessage($user,$authorization,$title,$subheading,$module,$link,$data,$recives,$module_data_id){
 
         $message = new Message();
         $message->title = $title;
@@ -40,7 +40,8 @@ class MessageRepository
             $recives_data[] = [
                 'message_id'  =>  $message->id,
                 'user_id' =>  $recive,
-                'created_at'    =>  Carbon::now()
+                'created_at'    =>  Carbon::now(),
+                'module_data_id'    =>  $module_data_id,
             ];
         }
 
@@ -94,7 +95,7 @@ class MessageRepository
             $arr[]  =   ['ms.state',$state];
         }
         return Message::
-            leftJoin("message_states as ms","ms.message_id","messages.id")
+            leftJoin("message_states as ms","ms.message_id","messages.id",'messages_data_id')
             ->where($arr)
             ->where("ms.user_id",$user_id)
             ->select('messages.id','messages.link','messages.module','messages.title','ms.state',"ms.created_at");

@@ -797,7 +797,7 @@ class ApprovalFlowController extends Controller
 
                     $authorization = \request()->header()['authorization'][0];
 
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null);
+                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null,$module->id);
 
                     //操作日志
                     $operate = new OperateEntity([
@@ -860,7 +860,7 @@ class ApprovalFlowController extends Controller
 
                     $authorization = \request()->header()['authorization'][0];
 
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null);
+                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null,$module->id);
 
                     //操作日志
                     $operate = new OperateEntity([

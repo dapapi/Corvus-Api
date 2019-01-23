@@ -15,7 +15,7 @@ class ProjectReturnedMoneyPracticalTransformer extends TransformerAbstract
 
             $array = [
 
-                'practicalsum' =>$projectReturnedMoney->practicalsum[0]['practicalsums'],
+                'practicalsum' =>$projectReturnedMoney->practicalsums,
 
             ];
 

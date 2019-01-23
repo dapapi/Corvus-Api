@@ -11,14 +11,14 @@ class Entity extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'make:entity';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = '创建实体';
 
     /**
      * Create a new command instance.
@@ -37,6 +37,6 @@ class Entity extends Command
      */
     public function handle()
     {
-        //
+
     }
 }

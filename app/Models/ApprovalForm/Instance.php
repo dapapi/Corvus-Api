@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 class Instance extends Model implements approvalinstanceinterface
 {
     protected $table = 'approval_form_instances';
+    protected $primaryKey = "form_instance_id";
     use OperateLogTrait;
 
     protected $fillable = [

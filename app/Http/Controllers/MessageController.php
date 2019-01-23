@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Entity\PersonalDetailEntity;
 use App\Http\Transformers\MessageTransform;
 use App\Models\DataDictionarie;
 use App\Models\Message;
@@ -150,7 +151,7 @@ class MessageController extends Controller
             $module['unread'] = $un_read;
             $module['laset_mesage'] = $lastMessage;
         }
-        return $modules;
+        return ["data" => $modules];
     }
 
     public function MobileGetMessage(Request $request)

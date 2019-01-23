@@ -138,4 +138,8 @@ class Star extends Model
     {
         return $this->belongsTo(Schedule::class,'calendar_id','id');
     }
+    public function projects()
+    {
+
+    }
 }

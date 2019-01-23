@@ -55,7 +55,8 @@ class SeasPoolController extends Controller
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($takeType ==1){
-                $query->where('take_type', $takeType);
+
+                $query->where('take_type', 1);
             }else{
                 $query->whereIn('pool_type', [1,2,3]);
             }

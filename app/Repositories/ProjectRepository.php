@@ -2,6 +2,9 @@
 
 namespace App\Repositories;
 
+
+use App\Models\ApprovalFlowExecute;
+use App\Models\Contract;
 use App\Models\OperateLog;
 use App\Models\Project;
 use App\Models\Star;
@@ -37,5 +40,42 @@ class ProjectRepository
             ->orderBy('ol.created_at','desc')->limit(3)
             ->get();
         return $result;
+    }
+
+    /**
+     * 获取艺人签约合同
+     */
+    public static function getSignContractProjectBySatr($star_id,$pageSize)
+    {
+//        //查询艺人下的项目
+//        $contracts = Contract::whereRaw("find_in_set({$star_id},stars)")
+//            ->where("star_type","stars")
+//            ->whereRaw("project_id is not null")
+//            ->select('id',"project_id","form_instance_number")->get()->toArray();
+//        $instance_numbers = array_column($contracts,"form_instance_number");
+//        //获取项目中审核通过的项目
+//        $flow_exceute = ApprovalFlowExecute::where("flow_type_id",232)->whereIn('form_instance_number',$instance_numbers)
+//            ->select("form_instance_number")->get()->toArray();
+//        $pass_instance_numbers = array_column($flow_exceute,"form_instance_number");
+//        //获取审核通过的项目id
+//        $contracts = array_column($contracts,null,'form_instance_number');
+//        $project_ids = [];
+//        foreach ($contracts as $key => $value){
+//            if (in_array($key,$pass_instance_numbers)){
+//                $project_ids[] = $value['project_id'];
+//            }
+//        }
+//        //查找项目
+//        return Project::whereIn('id',$project_ids)->paginate($pageSize);
+        $query = (new Project)->setTable("p")->from("projects as p")
+            ->leftJoin("contracts as c",'p.id',"c.project_id")
+            ->leftJoin("approval_flow_execute as afe",function ($join){
+                $join->on("afe.form_instance_number","c.form_instance_number");
+            })
+            ->where('afe.flow_type_id',232)->whereRaw("find_in_set({$star_id},c.stars)")
+            ->select("p.id","p.title");
+        return $query->paginate($pageSize);
+
+
     }
 }

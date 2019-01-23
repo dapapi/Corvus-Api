@@ -837,4 +837,5 @@ class StarController extends Controller
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }
+
 }

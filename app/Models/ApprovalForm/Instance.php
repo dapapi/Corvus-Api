@@ -14,7 +14,6 @@ class Instance extends Model implements approvalinstanceinterface
     protected $primaryKey = "form_instance_id";
     use OperateLogTrait;
 
-    protected $primaryKey = 'form_instance_id';
     protected $fillable = [
         'form_id',
         'form_instance_number',

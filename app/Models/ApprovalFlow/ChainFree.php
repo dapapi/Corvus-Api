@@ -14,7 +14,8 @@ class ChainFree extends Model implements ChainInterface
     protected $fillable = [
         'form_number',
         'pre_id',
-        'next_id'
+        'next_id',
+        'sort_number'
     ];
 
     public function next()

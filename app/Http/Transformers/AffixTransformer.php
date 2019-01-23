@@ -18,7 +18,7 @@ class AffixTransformer extends TransformerAbstract
             'url' => $affix->url,
             'size' => $affix->size,
             'type' => $affix->type,
-            'created_at' => $affix->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
+            'created_at' => $affix->created_at->toDateTimeString(),//时间去掉秒,,
 //            'updated_at' => $affix->updated_at->toDatetimeString(),
         ];
     }

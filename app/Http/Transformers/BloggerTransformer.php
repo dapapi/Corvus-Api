@@ -85,9 +85,9 @@ class BloggerTransformer extends TransformerAbstract
             'weibo_fans_num'=> $blogger->weibo_fans_num,//微博粉丝数
             'xiaohongshu_url'=> $blogger->xiaohongshu_url,//微博url
             'xiaohongshu_fans_num'=> $blogger->xiaohongshu_fans_num,//微博粉丝数
-            'created_at'=> $blogger->created_at->toDateTimeString(),
+            'created_at'=> $blogger->created_at->formatLocalized('%Y-%m-%d %H:%I'),
             'last_updated_user' => $blogger->last_updated_user,
-            'updated_at' => $blogger->updated_at->toDateTimeString()
+            'updated_at' => $blogger->updated_at->formatLocalized('%Y-%m-%d %H:%I')
         ];
 
         if(!$setprivacy1 && $blogger ->creator_id != $user->id){

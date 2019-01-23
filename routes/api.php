@@ -700,5 +700,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/datadic/add','App\Http\Controllers\DataDictionaryController@store');
 
         $api->get('data_dictionary/{pid}', 'App\Http\Controllers\DataDictionaryController@company');
+
+        //艺人项目列表
+        $api->get("/stars/{star}/project","App\Http\Controllers\ProjectController@getProjectList");
+        $api->get("/bloggers/{blogger}/project","App\Http\Controllers\ProjectController@getProjectList");
     });
 });

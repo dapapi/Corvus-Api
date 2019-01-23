@@ -589,21 +589,25 @@ class ScheduleController extends Controller
                     $operate
                 ]));
             }
-            $old_material = $old_schedule->material()->first();
-            $material = $schedule->material()->first();
-            if ($old_material->id != $material->id){
+
+            if ($old_schedule->material_id != $schedule->material_id){
+                $old_material = $old_schedule->material()->first();
+                $material = $schedule->material()->first();
+
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $schedule,
                     'title' => "会议室",
-                    'start' => $old_material->name,
-                    'end' => $material->name,
+                    'start' => $old_material == null ? null : $old_material->name,
+                    'end' => $material == null ? null : $material->name,
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 event(new OperateLogEvent([
                     $operate
                 ]));
+
             }
+
             if($old_schedule->position != $schedule->position){
                 // 操作日志
                 $operate = new OperateEntity([

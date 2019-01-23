@@ -884,10 +884,11 @@ class TrailController extends Controller
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
+            if (!is_null($payload['status']) && $request->has('status') && $payload['status'] <> '3,4')
                 $query->where('type', $payload['status']);
-            else
-                $query->wherein('type', [$payload['status']]);
+            else if($payload['status'] == '3,4'){
+                $query->whereIn('type', [$payload['status']]);
+            }
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {

@@ -15,6 +15,7 @@ use App\Http\Transformers\ProjectReturnedMoneyTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTypeTransformer;
 use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\simpleProjectTransformer;
+use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
@@ -1459,6 +1460,21 @@ class ProjectController extends Controller
         $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer(!$all));
+    }
+
+    public function getProjectList(Request $request,Star $star,Blogger $blogger)
+    {
+        if ($star){
+            $star_type = "stars";
+            $id = $star->id;
+        }else{
+            $star_type = "bloggers";
+            $id = $blogger->id;
+        }
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $projects = ProjectRepository::getSignContractProjectBySatr($id,$star_type,$pageSize);
+        return $this->response->paginator($projects,new StarProjectTransformer());
     }
 
 }

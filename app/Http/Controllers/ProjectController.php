@@ -1431,7 +1431,7 @@ class ProjectController extends Controller
 
         $all = $request->get('all', false);
 
-        $query = Blogger::query();
+        $query = Project::query();
         $conditions = $request->get('conditions');
         foreach ($conditions as $condition) {
             $field = $condition['field'];

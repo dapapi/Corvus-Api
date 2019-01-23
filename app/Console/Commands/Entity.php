@@ -3,11 +3,13 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Console\GeneratorCommand;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-class Entity extends Command
+class Entity extends GeneratorCommand
 {
     /**
      * The name and signature of the console command.
@@ -23,15 +25,7 @@ class Entity extends Command
      */
     protected $description = '创建实体';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
+
     /**
      * Get the stub file for the generator.
      *
@@ -45,8 +39,34 @@ class Entity extends Command
      *
      * @return mixed
      */
-    public function handle()
+//    public function handle()
+//    {
+//
+//        dd($this->getDefaultNamespace());
+//        $this->files->makeDirectory()
+//
+//        $this->files->put($path, $this->buildClass($name));
+//
+//        $this->info($this->type.' created successfully.');
+
+//    }
+    /**
+     * @param string $rootNamespace
+     * @return string
+     */
+    protected function getDefaultNamespace($rootNamespace) {
+        return $rootNamespace.'\Entity';
+    }
+
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass($name)
     {
+        $stub = $this->files->get($this->getStub());
         $columns = Schema::getColumnListing($this->option('table'));
         $columns_notes = DB::getDoctrineSchemaManager()->listTableDetails($this->option('table'));
         $content = "";
@@ -54,14 +74,12 @@ class Entity extends Command
             $content .= "    /**\n";
             $content .= "     *@desc ".$columns_notes->getColumn($column)->getComment()."\n";
             $content .= "     */\n";
-            $content .= '   $private '.$column."\n\n";
+            $content .= '   private $'.$column.";\n\n";
         }
-        dd($this->getStub());
-        $class_file = file_get_contents($this->getStub());
 
-        $class_file = str_replace("@content",$content,$class_file);
-        $path = __DIR__."../../Entity/";
-        Storage::disk("local")->put($path.$this->argument("name")."php",$class_file);
 
+        $class_content = str_replace("@content",$content,$stub);
+
+        return $this->replaceNamespace($class_content, $name)->replaceClass($class_content, $name);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\Contact;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Star;
@@ -823,8 +824,9 @@ class ReportFormRepository
             ->leftJoin('users as u','u.id','=','c.principal_id')
             ->leftJoin('contacts as cs','cs.client_id','=','c.id')
             ->where($arr)
+            ->where("cs.type",Contact::TYPE_KEY)
             ->groupBy('c.id')
-            ->get(['c.id','c.type','c.company','c.grade','c.keyman','u.name as principal_name',
+            ->get(['c.id','c.type','c.company','c.grade','cs.name as keyman','u.name as principal_name',
                 DB::raw('GROUP_CONCAT(cs.name) as contact_name'),
                 DB::raw('GROUP_CONCAT(cs.phone) as contact_phone')
                 ]);

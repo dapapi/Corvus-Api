@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class Entity extends Command
 {
@@ -11,7 +13,7 @@ class Entity extends Command
      *
      * @var string
      */
-    protected $signature = 'make:entity';
+    protected $signature = 'make:entity {name} {--table=}';
 
     /**
      * The console command description.
@@ -29,7 +31,14 @@ class Entity extends Command
     {
         parent::__construct();
     }
-
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub() {
+        return __DIR__.'/stubs/entity.stub';
+    }
     /**
      * Execute the console command.
      *
@@ -37,6 +46,18 @@ class Entity extends Command
      */
     public function handle()
     {
+        $columns = Schema::getColumnListing($this->option('table'));
+        $columns_notes = DB::getDoctrineSchemaManager()->listTableDetails($this->option('table'));
+        $content = "";
+        foreach ($columns as $column){
+            $content .= "    /**\n";
+            $content .= "     *@desc ".$columns_notes->getColumn($column)->getComment()."\n";
+            $content .= "     */\n";
+            $content .= '   $private '.$column."\n\n";
+        }
+        $class_file = file_get_contents($this->getStub());
+
+        $class_file = str_replace("@content",$content,$class_file);
 
     }
 }

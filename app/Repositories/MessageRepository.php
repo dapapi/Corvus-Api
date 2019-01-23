@@ -77,7 +77,7 @@ class MessageRepository
     //获取所有消息模块
     public function getModules()
     {
-        return DataDictionarie::select("id","val","name")->where("parent_id",206)->get()->toArray();
+        return DataDictionarie::select("id","val","name","icon")->where("parent_id",206)->get()->toArray();
     }
     //获取用户某模块最新消息
     public function getLastNewsByModule($module,$user_id)

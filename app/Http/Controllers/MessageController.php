@@ -150,7 +150,7 @@ class MessageController extends Controller
             $module['unread'] = $un_read;
             $module['laset_mesage'] = $lastMessage;
         }
-        return $modules;
+        return ["data" => $modules];
     }
 
     public function MobileGetMessage(Request $request)

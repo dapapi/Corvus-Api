@@ -22,7 +22,7 @@ class MessageRepository
         $message->subheading = $subheading;
         $message->module = $module;
         $message->link = $link;
-        $message->module_data_id    =  $module_data_id,
+        $message->module_data_id    =  $module_data_id;
         $message->save();
 
         foreach ($data as &$value){

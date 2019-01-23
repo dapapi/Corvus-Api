@@ -684,9 +684,8 @@ class BloggerController extends Controller
     public function productionStore(BloggerProductionRequest $request,ReviewQuestionnaire $reviewquestionnaire,ReviewQuestion $reviewquestion)
     {
         $payload = $request->all();
-        $blooger_id = $payload['blogger_id'];
+        $blooger_id = hashid_decode($payload['blogger_id']);
         $blogger = Blogger::withTrashed()->findOrFail($blooger_id);
-
         unset($payload['blogger_id']);
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -696,7 +695,7 @@ class BloggerController extends Controller
         try {
             $production = Production::create($payload);
             $model = new BloggerProducer;
-            $model->blogger_id =hashid_decode($blooger_id);
+            $model->blogger_id =$blooger_id;
             $model->producer_id =$production->id;
             $m = $model->save();
             if (!empty($array['creator_id'])) {

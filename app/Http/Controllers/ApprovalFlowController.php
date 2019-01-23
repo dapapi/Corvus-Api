@@ -504,7 +504,6 @@ class ApprovalFlowController extends Controller
     }
 
     /**
-     * todo 嵌套问题
      * 重复审批人出现会跳过中间审批人
      * @param $instance
      * @param $preId

@@ -629,7 +629,7 @@ class ApprovalFormController extends Controller
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $project);
-        $result->addMeta('notice', $participant);
+        $result->addMeta('notice', ['data' => $participant]);
 
         return $result;
     }
@@ -680,7 +680,7 @@ class ApprovalFormController extends Controller
         DB::beginTransaction();
         try {
             // todo 待验证   一般审批可以自定义
-            if (!$type && $chains) {
+            if ($approval->change_type == 223 && count($chains) > 0) {
                 $flow = new ApprovalFlowController();
                 $flow->storeFreeChains($chains, $num);
             }

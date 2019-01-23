@@ -61,7 +61,7 @@ class CalendarController extends Controller
             //判断艺人是否已经关联日历
             $calendars = Calendar::where('starable_type',$payload['starable_type'])->where('starable_id',$payload['starable_id'])->get()->toArray();
             if(count($calendars) >= 1){
-                return $this->response->errorInternal("艺人已经关联项目");
+                return $this->response->errorInternal("该艺人已存在关联日历");
             }
         }
         $payload['creator_id'] = $user->id;
@@ -126,12 +126,13 @@ class CalendarController extends Controller
             $payload['participant_del_ids'] = [];
         try {
             //获取未更新之前的参与人
-            $start_participants = implode(",",array_column($calendar->participants()->where('name')->get()->toArray(),'name'));
+            $start_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
             $calendar->update($payload);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
             //更新之后的参与人
-            $end_participants = implode(",",array_column($calendar->participants()->where('name')->get()->toArray(),'name'));
-            //记录日志
+            $end_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
+
+            ///记录日志
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $calendar,

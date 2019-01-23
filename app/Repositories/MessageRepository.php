@@ -40,7 +40,7 @@ class MessageRepository
             $recives_data[] = [
                 'message_id'  =>  $message->id,
                 'user_id' =>  $recive,
-                'created_at'    =>  Carbon::now(),
+                'created_at'    =>  Carbon::now()->toDateTimeString(),
                 'module_data_id'    =>  $module_data_id,
             ];
         }

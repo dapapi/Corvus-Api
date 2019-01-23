@@ -30,8 +30,8 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
            // 'reviewable_id'=> hashid_encode($reviewquestionnaire->reviewable_id),
           //  'reviewable_type'=> $reviewquestionnaire->reviewable_type,
             'auth_type'=> $reviewquestionnaire->auth_type,
-            'created_at'=> $reviewquestionnaire->created_at->toDateTimeString(),
-            'updated_at' => $reviewquestionnaire->updated_at->toDateTimeString()
+            'created_at'=> $reviewquestionnaire->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'updated_at' => $reviewquestionnaire->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒
         ];
         $arraySimple = [
             'id' => hashid_encode($reviewquestionnaire->id),

@@ -27,8 +27,8 @@ class ReviewTitleTransformer extends TransformerAbstract
            // 'title' => $bulletinreviewtitle->title,
             'status' => $bulletinreviewtitle->status,
             // 'issues' => $bulletinreviewtitle->issues,
-            'created_at' => $bulletinreviewtitle->created_at->toDatetimeString(),
-            'updated_at' => $bulletinreviewtitle->updated_at->toDatetimeString(),
+            'created_at' => $bulletinreviewtitle->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
+            'updated_at' => $bulletinreviewtitle->updated_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
 
 
         ];

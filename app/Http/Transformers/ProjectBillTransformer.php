@@ -29,7 +29,7 @@ class ProjectBillTransformer extends TransformerAbstract
                 'action_user' => $projectbill->action_user,
                 'expense_type' => $projectbill->expense_type,
                 'apply_reason' => $projectbill->apply_reason,
-                'pay_rec_time' => $projectbill->pay_rec_time,
+                'pay_rec_time' => $projectbill->pay_rec_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,,
 
 
             ];

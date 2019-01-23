@@ -16,7 +16,7 @@ class TrainingTransformer extends TransformerAbstract
             'course_name' => $training->course_name,
             'certificate' => $training->certificate,
             'address' => $training->address,
-            'trained_time' => $training->trained_time,
+            'trained_time' => $training->trained_time->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒,
 
         ];
 

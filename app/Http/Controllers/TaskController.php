@@ -308,7 +308,7 @@ class TaskController extends Controller
         } else if ($client && $client->id) {
             $query = $client->tasks();
         } else if ($star && $star->id) {
-            $query = $star->taskAll();
+            $query = $star->tasks();
         } else if ($trail && $trail->id) {
             $query = $trail->tasks();
         } else if ($blogger && $blogger->id) {

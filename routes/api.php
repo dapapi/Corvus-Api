@@ -287,6 +287,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
         $api->get('/clients/{client}/projects', 'App\Http\Controllers\ProjectController@getClientProject');
+        $api->get('/clients/{client}/contracts', 'App\Http\Controllers\ContractController@getClientContracts');
         //announcement
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
         $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');

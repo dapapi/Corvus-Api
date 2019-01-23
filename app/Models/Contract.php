@@ -32,6 +32,15 @@ class Contract extends Model
     {
         return $this->belongsTo(Project::class, 'project_id', 'id');
     }
+
+    public function stars()
+    {
+        if ($this->star_type == 'stars')
+            return $this->belongsTo(Star::class, 'project_id', 'id');
+        else
+            return $this->belongsTo(Project::class, 'project_id', 'id');
+    }
+
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');

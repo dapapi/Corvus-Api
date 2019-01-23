@@ -799,7 +799,7 @@ class ApprovalFormController extends Controller
             $send_user = [$leader->id];
             $authorization = $request->header()['authorization'][0];
 
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user,$project->id);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user, $project->id);
         } catch (Exception $e) {
             Log::error($e);
             DB::rollBack();
@@ -1000,7 +1000,8 @@ class ApprovalFormController extends Controller
         $executeInfo = ChainFixed::where('form_id', $formId)->where('condition_id', $conditionId)->orderBy('sort_number')->first();
         if (is_null($executeInfo))
             $executeInfo = ChainFree::where('form_number', $num)->orderBy('sort_number')->first();
-        else
+
+        if (is_null($executeInfo))
             throw new ApprovalVerifyException('审批流不存在');
 
         try {

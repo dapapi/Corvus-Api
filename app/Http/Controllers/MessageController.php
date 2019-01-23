@@ -176,8 +176,9 @@ class MessageController extends Controller
         $module = $request->get('module',null);
         $state = $request->get('state',null);
         $user = Auth::guard('api')->user();
+        $pageSize = $request->get('page_size', config('app.page_size'));
         //获取消息
-        $message = $this->messageReposirory->getMessageList($module,$user->id,$state);
+        $message = $this->messageReposirory->getMessageList($module,$user->id,$state)->paginate($pageSize);
         return $this->response->paginator($message,new MessageTransformer());
 
     }

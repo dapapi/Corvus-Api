@@ -97,7 +97,7 @@ class MessageRepository
             leftJoin("message_states as ms","ms.message_id","messages.id")
             ->where($arr)
             ->where("ms.user_id",$user_id)
-            ->select('messages.id','messages.link','messages.module','messages.title','ms.state',"ms.created_at")->get();
+            ->select('messages.id','messages.link','messages.module','messages.title','ms.state',"ms.created_at");
     }
 
 }

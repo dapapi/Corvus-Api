@@ -308,7 +308,7 @@ class TaskController extends Controller
         } else if ($client && $client->id) {
             $query = $client->tasks();
         } else if ($star && $star->id) {
-            $query = $star->taskAll();
+            $query = $star->tasks();
         } else if ($trail && $trail->id) {
             $query = $trail->tasks();
         } else if ($blogger && $blogger->id) {
@@ -1185,10 +1185,10 @@ class TaskController extends Controller
 
 //            $recives = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;//参与人
             $recives = array_column($task->participants()->get()->toArray(),'id');
-            $recives[] = $task->creator_id;//创建人
+//            $recives[] = $task->creator_id;//创建人
             $recives[] = $payload['principal_id'];//负责人
             $authorization = $request->header()['authorization'][0];
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
 
             DB::commit();
         }catch (Exception $e){

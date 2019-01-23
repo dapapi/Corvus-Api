@@ -833,7 +833,7 @@ class ProjectController extends Controller
             foreach($payload['participant_ids'] as &$participant_id){
                 hashid_decode($participant_id);
             }
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids,$project->id);
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
@@ -1431,7 +1431,7 @@ class ProjectController extends Controller
 
         $all = $request->get('all', false);
 
-        $query = Blogger::query();
+        $query = Project::query();
         $conditions = $request->get('conditions');
         foreach ($conditions as $condition) {
             $field = $condition['field'];
@@ -1464,14 +1464,13 @@ class ProjectController extends Controller
 
     public function getProjectList(Request $request,Star $star,Blogger $blogger)
     {
-        if ($star){
+        if ($star->id){
             $star_type = "stars";
             $id = $star->id;
         }else{
             $star_type = "bloggers";
             $id = $blogger->id;
         }
-
         $pageSize = $request->get('page_size', config('app.page_size'));
         $projects = ProjectRepository::getSignContractProjectBySatr($id,$star_type,$pageSize);
         return $this->response->paginator($projects,new StarProjectTransformer());

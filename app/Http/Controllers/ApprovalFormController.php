@@ -17,6 +17,7 @@ use App\Http\Transformers\ProjectHistoriesTransformer;
 use App\Http\Transformers\TemplateFieldHistoriesTransformer;
 use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\ApprovalFlow\ChainFixed;
+use App\Models\ApprovalFlow\ChainFree;
 use App\Models\ApprovalFlow\Change;
 use App\Models\ApprovalFlow\Condition;
 use App\Models\ApprovalFlow\Execute;
@@ -584,7 +585,6 @@ class ApprovalFormController extends Controller
         return $result;
     }
 
-    // todo 拆成两个
     private function getProject(Request $request, ProjectHistorie $project)
     {
         $payload = $request->all();
@@ -629,7 +629,7 @@ class ApprovalFormController extends Controller
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $result->addMeta('approval', $project);
-        $result->addMeta('participant', $participant);
+        $result->addMeta('notice', ['data' => $participant]);
 
         return $result;
     }
@@ -680,7 +680,7 @@ class ApprovalFormController extends Controller
         DB::beginTransaction();
         try {
             // todo 待验证   一般审批可以自定义
-            if (!$type && $chains) {
+            if ($approval->change_type == 223 && count($chains) > 0) {
                 $flow = new ApprovalFlowController();
                 $flow->storeFreeChains($chains, $num);
             }
@@ -799,7 +799,7 @@ class ApprovalFormController extends Controller
             $send_user = [$leader->id];
             $authorization = $request->header()['authorization'][0];
 
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user,$project->id);
         } catch (Exception $e) {
             Log::error($e);
             DB::rollBack();
@@ -999,6 +999,8 @@ class ApprovalFormController extends Controller
 
         $executeInfo = ChainFixed::where('form_id', $formId)->where('condition_id', $conditionId)->orderBy('sort_number')->first();
         if (is_null($executeInfo))
+            $executeInfo = ChainFree::where('form_number', $num)->orderBy('sort_number')->first();
+        else
             throw new ApprovalVerifyException('审批流不存在');
 
         try {

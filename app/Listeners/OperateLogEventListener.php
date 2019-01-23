@@ -398,6 +398,7 @@ class OperateLogEventListener
                     $content = sprintf($this->return_trail,$title);
                     break;
             }
+
             OperateLog::create([
                 'user_id' => $user->id,
                 'logable_id' => $id,

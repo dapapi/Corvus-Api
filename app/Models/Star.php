@@ -96,13 +96,9 @@ class Star extends Model
 
     public function tasks()
     {
-        return $this->morphToMany(Task::class, 'resourceable','task_resources')->where('status',TaskStatus::NORMAL)->orderBy('created_at','desc')->limit(3);
+        return $this->morphToMany(Task::class, 'resourceable','task_resources');
+    }
 
-    }
-    public function taskAll()
-    {
-        return $this->morphToMany(Task::class, 'resourceable','task_resources')->orderBy('created_at','desc');
-    }
 
     public function broker()
     {

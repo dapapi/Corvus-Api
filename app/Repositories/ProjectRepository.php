@@ -74,7 +74,7 @@ class ProjectRepository
             })
             ->where('afe.flow_type_id',232)->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
-            ->select("p.id","p.title");
+            ->select("p.id","p.title","p.created_at");
         return $query->paginate($pageSize);
 
 

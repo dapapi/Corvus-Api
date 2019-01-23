@@ -65,9 +65,10 @@ class TrailStarRepository
        $res = TrailStar::select('nickname')->join('bloggers',function ($join)use ($type) {
            $join->on('trail_star.starable_id','=','bloggers.id')
                ->where("trail_star.starable_type",'blogger');
-       })->where('trail_star.trail_id',31)->where('trail_star.type',1)
+       })->where('trail_star.trail_id',$trail_id)->where('trail_star.type',1)
            ->union($first)
            ->get()->toArray();
+
 
        return implode(",",array_column($res,'nickname'));
     }

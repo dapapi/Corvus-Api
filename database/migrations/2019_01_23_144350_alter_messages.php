@@ -15,7 +15,7 @@ class AlterMessages extends Migration
     {
         Schema::table('messages', function (Blueprint $table) {
             $table->string("module_name")->comment("模型名");
-            $table->integer("module_id")->comment("模型对应的数据id");
+            $table->integer("module_data_id")->comment("模型对应的数据id");
         });
     }
 

@@ -206,14 +206,32 @@ class ModuleUserRepository
             }
         }
         $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
+        $old_id = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('type', $type)->get(['user_id'])->toArray();
+        $new_array  =  $participantIds;
+        foreach ($new_array as $keyNew => &$new_old) {
+
+            $new_old = hashid_decode($new_old);
+            unset($new_old);
+        }
+        if($old_id){
+            foreach ($old_id as $keyOld => $val){
+                $old_id[$keyOld] = $val['user_id'];
+            }
+            $del_id = array_diff($old_id,$new_array);
+            $len =  count($del_id);
+            if($len>=1){
+                ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->whereIn('user_id',$del_id)->where('type', $type)->delete();
+            }
+
+        }
+
         foreach ($participantIds as $key => $participantId) {
-//            $old_id = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('type', $type)->get(['user_id'])->toArray();
-//
+
             try {
+
                 $participantId = hashid_decode($participantId);
                 $participantUser = User::findOrFail($participantId);
                 $array['user_id'] = $participantUser->id;
-
                 $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantUser->id)->where('type', $type)->first();
                 if (!$moduleUser) {//不存在则添加
                     ModuleUser::create($array);
@@ -223,6 +241,7 @@ class ModuleUserRepository
 //                    //要求一个接口可以完成添加人和删除人,已经存在的删除
 //                    $moduleUser->delete();
                 }
+
             } catch (Exception $e) {
                 array_splice($participantIds, $key, 1);
             }

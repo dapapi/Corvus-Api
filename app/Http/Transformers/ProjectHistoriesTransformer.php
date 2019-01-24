@@ -12,7 +12,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
     protected $availableIncludes = ['principal', 'creator', 'trail', 'participants', 'relate_tasks', 'relate_projects'];
 
     private  $isAll = true;
-
+    protected $defaultIncludes= ['trail'];
     public function __construct($isAll = true)
     {
         $this->isAll = $isAll;
@@ -29,6 +29,7 @@ class ProjectHistoriesTransformer extends TransformerAbstract
                 'type' => $project->type,
                 'privacy' => $project->privacy,
                 'priority' => $project->priority,
+                'projected_expenditure'=>$project->projected_expenditure,
                 'status' => $project->status,
                 'start_at' => $project->start_at,
                 'end_at' => $project->end_at,
@@ -79,6 +80,8 @@ class ProjectHistoriesTransformer extends TransformerAbstract
         $array['created_at']= $projectInfo[0]->created_at;
         $array['position_name']= $projectInfo[0]->position_name;
         $array['form_id']= $projectInfo[0]->form_id;
+
+
         return $array;
     }
 

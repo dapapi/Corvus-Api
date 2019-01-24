@@ -1,13 +1,12 @@
 <?php
-namespace App\Entity;
 /**
  * Created by PhpStorm.
  * User: apple
  * Date: 2019-01-23
- * Time: 15:12
+ * Time: 21:52
  */
 
-class DummyClass
+interface Annotation
 {
-    @content
+
 }

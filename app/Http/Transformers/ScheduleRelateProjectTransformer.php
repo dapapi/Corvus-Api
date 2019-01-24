@@ -17,7 +17,7 @@ class ScheduleRelateProjectTransformer extends TransformerAbstract
          }else{
         $array = [
 
-            'moduleable_id' => hashid_decode($scheduleRelate->moduleable_id),
+            'moduleable_id' => hashid_encode($scheduleRelate->moduleable_id),
             'title' => $scheduleRelate->projecttitle()
         ];
 

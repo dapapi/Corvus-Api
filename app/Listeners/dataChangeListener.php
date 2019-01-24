@@ -5,7 +5,10 @@ namespace App\Listeners;
 use App\Annotation\DescAnnotation;
 use App\Entity\TaskEntity;
 use App\Events\dataChangeEvent;
+use App\Events\OperateLogEvent;
+use App\Models\OperateEntity;
 use App\Models\Trail;
+use App\OperateLogMethod;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -29,6 +32,7 @@ class dataChangeListener
      */
     public function handle(dataChangeEvent $event)
     {
+        $arrayOperateLog = [];
         $class = new DescAnnotation(TaskEntity::class);
 //        dd($class->getProperties());
         $oldModel = $event->oldModel;
@@ -36,11 +40,18 @@ class dataChangeListener
         $oldData = $oldModel->toArray();
         $newData = $newModel->toArray();
         foreach ($oldData as $key => $value){
-            dump($key);
-            dump($class->$key->desc());
-            if ($value != $newData[$key]){
 
+            if ($value != $newData[$key]){
+                $operateStartAt = new OperateEntity([
+                    'obj' => $newModel,
+                    'title' => $class->$key->desc(),
+                    'start' => $value,
+                    'end' => $newData[$key],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateStartAt;
             }
         }
+        event(new OperateLogEvent($arrayOperateLog));
     }
 }

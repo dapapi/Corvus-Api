@@ -45,9 +45,7 @@ class DescAnnotation implements Annotation
     }
     private function getDesc($name)
     {
-        $key = array_key_exists($name,$this->proprtites);
-        dump($key,$name);
-        $desc = $this->proprtites[$key][$name]["docComment"];
+        $desc = $this->proprtites[$name]["docComment"];
         $desc = trim($desc,"@desc");
         $desc = trim($desc);
         $this->property = null;

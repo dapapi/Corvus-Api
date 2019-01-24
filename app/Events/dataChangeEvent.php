@@ -10,19 +10,20 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class MessageEvent
+class dataChangeEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
-    public $model;
+    public $oldModel;
+    public $newModel;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($model)
+    public function __construct($oldModel,$newModel)
     {
-        $this->model = $model;
+        $this->oldModel = $oldModel;
+        $this->newModel = $newModel;
     }
 
     /**

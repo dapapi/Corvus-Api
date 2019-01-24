@@ -185,6 +185,16 @@ class Trail extends Model
         $query->where("pool_type",$type);
     }
 
+    public function scopeConfirmed($query)
+    {
+        $ids = DB::table('projects')->leftJoin('approval_flow_execute', function($join) {
+            $join->on('projects.project_number', 'approval_flow_execute.form_instance_number');
+        })->where('flow_type_id', '=', 231)->pluck('trail_id')->toArray();
+        $ids = array_unique($ids);
+
+        $query->where('progress_status', self::STATUS_UNCONFIRMED)->whereNotIn('id', $ids);
+    }
+
     public function principal()
     {
         return $this->belongsTo(User::class, 'principal_id', 'id');
@@ -211,12 +221,25 @@ class Trail extends Model
         return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
 
+
+
+    public function recommendations()
+    {
+        return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
+    }
+
+
+
+    public function starExpectations()
+    {
+        return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
+    }
     public function bloggerExpectations()
     {
         return $this->morphedByMany(Blogger::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::EXPECTATION);
     }
 
-    public function recommendations()
+    public function starRecommendations()
     {
         return $this->morphedByMany(Star::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
     }
@@ -225,6 +248,10 @@ class Trail extends Model
     {
         return $this->morphedByMany(Blogger::class, 'starable', 'trail_star')->wherePivot('type', TrailStar::RECOMMENDATION);
     }
+
+
+
+
 
     public function industry()
     {

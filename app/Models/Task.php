@@ -49,12 +49,13 @@ class Task extends Model
     }
     public function scopeCreateDesc($query)
     {
+        $now = Carbon::now()->toDateTimeString();
         return $query->orderBy('created_at', 'desc');
     }
     public function scopeStopAsc($query)
     {
         $now = Carbon::now()->toDateTimeString();
-        return $query->orderBy('stop_at')->where('stop_at',$now);
+        return $query->orderBy('end_at')->where('end_at','>',$now);
     }
 
     public function pTask()

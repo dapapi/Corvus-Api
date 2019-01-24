@@ -9,6 +9,7 @@ use App\Scopes\SearchDataScope;
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -78,7 +79,7 @@ class Star extends Model
     {
         return $query->orderBy('created_at', 'desc');
     }
-    
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');

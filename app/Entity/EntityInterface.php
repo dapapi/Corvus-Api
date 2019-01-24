@@ -1,13 +1,15 @@
 <?php
-namespace App\Entity;
 /**
  * Created by PhpStorm.
  * User: apple
  * Date: 2019-01-23
- * Time: 15:12
+ * Time: 22:00
  */
 
-class DummyClass
+namespace App\Entity;
+
+
+interface EntityInterface
 {
-    @content
+
 }

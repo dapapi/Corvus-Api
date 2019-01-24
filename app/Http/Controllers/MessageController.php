@@ -38,18 +38,17 @@ class MessageController extends Controller
         }
         $user = Auth::guard('api')->user();
         $arr[] = ['ms.user_id',$user->id];
-        DB::connection()->enableQueryLog();
         $result = (new Message())->setTable("m")->from('messages as m')
             ->leftJoin('message_states as ms','ms.message_id','m.id')
             ->leftJoin('message_datas as md','md.message_id','ms.message_id')
             ->orderBy('m.created_at','desc')
             ->select(
-                'm.id','m.module','m.title as message_title','m.link','m.created_at','m.subheading',
+                'm.id','m.module_data_id','m.module','m.title as message_title','m.link','m.created_at','m.subheading',
                 'ms.user_id','md.title','md.value','ms.state'
                 )
             ->where($arr)
             ->get();
-        $sql = DB::getQueryLog();
+
         $list = [];
         $no_read = 0;//未读消息数量
         foreach ($result->toArray() as $value){
@@ -68,6 +67,7 @@ class MessageController extends Controller
                     'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                     'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                     'module'   =>   $value['module'],
+                    'module_data_id'    =>  $value['module_data_id'],
                     'state' =>  $value['state'],
                     'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
                 ];
@@ -86,6 +86,7 @@ class MessageController extends Controller
                         'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                         'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                         'module'   =>   $value['module'],
+                        'module_data_id'    =>  $value['module_data_id'],
                         'state' =>  $value['state'],
                         'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
                     ];
@@ -152,7 +153,7 @@ class MessageController extends Controller
         $modules = $messageRepository->getModules();
         foreach ($modules as &$module){
             //获取某块对应的用户未读消息
-            $un_read = $messageRepository->getUnMessageNum($user->id,$module['id']);
+            $un_read = $messageRepository->getUnMessageNum($user->id,$module['id'],Message::UN_READ);
             //获取模块对应的用户最新消息
             $lastMessage = $messageRepository->getLastNewsByModule($module['id'],$user->id);
             $module['unread'] = $un_read;

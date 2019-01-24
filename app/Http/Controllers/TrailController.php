@@ -66,7 +66,7 @@ class TrailController extends Controller
     {
         $type = $request->get('type', '1,2,3,4,5');
         $typeArr = explode(',', $type);
-        $clients = Trail::whereIn('type', $typeArr)->orderBy('created_at', 'desc')
+        $clients = Trail::confirmed()->whereIn('type', $typeArr)->orderBy('created_at', 'desc')
             ->searchData()->poolType()
             ->get();
         return $this->response->collection($clients, new TrailTransformer());
@@ -969,7 +969,7 @@ class TrailController extends Controller
  //       $result = $query->pluck('ids')->toArray();
 
 //        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
-        $trails = $query->orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = $query->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }

@@ -28,6 +28,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
 use App\OperateLogMethod;
+use App\Repositories\MessageRepository;
 use App\Repositories\ScopeRepository;
 use App\User;
 use Illuminate\Http\Request;
@@ -188,6 +189,36 @@ class SeasPoolController extends Controller
             return $this->response->errorInternal('分配失败');
         }
         DB::commit();
+
+        //分配销售线索发消息
+        DB::beginTransaction();
+        try {
+
+            $user = Auth::guard('api')->user();
+            $title = $user->name . "将销售线索".$trail->title;  //通知消息的标题
+            $subheading = $user->name . "邀请你参与任务";
+            $module = Message::TRAILS;
+            $data = [];
+            $data[] = [
+                "title" => '线索名称', //通知消息中的消息内容标题
+                'value' => $trail->title,  //通知消息内容对应的值
+            ];
+            $principal = User::findOrFail($trail->principal_id);
+            $data[] = [
+                'title' => '负责人',
+                'value' => $principal->name
+            ];
+
+            $recives[] = $trail->principal_id;//负责人
+            $authorization = $request->header()['authorization'][0];
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, null, $data, $recives,$trail->id);
+
+            DB::commit();
+        }catch (Exception $e){
+            DB::rollBack();
+            Log::error($e);
+        }
+
     }
 
     public function refund(Request $request, Trail $trail)

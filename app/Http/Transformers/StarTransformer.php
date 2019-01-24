@@ -4,6 +4,7 @@ namespace App\Http\Transformers;
 
 use App\Models\Star;
 use App\ModuleableType;
+use App\TaskStatus;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -98,7 +99,9 @@ class StarTransformer extends TransformerAbstract
 
     public function includeTasks(Star $star)
     {
-        $tasks = $star->tasks()->createDesc()->get();
+        $tasks = $star->tasks()->stopAsc()
+            ->where('status',TaskStatus::NORMAL)
+            ->limit(3)->get();
         return $this->collection($tasks, new TaskTransformer());
     }
 

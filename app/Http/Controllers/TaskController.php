@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\AffixType;
+use App\Events\dataChangeEvent;
 use App\Events\OperateLogEvent;
 use App\Models\Message;
 use App\Http\Requests\Task\AddRelateTaskRequest;
@@ -425,9 +426,10 @@ class TaskController extends Controller
             $recives[] = $task->creator_id;//创建人
             $recives[] = $task->principal_id;//负责人
             $authorization = $request->header()['authorization'][0];
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
         }catch (Exception $e){
-
+            DB::rollBack();
+            Log::error($e);
         }
         DB::commit();
         return $this->response->accepted();
@@ -795,6 +797,7 @@ class TaskController extends Controller
     public function edit(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
+        $oldTask = clone $task;
         $user = Auth::guard('api')->user();
 
         $array = [];
@@ -956,7 +959,7 @@ class TaskController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
-
+//        event(new dataChangeEvent($oldTask,$task));
         return $this->response->accepted();
     }
 
@@ -1183,9 +1186,7 @@ class TaskController extends Controller
                 'value' => $principal->name
             ];
 
-//            $recives = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;//参与人
             $recives = array_column($task->participants()->get()->toArray(),'id');
-//            $recives[] = $task->creator_id;//创建人
             $recives[] = $payload['principal_id'];//负责人
             $authorization = $request->header()['authorization'][0];
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);

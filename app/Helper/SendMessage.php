@@ -37,7 +37,7 @@ class SendMessage{
         $message->to = implode(",",$recives);
         $message->link = $link;
         $message->message = $data;
-        if($recives != null){
+        if($recives !== null){
             $message->action = "sendmessage";
         }else{
             $message->action = "broadcast";

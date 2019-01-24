@@ -27,6 +27,9 @@ class Message extends Model
     const ANNOUNCENMENT = 218;
     const REPORT = 219;
     const PERSONNELMANAGE = 220;
+
+    const HAS_READ = 2;//已读
+    const UN_READ = 1;//未读
     public function data()
     {
         return $this->hasMany(MessageData::class,"message_id",'id');

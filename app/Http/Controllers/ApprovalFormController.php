@@ -621,19 +621,23 @@ class ApprovalFormController extends Controller
             ->where('tfvh.project_id', $project->id)->get()->toArray();
         $data = json_decode(json_encode($projectInfo), true);
 
-        $arr = array();
-        foreach ($data as $value){
-            $arr['data']['key'][] = $value['key'];
-            $arr['data']['values'][] = $value['value'];
-            $info = array_combine($arr['data']['key'],$arr['data']['values']);
-        }
+        if($data){
+            $arr = array();
+            foreach ($data as $value){
+                $arr['data']['key'][] = $value['key'];
+                $arr['data']['values'][] = $value['value'];
+                $info = array_combine($arr['data']['key'],$arr['data']['values']);
+            }
 
-        $strArr = array();
-        foreach ($info as $key => $value) {
-            $tmp = array();
-            $tmp['data']['key'] = $key;
-            $tmp['values']['data']['value'] = $value;
-            $strArr[] = $tmp;
+            $strArr = array();
+            foreach ($info as $key => $value) {
+                $tmp = array();
+                $tmp['key'] = $key;
+                $tmp['values']['data']['value'] = $value;
+                $strArr[] = $tmp;
+            }
+        }else{
+            $strArr = array();
         }
 
         $projectArr = DB::table('project_histories as ph')
@@ -699,8 +703,8 @@ class ApprovalFormController extends Controller
                 $join->on('departments.id', '=', 'department_user.department_id');
             })->select('users.name', 'departments.name as department_name', 'projects.project_number as form_instance_number', 'bu.form_status', 'projects.created_at', 'position.name as position')
             ->where('projects.project_number', $project->project_number)->get();
-
-        $result->addMeta('fields', $strArr);
+        $resArr['data'] = $strArr;
+        $result->addMeta('fields', $resArr);
         $result->addMeta('approval', $project);
         $result->addMeta('notice', ['data' => $participant]);
 

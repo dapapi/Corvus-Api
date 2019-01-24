@@ -7,7 +7,7 @@ namespace App\Entity;
  * Time: 15:12
  */
 
-class PersonalDetailEntity
+class PersonalDetailEntity implements EntityInterface
 {
     /**
      *@desc 主键

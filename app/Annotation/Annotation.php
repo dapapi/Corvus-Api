@@ -1,4 +1,7 @@
 <?php
+namespace App\Annotation;
+use App\Entity\EntityInterface;
+
 /**
  * Created by PhpStorm.
  * User: apple
@@ -8,5 +11,5 @@
 
 interface Annotation
 {
-
+    public function parse($docComment);
 }

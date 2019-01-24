@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 class TrailTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations',
-        'expectations', 'project','starexceptions','bloggerexceptions','starrecommendations','bloggerrecommendations'];
+        'expectations', 'project','starexpectations','bloggerexpectations','starrecommendations','bloggerrecommendations'];
    // protected $defaultIncludes= ['stars'];
     private $isAll = true;
     private $setprivacy = true;
@@ -214,17 +214,17 @@ class TrailTransformer extends TransformerAbstract
         return $this->item($project, new ProjectTransformer());
     }
 
-    public function includeStarexceptions(Trail $trail)
+    public function includeStarExpectations(Trail $trail)
     {
-        return $this->collection($trail->expectations, new StarTransformer(false));
+        return $this->collection($trail->starExpectations, new StarTransformer(false));
     }
-    public function includeBloggerexceptions(Trail $trail)
+    public function includeBloggerExpectations(Trail $trail)
     {
         return $this->collection($trail->bloggerExpectations, new BloggerTransformer(false));
     }
     public function includeStarrecommendations(Trail $trail)
     {
-        return $this->collection($trail->recommendations,new StarTransformer(false));
+        return $this->collection($trail->starRecommendations,new StarTransformer(false));
     }
     public function includeBloggerrecommendations(Trail $trail)
     {

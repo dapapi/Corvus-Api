@@ -621,21 +621,25 @@ class ApprovalFormController extends Controller
             ->where('tfvh.project_id', $project->id)->get()->toArray();
         $data = json_decode(json_encode($projectInfo), true);
 
-        $arr = array();
-        foreach ($data as $value){
-            $arr['data']['key'][] = $value['key'];
-            $arr['data']['values'][] = $value['value'];
-            $info = array_combine($arr['data']['key'],$arr['data']['values']);
-        }
+        if($data){
+            $arr = array();
+            foreach ($data as $value){
+                $arr['data']['key'][] = $value['key'];
+                $arr['data']['values'][] = $value['value'];
+                $info = array_combine($arr['data']['key'],$arr['data']['values']);
+            }
 
-        $strArr = array();
-        foreach ($info as $key => $value) {
-            $tmp = array();
-            $tmp['data']['key'] = $key;
-            $tmp['values']['data']['value'] = $value;
-            $strArr[] = $tmp;
+            $strArr = array();
+            foreach ($info as $key => $value) {
+                $tmp = array();
+                $tmp['key'] = $key;
+                $tmp['values']['data']['value'] = $value;
+                $strArr[] = $tmp;
+            }
+        }else{
+            $strArr = array();
         }
-
+       
         $projectArr = DB::table('project_histories as ph')
             ->join('trails', function ($join) {
                 $join->on('ph.trail_id', '=', 'trails.id');

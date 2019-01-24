@@ -687,6 +687,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
         $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
 
+        //任务转私密
+        $api->post('/task/secret/{task}', 'App\Http\Controllers\TaskController@secret');
 
         //获取消息
         $api->get('/getmsg','App\Http\Controllers\MessageController@index');

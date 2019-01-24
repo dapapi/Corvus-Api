@@ -1261,4 +1261,25 @@ class TaskController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
+
+    public function secret(Request $request,Task $task)
+    {
+
+        $payload = $request->all();
+        $privacy = isset($payload['privacy']) ? $payload['privacy'] : 0;
+        DB::beginTransaction();
+        try {
+            //修改任务私密状态
+            $array = [
+                'privacy' => $privacy
+            ];
+
+            $task->update($array);
+
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
+    }
 }

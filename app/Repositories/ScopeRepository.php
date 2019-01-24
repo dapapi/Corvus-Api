@@ -113,6 +113,7 @@ class ScopeRepository
         }else{
             return null;
         }
+
         if($arr === true){
             return $arrayUserid;
         }
@@ -252,7 +253,6 @@ class ScopeRepository
             $model_id = $resource->parent_id;
             //2.检查功能权限
             $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource->id)->get()->toArray();
-//            dd($featureInfo);
             if(count($featureInfo) == 0){//如果为空则表示没有权限
                 if($method == "GET"){
                     return [];
@@ -308,9 +308,7 @@ class ScopeRepository
     }
     private function checkDataViewPower($model)
     {
-
         $model = $model->searchData()->find($model->id);
-
         if($model == null){
             return false;
         }

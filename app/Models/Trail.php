@@ -79,6 +79,10 @@ class Trail extends Model
         'priority',
         'cooperation_type',
         'lock_status',
+        // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+        'lock_user',
+        'lock_at',
+        // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
         'progress_status',
         'resource',
         'resource_type',

@@ -48,6 +48,11 @@ class TrailTransformer extends TransformerAbstract
                     'cooperation_type' => $trail->cooperation_type,
                     'desc' => $trail->desc,
                     'lock_status' => $trail->lock_status,
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+                    'lock_user' => $trail->lock_user,
+                    'lock_at' => $trail->lock_at,
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+
                     'pool_type'=>$trail->pool_type,
                     'take_type'=>$trail->take_type,
                     // 日志内容
@@ -75,6 +80,10 @@ class TrailTransformer extends TransformerAbstract
                     'cooperation_type' => $trail->cooperation_type,
                     'desc' => $trail->desc,
                     'lock_status' => $trail->lock_status,
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+                    'lock_user' => $trail->lock_user,
+                    'lock_at' => $trail->lock_at,
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
                     'pool_type'=>$trail->pool_type,
                     'take_type'=>$trail->take_type,
 

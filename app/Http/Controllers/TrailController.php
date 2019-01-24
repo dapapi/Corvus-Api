@@ -240,8 +240,21 @@ class TrailController extends Controller
         if($trail->lock_status == 1){
             DB::beginTransaction();
             try {
-
                 $user = Auth::guard('api')->user();
+
+
+                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间2个字段
+                $lock_user = $user->id;
+                $lock_at = now()->toDateTimeString();
+                $trail_id =$trail->id;
+                $data = array();
+                $data['lock_user'] = $lock_user;
+                $data['lock_at'] = $lock_at;
+                Trail::where('id',$trail_id)->update($data);
+                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+
+
+
                 $title = $trail->title." 锁价金额为".$payload['fee'].'元';  //通知消息的标题
                 $subheading = $trail->title." 锁价金额为".$payload['fee'].'元';
                 $module = Message::PROJECT;
@@ -274,6 +287,7 @@ class TrailController extends Controller
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
+        $user = Auth::guard('api')->user();
         if($request->has('title') && !is_null($payload['title'])){//销售线索名称
             $array['title'] = $payload['title'];
             if($payload['title'] != $trail->title){
@@ -497,6 +511,18 @@ class TrailController extends Controller
 
                 $array['lock_status'] = $payload['lock'];
                 if($trail->lock_status != $array['lock_status']){
+
+
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间2个字段
+                    $lock_user = $user->id;
+                    $lock_at = now()->toDateTimeString();
+                    $trail_id =$trail->id;
+                    $data = array();
+                    $data['lock_user'] = $lock_user;
+                    $data['lock_at'] = $lock_at;
+                    Trail::where('id',$trail_id)->update($data);
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+
                     $operateName = new OperateEntity([
                         'obj' => $trail,
                         'title' => '锁价',
@@ -728,7 +754,7 @@ class TrailController extends Controller
         if($trail->lock_status == 1){
             DB::beginTransaction();
             try {
-                $user = Auth::guard('api')->user();
+
                 $title = $trail->title." 锁价金额为".$trail->fee.'元';  //通知消息的标题
                 $subheading = $trail->title." 锁价金额为".$trail->fee.'元';
                 $module = Message::PROJECT;

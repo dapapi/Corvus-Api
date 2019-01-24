@@ -36,9 +36,23 @@ class BloggersImport implements ToCollection, WithBatchInserts, WithChunkReading
         $user = Auth::guard('api')->user();
 
         try {
+            foreach ($rows as $key => $row){
+                foreach ($rows as $key1 => $row2){
+
+                    if($key <> $key1){
+                        if($row[1] == $row2[1]){
+                            throw new Exception('excel中有重复数据，请处理后再进行上传');
+                        }
+                    }
+                }
+            }
             foreach ($rows as $key => $row) {
                 if ($key == 0)
                     continue ;
+                $title = Blogger::where('nickname',$row[0])->get();
+                if($title){
+                    throw new Exception('系统中已存在销售线索数据，请处理后再进行上传');
+                }
                Blogger::create([
                     'nickname' => $row[0],
                     'platform' => $this->plat($row[1]),

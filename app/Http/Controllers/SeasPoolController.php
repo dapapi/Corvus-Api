@@ -3,40 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
-use App\Exports\TrailsExport;
-use App\Http\Requests\Filter\TrailFilterRequest;
-use App\Http\Requests\Trail\EditTrailRequest;
-use App\Http\Requests\Trail\FilterTrailRequest;
-use App\Http\Requests\Trail\RefuseTrailReuqest;
-use App\Http\Requests\Trail\SearchTrailRequest;
-use App\Http\Requests\Trail\StoreTrailRequest;
-use App\Http\Requests\Trail\TypeTrailReuqest;
+use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Transformers\TrailTransformer;
-use App\Models\Blogger;
-use App\Models\DataDictionarie;
-use App\Models\DataDictionary;
 use App\Models\Department;
-use App\Models\DepartmentUser;
-use App\Models\FilterJoin;
-use App\Models\Industry;
 use App\Models\Message;
 use App\Models\OperateEntity;
-use App\Models\Star;
-use App\Models\Client;
-use App\Models\Contact;
 use App\Models\Trail;
-use App\Models\TrailStar;
-use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
-use App\Repositories\ScopeRepository;
 use App\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\URL;
-use Maatwebsite\Excel\Excel;
 
 class SeasPoolController extends Controller
 {
@@ -263,6 +243,59 @@ class SeasPoolController extends Controller
             return $this->response->errorInternal('销售线索退回失败');
         }
         DB::commit();
+    }
+
+    /**
+     *  todo
+     *  1. 定返回格式
+     *  2. 根据返回拼sql
+     *  3. sql返回带分页带eloquent模型
+     * @param $request
+     */
+    public function getFilter(FilterRequest $request)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $user = Auth::guard('api')->user();
+//        $company = $user->company->name;
+
+//        $joinSql = FilterJoin::where('company', $company)->where('table_name', 'trails')->first()->join_sql;
+
+//        $query = DB::table('trails')->selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
+
+        $query = Trail::query();
+        $conditions = $request->get('conditions');
+        foreach ($conditions as $condition) {
+            $field = $condition['field'];
+            $operator = $condition['operator'];
+            $type = $condition['type'];
+            if ($operator == 'LIKE') {
+                $value = '%' . $condition['value'] . '%';
+                $query->whereRaw("$field $operator ?", [$value]);
+            } else if ($operator == 'in') {
+                $value = $condition['value'];
+                if ($type >= 5)
+                    foreach ($value as &$v) {
+                        $v = hashid_decode($v);
+                    }
+                unset($v);
+                $query->whereIn($field, $value);
+            } else {
+                $value = $condition['value'];
+                $query->whereRaw("$field $operator ?", [$value]);
+            }
+
+        }
+
+        // 这句用来检查绑定的参数
+        //       $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
+//        dd($sql_with_bindings);
+        //       $result = $query->pluck('ids')->toArray();
+
+//        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = $query->whereNotNull('take_type')->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 //allocation
 

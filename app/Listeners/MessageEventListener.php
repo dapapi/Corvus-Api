@@ -25,7 +25,7 @@ class MessageEventListener
     {
         //
     }
-    private $send_message_to_principal = '{"title":"任务名称","value":"%s","title":"负责人","value":"%s"}';
+    private $send_message_to_principal = '[{"title":"任务名称","value":"%s"},{"title":"负责人","value":"%s"}]';
 
     /**
      * Handle the event.
@@ -70,8 +70,8 @@ class MessageEventListener
 
             $user = Auth::guard('api')->user();
 
-            $title = $user->name . $title;  //通知消息的标题
-            $subheading = $user->name . $message;
+            $title = $user."分配给你了任务";  //通知消息的标题
+            $subheading = $user->name . $title;
 
 
             $data = json_decode($message,true);

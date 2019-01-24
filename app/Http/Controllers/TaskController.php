@@ -427,11 +427,12 @@ class TaskController extends Controller
             $recives[] = $task->principal_id;//负责人
             $authorization = $request->header()['authorization'][0];
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
+            DB::commit();
         }catch (Exception $e){
             DB::rollBack();
             Log::error($e);
         }
-        DB::commit();
+
         return $this->response->accepted();
     }
 

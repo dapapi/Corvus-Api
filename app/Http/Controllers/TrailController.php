@@ -236,6 +236,7 @@ class TrailController extends Controller
         }
 
         DB::commit();
+        event();
         //发消息
         if($trail->lock_status == 1){
             DB::beginTransaction();
@@ -427,8 +428,8 @@ class TrailController extends Controller
                 $operateName = new OperateEntity([
                     'obj' => $trail,
                     'title' => '优先级',
-                    'start' => $trail->priority,
-                    'end' => $payload['priority'],
+                    'start' => $trail->getPriority($trail->priority),
+                    'end' => $trail->getPriority($payload['priority']),
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 $arrayOperateLog[] = $operateName;

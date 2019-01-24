@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\Types\Self_;
 
 class Task extends Model
 {
@@ -35,6 +36,8 @@ class Task extends Model
         'stop_at',
         'deleted_at',
     ];
+    const PRIVACY = 1;//私密
+    const OPEN = 0;//公开
     public function scopeSearchData($query)
     {
         $user = Auth::guard("api")->user();
@@ -45,7 +48,11 @@ class Task extends Model
             left join module_users as mu on mu.moduleable_id = t.id and 
             mu.moduleable_type='".ModuleableType::TASK.
             "' left join users as u on u.id = mu.user_id where t.id = tasks.id
-        )");
+        )")->where("privacy",self::OPEN)->orWhere(function ($query)use ($user){
+            $query->where("privacy",Self::PRIVACY)->where(function ($query) use ($user){
+                $query->where('tasks.creator',$user->id)->orWhere('tasks.principal_id',$user->id);
+            });
+        });
     }
     public function scopeCreateDesc($query)
     {

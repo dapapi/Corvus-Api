@@ -267,4 +267,24 @@ class Trail extends Model
     {
         return $this->hasOne(Project::class, 'trail_id','id');
     }
+
+    public function getPriority($priority)
+    {
+        $res = null;
+        switch ($priority){
+            case 1:
+                $res = "C";
+                break;
+            case 2:
+                $res = "B";
+                break;
+            case 3:
+                $res = "A";
+                break;
+            case 4:
+                $res = "S";
+                break;
+        }
+        return $res;
+    }
 }

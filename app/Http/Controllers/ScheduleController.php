@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AffixType;
 use App\Events\OperateLogEvent;
+use App\Helper\Message;
 use App\Http\Requests\Schedule\EditScheduleRequest;
 use App\Http\Requests\Schedule\IndexScheduleRequest;
 use App\Http\Requests\Schedule\StoreScheduleRequest;
@@ -11,12 +12,14 @@ use App\Http\Requests\Schedule\StoreScheduleTaskRequest;
 use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
 use App\Http\Transformers\ScheduleRelateTransformer;
+use App\Models\Blogger;
 use App\Models\Calendar;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\ScheduleRelate;
 use App\Models\Material;
 use App\Models\Module;
+use App\Models\Star;
 use App\Models\Task;
 use App\Models\ProjectResource;
 use App\Models\Schedule;
@@ -467,6 +470,28 @@ class ScheduleController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
+            //获取日历对象的艺人
+            $star_calendar = Calendar::where('id',$schedule->calendar_id)->select('starable_id','type')->first();
+            if($star_calendar){
+                $module = null;
+                if ($star_calendar->type == ModuleableType::BLOGGER){
+                    $module = Blogger::findOrFail($star_calendar->starable_id);
+                }else{
+                    $module = Star::findOrFail($star_calendar->starable_id);
+                }
+                if ($module){
+                    $operate = new OperateEntity([
+                        'obj' => $module,
+                        'title' => $schedule->title,
+                        'start' => null,
+                        'end' => null,
+                        'method' => OperateLogMethod::CREATE_STAR_SCHEDULE,
+                    ]);
+                    event(new OperateLogEvent([
+                        $operate
+                    ]));
+                }
+            }
 
         } catch (\Exception $exception) {
             Log::error($exception);

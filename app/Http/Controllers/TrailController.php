@@ -353,7 +353,7 @@ class TrailController extends Controller
             if($payload['principal_id'] != $trail->principal_id){
                 try{
                     $curr_principal = User::find($trail->principal_id);
-                    $principal = User::findOrFail($payload['principal_id']);
+                    $principal = User::findOrFail($array['principal_id']);
                     $operateName = new OperateEntity([
                         'obj' => $trail,
                         'title' => '负责人',
@@ -363,6 +363,7 @@ class TrailController extends Controller
                     ]);
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
+                    Log::error($e);
                     return $this->response->errorBadRequest("负责人错误");
                 }
 

@@ -828,12 +828,11 @@ class ProjectController extends Controller
                 'title' => '项目负责人',
                 'value' => $principal->name
             ];
-            $participant_ids = array_column($project->participants()->where('user_id')->get()->toArray(),'user_id');
+            $participant_ids = array_column($project->participants()->select('user_id')->get()->toArray(),'user_id');
             $authorization = $request->header()['authorization'][0];
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids,$project->id);
             DB::commit();
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
         }

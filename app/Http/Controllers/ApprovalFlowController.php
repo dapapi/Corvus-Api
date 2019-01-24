@@ -584,13 +584,13 @@ class ApprovalFlowController extends Controller
                 $arr = [$chain->next_id, 245];
             } else if ($form->change_type == 222) {
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, $chain->approval_type];
+                $arr = [$chain->next_id, $chain->approver_type];
             } else if ($form->change_type == 224) {
                 $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
                 $value = $this->getValuesForCondition($formControlIds, $num);
                 $conditionId = $this->getCondition($instance->form_id, $value);
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, $chain->approval_type];
+                $arr = [$chain->next_id, $chain->approver_type];
             }
         }
 

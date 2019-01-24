@@ -55,7 +55,7 @@ class Task extends Model
     public function scopeStopAsc($query)
     {
         $now = Carbon::now()->toDateTimeString();
-        return $query->orderBy('stop_at')->where('end_at','>',$now);
+        return $query->orderBy('end_at')->where('end_at','>',$now);
     }
 
     public function pTask()

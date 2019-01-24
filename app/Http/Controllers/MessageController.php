@@ -44,7 +44,7 @@ class MessageController extends Controller
             ->leftJoin('message_datas as md','md.message_id','ms.message_id')
             ->orderBy('m.created_at','desc')
             ->select(
-                'm.id','m.module','m.title as message_title','m.link','m.created_at','m.subheading',
+                'm.id','m.module_data_id','m.module','m.title as message_title','m.link','m.created_at','m.subheading',
                 'ms.user_id','md.title','md.value','ms.state'
                 )
             ->where($arr)
@@ -68,6 +68,7 @@ class MessageController extends Controller
                     'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                     'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                     'module'   =>   $value['module'],
+                    'module_data_id'    =>  $value['module_data_id'],
                     'state' =>  $value['state'],
                     'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
                 ];
@@ -86,6 +87,7 @@ class MessageController extends Controller
                         'created' => Carbon::parse($value['created_at'])->format('Y-m-d'),
                         'dayofweek' => Carbon::parse($value['created_at'])->dayOfWeek,
                         'module'   =>   $value['module'],
+                        'module_data_id'    =>  $value['module_data_id'],
                         'state' =>  $value['state'],
                         'body'=>[['title'=>$value['title'],'value'=>$value['value']]],
                     ];

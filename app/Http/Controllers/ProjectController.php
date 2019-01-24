@@ -1035,6 +1035,11 @@ class ProjectController extends Controller
             case Project::STATUS_FROZEN:
                 $project->stop_at = now();
                 $project->status = $status;
+                $trail = $project->trail;
+                if ($trail)
+                    $trail->update([
+                        'progress_status' => Trail::STATUS_UNCONFIRMED
+                    ]);
                 //日志
                 $operate = new OperateEntity([
                     'obj' => $project,
@@ -1051,6 +1056,11 @@ class ProjectController extends Controller
                 $project->stop_at = null;
                 $project->complete_at = null;
                 $project->status = $status;
+                $trail = $project->trail;
+                if ($trail)
+                    $trail->update([
+                        'progress_status' => Trail::STATUS_CONFIRMED
+                    ]);
                 break;
             default:
                 break;

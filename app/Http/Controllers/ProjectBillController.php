@@ -9,6 +9,7 @@ use App\Models\Blogger;
 use App\Models\Project;
 use App\Models\ProjectBill;
 use App\Models\ProjectBillsResource;
+use App\Models\ProjectBillsResourceUser;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\Events\OperateLogEvent;
@@ -23,6 +24,7 @@ class ProjectBillController extends Controller
     public function index(Request $request,Blogger $Blogger,Star $star,Project $project)
     {
         $payload = $request->all();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
         if($request->has('expense_type')){
             if($payload['expense_type']==1){
@@ -39,8 +41,25 @@ class ProjectBillController extends Controller
             $array['action_user'] = $Blogger->nickname;
 
         } else if ($project && $project->id) {
+            $approval  = (new ApprovalContractController())->projectList($request,$project);
+            $dataOne = array();
+            foreach($approval['data'] as $key => $value)
+            {
+                foreach ($value['stars_name'] as $key1 =>$value1){
+
+                 //   $data[$key][$key1]  = $value1->name;
+                    $dataOne[] = $value1->name;
+                //    $dataOne = array_unique($dataOne);
+                }
+
+              //  $dataOne[] = implode('/',$data[$key]);
+
+
+            }
             $array['project_kd_name'] = $project->title;
-            $projectbillresource = ProjectBillsResource::where(['resourceable_id'=>$project->id,'resourceable_title'=>$project->title])->first(['expenses','papi_divide','bigger_divide','my_divide']);
+            $projectbillresource = ProjectBillsResource::where(['resourceable_id'=>$project->id,'resourceable_title'=>$project->title])->first(['id','expenses','papi_divide','bigger_divide','my_divide']);
+            $divide = ProjectBillsResourceUser::where(['moduleable_id'=>$projectbillresource->id])->get(['money','moduleable_title'])->toArray();
+
         } else if ($star && $star->id) {
             $array['artist_name'] = $star->name;
           }
@@ -70,17 +89,19 @@ class ProjectBillController extends Controller
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
         if(isset($expendituresum)||isset($incomesum)){
-
+            $result->addMeta('appoval', $approval);
             $result->addMeta('expendituresum', $expendituresum->expendituresum);
-
+            $result->addMeta('datatitle', $dataOne);
             if(isset($incomesum)){
                 $result->addMeta('incomesum', $incomesum->incomesum);
             }
 
             if(isset($projectbillresource)) {
+
                 $result->addMeta('expenses', $projectbillresource->expenses);
-                $result->addMeta('papi_divide', $projectbillresource->papi_divide);
-                $result->addMeta('bigger_divide', $projectbillresource->bigger_divide);
+                $result->addMeta('divide', $divide);
+//                $result->addMeta('papi_divide', $projectbillresource->papi_divide);
+//                $result->addMeta('bigger_divide', $projectbillresource->bigger_divide);
                 $result->addMeta('my_divide', $projectbillresource->my_divide);
             }
             return $result;
@@ -123,6 +144,16 @@ class ProjectBillController extends Controller
 
 
                 $bill =  ProjectBillsResource::create($array);
+                if($request->has(['star'])){
+                    foreach ($payload['star'] as$key => $value){
+                    $date = array();
+                    $date['moduleable_id'] = $bill->id;
+                    $date['money'] = $payload['star'][$key]['money'];
+                    $date['moduleable_title'] =$payload['star'][$key]['title'];
+                    $billUser = ProjectBillsResourceUser::create($date);
+                }
+                }
+
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $bill,
@@ -139,7 +170,7 @@ class ProjectBillController extends Controller
                 Log::error($e);
                 return $this->response->errorInternal('创建失败');
             }
-        DB::commit();
+             DB::commit();
 
 
 

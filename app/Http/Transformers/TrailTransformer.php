@@ -66,6 +66,7 @@ class TrailTransformer extends TransformerAbstract
                     'industry_id' => hashid_encode($trail->industry->id),
                     'industry' => $trail->industry->name,
                     'resource_type' => $trail->resource_type,
+                    'resource' => $trail->resource,
                     'type' => $trail->type,
                     'priority' => $trail->priority,
                     'status' => $trail->status,
@@ -99,19 +100,6 @@ class TrailTransformer extends TransformerAbstract
 //                }
 //              }
 //            }
-            if (is_numeric($trail->resource)) {
-                $resource = User::where('id', $trail->resource)->first();
-                if ($resource) {
-                    $array['resource'] = [
-                        'id' => hashid_encode($resource->id),
-                        'name' => $resource->name,
-                    ];
-                } else {
-                    $array['resource'] = $trail->resource;
-                }
-            } else {
-                $array['resource'] = $trail->resource;
-            }
         } else {
             $array = [
                 'id' => hashid_encode($trail->id),

@@ -3,11 +3,12 @@
 namespace App\Http\Transformers;
 
 use App\Models\Client;
+use App\TaskStatus;
 use League\Fractal\TransformerAbstract;
 
 class ClientTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator'];
+    protected $availableIncludes = ['principal', 'creator', 'tasks'];
 
     private  $isAll = true;
 
@@ -69,5 +70,13 @@ class ClientTransformer extends TransformerAbstract
             return null;
 
         return $this->item($creator, new UserTransformer());
+    }
+
+    public function includeTasks(Client $client)
+    {
+        $tasks = $client->tasks()->stopAsc()
+            ->where('status',TaskStatus::NORMAL)
+            ->limit(3)->get();
+        return $this->collection($tasks, new TaskTransformer());
     }
 }

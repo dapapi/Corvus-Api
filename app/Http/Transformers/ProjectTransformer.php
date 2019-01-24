@@ -7,12 +7,13 @@ use App\Models\ApprovalForm\Business;
 use App\Models\PrivacyUser;
 use App\Models\Project;
 use App\PrivacyType;
+use App\TaskStatus;
 use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
 
 class ProjectTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants', 'relate_tasks', 'relate_projects','relate_project_courses','relate_project_bills_resource'];
+    protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants', 'relate_tasks', 'relate_projects','relate_project_courses','relate_project_bills_resource', 'tasks'];
 
     private  $isAll = true;
 
@@ -98,8 +99,8 @@ class ProjectTransformer extends TransformerAbstract
                  {
 
                      if($key1 === $key2 ){
-
-                              unset($array[$key1]);
+                         $array[$key1] ='privacy';
+                        //      unset($array[$key1]);
 
                      }
 
@@ -216,5 +217,13 @@ class ProjectTransformer extends TransformerAbstract
         }
 
 
+    }
+
+    public function includeTasks(Project $project)
+    {
+        $tasks = $project->tasks()->stopAsc()
+            ->where('status',TaskStatus::NORMAL)
+            ->limit(3)->get();
+        return $this->collection($tasks, new TaskTransformer());
     }
 }

@@ -15,6 +15,8 @@ use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ControlTransformer;
 use App\Http\Transformers\ProjectHistoriesTransformer;
 use App\Http\Transformers\TemplateFieldHistoriesTransformer;
+use App\Http\Transformers\TemplateFieldTransformer;
+
 use App\Interfaces\ApprovalInstanceInterface;
 use App\Models\ApprovalFlow\ChainFixed;
 use App\Models\ApprovalFlow\ChainFree;
@@ -604,11 +606,86 @@ class ApprovalFormController extends Controller
             $value->notice_id = hashid_encode($value->notice_id);
         }
 
-        $resource = new Fractal\Resource\Collection($data, new TemplateFieldHistoriesTransformer($project->id));
+//        $resource = new Fractal\Resource\Collection($data, new TemplateFieldHistoriesTransformer($project->id));
+//
+//        $manager = new Manager();
+//        $manager->setSerializer(new DataArraySerializer());
+        ////////////////////////////////////////////////////////////
 
-        $manager = new Manager();
-        $manager->setSerializer(new DataArraySerializer());
+        //查找关联信息
+        $projectInfo = DB::table('project_template_fields as ptf')
+            ->join('template_field_value_histories as tfvh', function ($join) {
+                $join->on('tfvh.field_id', '=', 'ptf.id');
+            })
+            ->select('*')
+            ->where('tfvh.project_id', $project->id)->get()->toArray();
+        $data = json_decode(json_encode($projectInfo), true);
 
+        if($data){
+            $arr = array();
+            foreach ($data as $value){
+                $arr['data']['key'][] = $value['key'];
+                $arr['data']['values'][] = $value['value'];
+                $info = array_combine($arr['data']['key'],$arr['data']['values']);
+            }
+
+            $strArr = array();
+            foreach ($info as $key => $value) {
+                $tmp = array();
+                $tmp['key'] = $key;
+                $tmp['values']['data']['value'] = $value;
+                $strArr[] = $tmp;
+            }
+        }else{
+            $strArr = array();
+        }
+
+        $projectArr = DB::table('project_histories as ph')
+            ->join('trails', function ($join) {
+                $join->on('ph.trail_id', '=', 'trails.id');
+            })
+            ->join('trail_star', function ($join) {
+                $join->on('trail_star.trail_id', '=', 'trails.id');
+            })
+            ->join('stars', function ($join) {
+                $join->on('stars.id', '=', 'trail_star.starable_id');
+            })
+            ->select('trails.title','ph.priority','ph.projected_expenditure','ph.start_at','ph.end_at','ph.desc','stars.name')
+            ->where('ph.id', $project->id)->get()->toArray();
+        $data1 = json_decode(json_encode($projectArr), true);
+
+        $arrName = array();
+        foreach ($data1 as $value){
+
+            $arrName[]=$value['name'];
+
+        }
+
+        $tmpArr['key'] = '关联销售线索';
+        $tmpArr['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title'] : null;
+        $tmpArr1['key'] = '优先级';
+        $tmpArr1['values']['data']['value'] = isset($data1[0]['priority']) ? $data1[0]['priority'] : null;
+        $tmpArr2['key'] = '预计收益';
+        $tmpArr2['values']['data']['value'] = isset($data1[0]['projected_expenditure']) ? $data1[0]['projected_expenditure'] : null;
+        $tmpArr3['key'] = '开始时刻';
+        $tmpArr3['values']['data']['value'] = isset($data1[0]['start_at']) ? $data1[0]['start_at'] : null;
+        $tmpArr4['key'] = '结束时间';
+        $tmpArr4['values']['data']['value'] = isset($data1[0]['end_at']) ? $data1[0]['end_at'] : null;
+        $tmpArr5['key'] = '备注';
+        $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? $data1[0]['desc'] : null;
+        $tmpArr6['key'] = '关联艺人';
+        $tmpArr6['values']['data']['value'] = isset($arrName) ? $arrName : null;
+
+        array_push($strArr,$tmpArr);
+        array_push($strArr,$tmpArr1);
+        array_push($strArr,$tmpArr2);
+        array_push($strArr,$tmpArr3);
+        array_push($strArr,$tmpArr4);
+        array_push($strArr,$tmpArr5);
+        array_push($strArr,$tmpArr6);
+
+
+        ////////////////////////////////////////////////////////////
         $project = DB::table('project_histories as projects')
             ->join('approval_form_business as bu', function ($join) {
                 $join->on('projects.project_number', '=', 'bu.form_instance_number');
@@ -626,8 +703,8 @@ class ApprovalFormController extends Controller
                 $join->on('departments.id', '=', 'department_user.department_id');
             })->select('users.name', 'departments.name as department_name', 'projects.project_number as form_instance_number', 'bu.form_status', 'projects.created_at', 'position.name as position')
             ->where('projects.project_number', $project->project_number)->get();
-
-        $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $resArr['data'] = $strArr;
+        $result->addMeta('fields', $resArr);
         $result->addMeta('approval', $project);
         $result->addMeta('notice', ['data' => $participant]);
 

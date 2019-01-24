@@ -6,6 +6,8 @@ use App\Models\Task;
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
 use League\Fractal\TransformerAbstract;
+use Illuminate\Support\Facades\DB;
+
 
 class TaskTransformer extends TransformerAbstract
 {
@@ -40,6 +42,16 @@ class TaskTransformer extends TransformerAbstract
             $array['task_p'] = false;
         }
 
+        $operate = DB::table('operate_logs as og')//
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'og.user_id');
+            })
+            ->where('og.logable_id', $task->id)
+            ->where('og.logable_type', 'task')
+            ->where('og.method', 4)
+            ->select('og.created_at','users.name')->orderBy('created_at','desc')->first();
+
+        $array['operate'] = $operate;
         return $array;
     }
 

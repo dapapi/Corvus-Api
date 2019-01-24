@@ -47,4 +47,9 @@ class StoreScheduleRequest extends FormRequest
             'affix.*.url' => 'required_with:affix|max:500',
         ];
     }
+    public function messages(){
+        return [
+            'calendar_id.required' => '请选择您要添加的日历'
+        ];
+    }
 }

@@ -1170,7 +1170,8 @@ class TaskController extends Controller
             return $this->response->errorInternal('创建失败!');
         }
         DB::commit();
-        event(new MessageEvent($task,TriggerPoint::CRATE_TASK));
+        $authorization = $request->header()['authorization'][0];
+        event(new MessageEvent($task,TriggerPoint::CRATE_TASK,$authorization));
         DB::beginTransaction();
         try {
 

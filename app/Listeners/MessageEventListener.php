@@ -32,14 +32,17 @@ class MessageEventListener
     {
         $model = $event->model;
         $trigger_point = $event->trigger_point;
+        $authorization = $event->authorization;
         if ($model instanceof Task){
             switch ($trigger_point){
                 case TriggerPoint::CRATE_TASK:
+                    $module = Message::TASK;
                     //获取负责人
                     $principal = User::find($model->principal_id);
                     $principal_name = $principal == null? null:$principal->name;
                     $message = sprintf($this->send_message_to_principal,$model->title,$principal_name);
-                    $this->createMessage($model->title,$message,[$model->principal_id]);
+                    $data_id = $module->id;
+                    $this->createMessage($model->title,$message,[$model->principal_id],$authorization,$module,$data_id);
 
 
             }
@@ -47,8 +50,15 @@ class MessageEventListener
 
     }
 
-    public function createMessage($title,$message,$send_to)
+    /**
+     * @param $title 消息标题
+     * @param $message 消息体
+     * @param $send_to 发送给  数组
+     * @param $authorization token
+     */
+    public function createMessage($title,$message,$send_to,$authorization,$module,$data_id)
     {
+
         //发送消息
         DB::beginTransaction();
         try {
@@ -57,14 +67,10 @@ class MessageEventListener
 
             $title = $user->name . $title;  //通知消息的标题
             $subheading = $user->name . $message;
-            $module = Message::TASK;
+
 
             $data = json_decode($message,true);
-
-            $recives[] = $task->creator_id;//创建人
-            $recives[] = $task->principal_id;//负责人
-            $authorization = $request->header()['authorization'][0];
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, null, $data, $send_to,$data_id);
             DB::commit();
         }catch (Exception $e){
             DB::rollBack();

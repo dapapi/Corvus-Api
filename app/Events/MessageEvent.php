@@ -16,15 +16,17 @@ class MessageEvent
 
     public $model;
     public $trigger_point;
+    public $authorization;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($model,$trigger_point)
+    public function __construct($model,$trigger_point,$authorization)
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;
+        $this->authorization = $authorization;
     }
 
     /**

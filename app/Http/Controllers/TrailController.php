@@ -236,7 +236,6 @@ class TrailController extends Controller
         }
 
         DB::commit();
-        event();
         //发消息
         if($trail->lock_status == 1){
             DB::beginTransaction();

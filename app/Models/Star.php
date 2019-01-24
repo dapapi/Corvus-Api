@@ -79,11 +79,7 @@ class Star extends Model
     {
         return $query->orderBy('created_at', 'desc');
     }
-    public function scopeStopAsc($query)
-    {
-        $now = Carbon::now()->toDateTimeString();
-        return $query->orderBy("stop_at")->where('stop_at','>',$now);
-    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');

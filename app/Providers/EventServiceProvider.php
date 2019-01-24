@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Trail;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -19,6 +20,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\MessageEvent'   =>  [
             'App\Listeners\MessageEventListener',
         ],
+        'App\Events\dataChangeEvent'    =>  [
+            'App\Listeners\dataChangeListener',
+        ]
     ];
 
     /**
@@ -30,6 +34,5 @@ class EventServiceProvider extends ServiceProvider
     {
         parent::boot();
 
-        //
     }
 }

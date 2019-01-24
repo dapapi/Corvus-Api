@@ -169,7 +169,7 @@ class BloggerTransformer extends TransformerAbstract
 
     public function includeTasks(Blogger $blogger)
     {
-        $tasks = $blogger->tasks()->where('status',TaskStatus::NORMAL)->stopAsc()->limit(3)->createDesc()->get();
+        $tasks = $blogger->tasks()->where('status',TaskStatus::NORMAL)->stopAsc()->limit(3)->get();
         return $this->collection($tasks, new TaskTransformer());
     }
     public function includeOperateLogs(Blogger $blogger)

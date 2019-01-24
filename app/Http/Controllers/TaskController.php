@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\AffixType;
+use App\Events\dataChangeEvent;
 use App\Events\OperateLogEvent;
 use App\Models\Message;
 use App\Http\Requests\Task\AddRelateTaskRequest;
@@ -795,6 +796,7 @@ class TaskController extends Controller
     public function edit(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
+        $oldTask = clone $task;
         $user = Auth::guard('api')->user();
 
         $array = [];
@@ -956,7 +958,8 @@ class TaskController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
-
+//        event(new dataChangeEvent($oldTask,$task));
+//        dd("sdsds");
         return $this->response->accepted();
     }
 

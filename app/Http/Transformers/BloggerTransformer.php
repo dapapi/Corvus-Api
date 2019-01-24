@@ -109,12 +109,14 @@ class BloggerTransformer extends TransformerAbstract
             $array = array_merge($array,$Viewprivacy2);
             foreach ($array as $key1 => $val1)
             {
+
                 foreach ($Viewprivacy2 as $key2 => $val2)
                 {
 
                     if($key1 === $key2 ){
 
-                        unset($array[$key1]);
+                        $array[$key1] ='privacy';
+                       // unset($array[$key1]);
 
                     }
 

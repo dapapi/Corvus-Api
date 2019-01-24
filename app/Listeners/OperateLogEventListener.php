@@ -95,6 +95,7 @@ class OperateLogEventListener
     protected $allot = "将销售线索分配给了%s";
     protected $recevie = "领取了销售线索";
     protected $return_trail = "退回了销售线索,原因是:%s";
+    protected $create_star_schedules = "创建了日程%s";
 
     /**
      * Handle the event.
@@ -397,6 +398,11 @@ class OperateLogEventListener
                     $level = OperateLogLevel::HIGH;
                     $content = sprintf($this->return_trail,$title);
                     break;
+                case OperateLogMethod::CREATE_STAR_SCHEDULE://创建艺人日程
+                    $level = OperateLogLevel::HIGH;
+                    $content = sprintf($this->create_star_schedules,$title);
+                    break;
+
             }
 
             OperateLog::create([

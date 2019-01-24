@@ -48,8 +48,9 @@ class TaskTransformer extends TransformerAbstract
             })
             ->where('og.logable_id', $task->id)
             ->where('og.logable_type', 'task')
+            ->where('og.method', 4)
             ->select('og.created_at','users.name')->orderBy('created_at','desc')->first();
-       
+
         $array['operate'] = $operate;
         return $array;
     }

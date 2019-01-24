@@ -828,7 +828,9 @@ class ReportFormRepository
             ->groupBy('c.id')
             ->get(['c.id','c.type','c.company','c.grade','cs.name as keyman','u.name as principal_name',
                 DB::raw('GROUP_CONCAT(cs.name) as contact_name'),
-                DB::raw('GROUP_CONCAT(cs.phone) as contact_phone')
+                DB::raw('GROUP_CONCAT(cs.phone) as contact_phone'),
+                DB::raw("case c.size when 1 then '上市公司' when 2 then '500强' end size"),
+                DB::raw("case c.client_rating when 4 then 'S' when 3 then 'A' when 2 then 'B' when 1 then 'C' end client_rating")
                 ]);
         return [
             "total"   =>  count($clients),

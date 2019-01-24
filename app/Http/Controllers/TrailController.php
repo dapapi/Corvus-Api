@@ -969,7 +969,7 @@ class TrailController extends Controller
  //       $result = $query->pluck('ids')->toArray();
 
 //        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
-        $trails = $query->orderBy('created_at', 'desc')->paginate($pageSize);
+        $trails = $query->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
 
         return $this->response->paginator($trails, new TrailTransformer());
     }

@@ -3,11 +3,16 @@
 namespace App\Listeners;
 
 use App\Events\MessageEvent;
+use App\Models\Message;
 use App\Models\Task;
+use App\Repositories\MessageRepository;
 use App\TriggerPoint;
 use App\User;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MessageEventListener
 {
@@ -41,7 +46,7 @@ class MessageEventListener
                     $principal = User::find($model->principal_id);
                     $principal_name = $principal == null? null:$principal->name;
                     $message = sprintf($this->send_message_to_principal,$model->title,$principal_name);
-                    $data_id = $module->id;
+                    $data_id = $model->id;
                     $this->createMessage($model->title,$message,[$model->principal_id],$authorization,$module,$data_id);
 
 

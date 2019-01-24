@@ -76,7 +76,7 @@ class ProjectTransformer extends TransformerAbstract
 
             ];
 
-            if(!$setprivacy1 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
+            if(!empty($setprivacy1)&& count($setprivacy1) > 0 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
                if(empty($setprivacy1)){
 
 //                   $array1['moduleable_id']= $project->id;
@@ -93,12 +93,14 @@ class ProjectTransformer extends TransformerAbstract
                     $Viewprivacy2[$v]=$key;
                 };
             $array = array_merge($array,$Viewprivacy2);
+
              foreach ($array as $key1 => $val1)
              {
                  foreach ($Viewprivacy2 as $key2 => $val2)
                  {
 
                      if($key1 === $key2 ){
+
                          $array[$key1] ='privacy';
                         //      unset($array[$key1]);
 

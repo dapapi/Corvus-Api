@@ -848,72 +848,117 @@ class ProjectController extends Controller
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;
         $array['expense_type'] = '支出';
-        $contractmoney = 100000000;
+        $contractmoney = 0;
+        // 记住修改
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-        if (isset($expendituresum)) {
+
+
             $user = Auth::guard('api')->user();
-            $setprivacy1 = array();
-            $Viewprivacy2 = array();
-            $array['moduleable_id'] = $project->id;
-            $array['moduleable_type'] = ModuleableType::PROJECT;
-            $array['is_privacy'] = PrivacyType::OTHER;
-            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-            foreach ($setprivacy as $key => $v) {
-
-                $setprivacy1[] = array_values($v)[0];
-
-            }
             if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
-                $array['user_id'] = $user->id;
-                $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-                unset($array);
-                if ($Viewprivacy) {
-                    foreach ($Viewprivacy as $key => $v) {
-                        $Viewprivacy1[] = array_values($v)[0];
+                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
+                if(!$contractMoneyResult)
+                {
+                    $result->addMeta('contractmoney', 'privacy');
+                }
+                else
+                {
+                    if (isset($contractmoney)) {
+                        $result->addMeta('contractmoney', $contractmoney);
                     }
-                    $setprivacy1 = array_diff($setprivacy1, $Viewprivacy1);
-                } else {
-                    $setprivacy1 = array();
+                }
+
+                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
+                if(!$contractMoneyResult)
+                {
+                    $result->addMeta('expendituresum', 'privacy');
+                }
+                else
+                {
+                    if (isset($expendituresum)) {
+                        $result->addMeta('expendituresum', $expendituresum->expendituresum);
+                    }
                 }
             }
-            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
-                if (empty($setprivacy1)) {
+            else
+            {
 
-//                    $array1['moduleable_id']= $project->id;
-//                    $array1['moduleable_type']= ModuleableType::PROJECT;
-//                    $array1['is_privacy']=  PrivacyType::OTHER;
-//                    $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
-//                    foreach ($setprivacy as $key =>$v){
-//                        $setprivacy1[]=array_values($v)[0];
+                if (isset($contractmoney)) {
+                    $result->addMeta('contractmoney', $contractmoney);
+                }
+                else
+                {
+                    $result->addMeta('contractmoney', 0);
+                }
+                if (isset($expendituresum)) {
+                    $result->addMeta('expendituresum', $expendituresum->expendituresum);
+                }
+                else
+                {
+                    $result->addMeta('expendituresum', 0);
+                }
+            }
+//            $setprivacy1 = array();
+//            $Viewprivacy2 = array();
+//            $array['moduleable_id'] = $project->id;
+//            $array['moduleable_type'] = ModuleableType::PROJECT;
+//            $array['is_privacy'] = PrivacyType::OTHER;
+//            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+//            foreach ($setprivacy as $key => $v) {
 //
+//                $setprivacy1[] = array_values($v)[0];
+//
+//            }
+//            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+//
+//                $array['user_id'] = $user->id;
+//                $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+//                unset($array);
+//                if ($Viewprivacy) {
+//                    foreach ($Viewprivacy as $key => $v) {
+//                        $Viewprivacy1[] = array_values($v)[0];
 //                    }
-                    $setprivacy1 = PrivacyType::getProject();
-                }
-                foreach ($setprivacy1 as $key => $v) {
-                    $Viewprivacy2[$v] = $key;
-                }
-                foreach ($Viewprivacy2 as $key2 => $val2) {
-
-                    if ($key2 === 'contractmoney') {
-                        $result->addMeta('contractmoney', '');
-                    }
-                    if ($key2 === 'expendituresum') {
-                        $result->addMeta('expendituresum', '');
-                    }
-
-                }
-            } else {
-                $result->addMeta('contractmoney', $contractmoney);
-
-                $result->addMeta('expendituresum', $expendituresum->expendituresum);
-            }
-
-        }
+//                    $setprivacy1 = array_diff($setprivacy1, $Viewprivacy1);
+//                } else {
+//                    $setprivacy1 = array();
+//                }
+//            }
+//            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+//                if (empty($setprivacy1)) {
+//
+////                    $array1['moduleable_id']= $project->id;
+////                    $array1['moduleable_type']= ModuleableType::PROJECT;
+////                    $array1['is_privacy']=  PrivacyType::OTHER;
+////                    $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
+////                    foreach ($setprivacy as $key =>$v){
+////                        $setprivacy1[]=array_values($v)[0];
+////
+////                    }
+//                    $setprivacy1 = PrivacyType::getProject();
+//                }
+//                foreach ($setprivacy1 as $key => $v) {
+//                    $Viewprivacy2[$v] = $key;
+//                }
+//                foreach ($Viewprivacy2 as $key2 => $val2) {
+//
+//                    if ($key2 === 'contractmoney') {
+//                        $result->addMeta('contractmoney', '');
+//                    }
+//                    if ($key2 === 'expendituresum') {
+//                        $result->addMeta('expendituresum', '');
+//                    }
+//
+//                }
+//            } else {
+//                $result->addMeta('contractmoney', $contractmoney);
+//
+//                $result->addMeta('expendituresum', $expendituresum->expendituresum);
+//            }
+        //}
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $operate = new OperateEntity([
             'obj' => $project,

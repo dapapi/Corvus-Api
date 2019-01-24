@@ -25,32 +25,43 @@ class ProjectTransformer extends TransformerAbstract
     public function transform(Project $project)
     {
         $user = Auth::guard('api')->user();
-        $setprivacy1 =array();
-        $Viewprivacy2 =array();
-        $array['moduleable_id']= $project->id;
-        $array['moduleable_type']= ModuleableType::PROJECT;
-        $array['is_privacy']=  PrivacyType::OTHER;
-        $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-        foreach ($setprivacy as $key =>$v){
 
-            $setprivacy1[]=array_values($v)[0];
+     //   $array['moduleable_type']= ModuleableType::PROJECT;
+    //    $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+//        foreach ($project as  $value)
+//        {
+//            dd($project);
+//        }
 
-        }
-        if(!$setprivacy1 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
 
-            $array['user_id']= $user->id;
-            $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-            unset($array);
-            if($Viewprivacy){
-                foreach ($Viewprivacy as $key =>$v){
-                    $Viewprivacy1[]=array_values($v)[0];
-                }
-                $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
-            }else{
-                $setprivacy1 = array();
-            }
 
-        }
+
+
+//        $setprivacy1 =array();
+//        $Viewprivacy2 =array();
+//        $array['moduleable_id']= $project->id;
+//        $array['moduleable_type']= ModuleableType::PROJECT;
+//        $array['is_privacy']=  PrivacyType::OTHER;
+//        $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+//        foreach ($setprivacy as $key =>$v){
+//
+//            $setprivacy1[]=array_values($v)[0];
+//
+//        }
+//        if(!empty($setprivacy1) & count($setprivacy1) > 0 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
+//            $array['user_id']= $user->id;
+//            $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
+//            unset($array);
+//            if($Viewprivacy){
+//                foreach ($Viewprivacy as $key =>$v){
+//                    $Viewprivacy1[]=array_values($v)[0];
+//                }
+//                $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
+//            }else{
+//                $setprivacy1 = array();
+//            }
+//
+//        }
 
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
@@ -76,8 +87,8 @@ class ProjectTransformer extends TransformerAbstract
 
             ];
 
-            if(!empty($setprivacy1)&& count($setprivacy1) > 0 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
-               if(empty($setprivacy1)){
+//            if(!empty($setprivacy1)&& count($setprivacy1) > 0 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
+//               if(empty($setprivacy1)){
 
 //                   $array1['moduleable_id']= $project->id;
 //                   $array1['moduleable_type']= ModuleableType::PROJECT;
@@ -87,29 +98,47 @@ class ProjectTransformer extends TransformerAbstract
 //                       $setprivacy1[]=array_values($v)[0];
 //
 //                   }
-                   $setprivacy1 =  PrivacyType::getProject();
-               }
-                foreach ($setprivacy1 as $key =>$v){
-                    $Viewprivacy2[$v]=$key;
-                };
-            $array = array_merge($array,$Viewprivacy2);
+//                   $setprivacy1 =  PrivacyType::getProject();
+//               }
+//                foreach ($setprivacy1 as $key =>$v){
+//                    $Viewprivacy2[$v]=$key;
+//                };
+//            $array = array_merge($array,$Viewprivacy2);
 
-             foreach ($array as $key1 => $val1)
-             {
-                 foreach ($Viewprivacy2 as $key2 => $val2)
-                 {
+//             foreach ($array as $key1 => $val1)
+//             {
+//                 foreach ($Viewprivacy2 as $key2 => $val2)
+//                 {
+//
+//                     if($key1 === $key2 ){
+//
+//                         $array[$key1] ='privacy';
+//                        //      unset($array[$key1]);
+//
+//                     }
+//
+//
+//                 }
+//               }
+           // }
 
-                     if($key1 === $key2 ){
 
-                         $array[$key1] ='privacy';
-                        //      unset($array[$key1]);
-
-                     }
-
-
-                 }
-               }
+            if($project ->creator_id != $user->id && $project->principal_id != $user->id)
+            {
+                  foreach ($array as $key => $value)
+                  {
+                      $result = PrivacyType::isPrivacy(ModuleableType::PROJECT,$key);
+                      if($result)
+                      {
+                          $result = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, $key);
+                          if(!$result)
+                          {
+                              $array[$key] = 'privacy';
+                          }
+                      }
+                  }
             }
+
             if ($business)
                 $array['approval_status'] = $business->status->id;
 
@@ -124,7 +153,6 @@ class ProjectTransformer extends TransformerAbstract
                 'title' => $project->title,
             ];
         }
-
         return $array;
     }
 
@@ -157,25 +185,27 @@ class ProjectTransformer extends TransformerAbstract
     {
 
         $user = Auth::guard('api')->user();
-        $setprivacy = true;
-        if($project ->creator_id != $user->id && $project->principal_id != $user->id) {
-            $array['moduleable_id'] = $project->id;
-            $array['moduleable_type'] = ModuleableType::PROJECT;
-            $array['moduleable_field'] = PrivacyType::FEE;
-            $array['is_privacy'] = PrivacyType::OTHER;
-            $array['user_id'] = $user->id;
-            $setprivacy = PrivacyUser::where($array)->first();
-        }
+//        $setprivacy = true;
+//        if($project ->creator_id != $user->id && $project->principal_id != $user->id) {
+//            $array['moduleable_id'] = $project->id;
+//            $array['moduleable_type'] = ModuleableType::PROJECT;
+//            $array['moduleable_field'] = PrivacyType::FEE;
+//            $array['is_privacy'] = PrivacyType::OTHER;
+//            $array['user_id'] = $user->id;
+//            $setprivacy = PrivacyUser::where($array)->first();
+
+
+        //}
             $trail = $project->trail;
             if (!$trail)
                 return null;
             if($trail->type == '5')
                 return $this->item($trail, new TrailTransformer());
-            if (!$setprivacy)
-                return $this->item($trail, new TrailTransformer(true,$setprivacy));
+//            if (!$setprivacy)
+//                return $this->item($trail, new TrailTransformer(true,$setprivacy));
 
             else
-                return $this->item($trail, new TrailTransformer());
+                return $this->item($trail, new TrailTransformer(true,$project,$user));
 
     }
 

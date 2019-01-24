@@ -14,7 +14,7 @@ abstract class BloggerLevel
      */
     public static function getStr($key): string
     {
-//        $start = 'S';
+        $start = '';
         switch ($key) {
             case BloggerLevel::S:
                 $start = 'S';

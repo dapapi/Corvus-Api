@@ -1092,8 +1092,8 @@ class ProjectController extends Controller
             if ($request->has('type') && $payload['type'] <> '3,4'){
                 $query->where('type', $payload['type']);
             }
-            if($request->has('type')&&$payload['type'] == '3,4'){
-                $query->whereIn('type',[$payload['type']]);
+            if($request->has('type') && $payload['type'] == '3,4'){
+                $query->whereIn('type',[3,4]);
             }
             if ($request->has('status'))
                 $query->where('projects.status', $payload['status']);

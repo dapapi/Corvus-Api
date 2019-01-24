@@ -828,12 +828,11 @@ class ProjectController extends Controller
                 'title' => '项目负责人',
                 'value' => $principal->name
             ];
-            $participant_ids = array_column($project->participants()->where('user_id')->get()->toArray(),'user_id');
+            $participant_ids = array_column($project->participants()->select('user_id')->get()->toArray(),'user_id');
             $authorization = $request->header()['authorization'][0];
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids,$project->id);
             DB::commit();
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
         }
@@ -1036,6 +1035,11 @@ class ProjectController extends Controller
             case Project::STATUS_FROZEN:
                 $project->stop_at = now();
                 $project->status = $status;
+                $trail = $project->trail;
+                if ($trail)
+                    $trail->update([
+                        'progress_status' => Trail::STATUS_UNCONFIRMED
+                    ]);
                 //日志
                 $operate = new OperateEntity([
                     'obj' => $project,
@@ -1052,6 +1056,11 @@ class ProjectController extends Controller
                 $project->stop_at = null;
                 $project->complete_at = null;
                 $project->status = $status;
+                $trail = $project->trail;
+                if ($trail)
+                    $trail->update([
+                        'progress_status' => Trail::STATUS_CONFIRMED
+                    ]);
                 break;
             default:
                 break;

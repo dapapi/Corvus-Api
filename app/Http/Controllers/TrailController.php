@@ -68,6 +68,8 @@ class TrailController extends Controller
         $typeArr = explode(',', $type);
         $clients = Trail::confirmed()->whereIn('type', $typeArr)->orderBy('created_at', 'desc')
             ->searchData()->poolType()
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+//        dd($sql_with_bindings);
             ->get();
         return $this->response->collection($clients, new TrailTransformer());
     }
@@ -85,10 +87,6 @@ class TrailController extends Controller
         // 改为直接新建
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
         $payload['industry_id'] = hashid_decode($payload['industry_id']);
-
-        if (is_numeric($payload['resource'])) {
-            $payload['resource'] = hashid_decode($payload['resource']);
-        }
 
         if (array_key_exists('id', $payload['contact'])) {
 
@@ -324,11 +322,11 @@ class TrailController extends Controller
                 try{
                     $start = $trail->resource;
                     if($trail->resource_type == 4){
-                        $start = User::find($trail->resource)->name;
+                        $start = User::find(hashid_decode($trail->resource))->name;
                     }
                     $end = $payload['resource'];
                     if($payload['resource_type'] == 4){//销售线索来源是员工
-                        $end = User::findOrFail(hashid_decode($payload['resource']));
+                        $end = User::find(hashid_decode($payload['resource']))->name;
                     }
 
                     $operateName = new OperateEntity([
@@ -933,13 +931,12 @@ class TrailController extends Controller
 
 //        $query = DB::table('trails')->selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
 
+//        $keyword = $request->get('keyword', '');
+//        if ($keyword !== '') {
+//            // todo 本表中字符型字段模糊查询; 本表中枚举使用的字段也需要加入
+//            $query->whereRaw('CONCAT(`trails`.`title`,`trails`.`brand`,`trails`.`desc`) LIKE "%?%"', [$keyword]);
+//        }
         $query = Trail::query();
-        $keyword = $request->get('keyword', '');
-        if ($keyword !== '') {
-            // todo 本表中字符型字段模糊查询; 本表中枚举使用的字段也需要加入
-            $query->whereRaw('CONCAT(`trails`.`title`,`trails`.`brand`,`trails`.`desc`) LIKE "%?%"', [$keyword]);
-        }
-
         $conditions = $request->get('conditions');
         foreach ($conditions as $condition) {
             $field = $condition['field'];

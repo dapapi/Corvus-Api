@@ -887,7 +887,7 @@ class TrailController extends Controller
             if (!is_null($payload['status']) && $request->has('status') && $payload['status'] <> '3,4')
                 $query->where('type', $payload['status']);
             else if($payload['status'] == '3,4'){
-                $query->whereIn('type', [$payload['status']]);
+                $query->whereIn('type', [3,4]);
             }
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);

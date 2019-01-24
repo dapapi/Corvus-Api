@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AffixType;
 use App\Events\dataChangeEvent;
+use App\Events\MessageEvent;
 use App\Events\OperateLogEvent;
 use App\Models\Message;
 use App\Http\Requests\Task\AddRelateTaskRequest;
@@ -34,6 +35,7 @@ use App\Repositories\ScopeRepository;
 use App\ResourceType;
 use App\TaskPriorityStatus;
 use App\TaskStatus;
+use App\TriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -1168,6 +1170,7 @@ class TaskController extends Controller
             return $this->response->errorInternal('创建失败!');
         }
         DB::commit();
+        event(new MessageEvent($task,TriggerPoint::CRATE_TASK));
         DB::beginTransaction();
         try {
 

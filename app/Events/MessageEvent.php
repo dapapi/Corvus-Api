@@ -15,14 +15,16 @@ class MessageEvent
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $model;
+    public $trigger_point;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($model)
+    public function __construct($model,$trigger_point)
     {
         $this->model = $model;
+        $this->trigger_point = $trigger_point;
     }
 
     /**

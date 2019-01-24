@@ -3,6 +3,9 @@
 namespace App\Listeners;
 
 use App\Events\MessageEvent;
+use App\Models\Task;
+use App\TriggerPoint;
+use App\User;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -17,6 +20,7 @@ class MessageEventListener
     {
         //
     }
+    private $send_message_to_principal = '{"title":"任务名称","value":"%s","title":"负责人","value":"%s"}';
 
     /**
      * Handle the event.
@@ -27,54 +31,45 @@ class MessageEventListener
     public function handle(MessageEvent $event)
     {
         $model = $event->model;
-        dd($model);
+        $trigger_point = $event->trigger_point;
+        if ($model instanceof Task){
+            switch ($trigger_point){
+                case TriggerPoint::CRATE_TASK:
+                    //获取负责人
+                    $principal = User::find($model->principal_id);
+                    $principal_name = $principal == null? null:$principal->name;
+                    $message = sprintf($this->send_message_to_principal,$model->title,$principal_name);
+                    $this->createMessage($model->title,$message,[$model->principal_id]);
+
+
+            }
+        }
 
     }
 
-//    public function createMessage()
-//    {
-//        //发送消息
-//        DB::beginTransaction();
-//        try {
-//
-//            $user = Auth::guard('api')->user();
-//            $message = "";
-//            switch ($status){
-//                case TaskStatus::NORMAL:
-//                    $message="任务状态转为正常";
-//                    break;
-//                case TaskStatus::COMPLETE:
-//                    $message="任务完成";
-//                    break;
-//                case TaskStatus::TERMINATION:
-//                    $message="任务终止";
-//                    break;
-//            }
-//            $title = $user->name . $message;  //通知消息的标题
-//            $subheading = $user->name . $message;
-//            $module = Message::TASK;
-//            $link = URL::action("TaskController@show", ["task" => $task->id]);
-//            $data = [];
-//            $data[] = [
-//                "title" => '任务名称', //通知消息中的消息内容标题
-//                'value' => $task->title,  //通知消息内容对应的值
-//            ];
-//            $principal = User::findOrFail($task->principal_id);
-//            $data[] = [
-//                'title' => '负责人',
-//                'value' => $principal->name
-//            ];
-//
-//            $recives = array_column($task->participants()->get()->toArray(),'id');
-//            $recives[] = $task->creator_id;//创建人
-//            $recives[] = $task->principal_id;//负责人
-//            $authorization = $request->header()['authorization'][0];
-//            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
-//            DB::commit();
-//        }catch (Exception $e){
-//            DB::rollBack();
-//            Log::error($e);
-//        }
-//    }
+    public function createMessage($title,$message,$send_to)
+    {
+        //发送消息
+        DB::beginTransaction();
+        try {
+
+            $user = Auth::guard('api')->user();
+
+            $title = $user->name . $title;  //通知消息的标题
+            $subheading = $user->name . $message;
+            $module = Message::TASK;
+
+            $data = json_decode($message,true);
+
+            $recives[] = $task->creator_id;//创建人
+            $recives[] = $task->principal_id;//负责人
+            $authorization = $request->header()['authorization'][0];
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
+            DB::commit();
+        }catch (Exception $e){
+            DB::rollBack();
+            Log::error($e);
+        }
+    }
 
 }

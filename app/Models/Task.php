@@ -48,9 +48,9 @@ class Task extends Model
             left join module_users as mu on mu.moduleable_id = t.id and 
             mu.moduleable_type='".ModuleableType::TASK.
             "' left join users as u on u.id = mu.user_id where t.id = tasks.id
-        )")->where("privacy",self::OPEN)->orWhere(function ($query)use ($user){
+        )")->where("privacy",self::OPEN)->orWhere(function ($query)use ($user){//查询与本人相关的私密
             $query->where("privacy",Self::PRIVACY)->where(function ($query) use ($user){
-                $query->where('tasks.creator',$user->id)->orWhere('tasks.principal_id',$user->id);
+                $query->where('tasks.creator_id',$user->id)->orWhere('tasks.principal_id',$user->id);
             });
         });
     }

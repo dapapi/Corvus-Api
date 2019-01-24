@@ -639,7 +639,7 @@ class ApprovalFormController extends Controller
         }else{
             $strArr = array();
         }
-       
+
         $projectArr = DB::table('project_histories as ph')
             ->join('trails', function ($join) {
                 $join->on('ph.trail_id', '=', 'trails.id');
@@ -703,8 +703,8 @@ class ApprovalFormController extends Controller
                 $join->on('departments.id', '=', 'department_user.department_id');
             })->select('users.name', 'departments.name as department_name', 'projects.project_number as form_instance_number', 'bu.form_status', 'projects.created_at', 'position.name as position')
             ->where('projects.project_number', $project->project_number)->get();
-
-        $result->addMeta('fields', $strArr);
+        $resArr['data'] = $strArr;
+        $result->addMeta('fields', $resArr);
         $result->addMeta('approval', $project);
         $result->addMeta('notice', ['data' => $participant]);
 

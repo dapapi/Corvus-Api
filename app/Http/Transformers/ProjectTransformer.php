@@ -98,8 +98,8 @@ class ProjectTransformer extends TransformerAbstract
                  {
 
                      if($key1 === $key2 ){
-
-                              unset($array[$key1]);
+                         $array[$key1] ='privacy';
+                        //      unset($array[$key1]);
 
                      }
 

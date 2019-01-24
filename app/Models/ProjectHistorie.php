@@ -46,7 +46,8 @@ class ProjectHistorie extends Model
         'end_at',
         'complete_at',
         'stop_at',
-        'delete_at'
+        'delete_at',
+        'projected_expenditure'
     ];
 
 

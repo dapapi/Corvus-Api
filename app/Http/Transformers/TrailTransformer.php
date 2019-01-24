@@ -17,9 +17,10 @@ class TrailTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations',
         'expectations', 'project','starexceptions','bloggerexceptions','starrecommendations','bloggerrecommendations'];
-
+   // protected $defaultIncludes= ['stars'];
     private $isAll = true;
     private $setprivacy = true;
+
     public function __construct($isAll = true,$setprivacy = true)
     {
         $this->isAll = $isAll;
@@ -128,7 +129,20 @@ class TrailTransformer extends TransformerAbstract
         ->where('users.id', $trail->principal_id)
             ->select('users.name')->first();
         $array['principal_name'] = $principal;
+
+        //查询艺人
+
+        $starsInfo = DB::table('trail_star')
+
+            ->join('stars', function ($join) {
+                $join->on('stars.id', '=', 'trail_star.starable_id');
+            })->select('stars.name')
+            ->where('trail_star.trail_id', $trail->id)->where('starable_type','star')->get()->toArray();
+
+        $array['stars_name'] = $starsInfo;
         return $array;
+
+
     }
 
     public function includePrincipal(Trail $trail)

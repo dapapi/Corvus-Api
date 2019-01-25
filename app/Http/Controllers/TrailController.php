@@ -58,7 +58,10 @@ class TrailController extends Controller
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
 
-        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->poolType()->orderBy('created_at', 'desc');
+//            ->paginate($pageSize);
+        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+        dd($sql_with_bindings);
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
@@ -66,12 +69,12 @@ class TrailController extends Controller
     {
         $type = $request->get('type', '1,2,3,4,5');
         $typeArr = explode(',', $type);
-        $clients = Trail::confirmed()->whereIn('type', $typeArr)->orderBy('created_at', 'desc')
-            ->searchData()->poolType()
-//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+        $trails = Trail::searchData()->whereIn('type', $typeArr)->orderBy('created_at', 'desc')
+            ->poolType()->confirmed()
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
             ->get();
-        return $this->response->collection($clients, new TrailTransformer());
+        return $this->response->collection($trails, new TrailTransformer());
     }
     // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
     public function store(StoreTrailRequest $request)

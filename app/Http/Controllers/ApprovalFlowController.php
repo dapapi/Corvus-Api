@@ -34,6 +34,7 @@ use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
 use App\SignContractStatus;
+use App\TrigerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -127,9 +128,9 @@ class ApprovalFlowController extends Controller
             ]);
             $now = Carbon::now();
 
-            $this->storeRecord($formNumber, $user->id, $now, 237);
-
-            $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 245, 231);
+//            $this->storeRecord($formNumber, $user->id, $now, 237);
+//
+//            $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 245, 231);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -197,21 +198,23 @@ class ApprovalFlowController extends Controller
             $condition = $this->getCondition($formId, $value);
         }
 
-        $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->first();
-        $chains = ChainFixed::where('form_id', $formId)
-            ->where('condition_id', $condition)
-            ->where('next_id', '!=', 0)
-            ->where('sort_number', '>=', $nextChain->sort_number)
-            ->orderBy('sort_number')
-            ->get();
         if ($form->change_type == 223) {
-            $nextChain = ChainFree::where('next_id', $nextId)->where('form_id', $formId)->first();
+            $nextChain = ChainFree::where('next_id', $nextId)->where('form_number', $num)->first();
             $chains = ChainFree::where('form_number', $num)
                 ->where('next_id', '!=', 0)
                 ->where('sort_number', '>=', $nextChain->sort_number)
                 ->orderBy('sort_number')
                 ->get();
+        } else {
+            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->first();
+            $chains = ChainFixed::where('form_id', $formId)
+                ->where('condition_id', $condition)
+                ->where('next_id', '!=', 0)
+                ->where('sort_number', '>=', $nextChain->sort_number)
+                ->orderBy('sort_number')
+                ->get();
         }
+
         foreach ($chains as $key => $chain) {
             $array[] = [
                 'id' => hashid_encode($chain->next->id),
@@ -272,7 +275,6 @@ class ApprovalFlowController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
-
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -282,6 +284,17 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+        if($instance->form_status == 232){//审批通过
+            //向知会人发消息
+            $authorization = $request->header()['authorization'][0];
+            event( $instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user);
+        }else{
+            //向审批发起人发消息
+            $authorization = $request->header()['authorization'][0];
+            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user);
+            //向下一个审批人发消息
+            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user,$nextId);
+        }
 
         return $this->response->created();
     }
@@ -324,6 +337,11 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+
+        //发消息
+        $authorization = $request->header()['authorization'][0];
+        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user);
+
         return $this->response->created();
     }
 
@@ -370,6 +388,11 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+
+        //发消息
+        $authorization = $request->header()['authorization'][0];
+        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$nextId);
+
         return $this->response->created();
     }
 

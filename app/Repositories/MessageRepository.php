@@ -87,7 +87,7 @@ class MessageRepository
     {
         $arr = [];
         if($module != null){
-            $arr[] = ['m.module', $module];
+            $arr[] = ['messages.module', $module];
         }
         if($state != null){
             $arr[]  =   ['ms.state',$state];

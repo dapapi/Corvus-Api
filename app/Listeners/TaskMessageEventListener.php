@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\TaskMessageEvent;
+use App\Models\Message;
 use App\Models\Task;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\TaskTriggerPoint;
@@ -171,6 +172,6 @@ class TaskMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->task, null, $this->data, $send_to,$this->task->id);
+            Message::TASK, null, $this->data, $send_to,$this->task->id);
     }
 }

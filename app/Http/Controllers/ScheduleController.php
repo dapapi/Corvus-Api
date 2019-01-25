@@ -472,28 +472,29 @@ class ScheduleController extends Controller
             ]));
             //获取日历对象的艺人
             $star_calendar = Calendar::where('id',$schedule->calendar_id)->select('starable_id','type')->first();
-            if($star_calendar){
-                $module = null;
-                if ($star_calendar->type == ModuleableType::BLOGGER){
-                    $module = Blogger::findOrFail($star_calendar->starable_id);
-                }else{
-                    $module = Star::findOrFail($star_calendar->starable_id);
-                }
-                if ($module){
-                    $operate = new OperateEntity([
-                        'obj' => $module,
-                        'title' => $schedule->title,
-                        'start' => null,
-                        'end' => null,
-                        'method' => OperateLogMethod::CREATE_STAR_SCHEDULE,
-                    ]);
-                    event(new OperateLogEvent([
-                        $operate
-                    ]));
-                }
-            }
+//            if($star_calendar){
+//                $module = null;
+//                if ($star_calendar->type == ModuleableType::BLOGGER){
+//                    $module = Blogger::findOrFail($star_calendar->starable_id);
+//                }else{
+//                    $module = Star::findOrFail($star_calendar->starable_id);
+//                }
+//                if ($module){
+//                    $operate = new OperateEntity([
+//                        'obj' => $module,
+//                        'title' => $schedule->title,
+//                        'start' => null,
+//                        'end' => null,
+//                        'method' => OperateLogMethod::CREATE_STAR_SCHEDULE,
+//                    ]);
+//                    event(new OperateLogEvent([
+//                        $operate
+//                    ]));
+//                }
+//            }
 
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');

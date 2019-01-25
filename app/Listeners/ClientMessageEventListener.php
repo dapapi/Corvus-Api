@@ -3,11 +3,13 @@
 namespace App\Listeners;
 
 use App\Events\ClientMessageEvent;
+use App\Models\Client;
 use App\Models\Department;
 use App\Models\Message;
 use App\Repositories\DepartmentRepository;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\ClientTriggerPoint;
+use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -45,7 +47,9 @@ class ClientMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
-        $this->data = json_decode(sprintf($this->message_content,$this->client->company),true);
+        //截止时间
+        $end_at = Carbon::now()->addDay(Client::PROTECTION_TIME)->toDateString();
+        $this->data = json_decode(sprintf($this->message_content,$this->client->company,$end_at),true);
         switch ($this->trigger_point){
             case ClientTriggerPoint::CREATE_NEW_GRADE_NORMAL://新增直客
 

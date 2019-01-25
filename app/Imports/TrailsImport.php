@@ -124,7 +124,7 @@ class TrailsImport implements ToCollection, WithBatchInserts, WithChunkReading
                         $payload['priority'] = $this->priority($row[9]);
                         $payload['cooperation_type'] = 0;
                         $title = Trail::where('title',$row[3])->get();
-                        if($title){
+                        if(!count($title)>0){
                             throw new Exception('系统中已存在销售线索数据，请处理后再进行上传');
                         }
                         $trail = Trail::create($payload);

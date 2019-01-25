@@ -50,7 +50,7 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
                 if ($key == 0)
                     continue ;
                 $title = Client::where('company',$row[1])->get();
-                if($title){
+                if(!count($title)>0){
                     throw new Exception('系统中已存在销售线索数据，请处理后再进行上传');
                 }
                 $client = Client::create([

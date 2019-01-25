@@ -6,6 +6,8 @@ use App\AffixType;
 use App\CommunicationStatus;
 use App\Events\OperateLogEvent;
 use App\Gender;
+use App\Exports\StarsExport;
+use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\StarRequest;
 use App\Http\Requests\StarUpdateRequest;
@@ -15,6 +17,7 @@ use App\Models\Affix;
 use App\Models\Blogger;
 use App\Models\OperateEntity;
 use App\Models\Star;
+use App\Imports\StarsImport;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
@@ -30,6 +33,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StarController extends Controller
 {
@@ -837,5 +841,26 @@ class StarController extends Controller
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }
+    public function import(ExcelImportRequest $request)
+    {
+        DB::beginTransaction();
+        try {
 
+            $clientName = $request->file('file') -> getClientOriginalName();
+            Excel::import(new StarsImport($clientName), $request->file('file'));
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+            //return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+        }
+        DB::commit();
+        return $this->response->created();
+    }
+    public function export(Request $request)
+    {
+        $file = '当前艺人导出' . date('YmdHis', time()) . '.xlsx';
+        return (new StarsExport($request))->download($file);
+    }
 }

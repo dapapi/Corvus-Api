@@ -773,11 +773,17 @@ class ApprovalFlowController extends Controller
         // 签约解约处理
         if ($contract->star_type && $status == 232) {
             $starArr = explode(',', $contract->stars);
-            DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
+            DB::table($contract->star_type)->whereIn('id', $starArr)->update([
+                'sign_contract_at' => $contract->contract_start_date,
+                'sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT,
+            ]);
 
             //签约
             if (in_array($instance->form_id, [5, 7])) {
-                DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
+                DB::table($contract->star_type)->whereIn('id', $starArr)->update([
+                    'terminate_agreement_at' => $contract->contract_start_date,
+                    'sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT
+                ]);
                 //发消息,日志
                 DB::beginTransaction();
                 try {

@@ -58,10 +58,10 @@ class TrailController extends Controller
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
 
-        })->searchData()->poolType()->orderBy('created_at', 'desc');
-//            ->paginate($pageSize);
-        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
-        dd($sql_with_bindings);
+        })->searchData()->poolType()->orderBy('created_at', 'desc')
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+//        dd($sql_with_bindings);
         return $this->response->paginator($trails, new TrailTransformer());
     }
 

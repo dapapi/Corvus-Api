@@ -650,7 +650,10 @@ class ApprovalFormController extends Controller
             ->join('stars', function ($join) {
                 $join->on('stars.id', '=', 'trail_star.starable_id');
             })
-            ->select('trails.title','ph.priority','ph.projected_expenditure','ph.start_at','ph.end_at','ph.desc','stars.name')
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'ph.principal_id');
+            })
+            ->select('trails.title','ph.priority','ph.projected_expenditure','ph.start_at','ph.end_at','ph.desc','stars.name','trails.fee','users.name as principal_name','trails.title')
             ->where('ph.id', $project->id)->get()->toArray();
         $data1 = json_decode(json_encode($projectArr), true);
 
@@ -682,9 +685,9 @@ class ApprovalFormController extends Controller
         $tmpArr['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title'] : null;
         $tmpArr1['key'] = '优先级';
         $tmpArr1['values']['data']['value'] = isset($data1[0]['priority']) ? $priority : null;
-        $tmpArr2['key'] = '预计收益';
+        $tmpArr2['key'] = '预计支出';
         $tmpArr2['values']['data']['value'] = isset($data1[0]['projected_expenditure']) ? $data1[0]['projected_expenditure'] : null;
-        $tmpArr3['key'] = '开始时刻';
+        $tmpArr3['key'] = '开始时间';
         $tmpArr3['values']['data']['value'] = isset($data1[0]['start_at']) ? $data1[0]['start_at'] : null;
         $tmpArr4['key'] = '结束时间';
         $tmpArr4['values']['data']['value'] = isset($data1[0]['end_at']) ? $data1[0]['end_at'] : null;
@@ -692,7 +695,14 @@ class ApprovalFormController extends Controller
         $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? $data1[0]['desc'] : null;
         $tmpArr6['key'] = '关联艺人';
         $tmpArr6['values']['data']['value'] = isset($arrName) ? implode(",",$arrName): null;
+        $tmpArr7['key'] = '预计收入';
+        $tmpArr7['values']['data']['value'] = isset($data1[0]['fee']) ? $data1[0]['fee']: null;//
+        $tmpArr8['key'] = '负责人';
+        $tmpArr8['values']['data']['value'] = isset($data1[0]['principal_name']) ? $data1[0]['principal_name']: null;//title
+        $tmpArr9['key'] = '项目来源';
+        $tmpArr9['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title']: null;//title
 
+        array_push($strArr,$tmpArr7);
         array_push($strArr,$tmpArr);
         array_push($strArr,$tmpArr1);
         array_push($strArr,$tmpArr2);
@@ -700,6 +710,8 @@ class ApprovalFormController extends Controller
         array_push($strArr,$tmpArr4);
         array_push($strArr,$tmpArr5);
         array_push($strArr,$tmpArr6);
+        array_push($strArr,$tmpArr8);
+        array_push($strArr,$tmpArr9);
 
         ////////////////////////////////////////////////////////////
         $project = DB::table('project_histories as projects')

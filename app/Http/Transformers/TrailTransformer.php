@@ -78,7 +78,7 @@ class TrailTransformer extends TransformerAbstract
                 'creator' => $trail->creator->name,
             ];
            if( $this->project != NULL &&   $this->user != NULL){
-               dd(4);
+
             if($this->project->creator_id != $this->user->id && $this->project->principal_id != $this->user->id)
             {
                 foreach ($array as $key => $value)

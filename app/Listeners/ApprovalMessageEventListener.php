@@ -56,22 +56,26 @@ class ApprovalMessageEventListener
         $this->authorization = $event->authorization;
         $this->user = $event->user;
         $this->other_id = $event->other_id;
-        $creator_id = null;
+        $creator_id = null;//审批创建人id
+        $create_at = null; //创建时间
         //获取发起人姓名
         if ($this->instance->business_type == "projects"){
             $project = Project::where('project_number',$this->instance->form_instance_number)->first();
             if ($project){
                 $creator_id = $project->creator_id;
+                $create_at = $project->created_at;
             }
         }
         if ($this->instance->business_type == "contracts"){
             $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
             if ($contract){
                 $creator_id = $contract->creator_id;
+                $create_at = $contract->created_at;
             }
         }
         if ($this->instance->created_by){
             $creator_id = $this->instance->created_by;
+            $create_at = $this->instance->created_at;
         }
         if ($creator_id){
             $this->origin = User::find($creator_id);
@@ -81,8 +85,7 @@ class ApprovalMessageEventListener
         //获取审批的名字
         $form = ApprovalForm::where("form_id",$this->instance->form_id)->first();
         $this->form_name = $form == null ? null : $form->name;
-        die(sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at));
-        $this->data = json_decode(sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at),true);
+        $this->data = json_decode(sprintf($this->message_content,$origin_name,$origin_name,$create_at),true);
         switch ($this->trigger_point){
             case ApprovalTriggerPoint::AGREE://审批同意
                 $this->sendMessageWhenAgree();

@@ -17,12 +17,19 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\OperateLogEvent' => [
             'App\Listeners\OperateLogEventListener',
         ],
-        'App\Events\MessageEvent'   =>  [
-            'App\Listeners\MessageEventListener',
+//        'App\Events\MessageEvent'   =>  [
+//            'App\Listeners\MessageEventListener',
+//        ],
+        'App\Events\TaskMessageEvent'   =>  [//监听任务事件
+            'App\Listeners\TaskMessageEventListener',
+        ],
+        'App\Events\ApprovalMessageEvent'   =>  [//监听审批事件
+            'App\Listeners\ApprovalMessageEventListener',
         ],
         'App\Events\dataChangeEvent'    =>  [
             'App\Listeners\dataChangeListener',
-        ]
+        ],
+
     ];
 
     /**

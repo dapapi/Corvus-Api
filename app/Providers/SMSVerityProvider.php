@@ -21,10 +21,6 @@ class SMSVerityProvider extends ServiceProvider {
             $device = Input::get($parameters[1]);
             $token = Input::get($parameters[2]);
 
-            if ($telephone == '13009705296') {
-                return true;
-            }
-
             $requestToken = RequestVerityToken::where('token', $token)->where('device', $device)->where('telephone', $telephone)->first();
             if (!$requestToken) {
                 return false;

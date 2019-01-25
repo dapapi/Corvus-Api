@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\CalendarMessageEvent;
 use App\Models\Calendar;
+use App\Models\Message;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\CalendarTriggerPoint;
 use Illuminate\Queue\InteractsWithQueue;
@@ -44,7 +45,7 @@ class CalendarMessageEventListener
         $this->authorization = $event->authorization;
         $this->user = $event->user;
         $this->meta = $event->meta;
-        $this->data = json_decode($this->message_content,$this->schedule->title,$this->schedule->start_at,$this->schedule->end_at,true);
+        $this->data = json_decode(sprintf($this->message_content,$this->schedule->title,$this->schedule->start_at,$this->schedule->end_at),true);
         switch ($this->trigger_point){
             case CalendarTriggerPoint::CREATE_SCHEDULE://创建日程
                 $this->sendMessageWhenCreateSchedule();
@@ -96,6 +97,6 @@ class CalendarMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->task->id);
+            Message::CALENDAR, null, $this->data, $send_to,$this->schedule->id);
     }
 }

@@ -95,7 +95,7 @@ class TaskMessageEventListener
         $send_to[] = $this->task->creator_id;//创建人
         $send_to[] = $this->task->principal_id;//负责人
         //参与人
-        $participants = array_column($this->task->participants()->select('user_id')->toArray(),'user_id');
+        $participants = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
         $send_to = array_merge($participants,$send_to);
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -109,13 +109,13 @@ class TaskMessageEventListener
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
         $subheading = $title = $this->user->name."完成了子任务(父任务{$pTaskTitle})";
         //子任务参与人
-        $send_to[] = array_column($this->task->participants()->select('user_id')->toArray(),'user_id');
+        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
         //父任务创建人
         $send_to[] = $pTask == null ? null : $pTask->creator_id;
         //父任务负责人
         $send_to[] = $pTask == null ? null : $pTask->principal_id;
         //父任务参与人
-        $pTaskParticipants = $pTask == null ? [] : array_column($pTask->participants()->select('user_id')->toArray(),'user_id');
+        $pTaskParticipants = $pTask == null ? [] : array_column($pTask->participants()->select('user_id')->get()->toArray(),'user_id');
         $send_to = array_merge($send_to,$pTaskParticipants);//合并参与人数组
         $this->sendMessage($title,$subheading,$send_to);
 
@@ -133,7 +133,7 @@ class TaskMessageEventListener
     {
         $subheading = $title = $this->user->name."邀请你参加任务";
         //任务参与人
-        $send_to = array_column($this->task->participants()->select('user_id')->toArray(),'user_id');
+        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
         $this->sendMessage($title,$subheading,$send_to);
     }
     //创建子任务时向负责人发消息
@@ -154,13 +154,13 @@ class TaskMessageEventListener
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
         $subheading = $title = $this->user->name."创建了子任务(父任务{$pTaskTitle})";
         //子任务参与人
-        $send_to[] = array_column($this->task->participants()->select('user_id')->toArray(),'user_id');
+        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
         //父任务创建人
         $send_to[] = $pTask == null ? null : $pTask->creator_id;
         //父任务负责人
         $send_to[] = $pTask == null ? null : $pTask->principal_id;
         //父任务参与人
-        $pTaskParticipants = $pTask == null ? [] : array_column($pTask->participants()->select('user_id')->toArray(),'user_id');
+        $pTaskParticipants = $pTask == null ? [] : array_column($pTask->participants()->select('user_id')->get()->toArray(),'user_id');
         $send_to = array_merge($send_to,$pTaskParticipants);//合并参与人数组
         $this->sendMessage($title,$subheading,$send_to);
     }

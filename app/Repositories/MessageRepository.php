@@ -23,7 +23,6 @@ class MessageRepository
         $message->link = $link;
         $message->module_data_id    =  hashid_encode($module_data_id);
         $message->save();
-
         foreach ($data as &$value){
             $value['message_id'] = $message->id;
         }
@@ -54,8 +53,6 @@ class MessageRepository
             $recive = hashid_encode($recive);
         }
         $send_message->login($authorization,$user->id,$user->name,$title,$subheading,$link,$data,$recives);
-
-//        $send_message->sendMessage($title,$subheading,$link,$data,$recives);
     }
 
     /**

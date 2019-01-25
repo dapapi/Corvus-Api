@@ -62,7 +62,7 @@ class TrailTransformer extends TransformerAbstract
                 'desc' => $trail->desc,
                 'lock_status' => $trail->lock_status,
                 // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-                'lock_user' => $trail->lock_user,
+              //  'lock_user' => $trail->lock_user,
                 'lock_at' => $trail->lock_at,
                 // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
 

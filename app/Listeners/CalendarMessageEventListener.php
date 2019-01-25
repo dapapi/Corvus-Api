@@ -74,7 +74,6 @@ class CalendarMessageEventListener
      */
     public function sendMessageWhenUpdateSchedule()
     {
-        $subheading = $title = $this->user->name."修改了(时间、会议室、位置)";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
 
         //判断是否更改了会议室，时间，位置
@@ -83,6 +82,16 @@ class CalendarMessageEventListener
         foreach ($old_schedule_arr as $key => $value){
             if ($key == "start_at" || $key == "end_at" || $key == "material_id" || $key == "position"){
                 if ($value != $schedule_arr[$key]){
+                    $update_filed = "";
+                    if ($key == "start_at")
+                        $update_filed = "开始时间";
+                    if ($key == "end_at")
+                        $update_filed = "结束时间";
+                    if ($key == "material_id")
+                        $update_filed = "会议室";
+                    if ($key == "position")
+                        $update_filed = "位置";
+                    $subheading = $title = $this->user->name."修改了($update_filed)";
                     $this->sendMessage($title,$subheading,$send_to);
                 }
             }

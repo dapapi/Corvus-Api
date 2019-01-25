@@ -2,8 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\Calendar;
-use App\Models\Schedule;
+use App\Models\Client;
 use App\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
@@ -13,26 +12,25 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class CalendarMessageEvent
+class ClientMessageEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
+
     public $model;
     public $trigger_point;
     public $authorization;
     public $user;
-    public $meta;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Schedule $model,$trigger_point,$authorization,User $user,$meta=[])
+    public function __construct(Client $model,$trigger_point,$authorization,User $user)
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;
         $this->authorization = $authorization;
         $this->user = $user;
-        $this->meta = $meta;
     }
 
     /**

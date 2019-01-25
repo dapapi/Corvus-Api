@@ -33,6 +33,8 @@ class Client extends Model
     const STATUS_NORMAL = 1;
     const STATUS_FROZEN = 2;
 
+    const PROTECTION_TIME = 90;//直客保护时间
+
     protected $fillable = [
         'company',
         'grade',             // 级别

@@ -16,7 +16,7 @@ class CreateApprovalFormDetailControlValuesTable extends Migration
         Schema::create('approval_form_detail_control_values', function (Blueprint $table) {
             $table->increments('id');
             $table->string('form_instance_number');
-            $table->unsignedInteger('form_control_id');
+            $table->string('key');
             $table->string('value');
             $table->unsignedInteger('sort_number');
             $table->timestamps();

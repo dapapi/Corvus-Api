@@ -27,6 +27,7 @@ use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
+use App\Models\ApprovalForm\ControlProperty;
 use App\Models\ApprovalForm\DetailValue;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
@@ -575,7 +576,7 @@ class ApprovalFormController extends Controller
             $detailArr = [];
             foreach (DetailValue::where('form_instance_number', $num)->cursor() as $item) {
                 $detailArr[$item->sort_number][] = [
-                    'key' => hashid_encode($item->form_control_id),
+                    'key' => $item->key,
                     'values' => [
                         'data' => [
                             'value' => $item->value
@@ -978,9 +979,10 @@ class ApprovalFormController extends Controller
             if ($controlId == 88) {
                 foreach ($value as $sort => $item) {
                     foreach ($item as $control) {
+                        $keyStr = ControlProperty::where('form_control_id', hashid_decode($control['key']))->where('property_id', 67)->value('property_value');
                         DetailValue::create([
                             'form_instance_number' => $num,
-                            'form_control_id' => $control['key'],
+                            'key' => $keyStr,
                             'value' => $control['value'],
                             'sort_number' => $sort
                         ]);

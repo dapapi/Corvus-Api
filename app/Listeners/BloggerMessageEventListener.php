@@ -58,7 +58,7 @@ class BloggerMessageEventListener
     public function sendMessageWhenSigning()
     {
         //获取全部博主
-        $blogger_arr = array_column(Blogger::select("nickname")->get()->toArray(),"nickname");
+        $blogger_arr = array_column(Blogger::select("nickname")->get()->toArray(),"nickname",true);
         $blogger_names = implode(",",$blogger_arr);
         $subheading = $title = $blogger_names."签约";
         $send_to = null;//全员

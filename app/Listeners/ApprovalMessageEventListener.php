@@ -9,7 +9,7 @@ use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\Participant;
 use App\Models\Message;
 use App\Repositories\MessageRepository;
-use App\TrigerPoint\ApprovalTriggerPoint;
+use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;
@@ -59,7 +59,7 @@ class ApprovalMessageEventListener
         //获取审批的名字
         $form = ApprovalForm::find($this->instance->form_id);
         $this->form_name = $form == null ? null : $form->name;
-        $this->data = sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at);
+        $this->data = sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at,true);
         switch ($this->trigger_point){
             case ApprovalTriggerPoint::AGREE://审批同意
                 $this->sendMessageWhenAgree();
@@ -127,7 +127,7 @@ class ApprovalMessageEventListener
         $subheading = $title = $this->user->name."知会你".$origin_name."的".$this->form_name;
         //todo 可能会根据角色发消息
         //获取知会人
-        $send_to = array_column(Participant::select("notice_id")->find($this->instance->form_instance_number)->get()->toArray(),"notice_id");
+        $send_to = array_column(Participant::select("notice_id")->where("form_instance_number",$this->instance->form_instance_number)->get()->toArray(),"notice_id");
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -143,7 +143,7 @@ class ApprovalMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::APPROVAL, null, $this->data, $send_to,$this->task->id);
+            Message::APPROVAL, null, $this->data, $send_to,$this->instance->id);
     }
 
 }

@@ -902,7 +902,8 @@ class ApprovalFormController extends Controller
         }
         //向知会人发消息
         $authorization = $request->header()['authorization'][0];
-        event( new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
+        $curr_user = Auth::guard('api')->user();
+        event( new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$curr_user));
         // 发送消息
         DB::beginTransaction();
         try {

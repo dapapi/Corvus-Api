@@ -32,7 +32,7 @@ class TrailTransformer extends TransformerAbstract
 //        $this->setprivacy = $setprivacy;
 //    }
 
-    public function __construct($isAll = true, $project, $user)
+    public function __construct($isAll = true, $project = null, $user = null)
     {
         $this->isAll = $isAll;
         $this->project = $project;
@@ -61,7 +61,7 @@ class TrailTransformer extends TransformerAbstract
                 'desc' => $trail->desc,
                 'lock_status' => $trail->lock_status,
                 // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-                'lock_user' => $trail->lock_user,
+                'lock_user' => hashid_encode($trail->lock_user),
                 'lock_at' => $trail->lock_at,
                 // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
 
@@ -76,7 +76,7 @@ class TrailTransformer extends TransformerAbstract
                 'created_at' => $trail->created_at->toDatetimeString(),//时间去掉秒
                 'creator' => $trail->creator->name,
             ];
-
+           if( $this->project != NULL &&   $this->user != NULL){
             if($this->project->creator_id != $this->user->id && $this->project->principal_id != $this->user->id)
             {
                 foreach ($array as $key => $value)
@@ -92,7 +92,7 @@ class TrailTransformer extends TransformerAbstract
                     }
                 }
             }
-
+          }
 
 //            if($this->setprivacy){
 //                $array = [

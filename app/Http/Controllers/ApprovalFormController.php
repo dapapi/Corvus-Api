@@ -660,11 +660,28 @@ class ApprovalFormController extends Controller
             $arrName[]=$value['name'];
 
         }
+        //优先级查找匹配
+        if($data1[0]['priority'] !==''){
+            //查询数据字典优先级
+            $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val','dds.name') ->where('dds.parent_id', 49)->get()->toArray();
+            $dictionariesArr = json_decode(json_encode($dictionaries), true);
 
+            if($dictionariesArr){
+                foreach ($dictionariesArr as $dvalue){
+                    if($data1[0]['priority'] == $dvalue['val']){
+                        $priority = $dvalue['name'];
+                    }
+
+                }
+            }
+        }else{
+
+            $priority = '';
+        }
         $tmpArr['key'] = '关联销售线索';
         $tmpArr['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title'] : null;
         $tmpArr1['key'] = '优先级';
-        $tmpArr1['values']['data']['value'] = isset($data1[0]['priority']) ? $data1[0]['priority'] : null;
+        $tmpArr1['values']['data']['value'] = isset($data1[0]['priority']) ? $priority : null;
         $tmpArr2['key'] = '预计收益';
         $tmpArr2['values']['data']['value'] = isset($data1[0]['projected_expenditure']) ? $data1[0]['projected_expenditure'] : null;
         $tmpArr3['key'] = '开始时刻';
@@ -674,7 +691,7 @@ class ApprovalFormController extends Controller
         $tmpArr5['key'] = '备注';
         $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? $data1[0]['desc'] : null;
         $tmpArr6['key'] = '关联艺人';
-        $tmpArr6['values']['data']['value'] = isset($arrName) ? $arrName : null;
+        $tmpArr6['values']['data']['value'] = isset($arrName) ? implode(",",$arrName): null;
 
         array_push($strArr,$tmpArr);
         array_push($strArr,$tmpArr1);
@@ -683,7 +700,6 @@ class ApprovalFormController extends Controller
         array_push($strArr,$tmpArr4);
         array_push($strArr,$tmpArr5);
         array_push($strArr,$tmpArr6);
-
 
         ////////////////////////////////////////////////////////////
         $project = DB::table('project_histories as projects')
@@ -822,6 +838,26 @@ class ApprovalFormController extends Controller
             }
             //记录日志
             //泰洋项目合同，papi醒目合同
+            if ($approval->form_id == 9 || $approval->form_id == 10) {
+                foreach ($controlValues as $value) {
+                    if ($value['type'] == "project_id") {
+                        $project = Project::find(hashid_decode($value['value']['id']));
+                        if ($project) {
+                            $operate = new OperateEntity([
+                                'obj' => $project,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::CREATE_CONTRACTS,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
+                    }
+                }
+            }
+
             if ($approval->form_id == 9 || $approval->form_id == 10) {
                 foreach ($controlValues as $value) {
                     if ($value['type'] == "project_id") {

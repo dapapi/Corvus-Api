@@ -79,6 +79,10 @@ class Trail extends Model
         'priority',
         'cooperation_type',
         'lock_status',
+        // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+        'lock_user',
+        'lock_at',
+        // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
         'progress_status',
         'resource',
         'resource_type',
@@ -189,7 +193,7 @@ class Trail extends Model
     {
         $ids = DB::table('projects')->leftJoin('approval_flow_execute', function($join) {
             $join->on('projects.project_number', 'approval_flow_execute.form_instance_number');
-        })->where('flow_type_id', '=', 231)->pluck('trail_id')->toArray();
+        })->where('status', '=', Project::STATUS_NORMAL)->where('flow_type_id', '=', 231)->pluck('trail_id')->toArray();
         $ids = array_unique($ids);
 
         $query->where('progress_status', self::STATUS_UNCONFIRMED)->whereNotIn('id', $ids);
@@ -199,7 +203,10 @@ class Trail extends Model
     {
         return $this->belongsTo(User::class, 'principal_id', 'id');
     }
-
+    public function lockUser()
+    {
+        return $this->belongsTo(User::class, 'lock_user', 'id');
+    }
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');

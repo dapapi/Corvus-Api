@@ -73,17 +73,17 @@ class UserController extends Controller
         $telephone = $request->get('telephone');
         $password = $request->get('password');
         #验证是否过期
-        $requestVerityToken = RequestVerityToken::where('token', $request->get('token'))->where('device', $request->get('device'))->where('telephone', $telephone)->first();
-
-        if (!$requestVerityToken){
-            return $this->response->errorBadRequest('缺少必要参数');
-        }
-        $updatedTime = $requestVerityToken->updated_at;
-        $expiredTime = $updatedTime->addSeconds($requestVerityToken->expired_in);
-        $now = Carbon::now();
-        if ($now > $expiredTime) {
-            return $this->response->errorBadRequest('短信验证码已经过期了');
-        }
+//        $requestVerityToken = RequestVerityToken::where('token', $request->get('token'))->where('device', $request->get('device'))->where('telephone', $telephone)->first();
+//
+//        if (!$requestVerityToken){
+//            return $this->response->errorBadRequest('缺少必要参数');
+//        }
+//        $updatedTime = $requestVerityToken->updated_at;
+//        $expiredTime = $updatedTime->addSeconds($requestVerityToken->expired_in);
+//        $now = Carbon::now();
+//        if ($now > $expiredTime) {
+//            return $this->response->errorBadRequest('短信验证码已经过期了');
+//        }
         #用户修改密码
         try {
             $userRepository = $this->userRepository;

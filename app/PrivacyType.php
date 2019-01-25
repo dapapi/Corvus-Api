@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Models\PrivacyUser;
+
 abstract class PrivacyType
 {
     const DEFULT = '0';
@@ -34,11 +36,45 @@ abstract class PrivacyType
         return $project;
     }
     public static function getBlogger()
-    {           $project = array();
-        $project[] = 'hatch_star_at';
-        $project[] = 'hatch_end_at';
+    {           $blogger = array();
+        $blogger[] = 'hatch_star_at';
+        $blogger[] = 'hatch_end_at';
 
 
-        return $project;
+        return $blogger;
+    }
+
+    public static function getTrail()
+    {           $trail = array();
+
+        $trail[] = 'fee';
+        return $trail;
+    }
+
+    public static function isPrivacy($moduleable_type, $moduleable_field)
+    {
+        if($moduleable_type ==  ModuleableType::PROJECT){
+         $result =  in_array($moduleable_field, PrivacyType::getProject());
+          return $result;
+        }else  if($moduleable_type ==  ModuleableType::BLOGGER){
+            $result =  in_array($moduleable_field, PrivacyType::getBlogger());
+            return $result;
+        }else  if($moduleable_type ==  ModuleableType::TRAIL){
+            $result =  in_array($moduleable_field, PrivacyType::getTrail());
+            return $result;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public static function excludePrivacy($user_id, $modulable_id,$moduleable_type, $moduleable_field)
+    {
+        $array['moduleable_id'] = $modulable_id;
+        $array['moduleable_type'] = $moduleable_type;
+        $array['moduleable_field'] = $moduleable_field;
+        $array['user_id'] = $user_id;
+        $result = PrivacyUser::where($array)->first();
+        return $result;
     }
 }

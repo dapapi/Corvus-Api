@@ -58,7 +58,10 @@ class TrailController extends Controller
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
 
-        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->poolType()->orderBy('created_at', 'desc')
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+//        dd($sql_with_bindings);
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
@@ -66,12 +69,12 @@ class TrailController extends Controller
     {
         $type = $request->get('type', '1,2,3,4,5');
         $typeArr = explode(',', $type);
-        $clients = Trail::confirmed()->whereIn('type', $typeArr)->orderBy('created_at', 'desc')
-            ->searchData()->poolType()
-//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+        $trails = Trail::searchData()->whereIn('type', $typeArr)->orderBy('created_at', 'desc')
+            ->poolType()->confirmed()
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
             ->get();
-        return $this->response->collection($clients, new TrailTransformer());
+        return $this->response->collection($trails, new TrailTransformer());
     }
     // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
     public function store(StoreTrailRequest $request)
@@ -240,8 +243,21 @@ class TrailController extends Controller
         if($trail->lock_status == 1){
             DB::beginTransaction();
             try {
-
                 $user = Auth::guard('api')->user();
+
+
+                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间2个字段
+                $lock_user = $user->id;
+                $lock_at = now()->toDateTimeString();
+                $trail_id =$trail->id;
+                $data = array();
+                $data['lock_user'] = $lock_user;
+                $data['lock_at'] = $lock_at;
+                Trail::where('id',$trail_id)->update($data);
+                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+
+
+
                 $title = $trail->title." 锁价金额为".$payload['fee'].'元';  //通知消息的标题
                 $subheading = $trail->title." 锁价金额为".$payload['fee'].'元';
                 $module = Message::PROJECT;
@@ -274,6 +290,7 @@ class TrailController extends Controller
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
+        $user = Auth::guard('api')->user();
         if($request->has('title') && !is_null($payload['title'])){//销售线索名称
             $array['title'] = $payload['title'];
             if($payload['title'] != $trail->title){
@@ -497,6 +514,18 @@ class TrailController extends Controller
 
                 $array['lock_status'] = $payload['lock'];
                 if($trail->lock_status != $array['lock_status']){
+
+
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间2个字段
+                    $lock_user = $user->id;
+                    $lock_at = now()->toDateTimeString();
+                    $trail_id =$trail->id;
+                    $data = array();
+                    $data['lock_user'] = $lock_user;
+                    $data['lock_at'] = $lock_at;
+                    Trail::where('id',$trail_id)->update($data);
+                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
+
                     $operateName = new OperateEntity([
                         'obj' => $trail,
                         'title' => '锁价',
@@ -728,7 +757,7 @@ class TrailController extends Controller
         if($trail->lock_status == 1){
             DB::beginTransaction();
             try {
-                $user = Auth::guard('api')->user();
+
                 $title = $trail->title." 锁价金额为".$trail->fee.'元';  //通知消息的标题
                 $subheading = $trail->title." 锁价金额为".$trail->fee.'元';
                 $module = Message::PROJECT;
@@ -883,9 +912,9 @@ class TrailController extends Controller
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if (!is_null($payload['status']) && $request->has('status') && $payload['status'] <> '3,4')
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
                 $query->where('type', $payload['status']);
-            else if($payload['status'] == '3,4'){
+            else if($request->has('status') && $payload['status'] == '3,4'){
                 $query->whereIn('type', [3,4]);
             }
             if ($request->has('principal_ids') && $payload['principal_ids']) {

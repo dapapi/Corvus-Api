@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class TrailTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['principal', 'client', 'stars', 'contact', 'recommendations',
-        'expectations', 'project','starexpectations','bloggerexpectations','starrecommendations','bloggerrecommendations'];
+        'expectations', 'project','starexpectations','bloggerexpectations','starrecommendations','bloggerrecommendations','lockuser'];
    // protected $defaultIncludes= ['stars'];
     private $isAll = true;
   //  private $setprivacy = true;
@@ -220,6 +220,14 @@ class TrailTransformer extends TransformerAbstract
         return $this->item($principal, new UserTransformer());
     }
 
+    public function includeLockUser(Trail $trail)
+    {
+        $lockUser = $trail->lockUser;
+        if (!$lockUser)
+            return null;
+
+        return $this->item($lockUser, new UserTransformer());
+    }
 
     public function includeClient(Trail $trail)
     {

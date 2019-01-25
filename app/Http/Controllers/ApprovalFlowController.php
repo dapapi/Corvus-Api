@@ -198,21 +198,23 @@ class ApprovalFlowController extends Controller
             $condition = $this->getCondition($formId, $value);
         }
 
-        $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->first();
-        $chains = ChainFixed::where('form_id', $formId)
-            ->where('condition_id', $condition)
-            ->where('next_id', '!=', 0)
-            ->where('sort_number', '>=', $nextChain->sort_number)
-            ->orderBy('sort_number')
-            ->get();
         if ($form->change_type == 223) {
-            $nextChain = ChainFree::where('next_id', $nextId)->where('form_id', $formId)->first();
+            $nextChain = ChainFree::where('next_id', $nextId)->where('form_number', $num)->first();
             $chains = ChainFree::where('form_number', $num)
                 ->where('next_id', '!=', 0)
                 ->where('sort_number', '>=', $nextChain->sort_number)
                 ->orderBy('sort_number')
                 ->get();
+        } else {
+            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->first();
+            $chains = ChainFixed::where('form_id', $formId)
+                ->where('condition_id', $condition)
+                ->where('next_id', '!=', 0)
+                ->where('sort_number', '>=', $nextChain->sort_number)
+                ->orderBy('sort_number')
+                ->get();
         }
+
         foreach ($chains as $key => $chain) {
             $array[] = [
                 'id' => hashid_encode($chain->next->id),

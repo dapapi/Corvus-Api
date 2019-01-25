@@ -24,7 +24,7 @@ class BindTelephoneRequest extends FormRequest {
             'telephone' => ['required', 'regex:/^1[34578]\d{9}$/'],
             'device' => ['required'],
             'token' => ['required'],
-            'sms_code' => ['required'],
+            'sms_code' => ['required', 'sms_code'],
             'password' => 'required|min:6|max:18',
 //            'password_confirmation' => 'required|min:6|max:18 ',
         ];

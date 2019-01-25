@@ -33,11 +33,11 @@ class SMSVerityProvider extends ServiceProvider {
             if ($requestToken->sms_code == $value) {
                 $result = true;
                 //清空数据
-                try {
-                    $requestToken->delete();
-                } catch (Exception $exception) {
-                    Log::error($exception->getMessage());
-                }
+//                try {
+//                    $requestToken->delete();
+//                } catch (Exception $exception) {
+//                    Log::error($exception->getMessage());
+//                }
             }
 
             //验证短信验证码

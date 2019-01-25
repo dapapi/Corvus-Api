@@ -810,8 +810,8 @@ class ApprovalFormController extends Controller
                     'form_instance_number' => $num,
                     'apply_id' => $user->id,
                     'form_status' => 231,
-                    'create_by' => $user->name,
-                    'create_at' => Carbon::now(),
+                    'created_by' => $user->name,
+                    'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
             }

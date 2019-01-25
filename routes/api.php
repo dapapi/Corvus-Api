@@ -383,6 +383,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
+        $api->get('/projects/export', 'App\Http\Controllers\ProjectController@export');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->get('/projects/relate_client', 'App\Http\Controllers\ProjectController@getClient');

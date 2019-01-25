@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
+use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Project\AddRelateProjectRequest;
 use App\Http\Requests\Project\EditEeturnedMoneyRequest;
@@ -1538,5 +1539,11 @@ class ProjectController extends Controller
         return $this->response->paginator($projects,new StarProjectTransformer());
     }
 
+    public function export(Request $request)
+    {
+
+        $file = '当前项目导出' . date('YmdHis', time()) . '.xlsx';
+        return (new ProjectsExport($request))->download($file);
+    }
 }
 

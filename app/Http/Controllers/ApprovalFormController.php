@@ -842,6 +842,26 @@ class ApprovalFormController extends Controller
                 }
             }
 
+            if ($approval->form_id == 9 || $approval->form_id == 10) {
+                foreach ($controlValues as $value) {
+                    if ($value['type'] == "project_id") {
+                        $project = Project::find(hashid_decode($value['value']['id']));
+                        if ($project) {
+                            $operate = new OperateEntity([
+                                'obj' => $project,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::CREATE_CONTRACTS,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
+                    }
+                }
+            }
+
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorBadRequest($exception->getMessage());

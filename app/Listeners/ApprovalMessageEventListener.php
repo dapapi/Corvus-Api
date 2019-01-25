@@ -6,6 +6,8 @@ use App\Events\ApprovalMessageEvent;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
+use App\Models\ApprovalForm\Participant;
+use App\Models\Message;
 use App\Repositories\MessageRepository;
 use App\TrigerPoint\ApprovalTriggerPoint;
 use App\User;
@@ -66,11 +68,13 @@ class ApprovalMessageEventListener
                 $this->sendMessageWhenRefuse();
                 break;
             case ApprovalTriggerPoint::TRANSFER://转交
-
+                $this->sendMessageWhenTransfer();
                 break;
             case ApprovalTriggerPoint::WAIT_ME://待我审批
+                $this->sendMessageWhenWaitMe();
                 break;
             case ApprovalTriggerPoint::NOTIFY://知会我的
+                $this->sendMessageWhenNotify();
                 break;
             case ApprovalTriggerPoint::REMIND://提醒
                 break;
@@ -109,10 +113,21 @@ class ApprovalMessageEventListener
         $send_to[] = $this->other_id;//被转交人
         $this->sendMessage($title,$subheading,$send_to);
     }
+    //待审批
     public function sendMessageWhenWaitMe()
     {
         $subheading = $title = $this->user->name."的".$this->form_name."待您审批";
-        $send_to[] = $this->instance->created_by;//发起人
+        $send_to[] = $this->other_id;//向下一个审批人发消息
+        $this->sendMessage($title,$subheading,$send_to);
+    }
+    //向知会人发消息
+    public function sendMessageWhenNotify()
+    {
+        $origin_name = $this->origin == null ? null : $this->origin->name;
+        $subheading = $title = $this->user->name."知会你".$origin_name."的".$this->form_name;
+        //todo 可能会根据角色发消息
+        //获取知会人
+        $send_to = array_column(Participant::select("notice_id")->find($this->instance->form_instance_number)->get()->toArray(),"notice_id");
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -128,7 +143,7 @@ class ApprovalMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->task, null, $this->data, $send_to,$this->task->id);
+            Message::APPROVAL, null, $this->data, $send_to,$this->task->id);
     }
 
 }

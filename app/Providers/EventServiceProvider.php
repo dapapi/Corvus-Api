@@ -20,9 +20,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\MessageEvent'   =>  [
             'App\Listeners\MessageEventListener',
         ],
+        'App\Events\TaskMessageEvent'   =>  [//监听任务消息
+            'App\Listeners\TaskMessageEventListener',
+        ],
         'App\Events\dataChangeEvent'    =>  [
             'App\Listeners\dataChangeListener',
-        ]
+        ],
     ];
 
     /**

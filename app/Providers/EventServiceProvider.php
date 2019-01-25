@@ -26,6 +26,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\ApprovalMessageEvent'   =>  [//监听审批事件
             'App\Listeners\ApprovalMessageEventListener',
         ],
+        'App\Events\CalendarMessageEvent'   =>  [//监听日历事件
+            'App\Listeners\CalendarMessageEventListener',
+        ],
         'App\Events\dataChangeEvent'    =>  [
             'App\Listeners\dataChangeListener',
         ],

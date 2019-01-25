@@ -52,7 +52,7 @@ class ClientMessageEventListener
         $this->data = json_decode(sprintf($this->message_content,$this->client->company,$end_at),true);
         switch ($this->trigger_point){
             case ClientTriggerPoint::CREATE_NEW_GRADE_NORMAL://新增直客
-
+                $this->sendMessageWhenCreateNewGradeNormal();
                 break;
             case ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM://直客成单
                 break;

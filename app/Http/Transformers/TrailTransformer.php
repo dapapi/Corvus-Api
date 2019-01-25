@@ -21,7 +21,7 @@ class TrailTransformer extends TransformerAbstract
         'expectations', 'project','starexpectations','bloggerexpectations','starrecommendations','bloggerrecommendations'];
    // protected $defaultIncludes= ['stars'];
     private $isAll = true;
-    private $setprivacy = true;
+  //  private $setprivacy = true;
 
     private $project;
     private $user;
@@ -37,6 +37,7 @@ class TrailTransformer extends TransformerAbstract
         $this->isAll = $isAll;
         $this->project = $project;
         $this->user = $user;
+
     }
 
 
@@ -61,7 +62,7 @@ class TrailTransformer extends TransformerAbstract
                 'desc' => $trail->desc,
                 'lock_status' => $trail->lock_status,
                 // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-                'lock_user' => hashid_encode($trail->lock_user),
+                'lock_user' => $trail->lock_user,
                 'lock_at' => $trail->lock_at,
                 // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
 
@@ -77,6 +78,7 @@ class TrailTransformer extends TransformerAbstract
                 'creator' => $trail->creator->name,
             ];
            if( $this->project != NULL &&   $this->user != NULL){
+               dd(4);
             if($this->project->creator_id != $this->user->id && $this->project->principal_id != $this->user->id)
             {
                 foreach ($array as $key => $value)

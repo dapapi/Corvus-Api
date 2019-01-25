@@ -35,6 +35,8 @@ use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
 use App\SignContractStatus;
 use App\TriggerPoint\ApprovalTriggerPoint;
+use App\TriggerPoint\BloggerTriggerPoint;
+use App\TriggerPoint\StarTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -288,6 +290,31 @@ class ApprovalFlowController extends Controller
             //向知会人发消息
             $authorization = $request->header()['authorization'][0];
             event( $instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user);
+            $num = $instance->form_instance_number;
+            $contract = Contract::where('form_instance_number', $num)->first();
+            if ($contract){
+                $star_arr = explode(",",$contract->stars);
+                if (in_array($instance->form_id, [5, 7])) {//签约
+                    if ($contract->star_type == "bloggers"){
+                        event( $star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user);
+                    }
+                    if ($contract->star_type == "stars"){
+                        event( $star_arr,StarTriggerPoint::SIGNING,$authorization,$user);
+                    }
+
+
+                }
+                if (in_array($instance->form_id, [6, 8])) {//解约
+                    if ($contract->star_type == "bloggers"){
+                        event( $star_arr,StarTriggerPoint::RESCISSION,$authorization,$user);
+                    }
+                    if ($contract->star_type == "stars"){
+                        event( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user);
+                    }
+                }
+            }
+
+
         }else{
             //向审批发起人发消息
             $authorization = $request->header()['authorization'][0];
@@ -784,128 +811,10 @@ class ApprovalFlowController extends Controller
             //签约
             if (in_array($instance->form_id, [5, 7])) {
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT]);
-                //发消息,日志
-                DB::beginTransaction();
-                try {
-
-                    $user = Auth::guard('api')->user();
-
-                    if ($contract->star_type == "bloggers") {
-                        $model = Blogger::findOrFail($contract->stars);
-                        $name = $model->nickname;
-                        $link = URL::action("StarController@show", ['star' => $model->id]);
-                        $module = Message::BLOGGER;
-                    }
-                    if ($contract->star_type == "stars") {
-                        $model = Star::findOrFail($contract->stars);
-                        $name = $model->name;
-                        $link = URL::action("BloggerController@show", ['blogger' => $model->id]);
-                        $module = Message::STAR;
-                    }
-                    $title = $name . "签约";  //通知消息的标题
-                    $subheading = $name . "签约";
-                    $data = [];
-                    if ($contract->star_type == "stars") {
-                        $data[] = [
-                            "title" => '艺人签约', //通知消息中的消息内容标题
-                            'value' => $name,  //通知消息内容对应的值
-                        ];
-                    } else {
-                        $data[] = [
-                            "title" => '博主签约', //通知消息中的消息内容标题
-                            'value' => $name,  //通知消息内容对应的值
-                        ];
-                    }
-                    $data[] = [
-                        'title' => '签约时间',
-                        'value' => date('Y-m-d H:i:s')
-                    ];
-
-
-                    $authorization = \request()->header()['authorization'][0];
-
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null,$module->id);
-
-                    //操作日志
-                    $operate = new OperateEntity([
-                        'obj' => $model,
-                        'title' => $name,
-                        'start' => null,
-                        'end' => null,
-                        'method' => OperateLogMethod::CREATE_SIGNING_CONTRACTS,
-                    ]);
-                    event(new OperateLogEvent([
-                        $operate,
-                    ]));
-                    DB::commit();
-                } catch (Exception $e) {
-                    DB::rollBack();
-                    Log::error($e);
-                }
-
             }
             //解约
             if (in_array($instance->form_id, [6, 8])) {
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update(['sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT]);
-                //发消息,日志
-                DB::beginTransaction();
-                try {
-
-                    $user = Auth::guard('api')->user();
-
-                    if ($contract->star_type == "bloggers") {
-                        $model = Blogger::findOrFail($contract->stars);
-                        $name = $model->nickname;
-                        $link = URL::action("StarController@show", ['star' => $model->id]);
-                        $module = Message::BLOGGER;
-                    }
-                    if ($contract->star_type == "stars") {
-                        $model = Star::findOrFail($contract->stars);
-                        $name = $model->name;
-                        $link = URL::action("BloggerController@show", ['blogger' => $model->id]);
-                        $module = Message::STAR;
-                    }
-                    $title = $name . "解约";  //通知消息的标题
-                    $subheading = $name . "解约";
-                    $data = [];
-                    if ($contract->star_type == "stars") {
-                        $data[] = [
-                            "title" => '艺人解约', //通知消息中的消息内容标题
-                            'value' => $name,  //通知消息内容对应的值
-                        ];
-                    } else {
-                        $data[] = [
-                            "title" => '博主解约', //通知消息中的消息内容标题
-                            'value' => $name,  //通知消息内容对应的值
-                        ];
-                    }
-                    $data[] = [
-                        'title' => '解约时间',
-                        'value' => date('Y-m-d H:i:s')
-                    ];
-
-
-                    $authorization = \request()->header()['authorization'][0];
-
-                    (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, null,$module->id);
-
-                    //操作日志
-                    $operate = new OperateEntity([
-                        'obj' => $model,
-                        'title' => $name,
-                        'start' => null,
-                        'end' => null,
-                        'method' => OperateLogMethod::CREATE_RESCISSION_CONTRACTS,
-                    ]);
-                    event(new OperateLogEvent([
-                        $operate,
-                    ]));
-                    DB::commit();
-                } catch (Exception $e) {
-                    DB::rollBack();
-                    Log::error($e);
-                }
-
             }
         }
 

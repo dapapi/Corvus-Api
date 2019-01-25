@@ -42,7 +42,6 @@ class SendMessage{
         }else{
             $message->action = "broadcast";
         }
-
         $this->websocket_client->send(json_encode($message));
     }
     public function recive(){

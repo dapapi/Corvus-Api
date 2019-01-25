@@ -108,6 +108,10 @@ class Blogger extends Model
     {
         return $this->belongsToMany(User::class,"module_users","moduleable_id")->where('type',ModuleUserType::PRODUCER);
     }
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class, 'stars', 'id')->where('star_type','bloggers');
+    }
     public function calendars()
     {
         return $this->morphOne(Calendar::class,'starable');

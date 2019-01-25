@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class BloggerTransformer extends TransformerAbstract
 {
 
-    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses','calendar','schedule'];
+    protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses','calendar','schedule','content'];
 
     private $isAll;
 
@@ -168,7 +168,6 @@ class BloggerTransformer extends TransformerAbstract
         $trails = $blogger->trail()->get();
         return $this->collection($trails,new TrailTransformer());
     }
-
     public function includeTasks(Blogger $blogger)
     {
         $tasks = $blogger->tasks()->where('status',TaskStatus::NORMAL)->stopAsc()->limit(3)->get();
@@ -187,6 +186,12 @@ class BloggerTransformer extends TransformerAbstract
     public function includePublicity(Blogger $blogger){
         $users = $blogger->publicity()->get();
         return $this->collection($users,new UserTransformer());
+    }
+    public function includeContent(Blogger $blogger)
+    {
+
+        $contracts = $blogger->contracts()->get();
+        return $this->collection($contracts, new ContractDateTransformer(false));
     }
     public function includeCalendar(Blogger $blogger)
     {

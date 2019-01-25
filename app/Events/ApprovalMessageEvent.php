@@ -19,13 +19,13 @@ class ApprovalMessageEvent
     public $trigger_point;
     public $authorization;
     public $user;
-    public $other_id;
+    public $other_id; //转交时他是转交人id
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($model,$trigger_point,$authorization,User $user,$other_id)
+    public function __construct($model,$trigger_point,$authorization,User $user,$other_id=null)
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;

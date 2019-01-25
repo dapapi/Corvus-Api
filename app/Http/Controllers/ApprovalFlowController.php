@@ -383,7 +383,7 @@ class ApprovalFlowController extends Controller
 
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user);
+        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$other_id);
 
         return $this->response->created();
     }

@@ -165,6 +165,11 @@ class TaskMessageEventListener
         $send_to = array_merge($send_to,$pTaskParticipants);//合并参与人数组
         $this->sendMessage($title,$subheading,$send_to);
     }
+    //创建子任务向父任务的负责人发消息
+    public function createSonTaskSendMessagePTaskPrincipal()
+    {
+
+    }
     //最终发送消息方法调用
     public function sendMessage($title,$subheading,$send_to)
     {

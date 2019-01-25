@@ -21,6 +21,8 @@ class Department extends Model
     const DEPARTMENT_HEAD_TYPE = 1; // 部门负责人
     const NOT_DISTRIBUTION_DEPARTMENT= '未分配部门'; // 部门负责人
 
+    const BUSINESS_DEPARTMENT = 207;//商业管理部，锁价时发消息
+
 
     public function pDepartment()
     {

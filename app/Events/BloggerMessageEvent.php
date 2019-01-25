@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\ApprovalForm\Instance;
+use App\Models\Blogger;
 use App\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
@@ -12,27 +12,27 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class ApprovalMessageEvent
+class BloggerMessageEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $model;
+    public $blogger_arrel;
     public $trigger_point;
     public $authorization;
     public $user;
-    public $other_id; //转交时他是转交人id
+    public $meta;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($model,$trigger_point,$authorization,User $user,$other_id=null)
+    public function __construct($blogger_arr,$trigger_point,$authorization,User $user,$meta=[])
     {
-        $this->model = $model;
+        $this->blogger_arr = $blogger_arr;
         $this->trigger_point = $trigger_point;
         $this->authorization = $authorization;
         $this->user = $user;
-        $this->other_id = $other_id;
+        $this->meta = $meta;
     }
 
     /**

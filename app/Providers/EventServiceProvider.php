@@ -29,6 +29,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\CalendarMessageEvent'   =>  [//监听日历事件
             'App\Listeners\CalendarMessageEventListener',
         ],
+        'App\Events\StarMessageEvent'   =>  [//监听艺人签约解约
+            'App\Listeners\StarMessageEventListener',
+        ],
+        'App\Events\BloggerMessageEvent'   =>  [//监听博主签约解约
+            'App\Listeners\BloggerMessageEventListener',
+        ],
         'App\Events\dataChangeEvent'    =>  [
             'App\Listeners\dataChangeListener',
         ],

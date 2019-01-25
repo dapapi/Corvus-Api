@@ -15,6 +15,7 @@ use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
 use App\Imports\TrailsImport;
 use App\Models\DataDictionarie;
+use App\Models\Department;
 use App\Models\FilterJoin;
 use App\Models\Industry;
 use App\Models\Message;
@@ -24,6 +25,8 @@ use App\Models\Contact;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\OperateLogMethod;
+use App\Repositories\DepartmentRepository;
+use App\Repositories\MessageRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
 use App\User;
@@ -38,6 +41,12 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class TrailController extends Controller
 {
+    private $departmentRepository;
+    public function __construct(DepartmentRepository $departmentRepository)
+    {
+        $this->departmentRepository = $departmentRepository;
+    }
+
     public function index(FilterTrailRequest $request)
     {
         $payload = $request->all();
@@ -260,7 +269,7 @@ class TrailController extends Controller
 
                 $title = $trail->title." 锁价金额为".$payload['fee'].'元';  //通知消息的标题
                 $subheading = $trail->title." 锁价金额为".$payload['fee'].'元';
-                $module = Message::PROJECT;
+                $module = Message::TRAILS;
                 $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
                 $data = [];
                 $data[] = [
@@ -271,11 +280,9 @@ class TrailController extends Controller
                     'title' => '预计订单费用',
                     'value' => $payload['fee'],
                 ];
-                //TODO 发给papi商务组，商务组暂时没建立
-//            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
-//            $authorization = $request->header()['authorization'][0];
-//
-//            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
+            $authorization = $request->header()['authorization'][0];
+            $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_to,$trail->id);
                 DB::commit();
             } catch (Exception $e) {
                 Log::error($e);
@@ -505,13 +512,9 @@ class TrailController extends Controller
                 unset($array['desc']);
             }
         }
-
-
         DB::beginTransaction();
         try {
             if ($request->has('lock')) {//操作锁价
-
-
                 $array['lock_status'] = $payload['lock'];
                 if($trail->lock_status != $array['lock_status']){
 
@@ -752,7 +755,6 @@ class TrailController extends Controller
             return $this->response->errorInternal('修改销售线索失败');
         }
         DB::commit();
-
         //发消息
         if($trail->lock_status == 1){
             DB::beginTransaction();
@@ -760,7 +762,7 @@ class TrailController extends Controller
 
                 $title = $trail->title." 锁价金额为".$trail->fee.'元';  //通知消息的标题
                 $subheading = $trail->title." 锁价金额为".$trail->fee.'元';
-                $module = Message::PROJECT;
+                $module = Message::TRAILS;
                 $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
                 $data = [];
                 $data[] = [
@@ -771,11 +773,9 @@ class TrailController extends Controller
                     'title' => '预计订单费用',
                     'value' => $trail->fee,
                 ];
-                //TODO 发给papi商务组，商务组暂时没建立
-//            $participant_ids = isset($payload['participant_ids']) ? $payload['participant_ids'] : null;
-//            $authorization = $request->header()['authorization'][0];
-//
-//            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids);
+            $authorization = $request->header()['authorization'][0];
+            $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_to,$trail->id);
                 DB::commit();
             } catch (Exception $e) {
                 Log::error($e);

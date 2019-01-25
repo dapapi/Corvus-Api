@@ -10,7 +10,7 @@ class DetailValue extends Model
 
     protected $fillable = [
         'form_instance_number',
-        'form_control_id',
+        'key',
         'value',
         'sort_number',
     ];

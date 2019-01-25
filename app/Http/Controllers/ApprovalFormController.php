@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exceptions\ApprovalVerifyException;
 use App\Helper\Generator;
@@ -26,6 +27,7 @@ use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Control;
+use App\Models\ApprovalForm\ControlProperty;
 use App\Models\ApprovalForm\DetailValue;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
@@ -574,7 +576,7 @@ class ApprovalFormController extends Controller
             $detailArr = [];
             foreach (DetailValue::where('form_instance_number', $num)->cursor() as $item) {
                 $detailArr[$item->sort_number][] = [
-                    'key' => hashid_encode($item->form_control_id),
+                    'key' => $item->key,
                     'values' => [
                         'data' => [
                             'value' => $item->value
@@ -901,7 +903,8 @@ class ApprovalFormController extends Controller
         }
         //向知会人发消息
         $authorization = $request->header()['authorization'][0];
-        event( $instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user);
+        $curr_user = Auth::guard('api')->user();
+        event( new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$curr_user));
         // 发送消息
         DB::beginTransaction();
         try {
@@ -976,9 +979,10 @@ class ApprovalFormController extends Controller
             if ($controlId == 88) {
                 foreach ($value as $sort => $item) {
                     foreach ($item as $control) {
+                        $keyStr = ControlProperty::where('form_control_id', hashid_decode($control['key']))->where('property_id', 67)->value('property_value');
                         DetailValue::create([
                             'form_instance_number' => $num,
-                            'form_control_id' => $control['key'],
+                            'key' => $keyStr,
                             'value' => $control['value'],
                             'sort_number' => $sort
                         ]);

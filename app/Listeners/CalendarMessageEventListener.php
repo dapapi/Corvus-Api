@@ -44,7 +44,7 @@ class CalendarMessageEventListener
         $this->authorization = $event->authorization;
         $this->user = $event->user;
         $this->meta = $event->meta;
-        $this->data = json_decode($this->message_content,$this->schedule->title,$this->schedule->start_at,$this->schedule->end_at);
+        $this->data = json_decode($this->message_content,$this->schedule->title,$this->schedule->start_at,$this->schedule->end_at,true);
         switch ($this->trigger_point){
             case CalendarTriggerPoint::CREATE_SCHEDULE://创建日程
                 $this->sendMessageWhenCreateSchedule();

@@ -15,7 +15,11 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\TransformerMakeCommand::class,
         Commands\RepositoryMakeCommand::class,
-        Commands\TriggerPoint::class
+        Commands\TriggerPoint::class,
+        Commands\Trails::class,
+        Commands\Project::class
+
+
     ];
 
     /**
@@ -26,8 +30,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->command('Trails')->everyMinute();
+        $schedule->command('Project')->everyMinute();
+
     }
 
     /**

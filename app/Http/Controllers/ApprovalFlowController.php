@@ -128,9 +128,9 @@ class ApprovalFlowController extends Controller
             ]);
             $now = Carbon::now();
 
-            $this->storeRecord($formNumber, $user->id, $now, 237);
-
-            $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 245, 231);
+//            $this->storeRecord($formNumber, $user->id, $now, 237);
+//
+//            $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 245, 231);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;

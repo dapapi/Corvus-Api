@@ -219,7 +219,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //导入 导出
         //->middleware('export')
-        $api->get('/bloggers/export', 'App\Http\Controllers\BloggerController@export');
+        $api->get('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
@@ -707,7 +707,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/datadic/add','App\Http\Controllers\DataDictionaryController@store');
 
         $api->get('data_dictionary/{pid}', 'App\Http\Controllers\DataDictionaryController@company');
-
+        $api->get('data_dictionary/appraising/{pid}', 'App\Http\Controllers\DataDictionaryController@appraising');
         //艺人项目列表
         $api->get("/stars/{star}/project","App\Http\Controllers\ProjectController@getProjectList");
         $api->get("/bloggers/{blogger}/project","App\Http\Controllers\ProjectController@getProjectList");

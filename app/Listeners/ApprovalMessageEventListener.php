@@ -109,7 +109,12 @@ class ApprovalMessageEventListener
         $send_to[] = $this->other_id;//被转交人
         $this->sendMessage($title,$subheading,$send_to);
     }
-
+    public function sendMessageWhenWaitMe()
+    {
+        $subheading = $title = $this->user->name."的".$this->form_name."待您审批";
+        $send_to[] = $this->instance->created_by;//发起人
+        $this->sendMessage($title,$subheading,$send_to);
+    }
     /**
      * @param $title
      * @param $subheading

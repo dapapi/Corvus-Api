@@ -45,7 +45,7 @@ class ClientMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
-        $this->data = jsoon_decode(sprintf($this->message_content,$this->client->company),true);
+        $this->data = json_decode(sprintf($this->message_content,$this->client->company),true);
         switch ($this->trigger_point){
             case ClientTriggerPoint::CREATE_NEW_GRADE_NORMAL://新增直客
 

@@ -9,14 +9,11 @@
 namespace App\Scopes;
 
 
-use App\ModuleableType;
 use App\Repositories\ScopeRepository;
-use function foo\func;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class SearchDataScope implements Scope
 {

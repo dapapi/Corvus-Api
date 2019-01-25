@@ -660,7 +660,7 @@ class ApprovalFormController extends Controller
             $arrName[]=$value['name'];
 
         }
-
+       
         $tmpArr['key'] = '关联销售线索';
         $tmpArr['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title'] : null;
         $tmpArr1['key'] = '优先级';
@@ -672,9 +672,9 @@ class ApprovalFormController extends Controller
         $tmpArr4['key'] = '结束时间';
         $tmpArr4['values']['data']['value'] = isset($data1[0]['end_at']) ? $data1[0]['end_at'] : null;
         $tmpArr5['key'] = '备注';
-        $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? $data1[0]['desc'] : null;
+        $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? json_encode($data1[0]['desc'], JSON_FORCE_OBJECT) : null;
         $tmpArr6['key'] = '关联艺人';
-        $tmpArr6['values']['data']['value'] = isset($arrName) ? $arrName : null;
+        $tmpArr6['values']['data']['value'] = isset($arrName) ? json_encode($arrName, JSON_FORCE_OBJECT): null;
 
         array_push($strArr,$tmpArr);
         array_push($strArr,$tmpArr1);
@@ -822,6 +822,26 @@ class ApprovalFormController extends Controller
             }
             //记录日志
             //泰洋项目合同，papi醒目合同
+            if ($approval->form_id == 9 || $approval->form_id == 10) {
+                foreach ($controlValues as $value) {
+                    if ($value['type'] == "project_id") {
+                        $project = Project::find(hashid_decode($value['value']['id']));
+                        if ($project) {
+                            $operate = new OperateEntity([
+                                'obj' => $project,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::CREATE_CONTRACTS,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
+                    }
+                }
+            }
+
             if ($approval->form_id == 9 || $approval->form_id == 10) {
                 foreach ($controlValues as $value) {
                     if ($value['type'] == "project_id") {

@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\MessageEvent;
 use App\Models\Message;
+use App\Models\Star;
 use App\Models\Task;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint;

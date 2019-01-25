@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exceptions\ApprovalVerifyException;
 use App\Helper\Generator;
@@ -901,7 +902,7 @@ class ApprovalFormController extends Controller
         }
         //向知会人发消息
         $authorization = $request->header()['authorization'][0];
-        event( $instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user);
+        event( new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
         // 发送消息
         DB::beginTransaction();
         try {

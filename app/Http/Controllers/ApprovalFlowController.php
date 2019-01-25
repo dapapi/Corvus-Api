@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ApprovalMessageEvent;
+use App\Events\BloggerMessageEvent;
 use App\Events\OperateLogEvent;
+use App\Events\StarMessageEvent;
 use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
@@ -39,6 +42,7 @@ use App\TriggerPoint\BloggerTriggerPoint;
 use App\TriggerPoint\StarTriggerPoint;
 use App\User;
 use Carbon\Carbon;
+use DemeterChain\A;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -289,27 +293,27 @@ class ApprovalFlowController extends Controller
         if($instance->form_status == 232){//审批通过
             //向知会人发消息
             $authorization = $request->header()['authorization'][0];
-            event( $instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user);
+            event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
             $num = $instance->form_instance_number;
             $contract = Contract::where('form_instance_number', $num)->first();
             if ($contract){
                 $star_arr = explode(",",$contract->stars);
                 if (in_array($instance->form_id, [5, 7])) {//签约
                     if ($contract->star_type == "bloggers"){
-                        event( $star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user);
+                        event( new BloggerMessageEvent($star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user));
                     }
                     if ($contract->star_type == "stars"){
-                        event( $star_arr,StarTriggerPoint::SIGNING,$authorization,$user);
+                        event( new StarMessageEvent($star_arr,StarTriggerPoint::SIGNING,$authorization,$user));
                     }
 
 
                 }
                 if (in_array($instance->form_id, [6, 8])) {//解约
                     if ($contract->star_type == "bloggers"){
-                        event( $star_arr,StarTriggerPoint::RESCISSION,$authorization,$user);
+                        event( new BloggerMessageEvent($star_arr,StarTriggerPoint::RESCISSION,$authorization,$user));
                     }
                     if ($contract->star_type == "stars"){
-                        event( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user);
+                        event(new StarMessageEvent( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user));
                     }
                 }
             }
@@ -318,9 +322,9 @@ class ApprovalFlowController extends Controller
         }else{
             //向审批发起人发消息
             $authorization = $request->header()['authorization'][0];
-            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user);
+            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
             //向下一个审批人发消息
-            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user,$nextId);
+            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user,$nextId));
         }
 
         return $this->response->created();
@@ -367,7 +371,7 @@ class ApprovalFlowController extends Controller
 
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user);
+        event( new ApprovalMessageEvent($instance,ApprovalTriggerPoint::REFUSE,$authorization,$user));
 
         return $this->response->created();
     }
@@ -418,7 +422,7 @@ class ApprovalFlowController extends Controller
 
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$nextId);
+        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$nextId));
 
         return $this->response->created();
     }

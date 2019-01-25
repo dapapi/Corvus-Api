@@ -47,12 +47,12 @@ class ProjectBillController extends Controller
             {
                 foreach ($value['stars_name'] as $key1 =>$value1){
 
-                 //   $data[$key][$key1]  = $value1->name;
-                    $dataOne[] = $value1->name;
+                    $data[$key][$key1]  = $value1->name;
+                   // $dataOne[] = $value1->name;
                 //    $dataOne = array_unique($dataOne);
                 }
 
-              //  $dataOne[] = implode('/',$data[$key]);
+                $dataOne[] = implode('/',$data[$key]);
 
 
             }
@@ -149,7 +149,7 @@ class ProjectBillController extends Controller
                     $date = array();
                     $date['moduleable_id'] = $bill->id;
                     $date['money'] = $payload['star'][$key]['money'];
-                    $date['moduleable_title'] =$payload['star'][$key]['title'];
+                    $date['moduleable_title'] =$payload['star'][$key]['moduleable_title'];
                     $billUser = ProjectBillsResourceUser::create($date);
                 }
                 }

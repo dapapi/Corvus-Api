@@ -73,7 +73,7 @@ class CalendarMessageEventListener
      */
     public function sendMessageWhenUpdateSchedule()
     {
-        $subheading = $title = $this->user->name."修改了";
+        $subheading = $title = $this->user->name."修改了(时间、会议室、位置)";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
 
         //判断是否更改了会议室，时间，位置

@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Project;
+use App\Models\Star;
 use App\ModuleableType;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Qiniu\Http\Request;
 
-class ProjectsExport implements FromQuery, WithMapping, WithHeadings
+class StarsExport implements FromQuery, WithMapping, WithHeadings
 {
 
     use Exportable;
@@ -26,44 +26,23 @@ class ProjectsExport implements FromQuery, WithMapping, WithHeadings
     {
         $request = $this->request;
         $payload = $request->all();
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $user = Auth::guard("api")->user();
-        $userid = $user->id;
-
-        $projects = Project::query()->where(function ($query) use ($request, $payload,$userid) {
-            if ($request->has('keyword'))
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('principal_ids') && $payload['principal_ids']) {
-                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
-                foreach ($payload['principal_ids'] as &$id) {
-                    $id = hashid_decode((int)$id);
-                }
-                unset($id);
-                $query->whereIn('principal_id', $payload['principal_ids']);
-            }
-            if($request->has('administration'))
-                $query->where('principal_id','<>' ,$userid);
-            if($request->has('principal_id'))
-                $query->where('principal_id',$userid);
-
-            if ($request->has('type') && $payload['type'] <> '3,4'){
-                $query->where('type', $payload['type']);
-            }
-            if($request->has('type') && $payload['type'] == '3,4'){
-                $query->whereIn('type',[3,4]);
-            }
-            if ($request->has('status'))
-                $query->where('projects.status', $payload['status']);
-
-        })->searchData()
-            ->leftJoin('operate_logs',function($join){
-                $join->on('projects.id','operate_logs.logable_id')
-                    ->where('logable_type',ModuleableType::PROJECT)
-                    ->where('operate_logs.method','2');
-            })->groupBy('projects.id')
-            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
-                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc']);
-         return  $projects;
+        $array = [];//查询条件
+        if ($request->has('name')) {//姓名
+            $array[] = ['name', 'like', '%' . $payload['name'] . '%'];
+        }
+        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
+            $array[] = ['sign_contract_status', $payload['sign_contract_status']];
+        }
+        if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
+            $array[] = ['communication_status', $payload['communication_status']];
+        }
+        if ($request->has('source') && !empty($payload['source'])) {//艺人来源
+            $array[] = ['source', $payload['source']];
+        }
+        $stars = Star::query()->createDesc()
+            ->searchData()
+            ->where($array);//根据条件查询
+         return  $stars;
 
 
     }
@@ -72,38 +51,30 @@ class ProjectsExport implements FromQuery, WithMapping, WithHeadings
      * @param Blogger $blogger
      * @return array
      */
-    public function map($project): array
+    public function map($star): array
     {
 
-//        $participant = $project->participants()->orderBy('created_at', 'desc')->first();
-//        if ($participant) {
-//            $contactName = $participant->name;
-//            $contactName = $participant->name;
-//            $phone = $participant->phone . '';
-//            $keyman = $participant->type == 1 ? '是' : '否';
-//            $position = $participant->position;
-//        } else {
-//            $contactName = null;
-//            $phone = null;
-//            $keyman = null;
-//            $position = null;
-//        }
-//        $nickname = $project->nickname;
-//        $platform = $this->plat($blogger->platform);
-//        $type = $this->type($blogger->type_id);
-//        $communication_status = $this->sign($blogger->communication_status);
-//        $intention = $blogger->intention == 1?'是':'否';
-//        $sign_contract_other = $blogger->sign_contract_other == 1?'是':'否';
-//
-//        return [
-//            $nickname,
-//            $platform,
-//            $type,
-//            $communication_status,
-//            $intention,
-//            $sign_contract_other
-//
-//        ];
+        $name = $star->name;
+        $gender = $star->gender == 1 ? '男':'女';
+        $birthday = $star->birthday;
+        $source = $this->source($star->source);
+        $phone= $star->phone;
+        $eamail = $star->eamail;
+        $platform = $this->platform($star->platform);
+        $artist_scout_name = $star->artist_scout_name;
+        $sign_contract_other = $star->sign_contract_other == 1?'是':'否';
+        return [
+            $name,
+            $gender,
+            $birthday,
+            $source,
+            $phone,
+            $eamail,
+            $platform,
+            $artist_scout_name,
+            $sign_contract_other
+
+        ];
     }
 
     public function headings(): array
@@ -129,45 +100,63 @@ class ProjectsExport implements FromQuery, WithMapping, WithHeadings
      * @param string $type
      * @return string $type
      */
-    private function sign($type)
+    private function source($source)
     {
-        switch ($type) {
+        switch ($source) {
             case 1:
-                $type = '初步接触';
+                $source = '线上';
                 break;
             case 2:
-                $type = '沟通中';
+                $source = '线下';
                 break;
             case 3:
-                $type = '合同中';
+                $source = '抖音';
                 break;
             case 4:
-                $type = '沟通完成';
+                $source = '微博';
+                break;
+            case 5:
+                $source = '陈赫';
+                break;
+            case 6:
+                $source = '北电';
+                break;
+            case 7:
+                $source = '杨光';
+                break;
+            case 8:
+                $source = '中戏';
+                break;
+            case 9:
+                $source = 'papitube推荐';
+                break;
+            case 10:
+                $source = '地标商圈';
                 break;
         }
-        return $type;
+        return $source;
     }
     /**
      * @param string $type
      * @return string $type
      */
-    private function plat($type)
+    private function platform($platform)
     {
-        switch ($type) {
+        switch ($platform) {
             case 1:
-                $type = '微博';
+                $platform = '微博';
                 break;
             case 2:
-                $type = '抖音';
+                $platform = '抖音';
                 break;
             case 3:
-                $type = '小红书';
+                $platform = '小红书';
                 break;
             case 4:
-                $type = '全平台';
+                $platform = '全平台';
                 break;
         }
-        return $type;
+        return $platform;
     }
     /**
      * @param string $type

@@ -40,7 +40,7 @@ class BloggersImport implements ToCollection, WithBatchInserts, WithChunkReading
                 foreach ($rows as $key1 => $row2){
 
                     if($key <> $key1){
-                        if($row[1] == $row2[1]){
+                        if($row[0] == $row2[0]){
                             throw new Exception('excel中有重复数据，请处理后再进行上传');
                         }
                     }
@@ -50,7 +50,7 @@ class BloggersImport implements ToCollection, WithBatchInserts, WithChunkReading
                 if ($key == 0)
                     continue ;
                 $title = Blogger::where('nickname',$row[0])->get();
-                if($title){
+                if(count($title)>0){
                     throw new Exception('系统中已存在销售线索数据，请处理后再进行上传');
                 }
                Blogger::create([

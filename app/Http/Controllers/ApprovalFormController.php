@@ -43,6 +43,7 @@ use App\Models\RoleUser;
 use App\Models\TemplateFieldHistories;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
+use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -898,7 +899,9 @@ class ApprovalFormController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('新建审批失败');
         }
-
+        //向知会人发消息
+        $authorization = $request->header()['authorization'][0];
+        event( $instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user);
         // 发送消息
         DB::beginTransaction();
         try {

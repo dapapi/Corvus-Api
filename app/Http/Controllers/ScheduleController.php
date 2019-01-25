@@ -31,6 +31,7 @@ use App\Repositories\AffixRepository;
 use App\Repositories\ScheduleRelatesRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScheduleRepository;
+use App\TrigerPoint\CalendarTriggerPoint;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -470,6 +471,11 @@ class ScheduleController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
+
+            //向参与人发消息
+            $authorization = $request->header()['authorization'][0];
+            event( $schedule,CalendarTriggerPoint::CREATE_SCHEDULE,$authorization,$user);
+
             //获取日历对象的艺人
             $star_calendar = Calendar::where('id',$schedule->calendar_id)->select('starable_id','type')->first();
 //            if($star_calendar){
@@ -572,6 +578,7 @@ class ScheduleController extends Controller
 
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
+        $old_schedule = clone $schedule;//复制日程，以便发消息
         $users = $this->getPowerUsers($schedule);
         $user = Auth::guard("api")->user();
         if (!in_array($user->id, $users)) {
@@ -700,7 +707,10 @@ class ScheduleController extends Controller
             return $this->response->errorInternal('更新日程失败');
         }
         DB::commit();
-
+        //向参与人发消息
+        $authorization = $request->header()['authorization'][0];
+        $meta = ["old_schedule"=>$old_schedule];
+        event( $schedule,CalendarTriggerPoint::UPDATE_SCHEDULE,$authorization,$user,$meta);
         return $this->response->accepted();
     }
 

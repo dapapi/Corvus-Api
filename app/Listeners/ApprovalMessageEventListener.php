@@ -6,6 +6,8 @@ use App\Events\ApprovalMessageEvent;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
+use App\Models\ApprovalForm\Participant;
+use App\Models\Message;
 use App\Repositories\MessageRepository;
 use App\TrigerPoint\ApprovalTriggerPoint;
 use App\User;
@@ -24,6 +26,8 @@ class ApprovalMessageEventListener
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
     private $form_name;//审批单的名字
+    private $other_id; //转交时他是转交人id
+    private $origin;//发起人
     //消息发送内容
     private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":%s}]';
     /**
@@ -48,9 +52,10 @@ class ApprovalMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
+        $this->other_id = $event->other_id;
         //获取发起人姓名
-        $origin = User::find($this->instance->created_by);
-        $origin_name = $origin == null ? null : $origin->name;//发起人，提交人
+        $this->origin = User::find($this->instance->created_by);
+        $origin_name = $this->origin == null ? null : $this->origin->name;//发起人，提交人
         //获取审批的名字
         $form = ApprovalForm::find($this->instance->form_id);
         $this->form_name = $form == null ? null : $form->name;
@@ -63,11 +68,13 @@ class ApprovalMessageEventListener
                 $this->sendMessageWhenRefuse();
                 break;
             case ApprovalTriggerPoint::TRANSFER://转交
-
+                $this->sendMessageWhenTransfer();
                 break;
             case ApprovalTriggerPoint::WAIT_ME://待我审批
+                $this->sendMessageWhenWaitMe();
                 break;
             case ApprovalTriggerPoint::NOTIFY://知会我的
+                $this->sendMessageWhenNotify();
                 break;
             case ApprovalTriggerPoint::REMIND://提醒
                 break;
@@ -98,9 +105,31 @@ class ApprovalMessageEventListener
      */
     public function sendMessageWhenTransfer()
     {
-
+        //转交人
+        $other_user = User::find($this->other_id);
+        $other_user_name = $other_user == null ? null : $other_user->name;
+        $origin_name = $this->origin == null ? null : $this->origin->name;
+        $subheading = $title = $other_user_name."转交你审批{$origin_name}"."的".$this->form_name;
+        $send_to[] = $this->other_id;//被转交人
+        $this->sendMessage($title,$subheading,$send_to);
     }
-
+    //待审批
+    public function sendMessageWhenWaitMe()
+    {
+        $subheading = $title = $this->user->name."的".$this->form_name."待您审批";
+        $send_to[] = $this->other_id;//向下一个审批人发消息
+        $this->sendMessage($title,$subheading,$send_to);
+    }
+    //向知会人发消息
+    public function sendMessageWhenNotify()
+    {
+        $origin_name = $this->origin == null ? null : $this->origin->name;
+        $subheading = $title = $this->user->name."知会你".$origin_name."的".$this->form_name;
+        //todo 可能会根据角色发消息
+        //获取知会人
+        $send_to = array_column(Participant::select("notice_id")->find($this->instance->form_instance_number)->get()->toArray(),"notice_id");
+        $this->sendMessage($title,$subheading,$send_to);
+    }
     /**
      * @param $title
      * @param $subheading
@@ -114,7 +143,7 @@ class ApprovalMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->task, null, $this->data, $send_to,$this->task->id);
+            Message::APPROVAL, null, $this->data, $send_to,$this->task->id);
     }
 
 }

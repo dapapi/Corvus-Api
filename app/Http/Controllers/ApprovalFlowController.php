@@ -34,7 +34,7 @@ use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
 use App\SignContractStatus;
-use App\TrigerPoint\ApprovalTriggerPoint;
+use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -275,11 +275,6 @@ class ApprovalFlowController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
-
-            //发消息
-            $authorization = $request->header()['authorization'][0];
-            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user);
-
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -289,6 +284,17 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+        if($instance->form_status == 232){//审批通过
+            //向知会人发消息
+            $authorization = $request->header()['authorization'][0];
+            event( $instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user);
+        }else{
+            //向审批发起人发消息
+            $authorization = $request->header()['authorization'][0];
+            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user);
+            //向下一个审批人发消息
+            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user,$nextId);
+        }
 
         return $this->response->created();
     }
@@ -385,7 +391,7 @@ class ApprovalFlowController extends Controller
 
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user);
+        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$nextId);
 
         return $this->response->created();
     }

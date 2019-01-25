@@ -11,7 +11,7 @@ class TaskResourceTransformer extends TransformerAbstract
 {
 
     protected $availableIncludes = ['resourceable', 'resource'];
-    protected $defaultIncludes = ['resource'];
+    protected $defaultIncludes = ['resource','resourceable'];
 
 
     // todo hashid
@@ -28,6 +28,7 @@ class TaskResourceTransformer extends TransformerAbstract
     public function includeResourceable(TaskResource $taskResource)
     {
         $resourceable = $taskResource->resourceable;
+
         if (!$resourceable)
             return null;
         switch ($taskResource->resourceable_type) {

@@ -2,7 +2,8 @@
 
 namespace App\Events;
 
-use App\Models\ApprovalForm\Instance;
+use App\Models\Calendar;
+use App\Models\Schedule;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -11,27 +12,26 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class ApprovalMessageEvent
+class CalendarMessageEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
     public $model;
     public $trigger_point;
     public $authorization;
     public $user;
-    public $other_id; //转交时他是转交人id
+    public $meta;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($model,$trigger_point,$authorization,User $user,$other_id=null)
+    public function __construct(Schedule $model,$trigger_point,$authorization,User $user,$meta=[])
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;
         $this->authorization = $authorization;
         $this->user = $user;
-        $this->other_id = $other_id;
+        $this->meta = $meta;
     }
 
     /**

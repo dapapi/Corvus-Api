@@ -91,7 +91,7 @@ class CalendarMessageEventListener
                         $update_filed = "会议室";
                     if ($key == "position")
                         $update_filed = "位置";
-                    $subheading = $title = $this->user->name."修改了($update_filed),从 $value 到 $schedule_arr[$key]";
+                    $subheading = $title = $this->user->name."修改了($update_filed)";
                     $this->sendMessage($title,$subheading,$send_to);
                 }
             }

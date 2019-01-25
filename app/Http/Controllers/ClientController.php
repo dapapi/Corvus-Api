@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exports\ClientsExport;
 use App\Http\Requests\Client\EditClientRequest;
@@ -15,6 +16,7 @@ use App\Models\Client;
 use App\Models\Contact;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\TriggerPoint\ClientTriggerPoint;
 use App\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -95,6 +97,12 @@ class ClientController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
+
+        //直客新增是
+        if ($client->grade == Client::GRADE_NORMAL){
+            $authorization = $request->header()['authorization'][0];
+            event(new ClientMessageEvent($client,ClientTriggerPoint::CREATE_NEW_GRADE_NORMAL,$authorization,$user));
+        }
 
         return $this->response->item($client, new ClientTransformer());
     }

@@ -34,6 +34,7 @@ use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
 use App\SignContractStatus;
+use App\TrigerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -273,6 +274,10 @@ class ApprovalFlowController extends Controller
                 $operate
             ]));
 
+            //发消息
+            $authorization = $request->header()['authorization'][0];
+            event( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user);
+
         } catch (ApprovalVerifyException $exception) {
             DB::rollBack();
             return $this->response->errorForbidden($exception->getMessage());
@@ -324,6 +329,11 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+
+        //发消息
+        $authorization = $request->header()['authorization'][0];
+        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user);
+
         return $this->response->created();
     }
 
@@ -370,6 +380,11 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+
+        //发消息
+        $authorization = $request->header()['authorization'][0];
+        event( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user);
+
         return $this->response->created();
     }
 

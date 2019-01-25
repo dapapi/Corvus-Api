@@ -19,17 +19,19 @@ class ApprovalMessageEvent
     public $trigger_point;
     public $authorization;
     public $user;
+    public $other_id;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Instance $model,$trigger_point,$authorization,User $user)
+    public function __construct($model,$trigger_point,$authorization,User $user,$other_id)
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;
         $this->authorization = $authorization;
         $this->user = $user;
+        $this->other_id = $other_id;
     }
 
     /**

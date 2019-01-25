@@ -3,8 +3,13 @@
 namespace App\Listeners;
 
 use App\Events\ApprovalMessageEvent;
+use App\Models\ApprovalForm\ApprovalForm;
+use App\Models\ApprovalForm\Business;
+use App\Models\ApprovalForm\Instance;
 use App\Repositories\MessageRepository;
 use App\TrigerPoint\ApprovalTriggerPoint;
+use App\User;
+use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\App;
@@ -13,13 +18,14 @@ class ApprovalMessageEventListener
 {
 
     private $messageRepository;//消息仓库
-    private $task;//任务model
+    private $instance;//任务model
     private $trigger_point;//触发点
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $form_name;//审批单的名字
     //消息发送内容
-    private $message_content = '[{"title":"任务名称","value":"%s"},{"title":"负责人","value":"%s"}]';
+    private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":%s}]';
     /**
      * Create the event listener.
      *
@@ -38,16 +44,26 @@ class ApprovalMessageEventListener
      */
     public function handle(ApprovalMessageEvent $event)
     {
-        $this->task = $event->model;
+        $this->instance = $event->model;
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
+        //获取发起人姓名
+        $origin = User::find($this->instance->created_by);
+        $origin_name = $origin == null ? null : $origin->name;//发起人，提交人
+        //获取审批的名字
+        $form = ApprovalForm::find($this->instance->form_id);
+        $this->form_name = $form == null ? null : $form->name;
+        $this->data = sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at);
         switch ($this->trigger_point){
             case ApprovalTriggerPoint::AGREE://审批同意
+                $this->sendMessageWhenAgree();
                 break;
             case ApprovalTriggerPoint::REFUSE://审批拒绝
+                $this->sendMessageWhenRefuse();
                 break;
             case ApprovalTriggerPoint::TRANSFER://转交
+
                 break;
             case ApprovalTriggerPoint::WAIT_ME://待我审批
                 break;
@@ -58,5 +74,47 @@ class ApprovalMessageEventListener
         }
     }
 
+    /**
+     * 当审批同意时向审批发起人发消息
+     */
+    public function sendMessageWhenAgree()
+    {
+        $subheading = $title = "您的{$this->form_name}已同意";
+        $send_to[] = $this->instance->created_by;//发起人
+        $this->sendMessage($title,$subheading,$send_to);
+    }
+
+    /**
+     * 当审批同意时向审批发起人发消息
+     */
+    public function sendMessageWhenRefuse()
+    {
+        $subheading = $title = "您的{$this->form_name}已拒绝";
+        $send_to[] = $this->instance->created_by;//发起人
+        $this->sendMessage($title,$subheading,$send_to);
+    }
+    /**
+     * 当审批转交是发送消息
+     */
+    public function sendMessageWhenTransfer()
+    {
+
+    }
+
+    /**
+     * @param $title
+     * @param $subheading
+     * @param $send_to
+     */
+
+    //最终发送消息方法调用
+    public function sendMessage($title,$subheading,$send_to)
+    {
+        //消息接受人去重
+        $send_to = array_unique($send_to);
+        $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
+            $this->task, null, $this->data, $send_to,$this->task->id);
+    }
 
 }

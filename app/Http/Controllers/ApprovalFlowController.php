@@ -34,7 +34,7 @@ use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
 use App\SignContractStatus;
-use App\TrigerPoint\ApprovalTriggerPoint;
+use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;

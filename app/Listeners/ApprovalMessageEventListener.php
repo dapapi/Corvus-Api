@@ -7,7 +7,10 @@ use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\Participant;
+use App\Models\Contact;
+use App\Models\Contract;
 use App\Models\Message;
+use App\Models\Project;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
@@ -48,14 +51,32 @@ class ApprovalMessageEventListener
      */
     public function handle(ApprovalMessageEvent $event)
     {
-        return null;
         $this->instance = $event->model;
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
         $this->other_id = $event->other_id;
+        $creator_id = null;
         //获取发起人姓名
-        $this->origin = User::find($this->instance->created_by);
+        if ($this->instance->business_type == "projects"){
+            $project = Project::where('project_number',$this->instance->form_instance_number)->first();
+            if ($project){
+                $creator_id = $project->creator_id;
+            }
+        }
+        if ($this->instance->business_type == "contracts"){
+            $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
+            if ($contract){
+                $creator_id = $contract->creator_id;
+            }
+        }
+        if ($this->instance->created_by){
+            $creator_id = $this->instance->created_by;
+        }
+        if ($creator_id){
+            $this->origin = User::find($creator_id);
+        }
+
         $origin_name = $this->origin == null ? null : $this->origin->name;//发起人，提交人
         //获取审批的名字
         $form = ApprovalForm::where("form_id",$this->instance->form_id)->first();

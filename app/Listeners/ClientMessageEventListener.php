@@ -55,6 +55,7 @@ class ClientMessageEventListener
                 $this->sendMessageWhenCreateNewGradeNormal();
                 break;
             case ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM://直客成单
+                $this->sendMessageWhenGradeNormalOrderForm();
                 break;
         }
     }

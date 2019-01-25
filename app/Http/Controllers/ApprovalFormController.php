@@ -631,40 +631,80 @@ class ApprovalFormController extends Controller
                 $arr['data']['values'][] = $value['value'];
                 $info = array_combine($arr['data']['key'],$arr['data']['values']);
             }
+            $fields = DB::table('project_template_fields as ptf')->select('ptf.content') ->where('ptf.id', 42)->first();
+            $fieldValue = json_decode(json_encode($fields), true);
+            $fieldValues = explode('|',$fieldValue['content']);
+            $list = array_flip($fieldValues);
 
             $strArr = array();
             foreach ($info as $key => $value) {
                 $tmp = array();
                 $tmp['key'] = $key;
-                $tmp['values']['data']['value'] = $value;
+                if($key =='状态'){
+                    $d = $value-1;
+
+                    $tmp['values']['data']['value'] = $key = array_search($d, $list); ;
+                }else{
+                    $tmp['values']['data']['value'] = $value;
+
+                }
                 $strArr[] = $tmp;
             }
         }else{
             $strArr = array();
         }
-
         $projectArr = DB::table('project_histories as ph')
-            ->join('trails', function ($join) {
+            ->leftjoin('trails', function ($join) {
                 $join->on('ph.trail_id', '=', 'trails.id');
             })
-            ->join('trail_star', function ($join) {
+            ->leftjoin('trail_star', function ($join) {
                 $join->on('trail_star.trail_id', '=', 'trails.id');
             })
-            ->join('stars', function ($join) {
-                $join->on('stars.id', '=', 'trail_star.starable_id');
-            })
+
             ->join('users', function ($join) {
                 $join->on('users.id', '=', 'ph.principal_id');
             })
-            ->select('trails.title','ph.priority','ph.projected_expenditure','ph.start_at','ph.end_at','ph.desc','stars.name','trails.fee','users.name as principal_name','trails.title')
-            ->where('ph.id', $project->id)->get()->toArray();
+//            ->join('stars', function ($join) {
+//                $join->on('stars.id', '=', 'trail_star.starable_id')->where('trail_star.type',1);
+//            })
+//            ->join('bloggers', function ($join) {
+//                $join->on('bloggers.id', '=', 'trail_star.starable_id')->where('trail_star.type',1);
+//            })
+            ->select('trails.id','trails.title','ph.priority','ph.projected_expenditure','ph.start_at','ph.end_at','ph.desc','trail_star.starable_type','trail_star.starable_id','trails.fee','users.name as principal_name','trails.title','trails.resource_type','trails.resource')
+            ->where('ph.id', $project->id)->where('trail_star.type', 1)->get()->toArray();
         $data1 = json_decode(json_encode($projectArr), true);
-
+        //目标艺人
         $arrName = array();
         foreach ($data1 as $value){
+            if($value['starable_type'] =='blogger'){
+                $arrName[] = DB::table('bloggers')->select('nickname')->where('bloggers.id', $value['starable_id'])->get()->toArray();
 
-            $arrName[]=$value['name'];
+            }else{
+                $arrName[] = DB::table('stars')->select('name')->where('stars.id', $value['starable_id'])->get()->toArray();
+            }
 
+        }
+        $dataName = json_decode(json_encode($arrName), true);
+        if($dataName){
+            foreach ($dataName as $value){
+                foreach($value as $kal){
+                    foreach($kal as $g){
+                        $s[]=$g;
+                    }
+                }
+            }
+        }else{
+            $s = array();
+        }
+        //获取关联项目来源
+        $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val','dds.name') ->where('dds.parent_id', 49)->get()->toArray();
+        $dictionariesValue = json_decode(json_encode($dictionaries), true);
+        foreach ($data1 as $value){
+            $tmpsArr = array();
+            $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 476)->first();
+            $tmpsArr['value'] = $value['resource'];
+
+            $str1Arr = $tmpsArr['key']->name.'-'.$tmpsArr['value'];
         }
         //优先级查找匹配
         if($data1[0]['priority'] !==''){
@@ -677,7 +717,6 @@ class ApprovalFormController extends Controller
                     if($data1[0]['priority'] == $dvalue['val']){
                         $priority = $dvalue['name'];
                     }
-
                 }
             }
         }else{
@@ -697,13 +736,13 @@ class ApprovalFormController extends Controller
         $tmpArr5['key'] = '备注';
         $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? $data1[0]['desc'] : null;
         $tmpArr6['key'] = '关联艺人';
-        $tmpArr6['values']['data']['value'] = isset($arrName) ? implode(",",$arrName): null;
-        $tmpArr7['key'] = '预计收入';
+        $tmpArr6['values']['data']['value'] = isset($arrName) ? implode(",",$s): null;
+        $tmpArr7['key'] = '预计订单收入';
         $tmpArr7['values']['data']['value'] = isset($data1[0]['fee']) ? $data1[0]['fee']: null;//
         $tmpArr8['key'] = '负责人';
         $tmpArr8['values']['data']['value'] = isset($data1[0]['principal_name']) ? $data1[0]['principal_name']: null;//title
         $tmpArr9['key'] = '项目来源';
-        $tmpArr9['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title']: null;//title
+        $tmpArr9['values']['data']['value'] = isset($str1Arr) ? $str1Arr: null;//title
 
         array_push($strArr,$tmpArr7);
         array_push($strArr,$tmpArr);

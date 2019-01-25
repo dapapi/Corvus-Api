@@ -193,7 +193,7 @@ class Trail extends Model
     {
         $ids = DB::table('projects')->leftJoin('approval_flow_execute', function($join) {
             $join->on('projects.project_number', 'approval_flow_execute.form_instance_number');
-        })->where('flow_type_id', '=', 231)->pluck('trail_id')->toArray();
+        })->where('status', '=', Project::STATUS_NORMAL)->where('flow_type_id', '=', 231)->pluck('trail_id')->toArray();
         $ids = array_unique($ids);
 
         $query->where('progress_status', self::STATUS_UNCONFIRMED)->whereNotIn('id', $ids);

@@ -11,6 +11,7 @@ class ApprovalGroup extends Model
 
     protected $fillable = [
         'name',
+        'icon',
         'sort_number',
         'description',
         'created_by',

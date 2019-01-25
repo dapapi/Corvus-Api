@@ -13,6 +13,7 @@ class ApprovalGroupTransformer extends TransformerAbstract
     {
         return [
             'id' => hashid_encode($group->id),
+            'icon' => $group->icon,
             'name' => $group->name,
             'desc' => $group->description,
         ];

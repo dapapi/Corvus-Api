@@ -32,7 +32,7 @@ class ApprovalMessageEventListener
     private $other_id; //转交时他是转交人id
     private $origin;//发起人
     //消息发送内容
-    private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":%s}]';
+    private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":"%s"}]';
     /**
      * Create the event listener.
      *
@@ -86,6 +86,7 @@ class ApprovalMessageEventListener
         $form = ApprovalForm::where("form_id",$this->instance->form_id)->first();
         $this->form_name = $form == null ? null : $form->name;
         $this->data = json_decode(sprintf($this->message_content,$origin_name,$origin_name,$create_at),true);
+
         switch ($this->trigger_point){
             case ApprovalTriggerPoint::AGREE://审批同意
                 $this->sendMessageWhenAgree();

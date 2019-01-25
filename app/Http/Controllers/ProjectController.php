@@ -848,8 +848,10 @@ class ProjectController extends Controller
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;
         $array['expense_type'] = '支出';
-        $contractmoney = 0;
-        // 记住修改
+        $approval  = (new ApprovalContractController())->projectList($request,$project);
+
+        $contractmoney = $approval['money'];
+        // 记住修改  收入
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
@@ -870,6 +872,10 @@ class ProjectController extends Controller
                     if (isset($contractmoney)) {
                         $result->addMeta('contractmoney', $contractmoney);
                     }
+                    else
+                    {
+                        $result->addMeta('contractmoney', 0);
+                    }
                 }
 
                 $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
@@ -881,6 +887,10 @@ class ProjectController extends Controller
                 {
                     if (isset($expendituresum)) {
                         $result->addMeta('expendituresum', $expendituresum->expendituresum);
+                    }
+                    else
+                    {
+                        $result->addMeta('expendituresum', 0);
                     }
                 }
             }

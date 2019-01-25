@@ -18,8 +18,9 @@ class BloggerMessageEventListener
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $created_at;
     //消息发送内容
-    private $message_content = '[{"title":"任务名称","value":"%s"},{"title":"负责人","value":"%s"}]';
+    private $message_content = '[{"title":"艺人名称","value":"%s"},{"title":"签约时间","value":"%s"}]';
     /**
      * Create the event listener.
      *
@@ -38,10 +39,16 @@ class BloggerMessageEventListener
      */
     public function handle(BloggerMessageEvent $event)
     {
+        return null;
         $this->blogger_arr = $event->blogger_arr;
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
+        $this->created_at = $event['creatd'];//签约时间
+        //获取所有博主
+        $bloggers = Blogger::whereIn('id',$this->blogger_arr)->select('nickname');
+        $blogger_names = implode(",",array_column($bloggers,'nickname'));
+        $this->data = json_decode(sprintf($this->message_content,$blogger_names,$blogger_names,$this->created_at),true);
         switch ($this->trigger_point){
             case BloggerTriggerPoint::SIGNING://签约
                 $this->sendMessageWhenSigning();

@@ -298,22 +298,24 @@ class ApprovalFlowController extends Controller
             $contract = Contract::where('form_instance_number', $num)->first();
             if ($contract){
                 $star_arr = explode(",",$contract->stars);
+                $created_at = $contract->created_at;
+                $meta = ["created"=>$created_at];
                 if (in_array($instance->form_id, [5, 7])) {//签约
                     if ($contract->star_type == "bloggers"){
-                        event( new BloggerMessageEvent($star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user));
+                        event( new BloggerMessageEvent($star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user,$meta));
                     }
                     if ($contract->star_type == "stars"){
-                        event( new StarMessageEvent($star_arr,StarTriggerPoint::SIGNING,$authorization,$user));
+                        event( new StarMessageEvent($star_arr,StarTriggerPoint::SIGNING,$authorization,$user,$meta));
                     }
 
 
                 }
                 if (in_array($instance->form_id, [6, 8])) {//解约
                     if ($contract->star_type == "bloggers"){
-                        event( new BloggerMessageEvent($star_arr,StarTriggerPoint::RESCISSION,$authorization,$user));
+                        event( new BloggerMessageEvent($star_arr,StarTriggerPoint::RESCISSION,$authorization,$user,$meta));
                     }
                     if ($contract->star_type == "stars"){
-                        event(new StarMessageEvent( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user));
+                        event(new StarMessageEvent( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user,$meta));
                     }
                 }
             }

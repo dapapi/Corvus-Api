@@ -48,6 +48,7 @@ class ApprovalMessageEventListener
      */
     public function handle(ApprovalMessageEvent $event)
     {
+        return null;
         $this->instance = $event->model;
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
@@ -57,9 +58,10 @@ class ApprovalMessageEventListener
         $this->origin = User::find($this->instance->created_by);
         $origin_name = $this->origin == null ? null : $this->origin->name;//发起人，提交人
         //获取审批的名字
-        $form = ApprovalForm::find($this->instance->form_id);
+        $form = ApprovalForm::where("form_id",$this->instance->form_id)->first();
         $this->form_name = $form == null ? null : $form->name;
-        $this->data = sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at,true);
+        die(sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at));
+        $this->data = json_decode(sprintf($this->message_content,$origin_name,$origin_name,$this->instance->created_at),true);
         switch ($this->trigger_point){
             case ApprovalTriggerPoint::AGREE://审批同意
                 $this->sendMessageWhenAgree();

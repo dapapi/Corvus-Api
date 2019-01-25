@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\Blogger;
+use App\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -19,17 +20,19 @@ class BloggerMessageEvent
     public $trigger_point;
     public $authorization;
     public $user;
+    public $meta;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($blogger_arr,$trigger_point,$authorization,User $user)
+    public function __construct($blogger_arr,$trigger_point,$authorization,User $user,$meta=[])
     {
         $this->blogger_arr = $blogger_arr;
         $this->trigger_point = $trigger_point;
         $this->authorization = $authorization;
         $this->user = $user;
+        $this->meta = $meta;
     }
 
     /**

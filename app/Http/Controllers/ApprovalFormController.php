@@ -43,7 +43,7 @@ use App\Models\RoleUser;
 use App\Models\TemplateFieldHistories;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
-use App\TrigerPoint\ApprovalTriggerPoint;
+use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;

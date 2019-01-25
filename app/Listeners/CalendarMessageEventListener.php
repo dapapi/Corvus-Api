@@ -41,4 +41,12 @@ class CalendarMessageEventListener
         $this->authorization = $event->authorization;
         $this->user = $event->user;
     }
+
+    /**
+     * 当创建日程时发消息
+     */
+    public function sendMessageWhenCreateSchedule()
+    {
+
+    }
 }

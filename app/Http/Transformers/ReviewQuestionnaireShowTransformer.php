@@ -3,6 +3,8 @@
 namespace App\Http\Transformers;
 
 use App\Models\ReviewQuestionnaire;
+use App\Models\ReviewAnswer;
+use Illuminate\Support\Facades\DB;
 use League\Fractal\TransformerAbstract;
 
 class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
@@ -49,8 +51,19 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
     }
     public function includeSum(ReviewQuestionnaire $reviewquestionnaire)
     {
-        $reviewanswer = $reviewquestionnaire->sum;
-        return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
+        $sums =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('review_id',DB::raw('sum(content) as sums'))->groupby('review_id')->get();
+        if(!empty($sums->toArray())){
+            // 参与人数
+            $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
+            $reviewanswer =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*',DB::raw('TRUNCATE('.$sums[0]->sums.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
+
+        }else{
+
+            $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
+            $reviewanswer =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*',DB::raw('TRUNCATE(1.'.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
+        }
+       // $reviewanswer = $reviewquestionnaire->sum;
+        return $this->collection($reviewanswer->get(), new ReviewAnswerSumTransformer());
 
     }
     public function includeProduction(ReviewQuestionnaire $reviewquestionnaire) {

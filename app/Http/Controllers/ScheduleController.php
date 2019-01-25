@@ -31,7 +31,7 @@ use App\Repositories\AffixRepository;
 use App\Repositories\ScheduleRelatesRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScheduleRepository;
-use App\TrigerPoint\CalendarTriggerPoint;
+use App\TriggerPoint\CalendarTriggerPoint;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

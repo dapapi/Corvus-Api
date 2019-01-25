@@ -5,7 +5,7 @@ namespace App\Listeners;
 use App\Events\CalendarMessageEvent;
 use App\Models\Calendar;
 use App\Repositories\MessageRepository;
-use App\TrigerPoint\CalendarTriggerPoint;
+use App\TriggerPoint\CalendarTriggerPoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 

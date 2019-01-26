@@ -97,12 +97,12 @@ class ProjectBillController extends Controller
             $result->addMeta('appoval', $approval);
             $result->addMeta('datatitle', $dataOne);
 
-            if(!empty($expendituresum) && count($expendituresum) >0)
+            if(!empty($expendituresum) && isset($expendituresum))
                 $result->addMeta('expendituresum', $expendituresum->expendituresum);
             else
                 $result->addMeta('expendituresum', 0);
 
-            if(!empty($incomesum) && count($incomesum) >0)
+            if(!empty($incomesum) && isset($incomesum))
                 $result->addMeta('incomesum', $incomesum->incomesum);
             else
                 $result->addMeta('incomesum', 0);

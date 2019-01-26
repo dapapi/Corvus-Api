@@ -18,7 +18,10 @@ class HttpRepository
     }
     public function getClient()
     {
-        $this->client = new Client();
+        $this->client = new Client([
+            'base_uri'=>'https://sandbox-api-crm.papitube.com',
+            'time_out'  =>  '2.0'
+        ]);
     }
     public function request($method,$uri,$header,$params)
     {
@@ -32,6 +35,7 @@ class HttpRepository
             ]);
             return $this->jar->getStatusCode() == 200 ? true : false;
         }catch (\Exception $e){
+            dd($e);
             Log::error($e);
             return false;
         }

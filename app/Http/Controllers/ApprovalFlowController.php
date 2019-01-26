@@ -331,7 +331,8 @@ class ApprovalFlowController extends Controller
                     ->where('grade',Client::GRADE_NORMAL)//直客
                     ->first();
                 if($client){
-                    event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user));
+                    $meta=['contracts'=>$instance];
+                    event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user,$meta));
                 }
             }
 

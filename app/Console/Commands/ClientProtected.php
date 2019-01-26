@@ -59,8 +59,9 @@ class ClientProtected extends Command
      */
     public function handle()
     {
-        $res = $this->httpRepository->request("post",'https://sandbox-api-crm.papitube.com/oauth/token',$this->header,$this->params);
-        if ($res){
+        $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
+        if (!$res){
+            echo "登录失败";
             Log::error("登录失败...");
             return;
         }
@@ -72,8 +73,11 @@ class ClientProtected extends Command
         //获取保护截止日期在当前时间之后的直客
         $clients = Client::where('grade',Client::GRADE_NORMAL)->where('protected_client_time','>',$now->toDateTimeString())->get();
         foreach ($clients as $client){
+            echo "检查\n";
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
-            if ($protected_client_time->diffInDays($now) == 5){
+            echo $protected_client_time->diffInDays($now);
+            if ($protected_client_time->diffInDays($now) == 1){
+                echo "发消息";
                 $user = User::find(11);
                 //发消息
                 event(new ClientMessageEvent($client,ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE,$authorization,$user));

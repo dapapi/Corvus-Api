@@ -59,4 +59,12 @@ class DataDictionaryController extends Controller
         $collection = DataDictionary::where('parent_id', $pid)->selectRaw(DB::raw('`name` as enum_value'))->get();
         return $this->response->array(['data' => $collection]);
     }
+
+
+    public function appraising()
+    {
+        $pid = 448;
+        $collection = DataDictionary::where('parent_id', $pid)->selectRaw(DB::raw('`val` as user_id , `name` as enum_value'))->get();
+        return $this->response->array(['data' => $collection]);
+    }
 }

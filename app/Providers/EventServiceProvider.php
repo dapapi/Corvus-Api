@@ -35,6 +35,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\BloggerMessageEvent'   =>  [//监听博主签约解约
             'App\Listeners\BloggerMessageEventListener',
         ],
+        'App\Events\ClientMessageEvent'   =>  [//监听博主签约解约
+            'App\Listeners\ClientMessageEventListener',
+        ],
         'App\Events\dataChangeEvent'    =>  [
             'App\Listeners\dataChangeListener',
         ],

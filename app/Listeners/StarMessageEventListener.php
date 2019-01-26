@@ -41,7 +41,10 @@ class StarMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
-        $this->data = json_decode($this->message_content,$this->star->name,$this->star->sign_contract_at);
+        $this->created_at = $event->meta['creatd_at'];
+        $stars = Star::whereIn('id',$this->star_arr)->select('name')->get()->toArray();
+        $star_names = implode(",",array_column($stars,'name'));
+        $this->data = json_decode(sprintf($this->message_content,$star_names,$this->created_at),true);
         switch ($this->trigger_point){
             case StarTriggerPoint::SIGNING://签约
                 $this->sendMessageWhenSigning();

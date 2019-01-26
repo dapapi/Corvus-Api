@@ -175,8 +175,7 @@ class SeasPoolController extends Controller
         try {
 
             $user = Auth::guard('api')->user();
-            $title = $user->name . "将销售线索".$trail->title;  //通知消息的标题
-            $subheading = $user->name . "邀请你参与任务";
+            $subheading = $title = $user->name . "将销售线索".$trail->title."分配给了您";  //通知消息的标题
             $module = Message::TRAILS;
             $data = [];
             $data[] = [

@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\ApprovalForm\Instance;
+use App\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;

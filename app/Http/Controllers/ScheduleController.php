@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\AffixType;
+use App\Events\CalendarMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Helper\Message;
 use App\Http\Requests\Schedule\EditScheduleRequest;
@@ -31,7 +32,7 @@ use App\Repositories\AffixRepository;
 use App\Repositories\ScheduleRelatesRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScheduleRepository;
-use App\TrigerPoint\CalendarTriggerPoint;
+use App\TriggerPoint\CalendarTriggerPoint;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -474,7 +475,7 @@ class ScheduleController extends Controller
 
             //向参与人发消息
             $authorization = $request->header()['authorization'][0];
-            event( $schedule,CalendarTriggerPoint::CREATE_SCHEDULE,$authorization,$user);
+            event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::CREATE_SCHEDULE,$authorization,$user));
 
             //获取日历对象的艺人
             $star_calendar = Calendar::where('id',$schedule->calendar_id)->select('starable_id','type')->first();
@@ -710,7 +711,7 @@ class ScheduleController extends Controller
         //向参与人发消息
         $authorization = $request->header()['authorization'][0];
         $meta = ["old_schedule"=>$old_schedule];
-        event( $schedule,CalendarTriggerPoint::UPDATE_SCHEDULE,$authorization,$user,$meta);
+        event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::UPDATE_SCHEDULE,$authorization,$user,$meta));
         return $this->response->accepted();
     }
 

@@ -22,7 +22,7 @@ class ReviewQuestion extends Model {
     }
     public function items() {
 
-        return $this->hasMany(ReviewQuestionItem::class, 'review_question_id', 'id')->orderBy('sort', 'asc');
+        return $this->hasMany(ReviewQuestionItem::class, 'review_question_id', 'id')->orderBy('value', 'desc');
     }
 
     public function selectrows() {

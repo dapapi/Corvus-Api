@@ -2,38 +2,46 @@
 
 namespace App;
 
-
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\DataDictionaryController;
+use App\Models\DataDictionary;
 class ReviewItemAnswer {
 
 
 
     public static function getUsers()
-    {           $users = array();
-                $users[] = ['user_id' => 116];
-                $users[] = ['user_id' => 124];
-                $users[] = ['user_id' => 125];
-                $users[] = ['user_id' => 126];
-                $users[] = ['user_id' => 127];
-                $users[] = ['user_id' => 128];
-                $users[] = ['user_id' => 129];
-                $users[] = ['user_id' => 130];
-                $users[] = ['user_id' => 132];
-                $users[] = ['user_id' => 135];
-                $users[] = ['user_id' => 136];
-                $users[] = ['user_id' => 137];
-                $users[] = ['user_id' => 138];
-                $users[] = ['user_id' => 139];
-                $users[] = ['user_id' => 140];
-                $users[] = ['user_id' => 141];
-                $users[] = ['user_id' => 142];
-                $users[] = ['user_id' => 143];
-                $users[] = ['user_id' => 144];
-                $users[] = ['user_id' => 145];
-                $users[] = ['user_id' => 146];
-                $users[] = ['user_id' => 147];
-                $users[] = ['user_id' => 148];
-                $users[] = ['user_id' => 149];
-                $users[] = ['user_id' => 150];
+    {
+
+//
+
+        $users = DataDictionary::where('parent_id', 448)->selectRaw(DB::raw('`val` as user_id , `name` as enum_value'))->get()->toArray();
+        //$user_id =((new DataDictionaryController())->appraising());
+
+//                $users[] = ['user_id' => 116];
+//                $users[] = ['user_id' => 124];
+//                $users[] = ['user_id' => 125];
+//                $users[] = ['user_id' => 126];
+//                $users[] = ['user_id' => 127];
+//                $users[] = ['user_id' => 128];
+//                $users[] = ['user_id' => 129];
+//                $users[] = ['user_id' => 130];
+//                $users[] = ['user_id' => 132];
+//                $users[] = ['user_id' => 135];
+//                $users[] = ['user_id' => 136];
+//                $users[] = ['user_id' => 137];
+//                $users[] = ['user_id' => 138];
+//                $users[] = ['user_id' => 139];
+//                $users[] = ['user_id' => 140];
+//                $users[] = ['user_id' => 141];
+//                $users[] = ['user_id' => 142];
+//                $users[] = ['user_id' => 143];
+//                $users[] = ['user_id' => 144];
+//                $users[] = ['user_id' => 145];
+//                $users[] = ['user_id' => 146];
+//                $users[] = ['user_id' => 147];
+//                $users[] = ['user_id' => 148];
+//                $users[] = ['user_id' => 149];
+//                $users[] = ['user_id' => 150];
         return $users;
     }
     public static function getIssue()

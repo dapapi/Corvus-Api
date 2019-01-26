@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\ApprovalMessageEvent;
 use App\Events\BloggerMessageEvent;
+use App\Events\ClientMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\StarMessageEvent;
 use App\Exceptions\ApprovalConditionMissException;
@@ -26,6 +27,7 @@ use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
 use App\Models\ApprovalForm\Participant;
 use App\Models\Blogger;
+use App\Models\Client;
 use App\Models\Contract;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
@@ -39,6 +41,7 @@ use App\Repositories\MessageRepository;
 use App\SignContractStatus;
 use App\TriggerPoint\ApprovalTriggerPoint;
 use App\TriggerPoint\BloggerTriggerPoint;
+use App\TriggerPoint\ClientTriggerPoint;
 use App\TriggerPoint\StarTriggerPoint;
 use App\User;
 use Carbon\Carbon;
@@ -290,42 +293,56 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
+
+
+        $authorization = $request->header()['authorization'][0];
         if($instance->form_status == 232){//审批通过
-            //向知会人发消息
-            $authorization = $request->header()['authorization'][0];
-            event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
             $num = $instance->form_instance_number;
             $contract = Contract::where('form_instance_number', $num)->first();
-            if ($contract){
+            if ($contract){//如果是合同
                 $star_arr = explode(",",$contract->stars);
+                $created_at = $contract->created_at;
+                $meta = ["created"=>$created_at];
                 if (in_array($instance->form_id, [5, 7])) {//签约
                     if ($contract->star_type == "bloggers"){
-                        event( new BloggerMessageEvent($star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user));
+                        event( new BloggerMessageEvent($star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user,$meta));
                     }
                     if ($contract->star_type == "stars"){
-                        event( new StarMessageEvent($star_arr,StarTriggerPoint::SIGNING,$authorization,$user));
+                        event( new StarMessageEvent($star_arr,StarTriggerPoint::SIGNING,$authorization,$user,$meta));
                     }
 
 
                 }
                 if (in_array($instance->form_id, [6, 8])) {//解约
                     if ($contract->star_type == "bloggers"){
-                        event( new BloggerMessageEvent($star_arr,StarTriggerPoint::RESCISSION,$authorization,$user));
+                        event( new BloggerMessageEvent($star_arr,StarTriggerPoint::RESCISSION,$authorization,$user,$meta));
                     }
                     if ($contract->star_type == "stars"){
-                        event(new StarMessageEvent( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user));
+                        event(new StarMessageEvent( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user,$meta));
                     }
+                }
+            }
+            //如果是项目
+            if ($instance->business_type == "projects"){
+                //项目审批通过向,并且客户是直客，向papi商务组发送，直客成单消息
+                $client = Client::join('trails','client.id','trails.client_id')->join('projects','projects.trail_id','trails.id')
+                    ->where('projects.project_number',$instance->form_instance_number)
+                    ->where('grade',Client::GRADE_NORMAL)//直客
+                    ->select('company')
+                    ->first();
+                if($client){
+                    event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user));
                 }
             }
 
 
-        }else{
-            //向审批发起人发消息
-            $authorization = $request->header()['authorization'][0];
-            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
-            //向下一个审批人发消息
-            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user,$nextId));
         }
+        //向知会人发消息
+        event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
+        //向审批发起人发消息
+        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+        //向下一个审批人发消息
+        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user,$nextId));
 
         return $this->response->created();
     }

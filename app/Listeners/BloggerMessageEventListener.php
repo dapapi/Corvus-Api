@@ -77,7 +77,7 @@ class BloggerMessageEventListener
     public function sendMessageWhenRescission()
     {
         //获取全部博主
-        $blogger_arr = array_column(Blogger::select("nickname")->get()->toArray(),"nickname");
+        $blogger_arr = array_column(Blogger::select("nickname")->whereIn('id',$this->blogger_arr)->get()->toArray(),"nickname");
         $blogger_names = implode(",",$blogger_arr);
         $subheading = $title = $blogger_names."解约";
         $send_to = null;//全员

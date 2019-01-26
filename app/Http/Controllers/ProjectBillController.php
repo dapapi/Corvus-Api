@@ -87,31 +87,35 @@ class ProjectBillController extends Controller
             $array['expense_type'] = '支出';
             $expendituresum =  ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
 
-
             unset($array['expense_type']);
         }
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
-        if(isset($expendituresum)||isset($incomesum)){
+        //if(isset($expendituresum)||isset($incomesum)){
+
+
             $result->addMeta('appoval', $approval);
-            $result->addMeta('expendituresum', $expendituresum->expendituresum);
             $result->addMeta('datatitle', $dataOne);
-            if(isset($incomesum)){
+
+            if(!empty($expendituresum) && count($expendituresum) >0)
+                $result->addMeta('expendituresum', $expendituresum->expendituresum);
+            else
+                $result->addMeta('expendituresum', 0);
+
+            if(!empty($incomesum) && count($incomesum) >0)
                 $result->addMeta('incomesum', $incomesum->incomesum);
-            }
+            else
+                $result->addMeta('incomesum', 0);
 
             if(isset($projectbillresource)) {
-
                 $result->addMeta('expenses', $projectbillresource->expenses);
                 $result->addMeta('divide', $divide);
-//                $result->addMeta('papi_divide', $projectbillresource->papi_divide);
-//                $result->addMeta('bigger_divide', $projectbillresource->bigger_divide);
                 $result->addMeta('my_divide', $projectbillresource->my_divide);
             }
             return $result;
-        }else{
-            return $result;
-        }
+        //}else{
+            //return $result;
+       // }
 
     }
 

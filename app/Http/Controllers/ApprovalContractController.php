@@ -547,17 +547,28 @@ class ApprovalContractController extends Controller
             ->where('cs.project_id',$projects)
             ->where('afb.form_status',232)
             ->orderBy('cs.created_at', 'desc')
-            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name',DB::raw("DATE_FORMAT(cs.created_at,'%Y-%m-%d %h:%i') as created_at"),'afb.form_status','cs.stars','cs.contract_money','cs.type')->get()->toArray();
+            ->select('afb.form_instance_number','cs.title','af.name as form_name','cs.creator_name',DB::raw("DATE_FORMAT(cs.created_at,'%Y-%m-%d %h:%i') as created_at"),'afb.form_status','cs.stars','cs.star_type','cs.contract_money','cs.type')->get()->toArray();
+
+
         $dataInfo = json_decode(json_encode($data), true);
         $sum = 0;
         if(!empty($dataInfo)){
             foreach ($dataInfo as &$value){
-                $starsId = explode(',',$value['stars']);
-                $value['stars_name'] = DB::table('users')->whereIn('users.id',$starsId)->select('users.name')->get()->toArray();
-                $sum += $value['contract_money'];
 
+                if($value['star_type'] == 'stars') {
+                    $starsId = explode(',', $value['stars']);
+                    $value['stars_name'] = DB::table('stars')->whereIn('stars.id', $starsId)->select('stars.name')->get()->toArray();
+                    $sum += $value['contract_money'];
+                }
+                else if($value['star_type'] == 'bloggers')
+                {
+                    $starsId = explode(',', $value['stars']);
+                    $value['stars_name'] = DB::table('bloggers')->whereIn('bloggers.id', $starsId)->select('bloggers.nickname')->get()->toArray();
+                    $sum += $value['contract_money'];
+                }
             }
         }
+
         $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($dataInfo,$start,$pageSize);
         $count = count($article);//总条数

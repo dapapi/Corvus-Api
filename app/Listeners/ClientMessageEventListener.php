@@ -68,6 +68,7 @@ class ClientMessageEventListener
         $subheading = $title = $this->client->company."开启了直客保护";
         //papi商务组全体同事
         $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
+        dd("sdsdsd");
         $this->sendMessage($title,$subheading,$send_to);
     }
 

@@ -761,8 +761,8 @@ class ApprovalFormController extends Controller
         $tmpArr8['values']['data']['value'] = isset($data1[0]['principal_name']) ? $data1[0]['principal_name'] : null;//title
         $tmpArr9['key'] = '项目来源';
         $tmpArr9['values']['data']['value'] = isset($str1Arr) ? $str1Arr : null;//title
-        $tmpArr10['key'] = '合作类型';
-        $tmpArr10['values']['data']['value'] =isset($data1[0]['cooperation_type']) ? $data1[0]['cooperation_type'] : null;
+//        $tmpArr10['key'] = '合作类型';
+//        $tmpArr10['values']['data']['value'] =isset($data1[0]['cooperation_type']) ? $data1[0]['cooperation_type'] : null;
 
 
         array_push($strArr, $tmpArr7);

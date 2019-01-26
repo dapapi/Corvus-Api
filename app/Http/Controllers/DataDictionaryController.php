@@ -11,6 +11,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
+use App\Http\Transformers\DataValHsTransformer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -63,8 +64,9 @@ class DataDictionaryController extends Controller
 
     public function appraising()
     {
-        $pid = 448;
+        $pid = '448';
         $collection = DataDictionary::where('parent_id', $pid)->selectRaw(DB::raw('`val` as user_id , `name` as enum_value'))->get();
-        return $this->response->array(['data' => $collection]);
+        return $this->response->collection($collection, new DataValHsTransformer());
+//        return $this->response->array(['data' => $collection]);
     }
 }

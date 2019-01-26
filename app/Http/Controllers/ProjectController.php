@@ -876,7 +876,7 @@ class ProjectController extends Controller
                 else
                 {
                     if (isset($contractmoney)) {
-                        $result->addMeta('contractmoney', "'".$contractmoney."'");
+                        $result->addMeta('contractmoney', "".$contractmoney);
                     }
                     else
                     {
@@ -892,7 +892,7 @@ class ProjectController extends Controller
                 else
                 {
                     if (isset($expendituresum)) {
-                        $result->addMeta('expendituresum', "'".$expendituresum->expendituresum."'");
+                        $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
                     }
                     else
                     {
@@ -904,14 +904,14 @@ class ProjectController extends Controller
             {
 
                 if (isset($contractmoney)) {
-                    $result->addMeta('contractmoney', "'".$contractmoney."'");
+                    $result->addMeta('contractmoney', "".$contractmoney);
                 }
                 else
                 {
                     $result->addMeta('contractmoney', 0);
                 }
                 if (isset($expendituresum)) {
-                    $result->addMeta('expendituresum', "'".$expendituresum->expendituresum."'");
+                    $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
                 }
                 else
                 {

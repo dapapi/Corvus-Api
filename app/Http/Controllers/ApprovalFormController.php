@@ -701,10 +701,20 @@ class ApprovalFormController extends Controller
         $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val', 'dds.name')->where('dds.parent_id', 49)->get()->toArray();
         $dictionariesValue = json_decode(json_encode($dictionaries), true);
         foreach ($data1 as $value) {
-            $tmpsArr = array();
-            $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 37)->first();
-            $tmpsArr['value'] = $value['resource'];
 
+            $tmpsArr = array();
+
+            if ($value['resource_type'] == 4 || $value['resource_type'] == 5) {
+
+                $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 37)->first();
+
+                $userNmae = DB::table('users')->select('users.name')->where('users.id', hashid_decode($value['resource']))->first();
+                $tmpsArr['value'] = $userNmae->name;
+            } else {
+
+                $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 37)->first();
+                $tmpsArr['value'] = $value['resource'];
+            }
             $str1Arr = $tmpsArr['key']->name . '-' . $tmpsArr['value'];
         }
         //优先级查找匹配
@@ -736,7 +746,7 @@ class ApprovalFormController extends Controller
         $tmpArr4['values']['data']['value'] = isset($data1[0]['end_at']) ? $data1[0]['end_at'] : null;
         $tmpArr5['key'] = '备注';
         $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? $data1[0]['desc'] : null;
-        $tmpArr6['key'] = '关联艺人';
+        $tmpArr6['key'] = '目标艺人';
         $tmpArr6['values']['data']['value'] = isset($arrName) ? implode(",", $s) : null;
         $tmpArr7['key'] = '预计订单收入';
         $tmpArr7['values']['data']['value'] = isset($data1[0]['fee']) ? $data1[0]['fee'] : null;//
@@ -946,6 +956,7 @@ class ApprovalFormController extends Controller
         $authorization = $request->header()['authorization'][0];
         $curr_user = Auth::guard('api')->user();
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $curr_user));
+        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $curr_user));
         // 发送消息
         DB::beginTransaction();
         try {

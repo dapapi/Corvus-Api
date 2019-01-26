@@ -56,8 +56,8 @@ class ReviewQuestionTransformer extends TransformerAbstract
             //return $this->item($selectrows, new BloggerProducerTransformer());
             return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer());
         }else{
-
-        } return null;
+            return $this->null();
+        }
     }
 //    public function review() {
 //        return $this->belongsTo(ReviewQuestionnaire::class);

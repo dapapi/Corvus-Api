@@ -55,7 +55,7 @@ class ReviewQuestionTransformer extends TransformerAbstract
         $arr  = ReviewAnswer::where('review_id', $reviewquestion->review_id)->where('user_id',$user->id)->groupby('user_id')->get();
         $array[] = ['user_id',$user->id];
         $arrdate = !empty(DepartmentPrincipal::where($array)->first());
-        if(count($arr)>0 || $arrdate) {
+        if($arrdate) {
             //return $this->item($selectrows, new BloggerProducerTransformer());
             return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer());
         }else{

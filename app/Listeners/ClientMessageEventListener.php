@@ -61,6 +61,7 @@ class ClientMessageEventListener
                 $this->sendMessageWhenGradeNormalOrderForm();
                 break;
             case ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE://直客保护到期
+                $this->sendMessageWhenNormalClientExpire();
                 break;
         }
     }
@@ -93,6 +94,7 @@ class ClientMessageEventListener
      */
     public function sendMessageWhenNormalClientExpire()
     {
+        echo "直客保护到期提醒";
         $subheading = $title = $this->client->company."直客保护到期提醒";
         //papi商务组全体同事
         $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);

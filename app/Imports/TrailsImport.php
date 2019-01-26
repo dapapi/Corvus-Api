@@ -38,11 +38,11 @@ class TrailsImport implements ToCollection, WithBatchInserts, WithChunkReading
 //
 //            ]);
 //
-//            $client = Client::where('company', $row['公司名称'])->where('grade', $row['级别'])->first();
+//            $client = ClientProtected::where('company', $row['公司名称'])->where('grade', $row['级别'])->first();
 //            if (!$client) {
 //                $trail->client_id = $client->id;
 //            } else {
-//                $client = Client::create([
+//                $client = ClientProtected::create([
 //                    'company' => $row['公司名称'],
 //                    'grade' => $row['级别'] == '直客' ? 1 : 2,
 //                ]);
@@ -85,7 +85,7 @@ class TrailsImport implements ToCollection, WithBatchInserts, WithChunkReading
             foreach ($rows as $key => $row) {
                 if ($key == 0)
                     continue ;
-//                $client = Client::create([
+//                $client = ClientProtected::create([
 //                    'company' =>  $row[2],
 //                    'grade' => 1,
 //                    'principal_id' => $this->principal($row[4],$key,'负责人'),

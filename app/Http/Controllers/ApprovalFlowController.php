@@ -855,7 +855,7 @@ class ApprovalFlowController extends Controller
 
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update([
                     'sign_contract_at' => null,
-                    'sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT
+                    'sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT
                 ]);
 
             }
@@ -863,7 +863,7 @@ class ApprovalFlowController extends Controller
             if (in_array($instance->form_id, [6, 8])) {
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update([
                     'terminate_agreement_at' => null,
-                    'sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT
+                    'sign_contract_status' => SignContractStatus::ALREADY_SIGN_CONTRACT
                 ]);
             }
         }

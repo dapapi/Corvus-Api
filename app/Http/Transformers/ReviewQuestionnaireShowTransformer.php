@@ -66,7 +66,7 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
 
             $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
             $reviewanswer =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*',DB::raw('TRUNCATE(1.'.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
-            dd($reviewanswer);
+
             return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
         }
        // $reviewanswer = $reviewquestionnaire->sum;

@@ -5,6 +5,7 @@ namespace App\Http\Transformers;
 use App\Models\ReviewQuestionnaire;
 use App\Models\ReviewAnswer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
 
 class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
@@ -51,12 +52,15 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
     }
     public function includeSum(ReviewQuestionnaire $reviewquestionnaire)
     {
+        $user = Auth::guard('api')->user();
         $sums =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('review_id',DB::raw('sum(content) as sums'))->groupby('review_id')->get();
         if(!empty($sums->toArray())){
             // 参与人数
             $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
-            $reviewanswer =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*',DB::raw('TRUNCATE('.$sums[0]->sums.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
-
+            $arr  = ReviewAnswer::where('review_id', $reviewquestionnaire->id)->where('user_id',$user->id)->groupby('user_id')->get();
+            if(count($arr)>0) {
+                $reviewanswer = ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*', DB::raw('TRUNCATE(' . $sums[0]->sums . '/' . $count . ',2) as TRUNCATE'))->groupby('review_id');
+            }
         }else{
 
             $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());

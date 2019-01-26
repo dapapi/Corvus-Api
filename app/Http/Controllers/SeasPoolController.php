@@ -187,6 +187,10 @@ class SeasPoolController extends Controller
                 'title' => '负责人',
                 'value' => $principal->name
             ];
+            $data[] = [
+                'title' =>  '预计订单费用',
+                "value" =>  $trail->fee
+            ];
 
             $recives[] = $trail->principal_id;//负责人
             $authorization = $request->header()['authorization'][0];

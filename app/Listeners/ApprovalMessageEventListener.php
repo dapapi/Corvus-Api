@@ -7,6 +7,7 @@ use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
+use App\Models\ApprovalForm\InstanceValue;
 use App\Models\ApprovalForm\Participant;
 use App\Models\Contact;
 use App\Models\Contract;
@@ -116,6 +117,8 @@ class ApprovalMessageEventListener
                 break;
             case ApprovalTriggerPoint::REMIND://提醒
                 break;
+            case ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE://项目合同审批通过
+                break;
         }
     }
 
@@ -201,6 +204,27 @@ class ApprovalMessageEventListener
         //获取知会人
         $send_to = array_column(Participant::select("notice_id")->where("form_instance_number",$this->instance->form_instance_number)->get()->toArray(),"notice_id");
         $this->sendMessage($title,$subheading,$send_to);
+    }
+
+    /**
+     * 项目合同审批通过
+     */
+    public function sendMessageWhenProjectContractAgree()
+    {
+        if ($this->instance->business_type == "contracts"){
+            $instance_value = InstanceValue::where("form_instance_number",$this->instance->form_instance_number)->where('form_control_id',36)->first();
+            $department_name = $instance_value->form_control_value;
+            //获取部门
+            $department = Department::where('name',$department_name)->first();
+            //查找部门下用户
+            $department_users = DepartmentUser::where('depart_id',$department->id)->select("user_id")->get()->toArray();
+            $send_to = array_column($department_users,"user_id");
+            //获取项目
+            $project = Project::join("contracts","contracts.project_id","projects.id")->where("form_instance_number",$this->instance->form_instance_number)->first();
+            $subheading = $title = $project == null ? null :$project->title."项目成单了";
+            $this->sendMessage($title,$subheading,$send_to);
+        }
+
     }
 
     /**

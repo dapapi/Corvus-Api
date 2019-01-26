@@ -337,10 +337,11 @@ class ApprovalFlowController extends Controller
             }
 
             event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+            //项目合同审批同意向M组发消息
+            event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE,$authorization,$user));
         }else{
-        //向下一个审批人发消息
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));
-
+            //向下一个审批人发消息
+            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));
         }
 
         return $this->response->created();

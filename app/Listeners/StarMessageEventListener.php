@@ -77,7 +77,7 @@ class StarMessageEventListener
         //获取全部艺人
         $star_name_arr = array_column(Star::select("name")->whereIn('id',$this->star_arr)->get()->toArray(),"name");
         $star_names = implode(",",$star_name_arr);
-        $subheading = $title = $star_names->name."解约";
+        $subheading = $title = $star_names."解约";
         $send_to = null;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }

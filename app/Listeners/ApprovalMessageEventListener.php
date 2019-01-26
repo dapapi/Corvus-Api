@@ -3,21 +3,28 @@
 namespace App\Listeners;
 
 use App\Events\ApprovalMessageEvent;
+use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\Participant;
 use App\Models\Contact;
 use App\Models\Contract;
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\Project;
+use App\Models\Role;
+use App\Models\RoleUser;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
+use Complex\Exception;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 
 class ApprovalMessageEventListener
 {
@@ -31,6 +38,7 @@ class ApprovalMessageEventListener
     private $form_name;//审批单的名字
     private $other_id; //转交时他是转交人id
     private $origin;//发起人
+    private $module;//消息模块
     //消息发送内容
     private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":"%s"}]';
     /**
@@ -58,8 +66,9 @@ class ApprovalMessageEventListener
         $this->other_id = $event->other_id;
         $creator_id = null;//审批创建人id
         $create_at = null; //创建时间
-        //获取发起人姓名
+        //获取发起人姓名，消息发送模块
         if ($this->instance->business_type == "projects"){
+            $this->module = Message::PROJECT;
             $project = Project::where('project_number',$this->instance->form_instance_number)->first();
             if ($project){
                 $creator_id = $project->creator_id;
@@ -67,6 +76,7 @@ class ApprovalMessageEventListener
             }
         }
         if ($this->instance->business_type == "contracts"){
+            $this->module = Message::CONTRACT;
             $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
             if ($contract){
                 $creator_id = $contract->creator_id;
@@ -74,6 +84,7 @@ class ApprovalMessageEventListener
             }
         }
         if ($this->instance->created_by){
+            $this->module = Message::APPROVAL;
             $creator_id = $this->instance->created_by;
             $create_at = $this->instance->created_at;
         }
@@ -143,8 +154,30 @@ class ApprovalMessageEventListener
     //待审批
     public function sendMessageWhenWaitMe()
     {
+        //获取下一个审批人
+        $execute = Execute::where('form_instance_number',$this->instance->form_instance_number)->first();
+        $send_to = [];
+        if ($execute->current_handler_type == 245){//团队
+            $send_to[] = $execute->current_handler_id;
+        }elseif($execute->current_handler_type == 246){//创建人所在部门负责人
+            try{
+                //获取创建人
+                $creator_id = $this->getInstanceCreator($this->instance);
+
+                $department = DepartmentUser::where("user_id",$creator_id)->first();
+                //获取部门负责人
+                $department_principal = DepartmentUser::where('department_id',$department->id)->where('type',1)->first();
+                $send_to[] = $department_principal->user_id;
+            }catch (Exception $e){
+                Log::error($e);
+            }
+        }elseif($execute->current_handler_type == 247){//角色
+            //获取角色
+            $users = RoleUser::where("role_id",$execute->current_handler_id)->select('user_id')->get()->toArray();
+            $send_to = array_column($users,'user_id');
+        }
         $subheading = $title = $this->user->name."的".$this->form_name."待您审批";
-        $send_to[] = $this->other_id;//向下一个审批人发消息
+//        $send_to[] = $this->other_id;//向下一个审批人发消息
         $this->sendMessage($title,$subheading,$send_to);
     }
     //向知会人发消息
@@ -170,7 +203,29 @@ class ApprovalMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::APPROVAL, null, $this->data, $send_to,$this->instance->id);
+            $this->module, null, $this->data, $send_to,$this->instance->id);
+    }
+
+    private function getInstanceCreator($instance)
+    {
+        $creator_id = null;
+        //获取发起人姓名
+        if ($this->instance->business_type == "projects"){
+            $project = Project::where('project_number',$this->instance->form_instance_number)->first();
+            if ($project){
+                return $project->creator_id;
+            }
+        }
+        if ($this->instance->business_type == "contracts"){
+            $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
+            if ($contract){
+                return $contract->creator_id;
+            }
+        }
+        if ($this->instance->created_by){
+            return $this->instance->created_by;
+        }
+        throw new \Exception("查找不到创建人");
     }
 
 }

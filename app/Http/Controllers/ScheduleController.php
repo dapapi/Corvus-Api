@@ -580,7 +580,7 @@ class ScheduleController extends Controller
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $old_schedule = clone $schedule;//复制日程，以便发消息
-        $users = $this->getPowerUsers($schedule);
+        $users = $this->getEditPowerUsers($schedule);
         $user = Auth::guard("api")->user();
         if (!in_array($user->id, $users)) {
             return $this->response->errorInternal("你没有编辑该日程的权限");
@@ -609,7 +609,6 @@ class ScheduleController extends Controller
             $payload['participant_del_ids'] = [];
         DB::beginTransaction();
         try {
-            $old_schedule = clone $schedule;
             $schedule->update($payload);
 
             if ($old_schedule->start_at != $schedule->start_at || $old_schedule->end_at != $schedule->end_at){
@@ -780,6 +779,24 @@ class ScheduleController extends Controller
         //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
         if ($schedule->privacy == Schedule::OPEN) {
             $users[] = $user->id;
+            $calendar = Calendar::find($schedule->calendar_id);
+            if ($calendar != null) {
+                $users[] = $calendar->creator_id;
+                $users = array_merge($users, array_column($calendar->participants()->get()->toArray(), 'id'));
+            }
+        }
+        return $users;
+    }
+    //具有修改权限的用户
+    private function getEditPowerUsers($schedule)
+    {
+        $users = [];//记录可以查看日程的用户id
+        //日程的创建者，
+        $users[] = $schedule->creator_id;
+        //参与者
+        $users = array_merge(array_column($schedule->participants()->get()->toArray(), 'id'), $users);
+        //日程未勾选参与人可见,则日历的参与人和日历的创建人可删除
+        if ($schedule->privacy == Schedule::OPEN) {
             $calendar = Calendar::find($schedule->calendar_id);
             if ($calendar != null) {
                 $users[] = $calendar->creator_id;

@@ -678,7 +678,7 @@ class ApprovalFormController extends Controller
 //            ->join('bloggers', function ($join) {
 //                $join->on('bloggers.id', '=', 'trail_star.starable_id')->where('trail_star.type',1);
 //            })
-            ->select('trails.id', 'trails.title', 'ph.priority', 'ph.projected_expenditure', 'ph.start_at', 'ph.end_at', 'ph.desc', 'trail_star.starable_type', 'trail_star.starable_id', 'trails.fee', 'users.name as principal_name', 'trails.title', 'trails.resource_type', 'trails.resource')
+            ->select('trails.id', 'trails.title', 'ph.priority', 'ph.projected_expenditure', 'ph.start_at', 'ph.end_at', 'ph.desc', 'trail_star.starable_type', 'trail_star.starable_id', 'trails.fee', 'users.name as principal_name', 'trails.title', 'trails.resource_type', 'trails.resource','trails.cooperation_type')
             ->where('ph.id', $project->id)->where('trail_star.type', 1)->get()->toArray();
         $data1 = json_decode(json_encode($projectArr), true);
         //目标艺人
@@ -762,7 +762,8 @@ class ApprovalFormController extends Controller
         $tmpArr9['key'] = '项目来源';
         $tmpArr9['values']['data']['value'] = isset($str1Arr) ? $str1Arr : null;//title
         $tmpArr10['key'] = '合作类型';
-        $tmpArr10['values']['data']['value'] =
+        $tmpArr10['values']['data']['value'] =isset($data1[0]['cooperation_type']) ? $data1[0]['cooperation_type'] : null;
+
 
         array_push($strArr, $tmpArr7);
         array_push($strArr, $tmpArr);

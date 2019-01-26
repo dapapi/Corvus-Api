@@ -678,7 +678,7 @@ class ApprovalFormController extends Controller
 //            ->join('bloggers', function ($join) {
 //                $join->on('bloggers.id', '=', 'trail_star.starable_id')->where('trail_star.type',1);
 //            })
-            ->select('trails.id', 'trails.title', 'ph.priority', 'ph.projected_expenditure', 'ph.start_at', 'ph.end_at', 'ph.desc', 'trail_star.starable_type', 'trail_star.starable_id', 'trails.fee', 'users.name as principal_name', 'trails.title', 'trails.resource_type', 'trails.resource','trails.cooperation_type')
+            ->select('trails.id', 'trails.title', 'ph.priority', 'ph.projected_expenditure', 'ph.start_at', 'ph.end_at', 'ph.desc', 'trail_star.starable_type', 'trail_star.starable_id', 'trails.fee', 'trails.cooperation_type', 'trails.status', 'users.name as principal_name', 'trails.title', 'trails.resource_type', 'trails.resource')
             ->where('ph.id', $project->id)->where('trail_star.type', 1)->get()->toArray();
         $data1 = json_decode(json_encode($projectArr), true);
         //目标艺人
@@ -741,6 +741,26 @@ class ApprovalFormController extends Controller
 
             $priority = '';
         }
+
+        // 合作类型
+        if ($data1[0]['cooperation_type'] !== '') {
+            $cooperation = DB::table('data_dictionaries as dds')
+                ->where('dds.parent_id', 28)
+                ->where('dds.val', $data1[0]['cooperation_type'])
+                ->value('dds.name');
+        } else {
+            $cooperation = null;
+        }
+
+        // 线索状态
+        if ($data1[0]['cooperation_type'] !== '') {
+            $status = DB::table('data_dictionaries as dds')
+                ->where('dds.parent_id', 488)
+                ->where('dds.val', $data1[0]['status'])
+                ->value('dds.name');
+        } else {
+            $status = null;
+        }
         $tmpArr['key'] = '关联销售线索';
         $tmpArr['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title'] : null;
         $tmpArr1['key'] = '优先级';
@@ -761,9 +781,10 @@ class ApprovalFormController extends Controller
         $tmpArr8['values']['data']['value'] = isset($data1[0]['principal_name']) ? $data1[0]['principal_name'] : null;//title
         $tmpArr9['key'] = '项目来源';
         $tmpArr9['values']['data']['value'] = isset($str1Arr) ? $str1Arr : null;//title
-//        $tmpArr10['key'] = '合作类型';
-//        $tmpArr10['values']['data']['value'] =isset($data1[0]['cooperation_type']) ? $data1[0]['cooperation_type'] : null;
-
+        $tmpArr10['key'] = '合作类型';
+        $tmpArr10['values']['data']['value'] = isset($data1[0]['cooperation_type']) ? $cooperation : null;//合作类型
+        $tmpArr11['key'] = '状态';
+        $tmpArr11['values']['data']['value'] = isset($data1[0]['status']) ? $status: null;//状态
 
         array_push($strArr, $tmpArr7);
         array_push($strArr, $tmpArr);
@@ -775,6 +796,8 @@ class ApprovalFormController extends Controller
         array_push($strArr, $tmpArr6);
         array_push($strArr, $tmpArr8);
         array_push($strArr, $tmpArr9);
+        array_push($strArr, $tmpArr10);
+        array_push($strArr, $tmpArr11);
 
         ////////////////////////////////////////////////////////////
         $project = DB::table('project_histories as projects')

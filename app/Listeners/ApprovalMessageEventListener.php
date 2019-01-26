@@ -125,7 +125,12 @@ class ApprovalMessageEventListener
     public function sendMessageWhenAgree()
     {
         $subheading = $title = "您的{$this->form_name}已同意";
-        $send_to[] = $this->instance->created_by;//发起人
+        $send_to = [];
+        try{
+            $send_to[] = $this->getInstanceCreator();
+        }catch (\Exception $e){
+            Log::error($e);
+        }
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -135,7 +140,12 @@ class ApprovalMessageEventListener
     public function sendMessageWhenRefuse()
     {
         $subheading = $title = "您的{$this->form_name}已拒绝";
-        $send_to[] = $this->instance->created_by;//发起人
+        $send_to = [];
+        try{
+            $send_to[] = $this->getInstanceCreator();
+        }catch (\Exception $e){
+            Log::error($e);
+        }
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -144,10 +154,10 @@ class ApprovalMessageEventListener
     public function sendMessageWhenTransfer()
     {
         //转交人
-        $other_user = User::find($this->other_id);
-        $other_user_name = $other_user == null ? null : $other_user->name;
+//        $other_user = User::find($this->other_id);
+//        $other_user_name = $other_user == null ? null : $other_user->name;
         $origin_name = $this->origin == null ? null : $this->origin->name;
-        $subheading = $title = $other_user_name."转交你审批{$origin_name}"."的".$this->form_name;
+        $subheading = $title = $this->user->name."转交你审批{$origin_name}"."的".$this->form_name;
         $send_to[] = $this->other_id;//被转交人
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -162,7 +172,7 @@ class ApprovalMessageEventListener
         }elseif($execute->current_handler_type == 246){//创建人所在部门负责人
             try{
                 //获取创建人
-                $creator_id = $this->getInstanceCreator($this->instance);
+                $creator_id = $this->getInstanceCreator();
 
                 $department = DepartmentUser::where("user_id",$creator_id)->first();
                 //获取部门负责人
@@ -206,10 +216,10 @@ class ApprovalMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->module, null, $this->data, $send_to,$this->instance->id);
+            $this->module, null, $this->data, $send_to,$this->instance->form_instance_number);
     }
 
-    private function getInstanceCreator($instance)
+    private function getInstanceCreator()
     {
         $creator_id = null;
         //获取发起人姓名

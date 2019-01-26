@@ -21,7 +21,12 @@ class MessageRepository
         $message->subheading = $subheading;
         $message->module = $module;
         $message->link = $link;
-        $message->module_data_id    =  hashid_encode($module_data_id);
+        if ($module == Message::APPROVAL||$module == Message::CONTRACT){
+            $message->module_data_id = $module_data_id;
+        }else{
+            $message->module_data_id    =  hashid_encode($module_data_id);
+        }
+
         $message->save();
         foreach ($data as &$value){
             $value['message_id'] = $message->id;
@@ -31,7 +36,7 @@ class MessageRepository
         //todo 消息发送对列优化
         $recives_data = [];
         if ($recives === null){//如果recives为null表示全员接收
-            $recives = User::select('id')->where('id','!=',$user->id)->get()->toArray();
+            $recives = array_column(User::select('id')->where('id','!=',$user->id)->get()->toArray(),'id');
         }
         $recives = array_unique($recives);//去重
         foreach ($recives as $recive){

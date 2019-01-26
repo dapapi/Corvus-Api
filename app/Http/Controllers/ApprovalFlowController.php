@@ -337,13 +337,12 @@ class ApprovalFlowController extends Controller
                 }
             }
 
-
-        }
-        //向知会人发消息
-//        event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+        }else{
         //向下一个审批人发消息
         event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));
+
+        }
 
         return $this->response->created();
     }
@@ -437,10 +436,9 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
-
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$nextId));
+        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::TRANSFER,$authorization,$user,$nextId));
 
         return $this->response->created();
     }

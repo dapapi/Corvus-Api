@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\BloggerMessageEvent;
 use App\Models\Blogger;
+use App\Models\Message;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\BloggerTriggerPoint;
 use DemeterChain\B;
@@ -43,11 +44,11 @@ class BloggerMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
-        $this->created_at = $event['creatd'];//签约时间
+        $created_at = $event['created'];//签约时间
         //获取所有博主
         $bloggers = Blogger::whereIn('id',$this->blogger_arr)->select('nickname');
         $blogger_names = implode(",",array_column($bloggers,'nickname'));
-        $this->data = json_decode(sprintf($this->message_content,$blogger_names,$blogger_names,$this->created_at),true);
+        $this->data = json_decode(sprintf($this->message_content,$blogger_names,$blogger_names,$created_at),true);
         switch ($this->trigger_point){
             case BloggerTriggerPoint::SIGNING://签约
                 $this->sendMessageWhenSigning();
@@ -64,7 +65,7 @@ class BloggerMessageEventListener
     public function sendMessageWhenSigning()
     {
         //获取全部博主
-        $blogger_arr = array_column(Blogger::select("nickname")->get()->toArray(),"nickname",true);
+        $blogger_arr = array_column(Blogger::select("nickname")->whereIn('id',$this->blogger_arr)->get()->toArray(),"nickname",true);
         $blogger_names = implode(",",$blogger_arr);
         $subheading = $title = $blogger_names."签约";
         $send_to = null;//全员
@@ -88,9 +89,12 @@ class BloggerMessageEventListener
     public function sendMessage($title,$subheading,$send_to)
     {
         //消息接受人去重
-        $send_to = array_unique($send_to);
-        $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        if ($send_to !== null){
+            $send_to = array_unique($send_to);
+            $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        }
+
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->task->id);
+            Message::BLOGGER, null, $this->data, $send_to,$this->blogger_arr[0]);
     }
 }

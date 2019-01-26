@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\StarMessageEvent;
+use App\Models\Message;
 use App\Models\Star;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\StarTriggerPoint;
@@ -41,10 +42,10 @@ class StarMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
-        $this->created_at = $event->meta['creatd_at'];
+        $created_at = $event->meta['created'];
         $stars = Star::whereIn('id',$this->star_arr)->select('name')->get()->toArray();
         $star_names = implode(",",array_column($stars,'name'));
-        $this->data = json_decode(sprintf($this->message_content,$star_names,$this->created_at),true);
+        $this->data = json_decode(sprintf($this->message_content,$star_names,$created_at),true);
         switch ($this->trigger_point){
             case StarTriggerPoint::SIGNING://签约
                 $this->sendMessageWhenSigning();
@@ -61,7 +62,7 @@ class StarMessageEventListener
     public function sendMessageWhenSigning()
     {
         //获取全部艺人
-        $star_name_arr = array_column(Star::select("name")->get()->toArray(),"name");
+        $star_name_arr = array_column(Star::select("name")->whereIn('id',$this->star_arr)->get()->toArray(),"name");
         $star_names = implode(",",$star_name_arr);
         $subheading = $title = $star_names."签约";
         $send_to = null;//全员
@@ -86,9 +87,12 @@ class StarMessageEventListener
     public function sendMessage($title,$subheading,$send_to)
     {
         //消息接受人去重
-        $send_to = array_unique($send_to);
-        $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        if ($send_to !== null){
+            $send_to = array_unique($send_to);
+            $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        }
+
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->task->id);
+            Message::STAR, null, $this->data, $send_to,$this->star_arr[0]);
     }
 }

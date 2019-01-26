@@ -125,7 +125,12 @@ class ApprovalMessageEventListener
     public function sendMessageWhenAgree()
     {
         $subheading = $title = "您的{$this->form_name}已同意";
-        $send_to[] = $this->instance->created_by;//发起人
+        $send_to = [];
+        try{
+            $send_to[] = $this->getInstanceCreator();
+        }catch (\Exception $e){
+            Log::error($e);
+        }
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -135,7 +140,12 @@ class ApprovalMessageEventListener
     public function sendMessageWhenRefuse()
     {
         $subheading = $title = "您的{$this->form_name}已拒绝";
-        $send_to[] = $this->instance->created_by;//发起人
+        $send_to = [];
+        try{
+            $send_to[] = $this->getInstanceCreator();
+        }catch (\Exception $e){
+            Log::error($e);
+        }
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -162,7 +172,7 @@ class ApprovalMessageEventListener
         }elseif($execute->current_handler_type == 246){//创建人所在部门负责人
             try{
                 //获取创建人
-                $creator_id = $this->getInstanceCreator($this->instance);
+                $creator_id = $this->getInstanceCreator();
 
                 $department = DepartmentUser::where("user_id",$creator_id)->first();
                 //获取部门负责人
@@ -209,7 +219,7 @@ class ApprovalMessageEventListener
             $this->module, null, $this->data, $send_to,$this->instance->form_instance_number);
     }
 
-    private function getInstanceCreator($instance)
+    private function getInstanceCreator()
     {
         $creator_id = null;
         //获取发起人姓名

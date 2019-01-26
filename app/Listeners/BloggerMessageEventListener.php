@@ -44,9 +44,9 @@ class BloggerMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
-        $created_at = $event['created'];//签约时间
+        $created_at = $event->meta['created'];//签约时间
         //获取所有博主
-        $bloggers = Blogger::whereIn('id',$this->blogger_arr)->select('nickname');
+        $bloggers = Blogger::whereIn('id',$this->blogger_arr)->select('nickname')->get()->toArray();
         $blogger_names = implode(",",array_column($bloggers,'nickname'));
         $this->data = json_decode(sprintf($this->message_content,$blogger_names,$blogger_names,$created_at),true);
         switch ($this->trigger_point){
@@ -65,7 +65,7 @@ class BloggerMessageEventListener
     public function sendMessageWhenSigning()
     {
         //获取全部博主
-        $blogger_arr = array_column(Blogger::select("nickname")->whereIn('id',$this->blogger_arr)->get()->toArray(),"nickname",true);
+        $blogger_arr = array_column(Blogger::select("nickname")->whereIn('id',$this->blogger_arr)->get()->toArray(),"nickname");
         $blogger_names = implode(",",$blogger_arr);
         $subheading = $title = $blogger_names."签约";
         $send_to = null;//全员

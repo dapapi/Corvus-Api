@@ -31,7 +31,7 @@ class MessageRepository
         //todo 消息发送对列优化
         $recives_data = [];
         if ($recives === null){//如果recives为null表示全员接收
-            $recives = User::select('id')->where('id','!=',$user->id)->get()->toArray();
+            $recives = array_column(User::select('id')->where('id','!=',$user->id)->get()->toArray(),'id');
         }
         $recives = array_unique($recives);//去重
         foreach ($recives as $recive){

@@ -327,7 +327,7 @@ class ApprovalFlowController extends Controller
             //如果是项目
             if ($instance->business_type == "contracts"){
                 //项目审批通过向,并且客户是直客，向papi商务组发送，直客成单消息
-                $client = Client::join('contracts','client.id','contracts.client_id')
+                $client = Client::join('contracts','clients.id','contracts.client_id')
                     ->where('contracts.form_instance_number',$instance->form_instance_number)
                     ->where('grade',Client::GRADE_NORMAL)//直客
                     ->select('company')

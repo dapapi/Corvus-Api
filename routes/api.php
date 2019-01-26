@@ -247,7 +247,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->post('/projects/{project}/store/bill', 'App\Http\Controllers\ProjectBillController@store');
-        $api->put('/projects/{project}/store/bill', 'App\Http\Controllers\ProjectBillController@edit');
+        $api->put('/projects/{project}/edit/bill', 'App\Http\Controllers\ProjectBillController@edit');
         //考勤
         //提交申请
         $api->post('/attendance', 'App\Http\Controllers\AttendanceController@store');

@@ -325,25 +325,23 @@ class ApprovalFlowController extends Controller
                 }
             }
             //如果是项目
-            if ($instance->business_type == "projects"){
+            if ($instance->business_type == "contracts"){
                 //项目审批通过向,并且客户是直客，向papi商务组发送，直客成单消息
-                $client = Client::join('trails','client.id','trails.client_id')->join('projects','projects.trail_id','trails.id')
-                    ->where('projects.project_number',$instance->form_instance_number)
+                $client = Client::join('contracts','clients.id','contracts.client_id')
+                    ->where('contracts.form_instance_number',$instance->form_instance_number)
                     ->where('grade',Client::GRADE_NORMAL)//直客
-                    ->select('company')
                     ->first();
                 if($client){
                     event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user));
                 }
             }
 
-
-        }
-        //向知会人发消息
-//        event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+        }else{
         //向下一个审批人发消息
         event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));
+
+        }
 
         return $this->response->created();
     }
@@ -437,10 +435,9 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
-
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$nextId));
+        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::TRANSFER,$authorization,$user,$nextId));
 
         return $this->response->created();
     }

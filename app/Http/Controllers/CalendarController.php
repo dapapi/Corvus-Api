@@ -9,6 +9,7 @@ use App\Http\Requests\Calendar\StoreCalendarTaskRequest;
 use App\Http\Transformers\CalendarTransformer;
 use App\Models\Calendar;
 use App\Models\OperateEntity;
+use App\Models\Schedule;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
@@ -170,9 +171,20 @@ class CalendarController extends Controller
         if($calendar->creator_id != $user->id){
             return $this->response->errorInternal("你没有该日历的权限");
         }
-        $calendar->status = Calendar::STATUS_FROZEN;//关闭
-        $calendar->save();
-        $calendar->delete();
+        DB::beginTransaction();
+        try {
+            $calendar->status = Calendar::STATUS_FROZEN;//关闭
+            $calendar->save();
+            $calendar->delete();
+
+           Schedule::where('calendar_id',$calendar->id)->delete();
+
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+        }
+        DB::commit();
         return $this->response->noContent();
     }
 

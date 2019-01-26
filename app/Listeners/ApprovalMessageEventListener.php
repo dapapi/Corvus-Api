@@ -65,14 +65,13 @@ class ApprovalMessageEventListener
         $this->authorization = $event->authorization;
         $this->user = $event->user;
         $this->other_id = $event->other_id;
-        $creator_id = null;//审批创建人id
         $create_at = null; //创建时间
         //获取发起人姓名，消息发送模块
         if ($this->instance->business_type == "projects"){
             $this->module = Message::PROJECT;
             $project = Project::where('project_number',$this->instance->form_instance_number)->first();
             if ($project){
-                $this->$creator_id = $project->creator_id;
+                $this->creator_id = $project->creator_id;
                 $create_at = $project->created_at;
             }
         }
@@ -80,7 +79,7 @@ class ApprovalMessageEventListener
             $this->module = Message::CONTRACT;
             $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
             if ($contract){
-                $this->$creator_id = $contract->creator_id;
+                $this->creator_id = $contract->creator_id;
                 $create_at = $contract->created_at;
             }
         }
@@ -89,7 +88,7 @@ class ApprovalMessageEventListener
             $this->creator_id = $this->instance->created_by;
             $create_at = $this->instance->created_at;
         }
-        if ($creator_id){
+        if ($this->creator_id){
             $this->origin = User::find($this->creator_id);
         }
 
@@ -126,7 +125,12 @@ class ApprovalMessageEventListener
     public function sendMessageWhenAgree()
     {
         $subheading = $title = "您的{$this->form_name}已同意";
-        $send_to[] = $this->instance->created_by;//发起人
+        $send_to = [];
+        try{
+            $send_to[] = $this->getInstanceCreator();
+        }catch (\Exception $e){
+            Log::error($e);
+        }
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -136,7 +140,12 @@ class ApprovalMessageEventListener
     public function sendMessageWhenRefuse()
     {
         $subheading = $title = "您的{$this->form_name}已拒绝";
-        $send_to[] = $this->instance->created_by;//发起人
+        $send_to = [];
+        try{
+            $send_to[] = $this->getInstanceCreator();
+        }catch (\Exception $e){
+            Log::error($e);
+        }
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -145,10 +154,10 @@ class ApprovalMessageEventListener
     public function sendMessageWhenTransfer()
     {
         //转交人
-        $other_user = User::find($this->other_id);
-        $other_user_name = $other_user == null ? null : $other_user->name;
+//        $other_user = User::find($this->other_id);
+//        $other_user_name = $other_user == null ? null : $other_user->name;
         $origin_name = $this->origin == null ? null : $this->origin->name;
-        $subheading = $title = $other_user_name."转交你审批{$origin_name}"."的".$this->form_name;
+        $subheading = $title = $this->user->name."转交你审批{$origin_name}"."的".$this->form_name;
         $send_to[] = $this->other_id;//被转交人
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -163,13 +172,13 @@ class ApprovalMessageEventListener
         }elseif($execute->current_handler_type == 246){//创建人所在部门负责人
             try{
                 //获取创建人
-                $creator_id = $this->getInstanceCreator($this->instance);
+                $creator_id = $this->getInstanceCreator();
 
                 $department = DepartmentUser::where("user_id",$creator_id)->first();
                 //获取部门负责人
                 $department_principal = DepartmentUser::where('department_id',$department->id)->where('type',1)->first();
                 $send_to[] = $department_principal->user_id;
-            }catch (Exception $e){
+            }catch (\Exception $e){
                 Log::error($e);
             }
         }elseif($execute->current_handler_type == 247){//角色
@@ -206,11 +215,21 @@ class ApprovalMessageEventListener
         //消息接受人去重
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        $module_data_id = 0;
+        if ($this->module == Message::CONTRACT || $this->module == Message::APPROVAL){
+            $module_data_id = $this->instance->form_instance_number;
+        }else{
+            $project = Project::where('project_number',$this->instance->form_instance_number)->first();
+            if ($project){
+                $module_data_id = $project->id;
+            }
+
+        }
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->module, null, $this->data, $send_to,$this->instance->id);
+            $this->module, null, $this->data, $send_to,$module_data_id);
     }
 
-    private function getInstanceCreator($instance)
+    private function getInstanceCreator()
     {
         $creator_id = null;
         //获取发起人姓名

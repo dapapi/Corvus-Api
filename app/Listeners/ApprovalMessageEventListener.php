@@ -245,8 +245,8 @@ class ApprovalMessageEventListener
             if ($project){
                 $module_data_id = $project->id;
             }
-
         }
+
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             $this->module, null, $this->data, $send_to,$module_data_id);
     }

@@ -65,7 +65,6 @@ class StarMessageEventListener
         $star_names = implode(",",$star_name_arr);
         $subheading = $title = $star_names."签约";
         $send_to = null;//全员
-
         $this->sendMessage($title,$subheading,$send_to);
     }
 

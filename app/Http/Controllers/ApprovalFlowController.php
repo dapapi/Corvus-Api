@@ -296,7 +296,9 @@ class ApprovalFlowController extends Controller
 
 
         $authorization = $request->header()['authorization'][0];
-        if($instance->form_status == 232){//审批通过
+        $excute = Execute::where("form_instance_number",$instance->form_instance_number)->first();
+        if($excute->flow_type_id == 232){//审批通过
+
             $num = $instance->form_instance_number;
             $contract = Contract::where('form_instance_number', $num)->first();
             if ($contract){//如果是合同
@@ -338,8 +340,7 @@ class ApprovalFlowController extends Controller
 
         }
         //向知会人发消息
-        event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
-        //向审批发起人发消息
+//        event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$user));
         event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
         //向下一个审批人发消息
         event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));

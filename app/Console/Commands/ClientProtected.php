@@ -61,7 +61,8 @@ class ClientProtected extends Command
             Log::error("登录失败...");
             return;
         }
-        $body =
+        $body = $this->httpRepository->jar->getBody();
+        $access_token = json_decode($body,true)['access_token'];
         Log::info("直客到期检查");
         $now = Carbon::now();
         //获取保护截止日期在当前时间之后的直客
@@ -70,7 +71,7 @@ class ClientProtected extends Command
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
             if ($protected_client_time->diffInDays($now) == 5){
                 //发消息
-
+                event();
             }
         }
     }

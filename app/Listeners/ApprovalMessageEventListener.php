@@ -175,11 +175,10 @@ class ApprovalMessageEventListener
             try{
                 //获取创建人
                 $creator_id = $this->getInstanceCreator();
-
-                $department = DepartmentUser::where("user_id",$creator_id)->first();
+                $department_user = DepartmentUser::where("user_id",$creator_id)->first();
                 //获取部门负责人
-                $department_principal = DepartmentUser::where('department_id',$department->id)->where('type',1)->first();
-                $send_to[] = $department_principal->user_id;
+                $department_principal = DepartmentUser::where('department_id',$department_user->department_id)->where('type',1)->first();
+                $send_to[] = $department_principal == null ? $creator_id : $department_principal->user_id;
             }catch (\Exception $e){
                 Log::error($e);
             }

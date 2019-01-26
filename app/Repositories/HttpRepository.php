@@ -10,7 +10,7 @@ class HttpRepository
 {
 
     private $client;
-    private $jar;
+    public $jar;
 
     public function __construct()
     {

@@ -3,12 +3,27 @@
 namespace App\Console\Commands;
 
 use App\Models\Client;
+use App\Repositories\HttpRepository;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class ClientProtected extends Command
 {
+    private $httpRepository;
+    private $header = [
+        "Accept"=>"application/vnd.Corvus.v1+json",
+        "Content-Type"  =>  "application/x-www-form-urlencoded"
+    ];
+    private $params = [
+        'token_type' => 'bearer',
+        "username"=>"李乐",
+        "password"=>123456,
+        "grant_type"    =>  "password",
+        "client_id" =>2,
+        "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
+        "scope" =>  "*"
+    ];
     /**
      * The name and signature of the console command.
      *
@@ -28,9 +43,10 @@ class ClientProtected extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(HttpRepository $httpRepository)
     {
         parent::__construct();
+        $this->httpRepository = $httpRepository;
     }
 
     /**
@@ -40,6 +56,12 @@ class ClientProtected extends Command
      */
     public function handle()
     {
+        $res = $this->httpRepository->request("post",'https://sandbox-api-crm.papitube.com/oauth/token');
+        if ($res){
+            Log::error("登录失败...");
+            return;
+        }
+        $body =
         Log::info("直客到期检查");
         $now = Carbon::now();
         //获取保护截止日期在当前时间之后的直客

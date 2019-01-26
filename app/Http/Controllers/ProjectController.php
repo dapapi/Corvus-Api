@@ -272,7 +272,7 @@ class ProjectController extends Controller
             if ($payload['type'] != 5) {
                 $projectHistorie = ProjectHistorie::create($payload);
                 $approvalForm = new ApprovalFormController();
-                $approvalForm->projectStore($payload['type'], $payload['notice'], $payload['project_number']);
+                $approvalForm->projectStore($request,$payload['type'], $payload['notice'], $payload['project_number']);
                 foreach ($payload['fields'] as $key => $val) {
                     FieldValue::create([
                         'field_id' => hashid_decode((int)$key),

@@ -86,8 +86,11 @@ class StarMessageEventListener
     public function sendMessage($title,$subheading,$send_to)
     {
         //消息接受人去重
-        $send_to = array_unique($send_to);
-        $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        if ($send_to !== null){
+            $send_to = array_unique($send_to);
+            $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        }
+
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::TASK, null, $this->data, $send_to,$this->task->id);
     }

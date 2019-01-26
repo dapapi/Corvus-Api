@@ -93,6 +93,6 @@ class StarMessageEventListener
         }
 
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::STAR, null, $this->data, $send_to,$this->task->id);
+            Message::STAR, null, $this->data, $send_to,$this->star_arr[0]);
     }
 }

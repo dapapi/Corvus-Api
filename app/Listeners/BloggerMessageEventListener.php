@@ -95,6 +95,6 @@ class BloggerMessageEventListener
         }
 
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::BLOGGER, null, $this->data, $send_to,$this->task->id);
+            Message::BLOGGER, null, $this->data, $send_to,$this->blogger_arr[0]);
     }
 }

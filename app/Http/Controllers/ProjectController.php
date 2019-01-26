@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
@@ -473,6 +474,10 @@ class ProjectController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
+        //向知会人发消息
+
+        //向审批人发消息
+
         return $this->response->item($project, new ProjectTransformer());
 
     }

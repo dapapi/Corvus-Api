@@ -153,15 +153,13 @@ class TaskMessageEventListener
         $send_to[] = $this->task->principal_id;
         $this->sendMessage($title,$subheading,$send_to);
     }
-    //创建子任务时向主任务创建人，负责人，参与人，子任务参与人发消息
+    //创建子任务时向主任务创建人，负责人，参与人发消息
     public function createSonTaskSendMessageToWhithOutPrincipal()
     {
         //获取父任务
         $pTask = Task::find($this->task->task_pid);
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
         $subheading = $title = $this->user->name."创建了子任务(父任务{$pTaskTitle})";
-        //子任务参与人
-//        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
         //父任务创建人
         $send_to[] = $pTask == null ? null : $pTask->creator_id;
         //父任务负责人

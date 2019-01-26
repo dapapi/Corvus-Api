@@ -58,6 +58,10 @@ class ReviewQuestionTransformer extends TransformerAbstract
         if($arrdate) {
             //return $this->item($selectrows, new BloggerProducerTransformer());
             return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer());
+        }else if(count($arr)>0){
+            $data = false;
+            return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer($data));
+
         }else{
             return $this->null();
         }

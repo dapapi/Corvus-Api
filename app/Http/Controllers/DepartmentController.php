@@ -21,18 +21,37 @@ use App\Http\Requests\DepartmentRequest;
 use App\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\PositionRequest;
+use League\Fractal;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use League\Fractal\Manager;
 
 class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
 
-        $depatments = Department::where('department_pid', 0)->get();
-        return $this->response->collection($depatments, new DepartmentTransformer());
+        // 直接从缓存拿数组
+        if (Cache::has(config('app.departments'))) {
+            return response(Cache::get(config('app.departments')));
+        }
+
+
+        $departments = Department::where('department_pid', 0)->get();
+        $data = new Fractal\Resource\Collection($departments, new DepartmentTransformer());
+        $manager = new Manager();
+
+        if ($request->has('include')) {
+            $manager->parseIncludes($request->get('include'));
+        }
+
+        $departmentsArr = $manager->createData($data)->toArray();
+        Cache::set(config('app.departments'), $departmentsArr, 108000);
+
+        return response($departmentsArr);
     }
 
     //添加部门

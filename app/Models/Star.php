@@ -99,7 +99,10 @@ class Star extends Model
     {
         return $this->morphToMany(Task::class, 'resourceable','task_resources');
     }
-
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class, 'stars', 'id')->where('star_type','stars');
+    }
 
     public function broker()
     {

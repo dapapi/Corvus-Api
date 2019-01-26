@@ -39,6 +39,7 @@ class ApprovalMessageEventListener
     private $other_id; //转交时他是转交人id
     private $origin;//发起人
     private $module;//消息模块
+    private $creator_id;
     //消息发送内容
     private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":"%s"}]';
     /**
@@ -71,7 +72,7 @@ class ApprovalMessageEventListener
             $this->module = Message::PROJECT;
             $project = Project::where('project_number',$this->instance->form_instance_number)->first();
             if ($project){
-                $creator_id = $project->creator_id;
+                $this->$creator_id = $project->creator_id;
                 $create_at = $project->created_at;
             }
         }
@@ -79,17 +80,17 @@ class ApprovalMessageEventListener
             $this->module = Message::CONTRACT;
             $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
             if ($contract){
-                $creator_id = $contract->creator_id;
+                $this->$creator_id = $contract->creator_id;
                 $create_at = $contract->created_at;
             }
         }
         if ($this->instance->created_by){
             $this->module = Message::APPROVAL;
-            $creator_id = $this->instance->created_by;
+            $this->creator_id = $this->instance->created_by;
             $create_at = $this->instance->created_at;
         }
         if ($creator_id){
-            $this->origin = User::find($creator_id);
+            $this->origin = User::find($this->creator_id);
         }
 
         $origin_name = $this->origin == null ? null : $this->origin->name;//发起人，提交人
@@ -130,7 +131,7 @@ class ApprovalMessageEventListener
     }
 
     /**
-     * 当审批同意时向审批发起人发消息
+     * 当审批拒绝时向审批发起人发消息
      */
     public function sendMessageWhenRefuse()
     {
@@ -176,7 +177,9 @@ class ApprovalMessageEventListener
             $users = RoleUser::where("role_id",$execute->current_handler_id)->select('user_id')->get()->toArray();
             $send_to = array_column($users,'user_id');
         }
-        $subheading = $title = $this->user->name."的".$this->form_name."待您审批";
+        $creator = User::find($this->creator_id);
+        $creator_name = $creator == null ? null : $creator->name;
+        $subheading = $title = $creator_name."的".$this->form_name."待您审批";
 //        $send_to[] = $this->other_id;//向下一个审批人发消息
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -190,6 +193,7 @@ class ApprovalMessageEventListener
         $send_to = array_column(Participant::select("notice_id")->where("form_instance_number",$this->instance->form_instance_number)->get()->toArray(),"notice_id");
         $this->sendMessage($title,$subheading,$send_to);
     }
+
     /**
      * @param $title
      * @param $subheading

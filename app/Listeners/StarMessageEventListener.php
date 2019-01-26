@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\StarMessageEvent;
+use App\Models\Message;
 use App\Models\Star;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\StarTriggerPoint;
@@ -92,6 +93,6 @@ class StarMessageEventListener
         }
 
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->task->id);
+            Message::STAR, null, $this->data, $send_to,$this->task->id);
     }
 }

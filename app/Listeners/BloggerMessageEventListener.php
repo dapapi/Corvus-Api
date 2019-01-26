@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\BloggerMessageEvent;
 use App\Models\Blogger;
+use App\Models\Message;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\BloggerTriggerPoint;
 use DemeterChain\B;
@@ -94,6 +95,6 @@ class BloggerMessageEventListener
         }
 
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->task->id);
+            Message::BLOGGER, null, $this->data, $send_to,$this->task->id);
     }
 }

@@ -112,7 +112,7 @@ class TaskMessageEventListener
         //获取父任务
         $pTask = Task::find($this->task->task_pid);
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
-        $subheading = $title = $this->user->name."完成了子任务(父任务{$pTaskTitle})";
+        $subheading = $title = $this->user->name."完成了子任务(父任务:{$pTaskTitle})";
 //        //子任务参与人
 //        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
 
@@ -149,7 +149,7 @@ class TaskMessageEventListener
         //获取父任务名称
         $pTask = Task::find($this->task->task_pid);
         $pTaskTitle = $pTask == null ? null : $pTask->title;
-        $subheading = $title = $this->user->name."给你分配了任务(父任务{$pTaskTitle})";
+        $subheading = $title = $this->user->name."给你分配了子任务(父任务:{$pTaskTitle})";
         $send_to[] = $this->task->principal_id;
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -159,7 +159,7 @@ class TaskMessageEventListener
         //获取父任务
         $pTask = Task::find($this->task->task_pid);
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
-        $subheading = $title = $this->user->name."创建了子任务(父任务{$pTaskTitle})";
+        $subheading = $title = $this->user->name."创建了子任务(父任务:{$pTaskTitle})";
         //父任务创建人
         $send_to[] = $pTask == null ? null : $pTask->creator_id;
         //父任务负责人

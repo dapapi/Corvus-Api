@@ -144,10 +144,10 @@ class ApprovalMessageEventListener
     public function sendMessageWhenTransfer()
     {
         //转交人
-        $other_user = User::find($this->other_id);
-        $other_user_name = $other_user == null ? null : $other_user->name;
+//        $other_user = User::find($this->other_id);
+//        $other_user_name = $other_user == null ? null : $other_user->name;
         $origin_name = $this->origin == null ? null : $this->origin->name;
-        $subheading = $title = $other_user_name."转交你审批{$origin_name}"."的".$this->form_name;
+        $subheading = $title = $this->user->name."转交你审批{$origin_name}"."的".$this->form_name;
         $send_to[] = $this->other_id;//被转交人
         $this->sendMessage($title,$subheading,$send_to);
     }

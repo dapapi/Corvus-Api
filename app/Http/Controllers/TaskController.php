@@ -398,7 +398,7 @@ class TaskController extends Controller
         if ($status == TaskStatus::COMPLETE){
             $user = Auth::guard("api")->user();
             $authorization = $request->header()['authorization'][0];
-            event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+            event(new TaskMessageEvent($task,TaskTriggerPoint::COMPLETE_TSAK,$authorization,$user));
         }
         //发送消息
 //        DB::beginTransaction();

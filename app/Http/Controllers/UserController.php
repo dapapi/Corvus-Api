@@ -14,10 +14,13 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
+use League\Fractal;
+use League\Fractal\Manager;
 
 
 class UserController extends Controller
@@ -29,11 +32,27 @@ class UserController extends Controller
         $this->userRepository = $userRepository;
     }
 
+    // todo 过一遍redis，如果redis有数据则取redis的
     public function index(Request $request)
     {
+        // 直接从缓存拿数组
+        if (Cache::has(config('app.users'))) {
+            return response(Cache::get(config('app.users')));
+        }
+
         $users = User::where('entry_status',3)->orderBy('name')->get();//where('entry_status',3) 用户 状态等于3
 
-        return $this->response->collection($users, new UserTransformer());
+        $data = new Fractal\Resource\Collection($users, new UserTransformer());
+        $manager = new Manager();
+
+        if ($request->has('include')) {
+            $manager->parseIncludes($request->get('include'));
+        }
+
+        $userArr = $manager->createData($data)->toArray();
+        Cache::set(config('app.users'), $userArr, 108000);
+
+        return response($userArr);
     }
 
 
@@ -97,12 +116,12 @@ class UserController extends Controller
             return $this->response->errorInternal('未知错误');
         }
 
-        #删除登录token
-        try {
-            $requestVerityToken->delete();
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
+//        #删除登录token
+//        try {
+//            $requestVerityToken->delete();
+//        } catch (Exception $exception) {
+//            Log::error($exception->getMessage());
+//        }
 
         $accessToken = $user->createToken('telephone login')->accessToken;
         return $this->response->array([

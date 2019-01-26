@@ -120,6 +120,8 @@ return [
 
     'api_debug' => env('API_DEBUG', false),
     'page_size' => env('PAGE_SIZE', 20),
+    'users' => env('USERS', 0),     # 用户列表 redis key
+    'departments' => env('DEPARTMENTS', 1), # 组织架构 redis key
     'pass_word' => env('DEFAULT_PSWORD', 123456),
     'QINIU_ACCESS_KEY' => env('QINIU_ACCESS_KEY'),
     'QINIU_SECRET_KEY' => env('QINIU_SECRET_KEY'),

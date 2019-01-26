@@ -145,6 +145,7 @@ class ApprovalFormController extends Controller
                 return $this->response->errorInternal('创建失败');
             }
             DB::commit();
+            event(new ApprovalMessageEvent());
             return $this->response->accepted();
 //
         } else {

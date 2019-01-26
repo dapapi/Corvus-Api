@@ -19,7 +19,7 @@ class StarTransformer extends TransformerAbstract
         $this->isAll = $isAll;
     }
 
-    protected $availableIncludes = ['creator', 'tasks', 'trails','affixes','broker', 'publicity','project','works','calendar','schedule'];
+    protected $availableIncludes = ['creator', 'tasks', 'trails','affixes','broker', 'publicity','project','works','calendar','schedule','contracts'];
 
     public function transform(Star $star)
     {
@@ -135,6 +135,16 @@ class StarTransformer extends TransformerAbstract
         if($calendars){
         return $this->item($calendars,new CalendarTransformer());
        }else{
+            return null;
+        }
+    }
+    public function includeContracts(Star $star)
+    {
+
+        $contracts = $star->contracts()->first();
+        if($contracts){
+            return $this->item($contracts, new ContractDateTransformer(false));
+        }else{
             return null;
         }
     }

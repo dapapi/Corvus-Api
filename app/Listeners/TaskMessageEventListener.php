@@ -67,7 +67,9 @@ class TaskMessageEventListener
         if ($this->task->task_pid){//子任务
             //向负责人发消息
             $this->createSonTaskSendMessageToPrincipal();
-            //向子任务参与人，父任务创建人，参与人，负责人发消息
+            //向参与人发消息
+            $this->createTopTaskSendMessageToParticipants();
+            //向父任务创建人，参与人，负责人发消息
             $this->createSonTaskSendMessageToWhithOutPrincipal();
         }else{//父任务
             //创建父任务时向负责人发消息
@@ -81,9 +83,11 @@ class TaskMessageEventListener
     {
         //判断任务是顶级任务还是子任务
         if ($this->task->task_pid) {//子任务
-            $this->sendMessageWhenTopTaskComplete();
+            $this->sendMessageWhenSonTaskCompleteToPTask();//向子任务的父任务创建人、参与人、负责人发送消息
+            $this->sendMessageWhenTopTaskComplete();//向任务的创建人、参与人、负责人发送消息
         }else{
-            $this->sendMessageWhenSonTaskComplete();
+            $this->sendMessageWhenTopTaskComplete();//向任务的创建人、参与人、负责人发送消息
+
         }
     }
 
@@ -101,16 +105,17 @@ class TaskMessageEventListener
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
-     * 完成子任务时发消息
+     * 完成子任务时给父任务创建人、参与人、负责人发消息
      */
-    public function sendMessageWhenSonTaskComplete()
+    public function sendMessageWhenSonTaskCompleteToPTask()
     {
         //获取父任务
         $pTask = Task::find($this->task->task_pid);
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
         $subheading = $title = $this->user->name."完成了子任务(父任务{$pTaskTitle})";
-        //子任务参与人
-        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
+//        //子任务参与人
+//        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
+
         //父任务创建人
         $send_to[] = $pTask == null ? null : $pTask->creator_id;
         //父任务负责人
@@ -121,6 +126,7 @@ class TaskMessageEventListener
         $this->sendMessage($title,$subheading,$send_to);
 
     }
+
 
     //创建顶级任务，向负责人发消息
     public function createTopTaskSendMessageToPrincipal()
@@ -155,7 +161,7 @@ class TaskMessageEventListener
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
         $subheading = $title = $this->user->name."创建了子任务(父任务{$pTaskTitle})";
         //子任务参与人
-        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
+//        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
         //父任务创建人
         $send_to[] = $pTask == null ? null : $pTask->creator_id;
         //父任务负责人

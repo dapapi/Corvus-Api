@@ -22,7 +22,7 @@ class Schedule extends Model
     const MONTHLY = 3;
     //提醒 1:无 2:日程发生时 3:5分钟前 4:10分钟前 5:15分钟前 6:30分钟前 7:1小时前 8:2小时前 9:1天前 10:2天前
     const REMIND_DEFAULT = 1;//无
-    const REMIND_ = 2;//日程发生时
+    const REMIND_CURR = 2;//日程发生时
     const REMIND_FIVE_MINUTES = 3;//5分钟前
     const REMIND_TEN_MINUTES = 4;//10分钟前
     const REMIND_FIFTEEN_MINUTES = 5;//15分钟前

@@ -6,6 +6,7 @@ use App\Http\Requests\ReviewQuestionnaireStoreRequest;
 use App\Http\Requests\ReviewUpdateRequest;
 use App\Http\Transformers\ReviewQuestionnaireTransformer;
 use App\Http\Transformers\ReviewQuestionnaireShowTransformer;
+use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Production;
 use App\Models\ReviewQuestion;
@@ -139,17 +140,16 @@ class ReviewQuestionnaireController extends Controller {
     public function storeExcellent(ReviewQuestionnaireStoreRequest $request, Production $production,ReviewQuestionnaire $reviewquestionnaire,ReviewQuestion $reviewquestion) {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+        $array[] = ['user_id',$user->id];
+   //     $array[] = ['type',1];
+        $arr = empty(DepartmentPrincipal::where($array)->first());
+        if($arr){
+            return $this->response->errorInternal('创建失败');
+        }
+       // if($request->has('name','评优团视频评分任务')){
+     //       $array['name'] = '评优团视频评分任务';
+      //  }
         $array['creator_id'] = $user->id;
-
-                    $array[] = ['id',$user->id];
-//        $array[] = ['type',1];
-//        $arr = empty(DepartmentUser::where($array)->first());
-//        if($arr){
-//            return $this->response->errorInternal('创建失败');
-//        }
-//        if($request->has('name','评优团视频评分任务')){
-//            $array['name'] = '评优团视频评分任务';
-//        }
         DB::beginTransaction();
         try {
             if (!empty($array['creator_id'])) {
@@ -161,7 +161,7 @@ class ReviewQuestionnaireController extends Controller {
                     foreach($users as $key => $val){
                         $moduleuser = new ModuleUser;
                         $moduleuser->user_id = $val['user_id'];
-                        $moduleuser->moduleable_id = $production->id;
+                        $moduleuser->moduleable_id = $reviewquestionnaire->id;
                         $moduleuser->moduleable_type = 'reviewquestionnaire';
                         $moduleuser->type = 1;  //1  参与人
                         $modeluseradd = $moduleuser->save();
@@ -180,7 +180,7 @@ class ReviewQuestionnaireController extends Controller {
                 $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
                 $reviewquestionnairemodel->deadline = $deadline;
                 $reviewquestionnairemodel->excellent_sum = $payload['excellent_sum'];
-                $reviewquestionnairemodel->reviewable_id = $production->id;
+                $reviewquestionnairemodel->reviewable_id = $reviewquestionnaire->id;
                 $reviewquestionnairemodel->excellent = $payload['excellent'];
                 $reviewquestionnairemodel->reviewable_type = 'production';
                 $reviewquestionnairemodel->auth_type = '2';
@@ -215,6 +215,7 @@ class ReviewQuestionnaireController extends Controller {
                 }
             }
         } catch (Exception $e) {
+          //  dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

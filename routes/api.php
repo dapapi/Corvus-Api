@@ -247,6 +247,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->post('/projects/{project}/store/bill', 'App\Http\Controllers\ProjectBillController@store');
+        $api->put('/projects/{project}/store/bill', 'App\Http\Controllers\ProjectBillController@edit');
         //考勤
         //提交申请
         $api->post('/attendance', 'App\Http\Controllers\AttendanceController@store');
@@ -285,7 +286,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
-//            ->middleware('can:create,App\Models\Client');
+//            ->middleware('can:create,App\Models\ClientProtected');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
@@ -365,7 +366,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
         $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
         $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
-        $api->post('/reviewquestionnaires/{production}/create/excellent', 'App\Http\Controllers\ReviewQuestionnaireController@storeExcellent');
+        $api->post('/reviewquestionnaires/{reviewquestionnaire}/create/excellent', 'App\Http\Controllers\ReviewQuestionnaireController@storeExcellent');
 
         //保存问劵
         $api->post('/reviews/{reviewquestionnaire}/store/Answer', 'App\Http\Controllers\ReviewQuestionController@storeAnswer');

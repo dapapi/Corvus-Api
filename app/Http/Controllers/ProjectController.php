@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
@@ -473,6 +474,10 @@ class ProjectController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
+        //向知会人发消息
+
+        //向审批人发消息
+
         return $this->response->item($project, new ProjectTransformer());
 
     }
@@ -871,11 +876,11 @@ class ProjectController extends Controller
                 else
                 {
                     if (isset($contractmoney)) {
-                        $result->addMeta('contractmoney', $contractmoney);
+                        $result->addMeta('contractmoney', "'".$contractmoney."'");
                     }
                     else
                     {
-                        $result->addMeta('contractmoney', 0);
+                        $result->addMeta('contractmoney', '0');
                     }
                 }
 
@@ -887,7 +892,7 @@ class ProjectController extends Controller
                 else
                 {
                     if (isset($expendituresum)) {
-                        $result->addMeta('expendituresum', $expendituresum->expendituresum);
+                        $result->addMeta('expendituresum', "'".$expendituresum->expendituresum."'");
                     }
                     else
                     {
@@ -899,14 +904,14 @@ class ProjectController extends Controller
             {
 
                 if (isset($contractmoney)) {
-                    $result->addMeta('contractmoney', $contractmoney);
+                    $result->addMeta('contractmoney', "'".$contractmoney."'");
                 }
                 else
                 {
                     $result->addMeta('contractmoney', 0);
                 }
                 if (isset($expendituresum)) {
-                    $result->addMeta('expendituresum', $expendituresum->expendituresum);
+                    $result->addMeta('expendituresum', "'".$expendituresum->expendituresum."'");
                 }
                 else
                 {

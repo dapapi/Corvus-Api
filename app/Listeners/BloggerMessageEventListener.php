@@ -44,7 +44,7 @@ class BloggerMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
-        $created_at = $event['created'];//签约时间
+        $created_at = $event->meta['created'];//签约时间
         //获取所有博主
         $bloggers = Blogger::whereIn('id',$this->blogger_arr)->select('nickname');
         $blogger_names = implode(",",array_column($bloggers,'nickname'));

@@ -93,7 +93,8 @@ class ApprovalMessageEventListener
             $this->origin = User::find($this->creator_id);
         }
 
-        $origin_name = $this->origin == null ? null : $this->origin->name;//发起人，提交人
+//        $origin_name = $this->origin == null ? null : $this->origin->name;//发起人，提交人
+        $origin_name = $this->creator_id;
         //获取审批的名字
         $form = ApprovalForm::where("form_id",$this->instance->form_id)->first();
         $this->form_name = $form == null ? null : $form->name;
@@ -189,8 +190,9 @@ class ApprovalMessageEventListener
             $users = RoleUser::where("role_id",$execute->current_handler_id)->select('user_id')->get()->toArray();
             $send_to = array_column($users,'user_id');
         }
-        $creator = User::find($this->creator_id);
-        $creator_name = $creator == null ? null : $creator->name;
+//        $creator = User::find($this->creator_id);
+//        $creator_name = $creator == null ? null : $creator->name;
+        $creator_name = $this->creator_id;
         $subheading = $title = $creator_name."的".$this->form_name."待您审批";
 //        $send_to[] = $this->other_id;//向下一个审批人发消息
         $this->sendMessage($title,$subheading,$send_to);

@@ -11,6 +11,7 @@ use App\User;
 use Carbon\Carbon;
 use function foo\func;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MessageRepository
 {
@@ -56,7 +57,9 @@ class MessageRepository
         foreach ($recives as &$recive){
             $recive = hashid_encode($recive);
         }
+        Log::info("向".implode(",",$recives)."发消息");
         $send_message->login($authorization,$user->id,$user->name,$title,$subheading,$link,$data,$recives);
+        Log::info("发送完毕...");
     }
 
     /**

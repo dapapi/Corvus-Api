@@ -26,6 +26,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
+use Monolog\Handler\IFTTTHandler;
 
 class ApprovalMessageEventListener
 {
@@ -201,7 +202,9 @@ class ApprovalMessageEventListener
         //todo 可能会根据角色发消息
         //获取知会人
         $send_to = array_column(Participant::select("notice_id")->where("form_instance_number",$this->instance->form_instance_number)->get()->toArray(),"notice_id");
+        Log::info("向知会人发消息".implode(",",$send_to));
         $this->sendMessage($title,$subheading,$send_to);
+        Log::info("发送完毕");
     }
 
     /**
@@ -246,7 +249,9 @@ class ApprovalMessageEventListener
                 $module_data_id = $project->id;
             }
         }
-
+        if ($this->trigger_point == ApprovalTriggerPoint::NOTIFY){
+            Log::info("消息函数向".implode(",",$send_to)."发消息");
+        }
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             $this->module, null, $this->data, $send_to,$module_data_id);
     }

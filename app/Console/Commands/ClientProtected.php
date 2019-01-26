@@ -2,8 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Events\ClientMessageEvent;
 use App\Models\Client;
 use App\Repositories\HttpRepository;
+use App\TriggerPoint\ClientTriggerPoint;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -56,13 +59,14 @@ class ClientProtected extends Command
      */
     public function handle()
     {
-        $res = $this->httpRepository->request("post",'https://sandbox-api-crm.papitube.com/oauth/token');
+        $res = $this->httpRepository->request("post",'https://sandbox-api-crm.papitube.com/oauth/token',$this->header,$this->params);
         if ($res){
             Log::error("登录失败...");
             return;
         }
         $body = $this->httpRepository->jar->getBody();
         $access_token = json_decode($body,true)['access_token'];
+        $authorization = "Bearer ".$access_token;
         Log::info("直客到期检查");
         $now = Carbon::now();
         //获取保护截止日期在当前时间之后的直客
@@ -70,8 +74,9 @@ class ClientProtected extends Command
         foreach ($clients as $client){
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
             if ($protected_client_time->diffInDays($now) == 5){
+                $user = User::find(11);
                 //发消息
-                event();
+                event(new ClientMessageEvent($client,ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE,$authorization,$user));
             }
         }
     }

@@ -26,7 +26,6 @@ class MessageRepository
         }else{
             $message->module_data_id    =  hashid_encode($module_data_id);
         }
-
         $message->save();
         foreach ($data as &$value){
             $value['message_id'] = $message->id;

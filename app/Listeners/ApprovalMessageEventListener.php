@@ -215,8 +215,18 @@ class ApprovalMessageEventListener
         //消息接受人去重
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        $module_data_id = 0;
+        if ($this->module == Message::CONTRACT || $this->module == Message::APPROVAL){
+            $module_data_id = $this->instance->form_instance_number;
+        }else{
+            $project = Project::where('project_number',$this->instance->form_instance_number)->first();
+            if ($project){
+                $module_data_id = $project->id;
+            }
+
+        }
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->module, null, $this->data, $send_to,$this->instance->form_instance_number);
+            $this->module, null, $this->data, $send_to,$module_data_id);
     }
 
     private function getInstanceCreator()

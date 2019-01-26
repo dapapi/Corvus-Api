@@ -4,6 +4,7 @@ namespace App\Http\Transformers;
 
 use App\Models\ReviewQuestion;
 use Illuminate\Support\Facades\DB;
+use App\Models\DepartmentPrincipal;
 use App\Models\ReviewAnswer;
 use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
@@ -52,7 +53,9 @@ class ReviewQuestionTransformer extends TransformerAbstract
         $selectrows = $reviewquestion->selectrows()->get();
         $user = Auth::guard('api')->user();
         $arr  = ReviewAnswer::where('review_id', $reviewquestion->review_id)->where('user_id',$user->id)->groupby('user_id')->get();
-        if(count($arr)>0) {
+        $array[] = ['user_id',$user->id];
+        $arrdate = !empty(DepartmentPrincipal::where($array)->first());
+        if(count($arr)>0 || $arrdate) {
             //return $this->item($selectrows, new BloggerProducerTransformer());
             return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer());
         }else{

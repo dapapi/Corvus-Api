@@ -61,13 +61,16 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
             if(count($arr)>0) {
                 $reviewanswer = ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*', DB::raw('TRUNCATE(' . $sums[0]->sums . '/' . $count . ',2) as TRUNCATE'))->groupby('review_id');
             }
+            return $this->collection($reviewanswer->get(), new ReviewAnswerSumTransformer());
         }else{
 
             $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
             $reviewanswer =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*',DB::raw('TRUNCATE(1.'.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
+            dd($reviewanswer);
+            return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
         }
        // $reviewanswer = $reviewquestionnaire->sum;
-        return $this->collection($reviewanswer->get(), new ReviewAnswerSumTransformer());
+
 
     }
     public function includeProduction(ReviewQuestionnaire $reviewquestionnaire) {

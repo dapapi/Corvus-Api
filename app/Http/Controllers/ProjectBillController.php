@@ -84,17 +84,19 @@ class ProjectBillController extends Controller
             $array['expense_type'] = '收入';
             $incomesum = ProjectBill::where($array)->select(DB::raw('sum(money) as incomesum'))->groupby('expense_type')->first();
             $array['expense_type'] = '支出';
+           // dd(ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum')));
             $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
 
             unset($array['expense_type']);
         }
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
-        //if(isset($expendituresum)||isset($incomesum)){
+        if($project && $project->id) {
+            $result->addMeta('appoval', $approval);
+            $result->addMeta('datatitle', $dataOne);
+        }
 
 
-        $result->addMeta('appoval', $approval);
-        $result->addMeta('datatitle', $dataOne);
 
         if (!empty($expendituresum) && isset($expendituresum))
             $result->addMeta('expendituresum', $expendituresum->expendituresum);

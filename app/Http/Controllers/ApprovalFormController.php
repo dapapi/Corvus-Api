@@ -91,7 +91,7 @@ class ApprovalFormController extends Controller
 
     }
 
-    public function projectStore($formId, $notice = '', $projectNumber)
+    public function projectStore(Request $request,$formId, $notice = '', $projectNumber)
     {
         $user = Auth::guard('api')->user();
         $userId = $user->id;
@@ -145,7 +145,13 @@ class ApprovalFormController extends Controller
                 return $this->response->errorInternal('创建失败');
             }
             DB::commit();
-            event(new ApprovalMessageEvent());
+            $instance = Business::where("form_instance_number",$projectNumber)->first();
+            //向知会人发消息
+            $authorization = $request->header()['authorization'][0];
+            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $user));
+            //向下一个审批人发消息
+            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $user));
+
             return $this->response->accepted();
 //
         } else {

@@ -26,6 +26,7 @@ class ReviewAnswerSelectrowsTransformer extends TransformerAbstract{
         ];
         $arraySimple = [
             'id' => hashid_encode($reviewanswer->id),
+            'user_id' => $reviewanswer->user_id,
 
         ];
         return $this->isAll ? $array : $arraySimple;

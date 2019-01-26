@@ -855,7 +855,7 @@ class ApprovalFlowController extends Controller
 
                 DB::table($contract->star_type)->whereIn('id', $starArr)->update([
                     'sign_contract_at' => null,
-                    'sign_contract_status' => SignContractStatus::ALREADY_TERMINATE_AGREEMENT
+                    'sign_contract_status' => SignContractStatus::SIGN_CONTRACTING
                 ]);
 
             }

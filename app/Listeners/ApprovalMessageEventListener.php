@@ -151,7 +151,7 @@ class ApprovalMessageEventListener
     public function sendMessageWhenWaitMe()
     {
         //获取下一个审批人
-        $execute = Execute::where('form_instance_number',$this->instance->number)->first();
+        $execute = Execute::where('form_instance_number',$this->instance->form_instance_number)->first();
         $send_to = [];
         if ($execute->current_handler_type == 245){//团队
             $send_to[] = $execute->current_handler_id;

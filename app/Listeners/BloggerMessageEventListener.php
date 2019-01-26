@@ -39,7 +39,6 @@ class BloggerMessageEventListener
      */
     public function handle(BloggerMessageEvent $event)
     {
-        return null;
         $this->blogger_arr = $event->blogger_arr;
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;

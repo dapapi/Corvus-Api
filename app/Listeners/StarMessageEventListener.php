@@ -37,7 +37,6 @@ class StarMessageEventListener
      */
     public function handle(StarMessageEvent $event)
     {
-        return null;
         $this->star_arr = $event->star_arr;
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;

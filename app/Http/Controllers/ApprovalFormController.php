@@ -701,7 +701,7 @@ class ApprovalFormController extends Controller
         $dictionariesValue = json_decode(json_encode($dictionaries), true);
         foreach ($data1 as $value){
             $tmpsArr = array();
-            $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 476)->first();
+            $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 37)->first();
             $tmpsArr['value'] = $value['resource'];
 
             $str1Arr = $tmpsArr['key']->name.'-'.$tmpsArr['value'];

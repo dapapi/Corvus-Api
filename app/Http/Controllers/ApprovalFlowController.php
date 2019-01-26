@@ -330,7 +330,6 @@ class ApprovalFlowController extends Controller
                 $client = Client::join('contracts','clients.id','contracts.client_id')
                     ->where('contracts.form_instance_number',$instance->form_instance_number)
                     ->where('grade',Client::GRADE_NORMAL)//直客
-                    ->select('company')
                     ->first();
                 if($client){
                     event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user));

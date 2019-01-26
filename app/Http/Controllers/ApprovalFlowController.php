@@ -437,10 +437,9 @@ class ApprovalFlowController extends Controller
             return $this->response->errorInternal('审批失败');
         }
         DB::commit();
-
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::REFUSE,$authorization,$user,$nextId));
+        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::TRANSFER,$authorization,$user,$nextId));
 
         return $this->response->created();
     }

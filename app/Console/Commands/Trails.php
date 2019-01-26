@@ -47,11 +47,18 @@ class Trails extends Command
         Log::info($Log);
 
 
-        $trails = DB::table("trails")->where('take_type',null)->where('pool_type',null)->get()->toArray();
-
         //获取今天时间
         $dataDay = date('YmdHi');//当前时间
-        $trails = DB::table("trails")->where('take_type',null)->where('pool_type',null)->get()->toArray();
+        $trails = DB::table('trails')//
+        ->join('projects', function ($join) {
+            $join->on('projects.trail_id', '=', 'trails.id');
+        })
+            ->join('approval_form_business as afb', function ($join) {
+                $join->on('afb.form_instance_number', '=', 'projects.project_number');
+            })
+            ->where('afb.form_status', 231)->where('take_type',null)->where('pool_type',null)
+            ->select('*')->get()->toArray();
+
         $receive = ['receive'=>1];
         foreach ($trails as $value){
             //查询跟进时间
@@ -65,7 +72,7 @@ class Trails extends Command
             }
 
             //创建时间+15天 入公海池
-            $created1 = date('YmdHi',strtotime("$value->created_at +2 day"));//入公海池时间
+            $created1 = date('YmdHi',strtotime("$value->created_at"));//入公海池时间
             //创建时间大于等于当前时间
             if($created <= $dataDay){
                 if($value->receive!==1){

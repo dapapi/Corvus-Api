@@ -58,7 +58,11 @@ class ProjectBillController extends Controller
             }
             $array['project_kd_name'] = $project->title;
             $projectbillresource = ProjectBillsResource::where(['resourceable_id'=>$project->id,'resourceable_title'=>$project->title])->first(['id','expenses','papi_divide','bigger_divide','my_divide']);
-            $divide = ProjectBillsResourceUser::where(['moduleable_id'=>$projectbillresource->id])->get(['money','moduleable_title'])->toArray();
+              if($projectbillresource) {
+                  $divide = ProjectBillsResourceUser::where(['moduleable_id' => $projectbillresource->id])->get(['money', 'moduleable_title'])->toArray();
+              }else{
+                  $divide = null;
+            }
 
         } else if ($star && $star->id) {
             $array['artist_name'] = $star->name;
@@ -176,6 +180,70 @@ class ProjectBillController extends Controller
 
 
     }
-
+//    public function edit(Request $request,Blogger $Blogger,Star $star,Project $project)
+//    {
+//
+//        $payload = $request->all();
+//        $user = Auth::guard('api')->user();
+//        unset($payload['status']);
+//        $payload['creator_id'] = $user->id;
+//        $array = $payload;
+//        if ($Blogger && $Blogger->id) {
+//            $array['resourceable_id'] = $project->id;
+//            $array['resourceable_title'] = $Blogger->nickname;
+//            $array['resourceable_type'] = 'blogger';
+//
+//        } else if ($project && $project->id) {
+//            $array['resourceable_id'] = $project->id;
+//            $array['resourceable_title'] = $project->title;
+//            $array['resourceable_type'] = 'project';
+//
+//        } else if ($star && $star->id) {
+//            $array['resourceable_id'] = $project->id;
+//            $array['resourceable_title'] = $star->name;
+//            $array['resourceable_type'] = 'star';
+//
+//        }
+//        $is_exist = ProjectBillsResource::where(['resourceable_id'=> $array['resourceable_id'],'resourceable_title'=> $array['resourceable_title'],'resourceable_type'=> $array['resourceable_type']])->first();
+//
+//        if(!isset($is_exist)){
+//            return $this->response->errorNotFound('不能修改');
+//        }
+//        try {
+//
+//
+//            $bill =  ProjectBillsResource::where('id',$is_exist->id)->save($array);
+//            if($request->has(['star'])){
+//                foreach ($payload['star'] as $key => $value){
+//                    $date = array();
+//                    $date['moduleable_id'] = $bill->id;
+//                    $date['money'] = $payload['star'][$key]['money'];
+//                    $date['moduleable_title'] =$payload['star'][$key]['moduleable_title'];
+//                    $billUser = ProjectBillsResourceUser::where($date)->;
+//                }
+//            }
+//
+//            // 操作日志
+//            $operate = new OperateEntity([
+//                'obj' => $bill,
+//                'title' => null,
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::CREATE,
+//            ]);
+//            event(new OperateLogEvent([
+//                $operate,
+//            ]));
+//        } catch (Exception $e) {
+//            DB::rollBack();
+//            Log::error($e);
+//            return $this->response->errorInternal('创建失败');
+//        }
+//        DB::commit();
+//
+//
+//
+//
+//    }
 
 }

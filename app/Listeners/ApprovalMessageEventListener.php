@@ -38,6 +38,7 @@ class ApprovalMessageEventListener
     private $form_name;//审批单的名字
     private $other_id; //转交时他是转交人id
     private $origin;//发起人
+    private $module;//消息模块
     //消息发送内容
     private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":"%s"}]';
     /**
@@ -65,8 +66,9 @@ class ApprovalMessageEventListener
         $this->other_id = $event->other_id;
         $creator_id = null;//审批创建人id
         $create_at = null; //创建时间
-        //获取发起人姓名
+        //获取发起人姓名，消息发送模块
         if ($this->instance->business_type == "projects"){
+            $this->module = Message::PROJECT;
             $project = Project::where('project_number',$this->instance->form_instance_number)->first();
             if ($project){
                 $creator_id = $project->creator_id;
@@ -74,6 +76,7 @@ class ApprovalMessageEventListener
             }
         }
         if ($this->instance->business_type == "contracts"){
+            $this->module = Message::CONTRACT;
             $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
             if ($contract){
                 $creator_id = $contract->creator_id;
@@ -81,6 +84,7 @@ class ApprovalMessageEventListener
             }
         }
         if ($this->instance->created_by){
+            $this->module = Message::APPROVAL;
             $creator_id = $this->instance->created_by;
             $create_at = $this->instance->created_at;
         }
@@ -199,7 +203,7 @@ class ApprovalMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::APPROVAL, null, $this->data, $send_to,$this->instance->id);
+            $this->module, null, $this->data, $send_to,$this->instance->id);
     }
 
     private function getInstanceCreator($instance)

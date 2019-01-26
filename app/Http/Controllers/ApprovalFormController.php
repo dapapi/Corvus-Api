@@ -33,6 +33,7 @@ use App\Models\ApprovalForm\Instance;
 use App\Models\ApprovalForm\InstanceValue;
 use App\Models\ApprovalForm\Participant;
 use App\Models\ApprovalGroup;
+use App\Models\Blogger;
 use App\Models\Contract;
 use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
@@ -42,6 +43,7 @@ use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\ProjectHistorie;
 use App\Models\RoleUser;
+use App\Models\Star;
 use App\Models\TemplateFieldHistories;
 use App\OperateLogMethod;
 use App\Repositories\MessageRepository;
@@ -143,6 +145,7 @@ class ApprovalFormController extends Controller
                 return $this->response->errorInternal('创建失败');
             }
             DB::commit();
+            event(new ApprovalMessageEvent());
             return $this->response->accepted();
 //
         } else {
@@ -624,34 +627,33 @@ class ApprovalFormController extends Controller
             ->where('tfvh.project_id', $project->id)->get()->toArray();
         $data = json_decode(json_encode($projectInfo), true);
 
-        if($data){
-
+        if ($data) {
             $arr = array();
-            foreach ($data as $value){
+            foreach ($data as $value) {
                 $arr['data']['key'][] = $value['key'];
                 $arr['data']['values'][] = $value['value'];
-                $info = array_combine($arr['data']['key'],$arr['data']['values']);
+                $info = array_combine($arr['data']['key'], $arr['data']['values']);
             }
-            $fields = DB::table('project_template_fields as ptf')->select('ptf.content') ->where('ptf.id', 42)->first();
+            $fields = DB::table('project_template_fields as ptf')->select('ptf.content')->where('ptf.id', 42)->first();
             $fieldValue = json_decode(json_encode($fields), true);
-            $fieldValues = explode('|',$fieldValue['content']);
+            $fieldValues = explode('|', $fieldValue['content']);
             $list = array_flip($fieldValues);
 
             $strArr = array();
             foreach ($info as $key => $value) {
                 $tmp = array();
                 $tmp['key'] = $key;
-                if($key =='状态'){
-                    $d = $value-1;
+                if ($key == '状态') {
+                    $d = $value - 1;
 
-                    $tmp['values']['data']['value'] = $key = array_search($d, $list); ;
-                }else{
+                    $tmp['values']['data']['value'] = $key = array_search($d, $list);;
+                } else {
                     $tmp['values']['data']['value'] = $value;
 
                 }
                 $strArr[] = $tmp;
             }
-        }else{
+        } else {
             $strArr = array();
         }
         $projectArr = DB::table('project_histories as ph')
@@ -661,7 +663,6 @@ class ApprovalFormController extends Controller
             ->leftjoin('trail_star', function ($join) {
                 $join->on('trail_star.trail_id', '=', 'trails.id');
             })
-
             ->join('users', function ($join) {
                 $join->on('users.id', '=', 'ph.principal_id');
             })
@@ -671,66 +672,66 @@ class ApprovalFormController extends Controller
 //            ->join('bloggers', function ($join) {
 //                $join->on('bloggers.id', '=', 'trail_star.starable_id')->where('trail_star.type',1);
 //            })
-            ->select('trails.id','trails.title','ph.priority','ph.projected_expenditure','ph.start_at','ph.end_at','ph.desc','trail_star.starable_type','trail_star.starable_id','trails.fee','users.name as principal_name','trails.title','trails.resource_type','trails.resource')
+            ->select('trails.id', 'trails.title', 'ph.priority', 'ph.projected_expenditure', 'ph.start_at', 'ph.end_at', 'ph.desc', 'trail_star.starable_type', 'trail_star.starable_id', 'trails.fee', 'users.name as principal_name', 'trails.title', 'trails.resource_type', 'trails.resource')
             ->where('ph.id', $project->id)->where('trail_star.type', 1)->get()->toArray();
         $data1 = json_decode(json_encode($projectArr), true);
         //目标艺人
         $arrName = array();
-        foreach ($data1 as $value){
-            if($value['starable_type'] =='blogger'){
+        foreach ($data1 as $value) {
+            if ($value['starable_type'] == 'blogger') {
                 $arrName[] = DB::table('bloggers')->select('nickname')->where('bloggers.id', $value['starable_id'])->get()->toArray();
 
-            }else{
+            } else {
                 $arrName[] = DB::table('stars')->select('name')->where('stars.id', $value['starable_id'])->get()->toArray();
             }
 
         }
         $dataName = json_decode(json_encode($arrName), true);
-        if($dataName){
-            foreach ($dataName as $value){
-                foreach($value as $kal){
-                    foreach($kal as $g){
-                        $s[]=$g;
+        if ($dataName) {
+            foreach ($dataName as $value) {
+                foreach ($value as $kal) {
+                    foreach ($kal as $g) {
+                        $s[] = $g;
                     }
                 }
             }
-        }else{
+        } else {
             $s = array();
         }
         //获取关联项目来源
-        $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val','dds.name') ->where('dds.parent_id', 49)->get()->toArray();
+        $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val', 'dds.name')->where('dds.parent_id', 49)->get()->toArray();
         $dictionariesValue = json_decode(json_encode($dictionaries), true);
-        foreach ($data1 as $value){
+        foreach ($data1 as $value) {
 
             $tmpsArr = array();
 
-            if($value['resource_type']==4 || $value['resource_type']==5){
+            if ($value['resource_type'] == 4 || $value['resource_type'] == 5) {
 
                 $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 37)->first();
 
                 $userNmae = DB::table('users')->select('users.name')->where('users.id', hashid_decode($value['resource']))->first();
-                $tmpsArr['value'] =$userNmae->name;
-            }else{
+                $tmpsArr['value'] = $userNmae->name;
+            } else {
 
                 $tmpsArr['key'] = DB::table('data_dictionaries as dds')->select('dds.name')->where('dds.val', $value['resource_type'])->where('dds.parent_id', 37)->first();
                 $tmpsArr['value'] = $value['resource'];
             }
-            $str1Arr = $tmpsArr['key']->name.'-'.$tmpsArr['value'];
+            $str1Arr = $tmpsArr['key']->name . '-' . $tmpsArr['value'];
         }
         //优先级查找匹配
-        if($data1[0]['priority'] !==''){
+        if ($data1[0]['priority'] !== '') {
             //查询数据字典优先级
-            $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val','dds.name') ->where('dds.parent_id', 49)->get()->toArray();
+            $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val', 'dds.name')->where('dds.parent_id', 49)->get()->toArray();
             $dictionariesArr = json_decode(json_encode($dictionaries), true);
 
-            if($dictionariesArr){
-                foreach ($dictionariesArr as $dvalue){
-                    if($data1[0]['priority'] == $dvalue['val']){
+            if ($dictionariesArr) {
+                foreach ($dictionariesArr as $dvalue) {
+                    if ($data1[0]['priority'] == $dvalue['val']) {
                         $priority = $dvalue['name'];
                     }
                 }
             }
-        }else{
+        } else {
 
             $priority = '';
         }
@@ -747,24 +748,24 @@ class ApprovalFormController extends Controller
         $tmpArr5['key'] = '备注';
         $tmpArr5['values']['data']['value'] = isset($data1[0]['desc']) ? $data1[0]['desc'] : null;
         $tmpArr6['key'] = '目标艺人';
-        $tmpArr6['values']['data']['value'] = isset($arrName) ? implode(",",$s): null;
+        $tmpArr6['values']['data']['value'] = isset($arrName) ? implode(",", $s) : null;
         $tmpArr7['key'] = '预计订单收入';
-        $tmpArr7['values']['data']['value'] = isset($data1[0]['fee']) ? $data1[0]['fee']: null;//
+        $tmpArr7['values']['data']['value'] = isset($data1[0]['fee']) ? $data1[0]['fee'] : null;//
         $tmpArr8['key'] = '负责人';
-        $tmpArr8['values']['data']['value'] = isset($data1[0]['principal_name']) ? $data1[0]['principal_name']: null;//title
+        $tmpArr8['values']['data']['value'] = isset($data1[0]['principal_name']) ? $data1[0]['principal_name'] : null;//title
         $tmpArr9['key'] = '项目来源';
-        $tmpArr9['values']['data']['value'] = isset($str1Arr) ? $str1Arr: null;//title
+        $tmpArr9['values']['data']['value'] = isset($str1Arr) ? $str1Arr : null;//title
 
-        array_push($strArr,$tmpArr7);
-        array_push($strArr,$tmpArr);
-        array_push($strArr,$tmpArr1);
-        array_push($strArr,$tmpArr2);
-        array_push($strArr,$tmpArr3);
-        array_push($strArr,$tmpArr4);
-        array_push($strArr,$tmpArr5);
-        array_push($strArr,$tmpArr6);
-        array_push($strArr,$tmpArr8);
-        array_push($strArr,$tmpArr9);
+        array_push($strArr, $tmpArr7);
+        array_push($strArr, $tmpArr);
+        array_push($strArr, $tmpArr1);
+        array_push($strArr, $tmpArr2);
+        array_push($strArr, $tmpArr3);
+        array_push($strArr, $tmpArr4);
+        array_push($strArr, $tmpArr5);
+        array_push($strArr, $tmpArr6);
+        array_push($strArr, $tmpArr8);
+        array_push($strArr, $tmpArr9);
 
         ////////////////////////////////////////////////////////////
         $project = DB::table('project_histories as projects')
@@ -879,8 +880,9 @@ class ApprovalFormController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
+
             foreach ($controlValues as $value) {
-                $this->instanceValueStore($num, $value['key'], $value['value'], $value['type']);
+                $this->instanceValueStore($num, $value['key'], $value['value'], $value['type'], $approval);
             }
 
             if ($type) {
@@ -954,8 +956,8 @@ class ApprovalFormController extends Controller
         //向知会人发消息
         $authorization = $request->header()['authorization'][0];
         $curr_user = Auth::guard('api')->user();
-        event( new ApprovalMessageEvent($instance,ApprovalTriggerPoint::NOTIFY,$authorization,$curr_user));
-        event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$curr_user));
+        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $curr_user));
+        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $curr_user));
         // 发送消息
         DB::beginTransaction();
         try {
@@ -1022,7 +1024,7 @@ class ApprovalFormController extends Controller
     }
 
     // todo 分支写的太差，优化结构
-    private function instanceValueStore($num, $key, $value, $type = null)
+    private function instanceValueStore($num, $key, $value, $type = null, $approval)
     {
         try {
             $key = hashid_decode($key);
@@ -1050,10 +1052,12 @@ class ApprovalFormController extends Controller
                     if ($type == 'contract_number') {
                         $this->company = $this->getCompanyCode($value);
                     } else {
-                        if ($type == 'stars')
+                        if ($type == 'stars') {
                             $this->contract->update([
                                 'star_type' => $this->starType
                             ]);
+                            $this->createTalentContractOperateLog($ids, $approval);
+                        }
 
                         if (in_array($type, ['project_id', 'client_id', 'stars']))
                             $this->contract->update([
@@ -1207,5 +1211,79 @@ class ApprovalFormController extends Controller
             throw $exception;
         }
 
+    }
+
+    private function createTalentContractOperateLog($ids, $approval)
+    {
+        $formId = $approval->form_id;
+        $idArr = explode(',', $ids);
+        switch ($formId) {
+            case 5:
+                foreach ($idArr as $id) {
+                    $blogger = Blogger::find($id);
+                    // 操作日志
+                    $operate = new OperateEntity([
+                        'obj' => $blogger,
+                        'title' => null,
+                        'start' => null,
+                        'end' => null,
+                        'method' => OperateLogMethod::CREATE_SIGNING_CONTRACTS,
+                    ]);
+                    event(new OperateLogEvent([
+                        $operate
+                    ]));
+                }
+                break;
+            case 6:
+                foreach ($idArr as $id) {
+                    $blogger = Blogger::find($id);
+                    // 操作日志
+                    $operate = new OperateEntity([
+                        'obj' => $blogger,
+                        'title' => null,
+                        'start' => null,
+                        'end' => null,
+                        'method' => OperateLogMethod::CREATE_RESCISSION_CONTRACTS,
+                    ]);
+                    event(new OperateLogEvent([
+                        $operate
+                    ]));
+                }
+                break;
+            case 7:
+                foreach ($idArr as $id) {
+                    $star = Star::find($id);
+                    // 操作日志
+                    $operate = new OperateEntity([
+                        'obj' => $star,
+                        'title' => null,
+                        'start' => null,
+                        'end' => null,
+                        'method' => OperateLogMethod::CREATE_SIGNING_CONTRACTS,
+                    ]);
+                    event(new OperateLogEvent([
+                        $operate
+                    ]));
+                }
+                break;
+            case 8:
+                foreach ($idArr as $id) {
+                    $star = Star::find($id);
+                    // 操作日志
+                    $operate = new OperateEntity([
+                        'obj' => $star,
+                        'title' => null,
+                        'start' => null,
+                        'end' => null,
+                        'method' => OperateLogMethod::CREATE_RESCISSION_CONTRACTS,
+                    ]);
+                    event(new OperateLogEvent([
+                        $operate
+                    ]));
+                }
+                break;
+            default:
+                break;
+        }
     }
 }

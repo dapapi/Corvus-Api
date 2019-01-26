@@ -65,14 +65,13 @@ class ApprovalMessageEventListener
         $this->authorization = $event->authorization;
         $this->user = $event->user;
         $this->other_id = $event->other_id;
-        $creator_id = null;//审批创建人id
         $create_at = null; //创建时间
         //获取发起人姓名，消息发送模块
         if ($this->instance->business_type == "projects"){
             $this->module = Message::PROJECT;
             $project = Project::where('project_number',$this->instance->form_instance_number)->first();
             if ($project){
-                $this->$creator_id = $project->creator_id;
+                $this->creator_id = $project->creator_id;
                 $create_at = $project->created_at;
             }
         }
@@ -80,7 +79,7 @@ class ApprovalMessageEventListener
             $this->module = Message::CONTRACT;
             $contract = Contract::where("form_instance_number",$this->instance->form_instance_number)->first();
             if ($contract){
-                $this->$creator_id = $contract->creator_id;
+                $this->creator_id = $contract->creator_id;
                 $create_at = $contract->created_at;
             }
         }
@@ -89,7 +88,7 @@ class ApprovalMessageEventListener
             $this->creator_id = $this->instance->created_by;
             $create_at = $this->instance->created_at;
         }
-        if ($creator_id){
+        if ($this->creator_id){
             $this->origin = User::find($this->creator_id);
         }
 
@@ -169,7 +168,7 @@ class ApprovalMessageEventListener
                 //获取部门负责人
                 $department_principal = DepartmentUser::where('department_id',$department->id)->where('type',1)->first();
                 $send_to[] = $department_principal->user_id;
-            }catch (Exception $e){
+            }catch (\Exception $e){
                 Log::error($e);
             }
         }elseif($execute->current_handler_type == 247){//角色

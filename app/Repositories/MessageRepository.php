@@ -21,7 +21,12 @@ class MessageRepository
         $message->subheading = $subheading;
         $message->module = $module;
         $message->link = $link;
-        $message->module_data_id    =  hashid_encode($module_data_id);
+        if ($module == Message::APPROVAL||$module == Message::CONTRACT){
+            $message->module_data_id = $module_data_id;
+        }else{
+            $message->module_data_id    =  hashid_encode($module_data_id);
+        }
+
         $message->save();
         foreach ($data as &$value){
             $value['message_id'] = $message->id;

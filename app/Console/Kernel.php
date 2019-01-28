@@ -32,6 +32,8 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('Trails')->everyMinute();
         $schedule->command('Project')->everyMinute();
+        $schedule->command("client:protected")->everyMinute();//直客保护
+        $schedule->command("schedule:remind")->everyMinute();//日程提醒
 
     }
 

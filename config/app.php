@@ -129,6 +129,15 @@ return [
     'QINIU_DOMAIN' => env('QINIU_DOMAIN'),
     'websocket_uri' =>  env('WEBSOCKET_URI','ws://127.0.0.1:8083'),
 
+    //调度任务登录用户密码
+    "schdule_web_site"  =>  env("SCHDULE_WEB_SITE","https://sandbox-api-crm.papitube.com"),
+    "schdule_uri"   =>  env("SCHDULE_URL","oauth/token"),
+    "schdule_token_method" => env("SCHDULE_TOKEN_METHOD","get"),
+    "schdule_user_id"   =>  env("SCHDULE_USER_ID",11),
+    "schdule_password"  =>  env("SCHDULE_PASSWORD","123456"),
+    "scdule_user_name"  =>  env("SCHDULE_USER_NAME","李乐"),
+
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

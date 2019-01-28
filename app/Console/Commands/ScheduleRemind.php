@@ -11,6 +11,7 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleRemind extends Command
 {
@@ -20,15 +21,7 @@ class ScheduleRemind extends Command
         "Accept"=>"application/vnd.Corvus.v1+json",
         "Content-Type"  =>  "application/x-www-form-urlencoded"
     ];
-    private $params = [
-        'token_type' => 'bearer',
-        "username"=>"李乐",
-        "password"=>123456,
-        "grant_type"    =>  "password",
-        "client_id" =>2,
-        "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
-        "scope" =>  "*"
-    ];
+    private $params;
     /**
      * The name and signature of the console command.
      *
@@ -53,6 +46,15 @@ class ScheduleRemind extends Command
     {
         parent::__construct();
         $this->httpRepository = $httpRepository;
+        $this->$this->params = [
+            'token_type' => 'bearer',
+            "username"=>config("app.schdule_user_name","李乐"),
+            "password"=>config("app.schdule_password","123456"),
+            "grant_type"    =>  "password",
+            "client_id" =>2,
+            "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
+            "scope" =>  "*"
+        ];
     }
 
     /**
@@ -126,8 +128,8 @@ class ScheduleRemind extends Command
                     break;
             }
             if($flag){
-                echo "发送消息";
-                $user = User::find(11);
+                Log::info("发送消息");
+                $user = User::find(config("app.schdule_user_id"));
                 //发消息
                 $schdule_obj = Schedule::find($schdule['id']);
                 event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));

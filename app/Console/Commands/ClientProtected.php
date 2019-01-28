@@ -18,15 +18,7 @@ class ClientProtected extends Command
         "Accept"=>"application/vnd.Corvus.v1+json",
         "Content-Type"  =>  "application/x-www-form-urlencoded"
     ];
-    private $params = [
-        'token_type' => 'bearer',
-        "username"=>"李乐",
-        "password"=>123456,
-        "grant_type"    =>  "password",
-        "client_id" =>2,
-        "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
-        "scope" =>  "*"
-    ];
+    private $params;
     /**
      * The name and signature of the console command.
      *
@@ -50,6 +42,15 @@ class ClientProtected extends Command
     {
         parent::__construct();
         $this->httpRepository = $httpRepository;
+        $this->params = [
+            'token_type' => 'bearer',
+            "username"=>config("app.schdule_user_name","李乐"),
+            "password"=>config("app.schdule_password","123456"),
+            "grant_type"    =>  "password",
+            "client_id" =>2,
+            "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
+            "scope" =>  "*"
+        ];
     }
 
     /**
@@ -73,12 +74,11 @@ class ClientProtected extends Command
         //获取保护截止日期在当前时间之后的直客
         $clients = Client::where('grade',Client::GRADE_NORMAL)->where('protected_client_time','>',$now->toDateTimeString())->get();
         foreach ($clients as $client){
-            echo "检查\n";
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
             echo $protected_client_time->diffInDays($now);
             if ($protected_client_time->diffInMinutes($now) == 5*24*60){
-                echo "发消息";
-                $user = User::find(11);
+                Log::info("发送消息");
+                $user = User::find(config("app.schdule_user_id"));
                 //发消息
                 event(new ClientMessageEvent($client,ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE,$authorization,$user));
             }

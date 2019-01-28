@@ -20,15 +20,7 @@ class Trails extends Command
         "Accept"=>"application/vnd.Corvus.v1+json",
         "Content-Type"  =>  "application/x-www-form-urlencoded"
     ];
-    private $params = [
-        'token_type' => 'bearer',
-        "username"=>"李乐",
-        "password"=>123456,
-        "grant_type"    =>  "password",
-        "client_id" =>2,
-        "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
-        "scope" =>  "*"
-    ];
+    private $params;
     /**
      * The name and signature of the console command.
      *
@@ -52,6 +44,15 @@ class Trails extends Command
     {
         parent::__construct();
         $this->httpRepository = $httpRepository;
+        $this->params = $this->$this->params = [
+            'token_type' => 'bearer',
+            "username"=>config("app.schdule_user_name","李乐"),
+            "password"=>config("app.schdule_password","123456"),
+            "grant_type"    =>  "password",
+            "client_id" =>2,
+            "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
+            "scope" =>  "*"
+        ];
     }
 
     /**
@@ -109,7 +110,7 @@ class Trails extends Command
                     $num = DB::table('trails')->where('id',$value->id)->update($receive);
                     //提醒
                     $trails = Trail::find($value['id']);
-                    $user = User::find(11);
+                    $user = User::find(config("app.schdule_user_id"));
                     $meta['created'] = $created;//跟进时间
                     event(new TaskMessageEvent($trails,TrailTrigreePoint::REMIND_TRAIL_TO_SEAS,$authorization,$user,$meta));
                 }

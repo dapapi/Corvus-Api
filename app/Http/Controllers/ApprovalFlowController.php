@@ -331,6 +331,9 @@ class ApprovalFlowController extends Controller
                     ->where('grade',Client::GRADE_NORMAL)//直客
                     ->first();
                 if($client){
+                    //直客成单保护期增加180天
+                    $client->protected_client_time = Carbon::now()->addDay("180")->toDateTimeString();
+                    $client->save();
                     $meta=['contracts'=>$instance];
                     event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user,$meta));
                 }

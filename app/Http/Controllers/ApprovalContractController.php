@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApprovalForm\Business;
 use App\Models\DataDictionarie;
 use App\Models\RoleUser;
 use Illuminate\Http\Request;
@@ -411,7 +412,8 @@ class ApprovalContractController extends Controller
         $payload['number'] = isset($payload['number']) ? $payload['number'] : '';
         $payload['type'] = isset($payload['type']) ? $payload['type'] : '';
 
-        $data = DB::table('approval_form_business as afb')//
+//        $data = DB::table('approval_form_business as afb')//
+        $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
                 $join->on('af.form_id', '=','afb.form_id');
             })
@@ -435,7 +437,7 @@ class ApprovalContractController extends Controller
             $data->Where('afb.form_id',$payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status')->get()->toArray();
+            ->select('cs.contract_number','afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status')->get()->toArray();
 
         $count = count($res);//总条数
         $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
@@ -503,7 +505,7 @@ class ApprovalContractController extends Controller
             $data->Where('afb.form_id',$payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status','cs.star_type','cs.stars')->get()->toArray();
+            ->select('cs.contract_number','afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status','cs.star_type','cs.stars')->get()->toArray();
 
         $count = count($res);//总条数
         $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数

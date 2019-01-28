@@ -19,7 +19,7 @@ class HttpRepository
     public function getClient()
     {
         $this->client = new Client([
-            'base_uri'=>'https://sandbox-api-crm.papitube.com',
+            'base_uri'=>config("app.schdule_web_site"),
             'time_out'  =>  '2.0'
         ]);
     }

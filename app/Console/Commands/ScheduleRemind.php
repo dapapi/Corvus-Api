@@ -105,22 +105,22 @@ class ScheduleRemind extends Command
                     }
                     break;
                 case Schedule::REMIND_ONE_HOURS://一小时前
-                    if ($remid_time->diffInHours($now) == 1){
+                    if ($remid_time->diffInMinutes($now) == 60){
                         $flag = true;
                     }
                     break;
                 case Schedule::REMIND_TWO_HOURS://两小时前
-                    if ($remid_time->diffInHours($now) == 2){
+                    if ($remid_time->diffInMinutes($now) == 2*60){
                         $flag = true;
                     }
                     break;
                 case Schedule::REMIND_ONE_DAY://一天前
-                    if ($remid_time->diffInDays($now) == 1){
+                    if ($remid_time->diffInMinutes($now) == 1*24*60){
                         $flag = true;
                     }
                     break;
                 case Schedule::REMIND_TWO_DAY://两天前
-                    if ($remid_time->diffInDays($now) == 2){
+                    if ($remid_time->diffInMinutes($now) == 2*24*60){
                         $flag = true;
                     }
                     break;

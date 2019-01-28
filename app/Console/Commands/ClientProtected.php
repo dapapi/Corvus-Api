@@ -76,7 +76,7 @@ class ClientProtected extends Command
             echo "检查\n";
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
             echo $protected_client_time->diffInDays($now);
-            if ($protected_client_time->diffInDays($now) == 1){
+            if ($protected_client_time->diffInMinutes($now) == 5*24*60){
                 echo "发消息";
                 $user = User::find(11);
                 //发消息

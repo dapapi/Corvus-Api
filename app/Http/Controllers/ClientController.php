@@ -18,6 +18,7 @@ use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\TriggerPoint\ClientTriggerPoint;
 use App\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,7 +53,9 @@ class ClientController extends Controller
         $payload = $request->all();
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
-
+        if ($payload['grade'] == Client::GRADE_NORMAL){
+            $payload['protected_client_time'] = Carbon::now()->addDay(90)->toDateTimeString();//直客保护截止日期
+        }
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
 

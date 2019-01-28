@@ -98,7 +98,6 @@ class ProjectController extends Controller
                         $query->whereIn('id',$project_ids);
                         break;
                     case 'my_create'://我创建
-                    default:
                         $query->where('creator_id', $user->id);
                         break;
 

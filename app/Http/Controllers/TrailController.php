@@ -542,7 +542,7 @@ class TrailController extends Controller
 
                 }
             }
-            $trail->update($array);
+            $trail->update($payload);
             if ($request->has('client')) {
                 $client = $trail->client;
                 if (isset($payload['client']['company'] )){

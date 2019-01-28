@@ -50,7 +50,8 @@ class CalendarMessageEventListener
             case CalendarTriggerPoint::CREATE_SCHEDULE://创建日程
                 $this->sendMessageWhenCreateSchedule();
                 break;
-            case CalendarTriggerPoint::REMIND_SCHEDULE:
+            case CalendarTriggerPoint::REMIND_SCHEDULE://日程提醒
+                $this->sendMessageWhenRemindSchdule();
                 break;
             case CalendarTriggerPoint::UPDATE_SCHEDULE://修改日程
                 $this->sendMessageWhenUpdateSchedule();
@@ -69,6 +70,16 @@ class CalendarMessageEventListener
         $this->sendMessage($title,$subheading,$send_to);
     }
 
+    /**
+     * 日程提醒向参与者和创建者发消息
+     */
+    public function sendMessageWhenRemindSchdule()
+    {
+        $subheading = $title = "日程提醒";
+        $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
+        $send_to[] = $this->schedule->creator_id;
+        $this->sendMessage($title,$subheading,$send_to);
+    }
     /**
      * 当修改日程时向参与人发消息
      */

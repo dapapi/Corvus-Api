@@ -617,6 +617,8 @@ class ApprovalFormController extends Controller
             $value->notice_id = hashid_encode($value->notice_id);
         }
 
+        unset($value);
+
 //        $resource = new Fractal\Resource\Collection($data, new TemplateFieldHistoriesTransformer($project->id));
 //
 //        $manager = new Manager();
@@ -691,6 +693,7 @@ class ApprovalFormController extends Controller
             }
 
         }
+
         $dataName = json_decode(json_encode($arrName), true);
         if ($dataName) {
             foreach ($dataName as $value) {

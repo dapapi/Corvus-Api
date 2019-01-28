@@ -90,7 +90,6 @@ class AttendanceController extends Controller
                     $this->affixRepository->addAffix($user, $attendance, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
                     // 操作日志 ...
                 } catch (Exception $e) {
-                    dd($e);
                     Log::error($e);
                 }
             }

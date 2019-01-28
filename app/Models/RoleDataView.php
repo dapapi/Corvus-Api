@@ -24,6 +24,6 @@ class RoleDataView extends Model
     //任务规则
     const TASK_DATA_VIEW_SQL = "{\"rules\": [{\"field\" : \"tasks.creator_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"tasks.principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
     //合同
-    const CONTRACTS_DATA_VIEW_SQL = "{\"rules\": [{\"field\" : \"contracts.creator_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
+    const CONTRACTS_DATA_VIEW_SQL = "{\"rules\": [{\"field\" : \"cs.creator_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
 
 }

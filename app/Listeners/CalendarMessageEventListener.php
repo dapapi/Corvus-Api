@@ -86,7 +86,6 @@ class CalendarMessageEventListener
     public function sendMessageWhenUpdateSchedule()
     {
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
-
         //判断是否更改了会议室，时间，位置
         $old_schedule_arr = $this->meta['old_schedule']->toArray();
         $schedule_arr = $this->schedule->toArray();

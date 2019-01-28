@@ -7,6 +7,7 @@ use App\Models\Schedule;
 use App\Repositories\HttpRepository;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\CalendarTriggerPoint;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -72,13 +73,16 @@ class ScheduleRemind extends Command
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
         $now = Carbon::now();
-
+        echo $now->toDateTimeString();
         //日程提醒
-        $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select('remind','id','creator_id','start_at')->get();
-        foreach ($schdules as $schdule){
-            $remid_time = Carbon::createFromTimeString($schdule->start_at);
+        $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select('remind','id','title','creator_id','start_at')->get();
+        foreach ($schdules->toArray() as $schdule){
+//            echo $schdule['title'];
+            $remid_time = Carbon::createFromTimeString($schdule['start_at']);
+            echo $schdule['title'].": ".$remid_time->diffInMinutes($now)."\n";
             $flag = false; //是否发消息标志
-            switch ($schdule->remind){
+            echo $schdule['remind'];
+            switch ($schdule['remind']){
                 case Schedule::REMIND_CURR://日程发生时
                     if ($remid_time->diffInMinutes($now) == 0){
                         $flag = true;
@@ -86,6 +90,7 @@ class ScheduleRemind extends Command
                     break;
                 case Schedule::REMIND_FIVE_MINUTES://5分钟前
                     if ($remid_time->diffInMinutes($now) == 5){
+                        echo "asdad";
                         $flag = true;
                     }
                     break;
@@ -121,9 +126,11 @@ class ScheduleRemind extends Command
                     break;
             }
             if($flag){
+                echo "发送消息";
                 $user = User::find(11);
                 //发消息
-                event(new CalendarMessageEvent($schdule,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
+                $schdule_obj = Schedule::find($schdule['id']);
+                event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
             }
         }
 

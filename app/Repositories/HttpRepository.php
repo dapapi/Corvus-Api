@@ -35,7 +35,6 @@ class HttpRepository
             ]);
             return $this->jar->getStatusCode() == 200 ? true : false;
         }catch (\Exception $e){
-            dd($e);
             Log::error($e);
             return false;
         }

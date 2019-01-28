@@ -110,7 +110,8 @@ class Trails extends Command
                     //提醒
                     $trails = Trail::find($value['id']);
                     $user = User::find(11);
-                    event(new TaskMessageEvent($trails,TrailTrigreePoint::REMIND_TRAIL_TO_SEAS,$authorization,$user));
+                    $meta['created'] = $created;//跟进时间
+                    event(new TaskMessageEvent($trails,TrailTrigreePoint::REMIND_TRAIL_TO_SEAS,$authorization,$user,$meta));
                 }
             }
             if($created1 <= $dataDay){

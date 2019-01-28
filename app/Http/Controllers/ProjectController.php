@@ -1080,8 +1080,9 @@ class ProjectController extends Controller
     public function allCourse(Request $request, Project $project)
     {
         $projects = ProjectStatusLogs::where('logable_id', $project->id)->CreateDesc()->get();
-
-        return $this->response->collection($projects, new ProjectCourseTransformer());
+        $count = count($projects->toArray());
+        //meta内是项目进度百分比，目前就8步所以除以八
+        return $this->response->collection($projects, new ProjectCourseTransformer())->addMeta("progress",$count/(8));
     }
 
     public function changeStatus(Request $request, Project $project)

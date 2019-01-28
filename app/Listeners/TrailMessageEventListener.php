@@ -17,6 +17,7 @@ class TrailMessageEventListener
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $meta;
     //消息发送内容
     private $message_content = '[{"title":"线索名称","value":"%s"},{"title":"最后跟进时间","value":"%s"}]';
 
@@ -42,6 +43,8 @@ class TrailMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
+        $this->meta = $event->meta;
+        $this->data = json_decode(sprintf($this->message_content,$this->trail->title,$this->meta['created']));
         switch ($this->trigger_point){
             case TrailTrigreePoint::REMIND_TRAIL_TO_SEAS://当线索即将进入公海池是发消息
                 break;

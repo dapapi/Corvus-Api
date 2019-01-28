@@ -475,7 +475,7 @@ class ConsoleController extends Controller
         $uri = preg_replace('/\\d+/', '{id}', $uri);
         $id = $request->get('id');
         //根据method和uri查询对应的模块
-        $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->first()->parent_id;
+        $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->first();
         if(!$model_id){//模块不存在
             return ["res"=>"true"];
         }
@@ -483,10 +483,9 @@ class ConsoleController extends Controller
 
         $model = null;
         if($request->has("id")){
-            $id = hashid_decode($id);
             if (DataDictionarie::BLOGGER == $model_id){//博主
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Blogger::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
@@ -500,28 +499,28 @@ class ConsoleController extends Controller
                 }
             }elseif(DataDictionarie::STAR == $model_id){//艺人
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Star::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
                 }
             }elseif(DataDictionarie::CLIENT == $model_id){//客户
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Client::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
                 }
             }elseif(DataDictionarie::TRAIL == $model_id){//销售线索
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Trail::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
                 }
             }elseif(DataDictionarie::TASK == $model_id){//任务
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Task::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
@@ -535,7 +534,7 @@ class ConsoleController extends Controller
                 }
             }elseif(DataDictionarie::CALENDAR == $model_id) {//日历
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Calendar::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);

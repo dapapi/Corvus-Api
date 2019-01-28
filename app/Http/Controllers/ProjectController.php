@@ -72,8 +72,8 @@ class ProjectController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $user = Auth::guard('api')->user();
-
-        $projects = Project::where(function ($query) use ($request, $payload,$user) {
+//        DB::connection()->enableQueryLog();
+        $query =  Project::where(function ($query) use ($request, $payload,$user) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
@@ -89,22 +89,26 @@ class ProjectController extends Controller
                 $query->where('type', $payload['type']);
             if ($request->has('status'))#项目状态
                 $query->where('status', $payload['status']);
-            if ($request->has('my')){
-                switch ($payload['my']){
-                    case 'my_principal'://我负责
-                        $query->where('principal_id', $user->id);
-                        break;
-                    case 'my_participant'://我参与
-                        $query->participants()->where('module_users.user_id',$user->id);//获取参与人
-                        break;
-                    case 'my_create'://我创建
-                        $query->where('creator_id', $user->id);
-                        break;
+        })->searchData();
+        if ($request->has('my')){
+            switch ($payload['my']){
+                case 'my_principal'://我负责
+                    $query->where('principal_id', $user->id);
+                    break;
+                case 'my_participant'://我参与
+                    $query->leftJoin("module_users as mu2",function ($join){
+                        $join->on("mu2.moduleable_id","projects.id")
+                            ->where('mu2.moduleable_type',ModuleableType::PROJECT);
+                    })->where('mu2.user_id',$user->id);
+                    break;
+                case 'my_create'://我创建
+                    $query->where('projects.creator_id', $user->id);
+                    break;
 
-                }
             }
-        })->searchData()
-            ->orderBy('created_at', 'desc')->paginate($pageSize);
+        }
+            $projects = $query->orderBy('projects.created_at', 'desc')->paginate($pageSize);
+//        dd(DB::getQueryLog());
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 

@@ -221,7 +221,7 @@ class ReviewQuestionnaireController extends Controller {
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        return $this->response->created();
+        return $this->response->item($reviewquestionnairemodel, new ReviewQuestionnaireShowTransformer());
 
     }
 

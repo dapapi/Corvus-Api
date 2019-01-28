@@ -6,6 +6,7 @@ use App\Models\ReviewQuestionnaire;
 use App\Models\ReviewAnswer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\DepartmentPrincipal;
 use League\Fractal\TransformerAbstract;
 
 class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
@@ -57,16 +58,24 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
         if(!empty($sums->toArray())){
             // 参与人数
             $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
+            $array[] = ['user_id',$user->id];
+            $arrdate = !empty(DepartmentPrincipal::where($array)->first());
+
             $arr  = ReviewAnswer::where('review_id', $reviewquestionnaire->id)->where('user_id',$user->id)->groupby('user_id')->get();
-            if(count($arr)>0) {
+            if(count($arr)>0 || $arrdate) {
                 $reviewanswer = ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*', DB::raw('TRUNCATE(' . $sums[0]->sums . '/' . $count . ',2) as TRUNCATE'))->groupby('review_id');
+                return $this->collection($reviewanswer->get(), new ReviewAnswerSumTransformer());
+            }else{
+                 return null;
+                //return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
             }
-            return $this->collection($reviewanswer->get(), new ReviewAnswerSumTransformer());
+
+
         }else{
 
             $count =  count(ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('user_id',DB::raw('count(user_id) as counts'))->groupby('user_id')->get()->toArray());
             $reviewanswer =  ReviewAnswer::where('review_id', $reviewquestionnaire->id)->select('*',DB::raw('TRUNCATE(1.'.'/'.$count.',2) as TRUNCATE'))->groupby('review_id');
-            dd($reviewanswer);
+
             return $this->collection($reviewanswer, new ReviewAnswerSumTransformer());
         }
        // $reviewanswer = $reviewquestionnaire->sum;

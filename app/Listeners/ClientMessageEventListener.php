@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\ClientMessageEvent;
 use App\Models\Client;
+use App\Models\Contract;
 use App\Models\Department;
 use App\Models\Message;
 use App\Repositories\DepartmentRepository;
@@ -22,6 +23,7 @@ class ClientMessageEventListener
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $meta;
     //消息发送内容
     private $message_content = '[{"title":"客户名称","value":"%s"},{"title":"保护截止日期","value":"%s"}]';
     /**
@@ -47,6 +49,7 @@ class ClientMessageEventListener
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
+        $this->meta = $event->meta;
         //截止时间
         $end_at = Carbon::now()->addDay(Client::PROTECTION_TIME)->toDateString();
         $this->data = json_decode(sprintf($this->message_content,$this->client->company,$end_at),true);
@@ -56,6 +59,9 @@ class ClientMessageEventListener
                 break;
             case ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM://直客成单
                 $this->sendMessageWhenGradeNormalOrderForm();
+                break;
+            case ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE://直客保护到期
+                $this->sendMessageWhenNormalClientExpire();
                 break;
         }
     }
@@ -76,7 +82,19 @@ class ClientMessageEventListener
      */
     public function sendMessageWhenGradeNormalOrderForm()
     {
-        $subheading = $title = $this->client->company."直客成单了";
+        $subheading = $title = $this->meta['contracts']->title."项目成单了";
+        //papi商务组全体同事
+        $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
+        $this->sendMessage($title,$subheading,$send_to);
+    }
+
+    /**
+     * 直客保护到期提醒
+     */
+    public function sendMessageWhenNormalClientExpire()
+    {
+        echo "直客保护到期提醒";
+        $subheading = $title = $this->client->company."直客保护到期提醒";
         //papi商务组全体同事
         $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
         $this->sendMessage($title,$subheading,$send_to);

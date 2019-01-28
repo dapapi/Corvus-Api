@@ -7,6 +7,7 @@ use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
+use App\Models\ApprovalForm\InstanceValue;
 use App\Models\ApprovalForm\Participant;
 use App\Models\Contact;
 use App\Models\Contract;
@@ -25,6 +26,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
+use Monolog\Handler\IFTTTHandler;
 
 class ApprovalMessageEventListener
 {
@@ -91,7 +93,6 @@ class ApprovalMessageEventListener
         if ($this->creator_id){
             $this->origin = User::find($this->creator_id);
         }
-
         $origin_name = $this->origin == null ? null : $this->origin->name;//发起人，提交人
         //获取审批的名字
         $form = ApprovalForm::where("form_id",$this->instance->form_id)->first();
@@ -115,6 +116,8 @@ class ApprovalMessageEventListener
                 $this->sendMessageWhenNotify();
                 break;
             case ApprovalTriggerPoint::REMIND://提醒
+                break;
+            case ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE://项目合同审批通过
                 break;
         }
     }
@@ -173,11 +176,10 @@ class ApprovalMessageEventListener
             try{
                 //获取创建人
                 $creator_id = $this->getInstanceCreator();
-
-                $department = DepartmentUser::where("user_id",$creator_id)->first();
+                $department_user = DepartmentUser::where("user_id",$creator_id)->first();
                 //获取部门负责人
-                $department_principal = DepartmentUser::where('department_id',$department->id)->where('type',1)->first();
-                $send_to[] = $department_principal->user_id;
+                $department_principal = DepartmentUser::where('department_id',$department_user->department_id)->where('type',1)->first();
+                $send_to[] = $department_principal == null ? $creator_id : $department_principal->user_id;
             }catch (\Exception $e){
                 Log::error($e);
             }
@@ -200,7 +202,30 @@ class ApprovalMessageEventListener
         //todo 可能会根据角色发消息
         //获取知会人
         $send_to = array_column(Participant::select("notice_id")->where("form_instance_number",$this->instance->form_instance_number)->get()->toArray(),"notice_id");
+        Log::info("向知会人发消息".implode(",",$send_to));
         $this->sendMessage($title,$subheading,$send_to);
+        Log::info("发送完毕");
+    }
+
+    /**
+     * 项目合同审批通过
+     */
+    public function sendMessageWhenProjectContractAgree()
+    {
+        if ($this->instance->business_type == "contracts"){
+            $instance_value = InstanceValue::where("form_instance_number",$this->instance->form_instance_number)->where('form_control_id',36)->first();
+            $department_name = $instance_value->form_control_value;
+            //获取部门
+            $department = Department::where('name',$department_name)->first();
+            //查找部门下用户
+            $department_users = DepartmentUser::where('depart_id',$department->id)->select("user_id")->get()->toArray();
+            $send_to = array_column($department_users,"user_id");
+            //获取项目
+            $project = Project::join("contracts","contracts.project_id","projects.id")->where("form_instance_number",$this->instance->form_instance_number)->first();
+            $subheading = $title = $project == null ? null :$project->title."项目成单了";
+            $this->sendMessage($title,$subheading,$send_to);
+        }
+
     }
 
     /**
@@ -223,7 +248,9 @@ class ApprovalMessageEventListener
             if ($project){
                 $module_data_id = $project->id;
             }
-
+        }
+        if ($this->trigger_point == ApprovalTriggerPoint::NOTIFY){
+            Log::info("消息函数向".implode(",",$send_to)."发消息");
         }
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             $this->module, null, $this->data, $send_to,$module_data_id);

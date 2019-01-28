@@ -136,7 +136,11 @@ class AnnouncementController extends Controller
     {
         DB::beginTransaction();
         try {
-            $announcement->delete();
+            $user = Auth::guard('api')->user();
+            if($user->id == $announcement->creator_id){
+                $announcement->delete();
+            }
+
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $announcement,

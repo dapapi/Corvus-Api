@@ -2,13 +2,31 @@
 
 namespace App\Console\Commands;
 
+use App\Events\ClientMessageEvent;
 use App\Models\Client;
+use App\Repositories\HttpRepository;
+use App\TriggerPoint\ClientTriggerPoint;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class ClientProtected extends Command
 {
+    private $httpRepository;
+    private $header = [
+        "Accept"=>"application/vnd.Corvus.v1+json",
+        "Content-Type"  =>  "application/x-www-form-urlencoded"
+    ];
+    private $params = [
+        'token_type' => 'bearer',
+        "username"=>"李乐",
+        "password"=>123456,
+        "grant_type"    =>  "password",
+        "client_id" =>2,
+        "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
+        "scope" =>  "*"
+    ];
     /**
      * The name and signature of the console command.
      *
@@ -28,9 +46,10 @@ class ClientProtected extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(HttpRepository $httpRepository)
     {
         parent::__construct();
+        $this->httpRepository = $httpRepository;
     }
 
     /**
@@ -40,15 +59,28 @@ class ClientProtected extends Command
      */
     public function handle()
     {
+        $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
+        if (!$res){
+            echo "登录失败";
+            Log::error("登录失败...");
+            return;
+        }
+        $body = $this->httpRepository->jar->getBody();
+        $access_token = json_decode($body,true)['access_token'];
+        $authorization = "Bearer ".$access_token;
         Log::info("直客到期检查");
         $now = Carbon::now();
         //获取保护截止日期在当前时间之后的直客
         $clients = Client::where('grade',Client::GRADE_NORMAL)->where('protected_client_time','>',$now->toDateTimeString())->get();
         foreach ($clients as $client){
+            echo "检查\n";
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
-            if ($protected_client_time->diffInDays($now) == 5){
+            echo $protected_client_time->diffInDays($now);
+            if ($protected_client_time->diffInDays($now) == 1){
+                echo "发消息";
+                $user = User::find(11);
                 //发消息
-
+                event(new ClientMessageEvent($client,ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE,$authorization,$user));
             }
         }
     }

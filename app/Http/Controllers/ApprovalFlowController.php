@@ -294,7 +294,6 @@ class ApprovalFlowController extends Controller
         }
         DB::commit();
 
-
         $authorization = $request->header()['authorization'][0];
         $excute = Execute::where("form_instance_number",$instance->form_instance_number)->first();
         if($excute->flow_type_id == 232){//审批通过
@@ -332,15 +331,17 @@ class ApprovalFlowController extends Controller
                     ->where('grade',Client::GRADE_NORMAL)//直客
                     ->first();
                 if($client){
-                    event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user));
+                    $meta=['contracts'=>$instance];
+                    event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user,$meta));
                 }
             }
 
             event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+            //项目合同审批同意向M组发消息
+            event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE,$authorization,$user));
         }else{
-        //向下一个审批人发消息
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));
-
+            //向下一个审批人发消息
+            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));
         }
 
         return $this->response->created();

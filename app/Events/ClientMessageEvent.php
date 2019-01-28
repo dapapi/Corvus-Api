@@ -20,17 +20,19 @@ class ClientMessageEvent
     public $trigger_point;
     public $authorization;
     public $user;
+    public $meta;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Client $model,$trigger_point,$authorization,User $user)
+    public function __construct(Client $model,$trigger_point,$authorization,User $user,$meta=[])
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;
         $this->authorization = $authorization;
         $this->user = $user;
+        $this->meta = $meta;
     }
 
     /**

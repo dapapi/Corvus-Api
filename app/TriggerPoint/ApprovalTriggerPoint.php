@@ -11,4 +11,5 @@ class ApprovalTriggerPoint
     const WAIT_ME = 4;//待我审批
     const NOTIFY = 5;//知会
     const REMIND = 6;//提醒
+    const PROJECT_CONTRACT_AGREE =  7;//项目合同审批通过
 }

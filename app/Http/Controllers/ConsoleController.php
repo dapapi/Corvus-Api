@@ -476,13 +476,14 @@ class ConsoleController extends Controller
         $id = $request->get('id');
         //根据method和uri查询对应的模块
         $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->first()->parent_id;
-        if($model_id){//模块不存在
-            return true;
+        if(!$model_id){//模块不存在
+            return ["res"=>"true"];
         }
+
 
         $model = null;
         if($request->has("id")){
-            $id = hashid_encode($id);
+            $id = hashid_decode($id);
             if (DataDictionarie::BLOGGER == $model_id){//博主
                 try {
 
@@ -553,8 +554,7 @@ class ConsoleController extends Controller
         $userId = $user->id;
         //获取用户角色
         $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
-
-        (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
+        return (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
 
     }
     //返回用户有哪些模块的功能权限

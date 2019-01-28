@@ -2,14 +2,32 @@
 
 namespace App\Console\Commands;
 
+use App\Events\CalendarMessageEvent;
 use App\Models\Schedule;
+use App\Repositories\HttpRepository;
 use App\Repositories\MessageRepository;
+use App\TriggerPoint\CalendarTriggerPoint;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class ScheduleRemind extends Command
 {
+
+    private $httpRepository;
+    private $header = [
+        "Accept"=>"application/vnd.Corvus.v1+json",
+        "Content-Type"  =>  "application/x-www-form-urlencoded"
+    ];
+    private $params = [
+        'token_type' => 'bearer',
+        "username"=>"李乐",
+        "password"=>123456,
+        "grant_type"    =>  "password",
+        "client_id" =>2,
+        "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
+        "scope" =>  "*"
+    ];
     /**
      * The name and signature of the console command.
      *
@@ -30,10 +48,10 @@ class ScheduleRemind extends Command
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(HttpRepository $httpRepository)
     {
         parent::__construct();
-        $this->messageRepository = $messageRepository;
+        $this->httpRepository = $httpRepository;
     }
 
     /**
@@ -43,6 +61,16 @@ class ScheduleRemind extends Command
      */
     public function handle()
     {
+
+        $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
+        if (!$res){
+            echo "登录失败";
+            Log::error("登录失败...");
+            return;
+        }
+        $body = $this->httpRepository->jar->getBody();
+        $access_token = json_decode($body,true)['access_token'];
+        $authorization = "Bearer ".$access_token;
         $now = Carbon::now();
 
         //日程提醒
@@ -93,8 +121,9 @@ class ScheduleRemind extends Command
                     break;
             }
             if($flag){
+                $user = User::find(11);
                 //发消息
-
+                event(new CalendarMessageEvent($schdule,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
             }
         }
 

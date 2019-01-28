@@ -50,9 +50,9 @@ class TrailMessageEventListener
     //当线索即将进入公海池是发消息
     public function sendMessageWhenTrailWhileToSeas()
     {
-        $su
+        $subheading = $title = "您负责的{$this->trail->title}线索即将进入公海池";
         $send_to[] = $this->trail->principal_id;
-        $this->sendMessage($)
+        $this->sendMessage($title,$subheading,$send_to);
     }
     //最终发送消息方法调用
     public function sendMessage($title,$subheading,$send_to)

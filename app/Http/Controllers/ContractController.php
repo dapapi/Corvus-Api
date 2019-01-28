@@ -68,6 +68,7 @@ class ContractController extends Controller
 
     public function show(Blogger $blogger)
     {
+
         // 操作日志
         $operate = new OperateEntity([
             'obj' => $blogger,

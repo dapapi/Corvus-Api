@@ -49,6 +49,7 @@ class Client extends Model
         'desc',
         'type',             // 商务客户
         'status',
+        'protected_client_time'//直客保护截止时间
     ];
 
     protected $dates = ['deleted_at'];

@@ -2,6 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Events\TaskMessageEvent;
+use App\Models\Trail;
+use App\Repositories\HttpRepository;
+use App\TriggerPoint\TrailTrigreePoint;
+use App\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +14,13 @@ use Illuminate\Support\Facades\DB;
 
 class Trails extends Command
 {
+
+    private $httpRepository;
+    private $header = [
+        "Accept"=>"application/vnd.Corvus.v1+json",
+        "Content-Type"  =>  "application/x-www-form-urlencoded"
+    ];
+    private $params;
     /**
      * The name and signature of the console command.
      *
@@ -28,9 +40,19 @@ class Trails extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(HttpRepository $httpRepository)
     {
         parent::__construct();
+        $this->httpRepository = $httpRepository;
+        $this->params = $this->$this->params = [
+            'token_type' => 'bearer',
+            "username"=>config("app.schdule_user_name","李乐"),
+            "password"=>config("app.schdule_password","123456"),
+            "grant_type"    =>  "password",
+            "client_id" =>2,
+            "client_secret"     =>  "B7l68XEz38cHE8VqTZPzyYnSBgo17eaCRyuLtpul",
+            "scope" =>  "*"
+        ];
     }
 
     /**
@@ -40,6 +62,15 @@ class Trails extends Command
      */
     public function handle()
     {
+        $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
+        if (!$res){
+            echo "登录失败";
+            Log::error("登录失败...");
+            return;
+        }
+        $body = $this->httpRepository->jar->getBody();
+        $access_token = json_decode($body,true)['access_token'];
+        $authorization = "Bearer ".$access_token;
 
         //获取今天时间
         $dataDay = date('YmdHi');//当前时间
@@ -78,6 +109,10 @@ class Trails extends Command
                 if($value->receive!==1){
                     $num = DB::table('trails')->where('id',$value->id)->update($receive);
                     //提醒
+                    $trails = Trail::find($value['id']);
+                    $user = User::find(config("app.schdule_user_id"));
+                    $meta['created'] = $created;//跟进时间
+                    event(new TaskMessageEvent($trails,TrailTrigreePoint::REMIND_TRAIL_TO_SEAS,$authorization,$user,$meta));
                 }
             }
             if($created1 <= $dataDay){

@@ -463,15 +463,15 @@ class TrailController extends Controller
 
         if ($request->has('cooperation_type') && $payload['cooperation_type']) {//合作类型
             $array['cooperation_type'] = $payload['cooperation_type'];
-            if($payload['status'] != $trail->status){
-                $curr_cooperation_type = DataDictionarie::getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
-                $cooperation_type =  DataDictionarie::getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
+            if($payload['cooperation_type'] != $trail->cooperation_type){
+                $curr_cooperation_type = (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
+                $cooperation_type =  (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
                 if($cooperation_type == null){
                     return $this->response->errorBadRequest("合作类型错误");
                 }
                 $operateName = new OperateEntity([
                     'obj' => $trail,
-                    'title' => '线索状态',
+                    'title' => '合作类型',
                     'start' => $curr_cooperation_type,
                     'end' => $cooperation_type,
                     'method' => OperateLogMethod::UPDATE,
@@ -487,7 +487,7 @@ class TrailController extends Controller
             if($trail->brand != $payload['brand']){
                 $operateName = new OperateEntity([
                     'obj' => $trail,
-                    'title' => '优先级',
+                    'title' => '品牌',
                     'start' => $trail->brand,
                     'end' => $payload['brand'],
                     'method' => OperateLogMethod::UPDATE,

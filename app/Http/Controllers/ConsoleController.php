@@ -418,6 +418,9 @@ class ConsoleController extends Controller
                         if(DataDictionarie::TASK ==  $value['resource_id']){//如果是模块是任务增加对应的搜索条件
                             $dataViewSql = RoleDataView::TASK_DATA_VIEW_SQL;
                         }
+                        if (DataDictionarie::CONTRACTS == $value['resource_id']){
+                            $dataViewSql = RoleDataView::CONTRACTS_DATA_VIEW_SQL;
+                        }
 
                         $array = [
                             'role_id'=>$roleId,
@@ -470,22 +473,24 @@ class ConsoleController extends Controller
      */
     public function checkPower(Request $request)
     {
+        $flag = false;
         $method = $request->get('method');
+
+
         $uri = $request->get('uri');
         $uri = preg_replace('/\\d+/', '{id}', $uri);
+        $uri = trim($uri,"/");
         $id = $request->get('id');
         //根据method和uri查询对应的模块
-        $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->first()->parent_id;
-        if($model_id){//模块不存在
-            return true;
+        $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->value('parent_id');
+        if(!$model_id){//模块不存在
+            $flag = false;
         }
-
         $model = null;
         if($request->has("id")){
-            $id = hashid_encode($id);
             if (DataDictionarie::BLOGGER == $model_id){//博主
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Blogger::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
@@ -499,28 +504,28 @@ class ConsoleController extends Controller
                 }
             }elseif(DataDictionarie::STAR == $model_id){//艺人
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Star::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
                 }
             }elseif(DataDictionarie::CLIENT == $model_id){//客户
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Client::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
                 }
             }elseif(DataDictionarie::TRAIL == $model_id){//销售线索
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Trail::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
                 }
             }elseif(DataDictionarie::TASK == $model_id){//任务
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Task::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
@@ -534,7 +539,7 @@ class ConsoleController extends Controller
                 }
             }elseif(DataDictionarie::CALENDAR == $model_id) {//日历
                 try {
-
+                    $id = hashid_decode($id);
                     $model = Calendar::findOrFail($id);
                 } catch (Exception $exception) {
                     abort(404);
@@ -553,9 +558,28 @@ class ConsoleController extends Controller
         $userId = $user->id;
         //获取用户角色
         $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
+        try{
+            $res = (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
+            if (!is_array($res) && $res === null){
+                $flag = true;
+            }
+        }catch (\Exception $e){
+            Log::error($e);
+        }
 
-        (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
-
+        if ($flag){
+            return [
+                "data"  =>  [
+                    "power" =>  "true"
+                ]
+            ];
+        }else{
+            return [
+                "data"  =>  [
+                    "power" =>  "false"
+                ]
+            ];
+        }
     }
     //返回用户有哪些模块的功能权限
     public function getPowerModel()

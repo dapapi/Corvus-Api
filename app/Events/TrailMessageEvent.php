@@ -20,12 +20,13 @@ class TrailMessageEvent
     public $trigger_point;
     public $authorization;
     public $user;
+    public $meta;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Trail $model,$trigger_point,$authorization,User $user)
+    public function __construct(Trail $model,$trigger_point,$authorization,User $user,$meta = [])
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;

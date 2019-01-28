@@ -7,6 +7,7 @@ use App\Events\dataChangeEvent;
 use App\Events\MessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\TaskMessageEvent;
+use App\Models\DataDictionarie;
 use App\Models\Message;
 use App\Http\Requests\Task\AddRelateTaskRequest;
 use App\Http\Requests\Task\FilterTaskRequest;
@@ -84,7 +85,6 @@ class TaskController extends Controller
             default:
                 break;
         }
-//        dd($query->toSql());
         $tasks = $query->where(function($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
@@ -299,7 +299,9 @@ class TaskController extends Controller
             default:
                 break;
         }
-        $tasks = $query->createDesc()->paginate($pageSize);
+        DB::connection()->enableQueryLog();
+        $tasks = $query->get();
+        dd(DB::getQueryLog());
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }

@@ -501,7 +501,6 @@ class ScheduleController extends Controller
 //            }
 
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');

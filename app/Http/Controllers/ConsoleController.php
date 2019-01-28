@@ -472,15 +472,17 @@ class ConsoleController extends Controller
     {
         $flag = false;
         $method = $request->get('method');
+
+
         $uri = $request->get('uri');
         $uri = preg_replace('/\\d+/', '{id}', $uri);
+        $uri = trim($uri,"/");
         $id = $request->get('id');
         //根据method和uri查询对应的模块
         $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->value('parent_id');
         if(!$model_id){//模块不存在
             $flag = false;
         }
-
         $model = null;
         if($request->has("id")){
             if (DataDictionarie::BLOGGER == $model_id){//博主
@@ -555,13 +557,13 @@ class ConsoleController extends Controller
         $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
         try{
             $res = (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
-            if ($res === null){
+            if (!is_array($res) && $res === null){
                 $flag = true;
             }
         }catch (\Exception $e){
             Log::error($e);
         }
-//        dd($flag);
+
         if ($flag){
             return [
                 "data"  =>  [

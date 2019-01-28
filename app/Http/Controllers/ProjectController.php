@@ -95,7 +95,7 @@ class ProjectController extends Controller
                         $query->where('principal_id', $user->id);
                         break;
                     case 'my_participant'://我参与
-                        $query->participants();//获取参与人
+                        $query->participants()->where('module_users.user_id',$user->id);//获取参与人
                         break;
                     case 'my_create'://我创建
                         $query->where('creator_id', $user->id);

@@ -38,6 +38,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\ClientMessageEvent'   =>  [//监听博主签约解约
             'App\Listeners\ClientMessageEventListener',
         ],
+        'App\Events\TrailMessageEvent'   =>  [//监听博主签约解约
+            'App\Listeners\TrailMessageEventListener',
+        ],
         'App\Events\dataChangeEvent'    =>  [
             'App\Listeners\dataChangeListener',
         ],

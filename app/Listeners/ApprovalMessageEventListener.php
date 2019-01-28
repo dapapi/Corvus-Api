@@ -85,9 +85,9 @@ class ApprovalMessageEventListener
                 $create_at = $contract->created_at;
             }
         }
-        if ($this->instance->created_by){
+        if ($this->instance->apply_id){
             $this->module = Message::APPROVAL;
-            $this->creator_id = $this->instance->created_by;
+            $this->creator_id = $this->instance->apply_id;
             $create_at = $this->instance->created_at;
         }
         if ($this->creator_id){
@@ -272,8 +272,8 @@ class ApprovalMessageEventListener
                 return $contract->creator_id;
             }
         }
-        if ($this->instance->created_by){
-            return $this->instance->created_by;
+        if ($this->instance->apply_id){
+            return $this->instance->apply_id;
         }
         throw new \Exception("查找不到创建人");
     }

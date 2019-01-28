@@ -312,10 +312,15 @@ class ApprovalFormController extends Controller
 
         $arr = array();
 
+        $totalPages = ceil($count / $pageSize);
         $arr['data'] = $article;
-        $arr['meta']['pagination'] = $count;
-        $arr['meta']['current_page'] = $payload['page'];
-        $arr['meta']['total_pages'] = ceil($count / 20);
+        $arr['meta']['pagination'] = [
+            'total' => $count,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $count - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
 
         foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);

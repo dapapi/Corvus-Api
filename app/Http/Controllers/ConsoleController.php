@@ -418,6 +418,9 @@ class ConsoleController extends Controller
                         if(DataDictionarie::TASK ==  $value['resource_id']){//如果是模块是任务增加对应的搜索条件
                             $dataViewSql = RoleDataView::TASK_DATA_VIEW_SQL;
                         }
+                        if (DataDictionarie::CONTRACTS == $value['resource_id']){
+                            $dataViewSql = RoleDataView::CONTRACTS_DATA_VIEW_SQL;
+                        }
 
                         $array = [
                             'role_id'=>$roleId,

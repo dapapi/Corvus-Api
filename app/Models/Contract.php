@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contract extends Model
 {
+    private $model_dic_id = DataDictionarie::CONTRACTS;//数据字典中模块id
     protected $fillable = [
         'contract_number',
         'title',
@@ -27,6 +28,22 @@ class Contract extends Model
         'updater_name',
     ];
     use OperateLogTrait;
+
+
+    public function scopeSearchData($query)
+    {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
+        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
+            select u.id from contracts as c 
+            left join approval_form_participants as afps on afps.nptice_id = c.creator_id and 
+  
+             left join users as u on u.id = afps.user_id where c.id = contracts.id
+        )");
+    }
+
+
 
     public function project()
     {

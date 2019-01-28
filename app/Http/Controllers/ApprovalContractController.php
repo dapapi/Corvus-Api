@@ -426,7 +426,7 @@ class ApprovalContractController extends Controller
             })
             ->join('users as us', function ($join) {
                 $join->on('us.id', '=', 'ps.creator_id');
-            })
+            })->contractSearchData()
 
             ->whereIn('afb.form_id',[9,10])
             ->where('cs.title', 'LIKE', '%' . $payload['keyword'] . '%');
@@ -464,14 +464,15 @@ class ApprovalContractController extends Controller
         $payload['type'] = isset($payload['type']) ? $payload['type'] : '';
         $payload['talent'] = isset($payload['talent']) ? $payload['talent'] : '';
 
-        $data = DB::table('approval_form_business as afb')//
+//        $data = DB::table('approval_form_business as afb')
+        $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
                 $join->on('af.form_id', '=','afb.form_id');
             })
 
             ->join('contracts as cs', function ($join) {
                 $join->on('afb.form_instance_number', '=','cs.form_instance_number');
-            });
+            })->contractSearchData();
             if($payload['talent']=='bloggers'){
 
                 $data->join('bloggers as bs', function ($join) {

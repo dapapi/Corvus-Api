@@ -44,7 +44,7 @@ class Trails extends Command
     {
         parent::__construct();
         $this->httpRepository = $httpRepository;
-        $this->params = $this->$this->params = [
+        $this->params = [
             'token_type' => 'bearer',
             "username"=>config("app.schdule_user_name","李乐"),
             "password"=>config("app.schdule_password","123456"),

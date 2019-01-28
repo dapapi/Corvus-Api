@@ -470,6 +470,7 @@ class ConsoleController extends Controller
      */
     public function checkPower(Request $request)
     {
+        $flag = false;
         $method = $request->get('method');
         $uri = $request->get('uri');
         $uri = preg_replace('/\\d+/', '{id}', $uri);
@@ -477,7 +478,7 @@ class ConsoleController extends Controller
         //根据method和uri查询对应的模块
         $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->first();
         if(!$model_id){//模块不存在
-            return ["res"=>"true"];
+            $flag = false;
         }
 
 
@@ -553,8 +554,27 @@ class ConsoleController extends Controller
         $userId = $user->id;
         //获取用户角色
         $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
-        return (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
-
+        try{
+            $res = (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
+            if ($res !== []){
+                $flag == true;
+            }
+        }catch (\Exception $e){
+            Log::error($e);
+        }
+        if ($flag){
+            return [
+                "data"  =>  [
+                    "power" =>  "true"
+                ]
+            ];
+        }else{
+            return [
+                "data"  =>  [
+                    "power" =>  "false"
+                ]
+            ];
+        }
     }
     //返回用户有哪些模块的功能权限
     public function getPowerModel()

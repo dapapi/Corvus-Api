@@ -2,12 +2,24 @@
 
 namespace App\Listeners;
 
+use App\Console\Commands\TriggerPoint;
 use App\Events\TrailMessageEvent;
+use App\TriggerPoint\TrailTrigreePoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class TrailMessageEventListener
 {
+
+    private $messageRepository;//消息仓库
+    private $trail;//任务model
+    private $trigger_point;//触发点
+    private $authorization;//token
+    private $user;//发送消息用户
+    private $data;//向用户发送的消息内容
+    //消息发送内容
+    private $message_content = '[{"title":"线索名称","value":"%s"},{"title":"最后跟进时间","value":"%s"}]';
+
     /**
      * Create the event listener.
      *
@@ -26,9 +38,29 @@ class TrailMessageEventListener
      */
     public function handle(TrailMessageEvent $event)
     {
-        $this->task = $event->model;
+        $this->trail = $event->model;
         $this->trigger_point = $event->trigger_point;
         $this->authorization = $event->authorization;
         $this->user = $event->user;
+        switch ($this->trigger_point){
+            case TrailTrigreePoint::REMIND_TRAIL_TO_SEAS://当线索即将进入公海池是发消息
+                break;
+        }
+    }
+    //当线索即将进入公海池是发消息
+    public function sendMessageWhenTrailWhileToSeas()
+    {
+        $su
+        $send_to[] = $this->trail->principal_id;
+        $this->sendMessage($)
+    }
+    //最终发送消息方法调用
+    public function sendMessage($title,$subheading,$send_to)
+    {
+        //消息接受人去重
+        $send_to = array_unique($send_to);
+        $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
+        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
+            Message::TASK, null, $this->data, $send_to,$this->task->id);
     }
 }

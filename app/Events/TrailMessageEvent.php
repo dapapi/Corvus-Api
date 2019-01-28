@@ -2,6 +2,8 @@
 
 namespace App\Events;
 
+use App\Models\Trail;
+use App\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -23,7 +25,7 @@ class TrailMessageEvent
      *
      * @return void
      */
-    public function __construct(Task $model,$trigger_point,$authorization,User $user)
+    public function __construct(Trail $model,$trigger_point,$authorization,User $user)
     {
         $this->model = $model;
         $this->trigger_point = $trigger_point;

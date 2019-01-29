@@ -15,6 +15,7 @@ use App\Http\Transformers\ApprovalInstanceTransformer;
 use App\Http\Transformers\ApprovalParticipantTransformer;
 use App\Http\Transformers\ControlTransformer;
 use App\Http\Transformers\ProjectHistoriesTransformer;
+use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\TemplateFieldHistoriesTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 
@@ -188,16 +189,17 @@ class ApprovalFormController extends Controller
             ->whereIn('bu.form_status', $payload['status'])
             ->orderBy('ph.created_at', 'desc')
             ->select('ph.*', 'bu.*', 'users.name', 'ph.id')
-            ->paginate($pageSize)->toArray();
+            ->pluck('ph.id');
 
-        //return $this->response->item($data, new ProjectTransformer());
-
-        foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->creator_id = hashid_encode($value->creator_id);
-
-        }
-        return $data;
+        $projects = Project::whereIn('id', $data)->paginate($pageSize);
+        return $this->response->paginator($projects, new ProjectTransformer());
+//
+//        foreach ($data['data'] as $key => &$value) {
+//            $value->id = hashid_encode($value->id);
+//            $value->creator_id = hashid_encode($value->creator_id);
+//
+//        }
+//        return $data;
 
     }
 

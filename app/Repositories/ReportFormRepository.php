@@ -1015,7 +1015,7 @@ class ReportFormRepository
             ->groupBy(DB::raw('p.type,tfv.value'))->get()->toArray();
 
         $result = array_merge($result1,$result2);
-
+        dd($result);
         $list = [];
         $sum = array_sum(array_column($result,'total'));
         foreach ($result as $value){
@@ -1172,10 +1172,10 @@ class ReportFormRepository
                     $join->on('op.logable_id','=','b.id')
                         ->where('op.logable_type','=',ModuleableType::BLOGGER)//可能有问题
                         ->where('op.method','=',OperateEntity::UPDATED_AT);
-                })
+                })->leftJoin("blogger_types as bt","bt.id","b.type_id")
                 ->where($arr)
                 ->groupBy('b.id')
-                ->select('b.nickname','b.type_id','b.communication_status','b.created_at','op.created_at as last_update_at')
+                ->select('b.nickname','bt.name as type_id','b.communication_status','b.created_at','op.created_at as last_update_at')
                 ->get();
         }else{
             //合同，预计订单收入，花费金额都没查呢

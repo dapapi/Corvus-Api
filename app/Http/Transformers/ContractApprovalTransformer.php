@@ -11,6 +11,7 @@ class ContractApprovalTransformer extends TransformerAbstract
         return [
             'business_type' => $obj->business_type,
             'client_id' => $obj->client_id ? hashid_encode($obj->client_id) : null,
+            'title' => $obj->title,
             'contract_end_date' => $obj->contract_end_date,
             'contract_money' => $obj->contract_money,
             'contract_number' => $obj->contract_number,

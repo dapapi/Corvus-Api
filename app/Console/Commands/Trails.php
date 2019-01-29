@@ -95,12 +95,13 @@ class Trails extends Command
             ->join('approval_form_business as afb', function ($join) {
                 $join->on('afb.form_instance_number', '=', 'projects.project_number');
             })
-            ->where('afb.form_status', "<>",231)
+//            ->where('afb.form_status', "<>",231)
             ->where('trails.progress_status',Trail::STATUS_UNCONFIRMED)
             ->where('take_type',null)->where('pool_type',null)
             ->select('trails.id','trails.created_at','trails.type','trails.title','trails.principal_id','afb.form_status')->get();
         $receive = ['receive'=>1];
         foreach ($trails as $value) {
+            Log::info("检测线索【".$value->title."】");
             //查询跟进时间
             $fllow_update_at = DB::table("operate_logs")
                 ->where('logable_id', $value->id)
@@ -110,24 +111,19 @@ class Trails extends Command
                 ->value("created_at");
             //最后跟进时间
             $last_update_at = null;
+            Log::info($fllow_update_at);
+
             if ($fllow_update_at) {
                 $last_update_at = Carbon::createFromTimeString($fllow_update_at);
             } else {
                 $last_update_at = Carbon::createFromTimeString($value->created_at);
             }
-//            if(!empty($operateInfo)){
-//                $created_at = $operateInfo[0]->created_at;
-//                //创建时间+14天 提醒
-//                $created = date('YmdHi',strtotime("$created_at +1 day"));//跟进时间
-//            }else{
-//                $created = date('YmdHi',strtotime("$value->created_at +1 day"));//创建时间
-//            }
+            Log::info($last_update_at);
+            Log::info($now->diffInMinutes($last_update_at));
 
-            //创建时间+15天 入公海池
-//            $created1 = date('YmdHi', strtotime("$value->created_at"));//入公海池时间
-            //创建时间大于等于当前时间
-//            if($created <= $dataDay){
-            if ($now->diffInMinutes($last_update_at) == 14 * 24 * 60) { #进入公海池前一天提醒
+            //进入公海池前一天提醒
+            if ($now->diffInMinutes($last_update_at) >= 14 * 24 * 60) { #进入公海池前一天提醒
+                Log::info("哈哈哈");
                 if ($value->receive !== 1) {
                     $num = DB::table('trails')->where('id', $value->id)->update($receive);
                     Log::info("发送线索即将进入公海池提醒,线索【" . $value->title."】将要进入公海池");
@@ -139,9 +135,8 @@ class Trails extends Command
                 }
             }
 
-//            if($created1 <= $dataDay){
             if ($now->diffInMinutes($last_update_at) >= 15 * 24 * 60) {
-                Log::info("线索进入公海池".$value->title);
+                Log::info("线索进入公海池【".$value->title."】");
                 if ($value->type == 4) {
                     $type = 3;
                 } else {
@@ -151,7 +146,7 @@ class Trails extends Command
 //
 //                        if(empty($operateInfo)){
 
-                $array = ['receive' => 1, 'pool_type' => $type, 'principal_id' => '', 'take_type' => 1];
+                $array = ['receive' => null, 'pool_type' => $type, 'principal_id' => '', 'take_type' => 1];
                 $num = DB::table('trails')->where('id', $value->id)->update($array);
 //                        }
 

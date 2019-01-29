@@ -30,7 +30,6 @@ use Monolog\Handler\IFTTTHandler;
 
 class ApprovalMessageEventListener
 {
-
     private $messageRepository;//消息仓库
     private $instance;//任务model
     private $trigger_point;//触发点

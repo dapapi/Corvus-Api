@@ -48,7 +48,7 @@ class ApprovalContractController extends Controller
             ->where('cs.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
             ->orderBy('cs.created_at', 'desc')
-            ->select('cs.*', 'bu.*', 'users.name', 'cs.id','cs.title')
+            ->select('cs.*', 'bu.*', 'users.name', 'cs.id', 'cs.title')
             ->paginate($pageSize)->toArray();
 
         foreach ($data['data'] as $key => &$value) {
@@ -59,7 +59,6 @@ class ApprovalContractController extends Controller
         return $data;
 
     }
-
 
 
     public function myApproval(Request $request)
@@ -78,100 +77,103 @@ class ApprovalContractController extends Controller
             $payload['status'] = array('231');
 
 
-        //查询角色
-        $dataRole = DB::table('approval_flow_execute as afe')//
+            //查询角色
+            $dataRole = DB::table('approval_flow_execute as afe')//
             ->join('role_users as ru', function ($join) {
                 $join->on('afe.current_handler_id', '=', 'ru.role_id');
             })
-            ->join('users as u', function ($join) {
-                $join->on('ru.user_id', '=','u.id');
-            })
-            ->join('contracts as ph', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
-            })
-            ->join('users as us', function ($join) {
-                $join->on('ph.creator_id', '=','us.id');
-            })
+                ->join('users as u', function ($join) {
+                    $join->on('ru.user_id', '=', 'u.id');
+                })
+                ->join('contracts as ph', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('ph.creator_id', '=', 'us.id');
+                })
 //            ->join('approval_form_instance_values as afis', function ($join) {
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
 
-            ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',247)->where('u.id',$userId)
-            //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
-            ->orderBy('ph.created_at', 'desc')
-            ->select('ph.id','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
+                ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
+                //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
+                ->orderBy('ph.created_at', 'desc')
+                ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name', 'ph.created_at')->get()->toArray();
 
-        //查询个人
-        $dataUser = DB::table('approval_flow_execute as afe')//
+            //查询个人
+            $dataUser = DB::table('approval_flow_execute as afe')//
 
             ->join('users as u', function ($join) {
-                $join->on('afe.current_handler_id', '=','u.id');
+                $join->on('afe.current_handler_id', '=', 'u.id');
             })
-            ->join('contracts as ph', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
-            })
-
-            ->join('users as us', function ($join) {
-                $join->on('ph.creator_id', '=', 'us.id');
-            })
-
+                ->join('contracts as ph', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('ph.creator_id', '=', 'us.id');
+                })
 //            ->join('approval_form_instance_values as afis', function ($join) {
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
-           // ->where('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afe.form_instance_number',$payload['keyword'])
+                // ->where('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afe.form_instance_number',$payload['keyword'])
 
-            ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
-            ->orderBy('ph.created_at', 'desc')
-            ->select('afe.form_instance_number','afe.flow_type_id as form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
+                ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 245)->where('u.id', $userId)
+                ->orderBy('ph.created_at', 'desc')
+                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
 
-        //部门负责人
-        $dataPrincipal = DB::table('approval_flow_execute as afe')//
+            //部门负责人
+            $dataPrincipal = DB::table('approval_flow_execute as afe')//
             ->join('approval_form_business as bu', function ($join) {
-                $join->on('afe.form_instance_number', '=','bu.form_instance_number');
+                $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
             })
-            ->join('approval_flow_change as recode', function ($join) {
-                $join->on('afe.form_instance_number', '=','recode.form_instance_number')->where('recode.change_state','=',237);
-            })
-            ->join('users as creator', function ($join) {
-                $join->on('recode.change_id', '=','creator.id');
-            })
-            ->join('department_user as du', function ($join) {
-                $join->on('creator.id', '=', 'du.user_id');
-            })
-            ->join('department_principal as dp', function ($join) {
-                $join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type','=',246);
-            })
-            ->join('contracts as ph', function ($join) {
-                $join->on('ph.form_instance_number', '=','bu.form_instance_number');
-            })
-
+                ->join('approval_flow_change as recode', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
+                })
+                ->join('users as creator', function ($join) {
+                    $join->on('recode.change_id', '=', 'creator.id');
+                })
+                ->join('department_user as du', function ($join) {
+                    $join->on('creator.id', '=', 'du.user_id');
+                })
+                ->join('department_principal as dp', function ($join) {
+                    $join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type', '=', 246);
+                })
+                ->join('contracts as ph', function ($join) {
+                    $join->on('ph.form_instance_number', '=', 'bu.form_instance_number');
+                })
 //            ->join('approval_form_instance_values as afis', function ($join) {
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
 
-            ->where('dp.user_id',$userId)
-            ->whereIn('afe.flow_type_id',$payload['status'])
-            //->where('afe.form_instance_number',$payload['keyword'])->orwhere('creator.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('ph.title', 'LIKE', '%' . $payload['keyword'] . '%')
-            ->orderBy('ph.created_at', 'desc')
-            ->select('afe.form_instance_number','afe.flow_type_id as form_status','ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
+                ->where('dp.user_id', $userId)
+                ->whereIn('afe.flow_type_id', $payload['status'])
+                //->where('afe.form_instance_number',$payload['keyword'])->orwhere('creator.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('ph.title', 'LIKE', '%' . $payload['keyword'] . '%')
+                ->orderBy('ph.created_at', 'desc')
+                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name', 'ph.created_at', 'ph.id')->get()->toArray();
 
-            $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
+            $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
 
         } else {
             $resArr = $this->thenApproval();
         }
 
-        $count = count($resArr);//总条数
-        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
-        $article = array_slice($resArr,$start,$pageSize);
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($resArr, $start, $pageSize);
+
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
-        $arr['total'] = $count;
         $arr['data'] = $article;
-        $arr['meta']['pagination'] = $count;
-        $arr['meta']['current_page'] = $count;
-        $arr['meta']['total_pages'] = ceil($count/20);
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
+
 
         foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);
@@ -180,36 +182,34 @@ class ApprovalContractController extends Controller
     }
 
     //获取已审批信息
-    public function thenApproval(){
+    public function thenApproval()
+    {
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //查询个人
         $dataUser = DB::table('approval_flow_change as afc')//
-            ->join('users as u', function ($join) {
-                $join->on('afc.change_id', '=','u.id');
-            })
-
+        ->join('users as u', function ($join) {
+            $join->on('afc.change_id', '=', 'u.id');
+        })
             ->join('contracts as ph', function ($join) {
                 $join->on('afc.form_instance_number', '=', 'ph.form_instance_number');
             })
-
             ->join('users as us', function ($join) {
                 $join->on('us.id', '=', 'ph.creator_id');
             })
             ->join('approval_form_business as afb', function ($join) {
                 $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
             })
-
 //            ->leftjoin('approval_form_instance_values as afis', function ($join) {
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 
-            ->where('afc.change_state','!=',237)->where('afc.change_state','!=',238)->where('afc.change_id',$userId)
+            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)
             ->orderBy('afc.change_at', 'desc')
             ->groupBy('afb.form_instance_number')
-            ->select('afb.form_instance_number','afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id','afc.change_at')->get()->toArray();
+            ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id', 'afc.change_at')->get()->toArray();
 
         return $dataUser;
     }
@@ -221,12 +221,12 @@ class ApprovalContractController extends Controller
         $userId = $user->id;
         $executeInfo = DB::table('approval_flow_execute')->get()->toArray();
         $user = array();
-        foreach($executeInfo as $value){
-            if($value->current_handler_type == 245){
+        foreach ($executeInfo as $value) {
+            if ($value->current_handler_type == 245) {
                 $user[] = (int)$value->current_handler_id;
-            }else{
-                $roleInfo = RoleUser::where('user_id',$userId)->where('role_id',$value->current_handler_id)->get()->toArray();
-                foreach ($roleInfo as $rvalue){
+            } else {
+                $roleInfo = RoleUser::where('user_id', $userId)->where('role_id', $value->current_handler_id)->get()->toArray();
+                foreach ($roleInfo as $rvalue) {
                     $user[] = $rvalue['role_id'];
                 }
             }
@@ -263,6 +263,7 @@ class ApprovalContractController extends Controller
 
         return $data;
     }
+
     // todo 角色判断
     public function notify(Request $request)
     {
@@ -285,15 +286,15 @@ class ApprovalContractController extends Controller
             ->join('approval_form_business as afb', function ($join) {
                 $join->on('afp.form_instance_number', '=', 'afb.form_instance_number');
             })
-            ->join('contracts as cs', function ($join) {
-                $join->on('cs.form_instance_number', '=', 'afp.form_instance_number');
-            })
-            ->join('users as us', function ($join) {
-                $join->on('cs.creator_id', '=', 'us.id');
-            })
-            ->whereIn('afb.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', $userId)
-            ->orderBy('afp.created_at', 'desc')
-            ->select('afb.form_instance_number', 'cs.title', 'us.name', 'us.name', 'afp.created_at', 'afb.form_status','cs.id')->get()->toArray();
+                ->join('contracts as cs', function ($join) {
+                    $join->on('cs.form_instance_number', '=', 'afp.form_instance_number');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('cs.creator_id', '=', 'us.id');
+                })
+                ->whereIn('afb.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', $userId)
+                ->orderBy('afp.created_at', 'desc')
+                ->select('afb.form_instance_number', 'cs.title', 'us.name', 'us.name', 'afp.created_at', 'afb.form_status', 'cs.id')->get()->toArray();
 
 
             //查询角色
@@ -301,109 +302,113 @@ class ApprovalContractController extends Controller
             ->join('role_users as ru', function ($join) {
                 $join->on('afe.notice_id', '=', 'ru.role_id');
             })
-            ->join('approval_form_business as afb', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'afb.form_instance_number');
-            })
-            ->join('users as u', function ($join) {
-                $join->on('ru.user_id', '=','u.id');
-            })
-            ->join('contracts as ph', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
-            })
-            ->join('users as us', function ($join) {
-                $join->on('ph.creator_id', '=','us.id');
-            })
-            ->whereIn('afb.form_status',$payload['status'])->where('afe.notice_type',247)->where('u.id',$userId)
-            ->orderBy('ph.created_at', 'desc')
-            ->select('ph.id','afe.form_instance_number','afe.notice_type','afb.form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
+                ->join('approval_form_business as afb', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'afb.form_instance_number');
+                })
+                ->join('users as u', function ($join) {
+                    $join->on('ru.user_id', '=', 'u.id');
+                })
+                ->join('contracts as ph', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'ph.form_instance_number');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('ph.creator_id', '=', 'us.id');
+                })
+                ->whereIn('afb.form_status', $payload['status'])->where('afe.notice_type', 247)->where('u.id', $userId)
+                ->orderBy('ph.created_at', 'desc')
+                ->select('ph.id', 'afe.form_instance_number', 'afe.notice_type', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at')->get()->toArray();
 
 
             //部门负责人
             $dataPrincipal = DB::table('approval_form_participants as afe')//
 
             ->join('approval_form_business as bu', function ($join) {
-                $join->on('afe.form_instance_number', '=','bu.form_instance_number');
+                $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
             })
-            ->join('approval_flow_change as recode', function ($join) {
-                $join->on('afe.form_instance_number', '=','recode.form_instance_number')->where('recode.change_state','=',237);
-            })
-            ->join('users as creator', function ($join) {
-                $join->on('recode.change_id', '=','creator.id');
-            })
-            ->join('department_user as du', function ($join) {
-                $join->on('creator.id', '=', 'du.user_id');
-            })
-            ->join('department_principal as dp', function ($join) {
-                $join->on('dp.department_id', '=', 'du.department_id')->where('afe.notice_type','=',246);
-            })
-            ->join('contracts as ph', function ($join) {
-                $join->on('ph.form_instance_number', '=','bu.form_instance_number');
-            })
+                ->join('approval_flow_change as recode', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
+                })
+                ->join('users as creator', function ($join) {
+                    $join->on('recode.change_id', '=', 'creator.id');
+                })
+                ->join('department_user as du', function ($join) {
+                    $join->on('creator.id', '=', 'du.user_id');
+                })
+                ->join('department_principal as dp', function ($join) {
+                    $join->on('dp.department_id', '=', 'du.department_id')->where('afe.notice_type', '=', 246);
+                })
+                ->join('contracts as ph', function ($join) {
+                    $join->on('ph.form_instance_number', '=', 'bu.form_instance_number');
+                })
+                ->where('dp.user_id', $userId)
+                ->whereIn('bu.form_status', $payload['status'])
+                ->orderBy('ph.created_at', 'desc')
+                ->select('ph.id', 'afe.form_instance_number', 'afe.notice_type', 'bu.form_status', 'ph.title', 'creator.name', 'ph.created_at')->get()->toArray();
 
-            ->where('dp.user_id',$userId)
-            ->whereIn('bu.form_status',$payload['status'])
-            ->orderBy('ph.created_at', 'desc')
-            ->select('ph.id','afe.form_instance_number','afe.notice_type','bu.form_status','ph.title','creator.name', 'ph.created_at')->get()->toArray();
 
-
-        $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
+            $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
 
 
         } else {
             $resArr = $this->thenNotifyApproval();
         }
 
-            $count = count($resArr);//总条数
-            $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
-            $article = array_slice($resArr,$start,$pageSize);
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($resArr, $start, $pageSize);
 
-            $arr = array();
-            $arr['total'] = $count;
-            $arr['data'] = $article;
-            $arr['meta']['pagination'] = $count;
-            $arr['meta']['current_page'] = $count;
-            $arr['meta']['total_pages'] = ceil($count/20);
 
-            foreach ($arr['data'] as $key => &$value) {
-                $value->id = hashid_encode($value->id);
-            }
-            return $arr;
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
+
+        $arr = array();
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
+
+        foreach ($arr['data'] as $key => &$value) {
+            $value->id = hashid_encode($value->id);
         }
+        return $arr;
+    }
 
     //获取已审批信息
-    public function thenNotifyApproval(){
+    public function thenNotifyApproval()
+    {
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //查询个人
         $dataUser = DB::table('approval_form_participants as afc')//
         ->join('users as u', function ($join) {
-            $join->on('afc.notice_id', '=','u.id');
+            $join->on('afc.notice_id', '=', 'u.id');
         })
-
-        ->join('contracts as ph', function ($join) {
-            $join->on('afc.form_instance_number', '=', 'ph.form_instance_number');
-        })
-
-        ->join('users as us', function ($join) {
-            $join->on('us.id', '=', 'ph.creator_id');
-        })
-        ->join('approval_form_business as afb', function ($join) {
-            $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
-        })
-
-        ->where('afc.notice_type','!=',237)->where('afc.notice_type','!=',238)->where('afc.notice_id',$userId)
-        ->where('afb.form_status','!=', 231)
-        ->orderBy('ph.created_at', 'desc')
-        ->groupBy('afb.form_instance_number')
-        ->select('ph.id','afb.form_instance_number','afb.form_status','ph.title','us.name', 'ph.created_at')->get()->toArray();
+            ->join('contracts as ph', function ($join) {
+                $join->on('afc.form_instance_number', '=', 'ph.form_instance_number');
+            })
+            ->join('users as us', function ($join) {
+                $join->on('us.id', '=', 'ph.creator_id');
+            })
+            ->join('approval_form_business as afb', function ($join) {
+                $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
+            })
+            ->where('afc.notice_type', '!=', 237)->where('afc.notice_type', '!=', 238)->where('afc.notice_id', $userId)
+            ->where('afb.form_status', '!=', 231)
+            ->orderBy('ph.created_at', 'desc')
+            ->groupBy('afb.form_instance_number')
+            ->select('ph.id', 'afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at')->get()->toArray();
 
         return $dataUser;
     }
 
 
     //项目合同
-    public function project(Request $request){
+    public function project(Request $request)
+    {
 
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -415,46 +420,51 @@ class ApprovalContractController extends Controller
 //        $data = DB::table('approval_form_business as afb')//
         $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
-                $join->on('af.form_id', '=','afb.form_id');
+                $join->on('af.form_id', '=', 'afb.form_id');
             })
             ->join('contracts as cs', function ($join) {
-                $join->on('afb.form_instance_number', '=','cs.form_instance_number');
+                $join->on('afb.form_instance_number', '=', 'cs.form_instance_number');
             })
-
             ->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
             })
             ->join('users as us', function ($join) {
                 $join->on('us.id', '=', 'ps.creator_id');
             })->contractSearchData()
-
-            ->whereIn('afb.form_id',[9,10])
+            ->whereIn('afb.form_id', [9, 10])
             ->where('cs.title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if($payload['number'])
-                $data->Where('afb.form_instance_number',$payload['number']);
+        if ($payload['number'])
+            $data->Where('afb.form_instance_number', $payload['number']);
 
-            if($payload['type'])
-            $data->Where('afb.form_id',$payload['type']);
+        if ($payload['type'])
+            $data->Where('afb.form_id', $payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number','afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
 
-        $count = count($res);//总条数
-        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
-        $article = array_slice($res,$start,$pageSize);
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($res, $start, $pageSize);
+
+
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
-        $arr['total'] = $count;
         $arr['data'] = $article;
-        $arr['meta']['pagination'] = $count;
-        $arr['meta']['current_page'] = $count;
-        $arr['meta']['total_pages'] = ceil($count/20);
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
 
         return $arr;
     }
 
     //经济合同
-    public function economic(Request $request){
+    public function economic(Request $request)
+    {
 
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -467,49 +477,47 @@ class ApprovalContractController extends Controller
 //        $data = DB::table('approval_form_business as afb')
         $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
-                $join->on('af.form_id', '=','afb.form_id');
+                $join->on('af.form_id', '=', 'afb.form_id');
             })
-
             ->join('contracts as cs', function ($join) {
-                $join->on('afb.form_instance_number', '=','cs.form_instance_number');
+                $join->on('afb.form_instance_number', '=', 'cs.form_instance_number');
             })->contractSearchData();
-            if($payload['talent']=='bloggers'){
+        if ($payload['talent'] == 'bloggers') {
 
-                $data->join('bloggers as bs', function ($join) {
-                    $join->on('cs.stars', '=', 'bs.id')->where('cs.star_type','=','bloggers');
-                });
-            }elseif($payload['talent']=='stars'){
+            $data->join('bloggers as bs', function ($join) {
+                $join->on('cs.stars', '=', 'bs.id')->where('cs.star_type', '=', 'bloggers');
+            });
+        } elseif ($payload['talent'] == 'stars') {
 
 
-                $data->join('stars as s', function ($join) {
-                    $join->on('cs.stars', '=', 's.id')->where('cs.star_type','=','stars');
-                });
-            }else{
+            $data->join('stars as s', function ($join) {
+                $join->on('cs.stars', '=', 's.id')->where('cs.star_type', '=', 'stars');
+            });
+        } else {
 
-                $data->leftjoin('stars as s', function ($join) {
-                    $join->on('cs.stars', '=', 's.id');
-                });
-                $data->leftjoin('bloggers as bs', function ($join) {
-                    $join->on('cs.stars', '=', 'bs.id');
-                });
-            }
-            $data->join('users as us', function ($join) {
-                $join->on('us.id', '=', 'cs.creator_id');
-            })
-
-            ->whereIn('afb.form_id',[5,6,7,8])
+            $data->leftjoin('stars as s', function ($join) {
+                $join->on('cs.stars', '=', 's.id');
+            });
+            $data->leftjoin('bloggers as bs', function ($join) {
+                $join->on('cs.stars', '=', 'bs.id');
+            });
+        }
+        $data->join('users as us', function ($join) {
+            $join->on('us.id', '=', 'cs.creator_id');
+        })
+            ->whereIn('afb.form_id', [5, 6, 7, 8])
             ->where('cs.title', 'LIKE', '%' . $payload['keyword'] . '%');
-        if($payload['number'])
-            $data->Where('afb.form_instance_number',$payload['number']);
+        if ($payload['number'])
+            $data->Where('afb.form_instance_number', $payload['number']);
 
-        if($payload['type'])
-            $data->Where('afb.form_id',$payload['type']);
+        if ($payload['type'])
+            $data->Where('afb.form_id', $payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number','afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status','cs.star_type','cs.stars')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status', 'cs.star_type', 'cs.stars')->get()->toArray();
 
-        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
-        $article = array_slice($res,$start,$pageSize);
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($res, $start, $pageSize);
 
         $total = count($article);//总条数
         $totalPages = ceil($total / $pageSize);
@@ -529,48 +537,46 @@ class ApprovalContractController extends Controller
     }
 
     //项目详情合同列表
-    public function projectList(Request $request,$model = null){
+    public function projectList(Request $request, $model = null)
+    {
 
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
 
 
-        if($model)
-        {
+        if ($model) {
             $projects = $model->id;
-        }else{
+        } else {
             $projects = hashid_decode($payload['project_id']);
         }
 
         $data = DB::table('approval_form_business as afb')//
-            ->join('approval_forms as af', function ($join) {
-                $join->on('af.form_id', '=','afb.form_id');
-            })
+        ->join('approval_forms as af', function ($join) {
+            $join->on('af.form_id', '=', 'afb.form_id');
+        })
             ->join('contracts as cs', function ($join) {
-                $join->on('afb.form_instance_number', '=','cs.form_instance_number');
+                $join->on('afb.form_instance_number', '=', 'cs.form_instance_number');
             })
             ->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
             })
-            ->where('cs.project_id',$projects)
-            ->where('afb.form_status',232)
+            ->where('cs.project_id', $projects)
+            ->where('afb.form_status', 232)
             ->orderBy('cs.created_at', 'desc')
-            ->select('afb.form_instance_number', 'cs.contract_number','cs.title','af.name as form_name','cs.creator_name',DB::raw("DATE_FORMAT(cs.created_at,'%Y-%m-%d %h:%i') as created_at"),'afb.form_status','cs.stars','cs.star_type','cs.contract_money','cs.type')->get()->toArray();
+            ->select('afb.form_instance_number', 'cs.contract_number', 'cs.title', 'af.name as form_name', 'cs.creator_name', DB::raw("DATE_FORMAT(cs.created_at,'%Y-%m-%d %h:%i') as created_at"), 'afb.form_status', 'cs.stars', 'cs.star_type', 'cs.contract_money', 'cs.type')->get()->toArray();
 
 
         $dataInfo = json_decode(json_encode($data), true);
         $sum = 0;
-        if(!empty($dataInfo)){
-            foreach ($dataInfo as &$value){
+        if (!empty($dataInfo)) {
+            foreach ($dataInfo as &$value) {
 
-                if($value['star_type'] == 'stars') {
+                if ($value['star_type'] == 'stars') {
                     $starsId = explode(',', $value['stars']);
                     $value['stars_name'] = DB::table('stars')->whereIn('stars.id', $starsId)->select('stars.name')->get()->toArray();
                     $sum += $value['contract_money'];
-                }
-                else if($value['star_type'] == 'bloggers')
-                {
+                } else if ($value['star_type'] == 'bloggers') {
                     $starsId = explode(',', $value['stars']);
                     $value['stars_name'] = DB::table('bloggers')->whereIn('bloggers.id', $starsId)->select('bloggers.nickname')->get()->toArray();
                     $sum += $value['contract_money'];
@@ -578,8 +584,8 @@ class ApprovalContractController extends Controller
             }
         }
 
-        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
-        $article = array_slice($dataInfo,$start,$pageSize);
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($dataInfo, $start, $pageSize);
 
         $total = count($article);//总条数
         $totalPages = ceil($total / $pageSize);

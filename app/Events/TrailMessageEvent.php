@@ -32,6 +32,7 @@ class TrailMessageEvent
         $this->trigger_point = $trigger_point;
         $this->authorization = $authorization;
         $this->user = $user;
+        $this->meta = $meta;
     }
 
     /**

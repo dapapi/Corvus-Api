@@ -4,6 +4,8 @@ namespace App\Listeners;
 
 use App\Console\Commands\TriggerPoint;
 use App\Events\TrailMessageEvent;
+use App\Models\Message;
+use App\Repositories\MessageRepository;
 use App\TriggerPoint\TrailTrigreePoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,9 +28,9 @@ class TrailMessageEventListener
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(MessageRepository $messageRepository)
     {
-
+        $this->messageRepository = $messageRepository;
     }
 
     /**
@@ -44,9 +46,10 @@ class TrailMessageEventListener
         $this->authorization = $event->authorization;
         $this->user = $event->user;
         $this->meta = $event->meta;
-        $this->data = json_decode(sprintf($this->message_content,$this->trail->title,$this->meta['created']));
+        $this->data = json_decode(sprintf($this->message_content,$this->trail->title,$this->meta['created']),true);
         switch ($this->trigger_point){
             case TrailTrigreePoint::REMIND_TRAIL_TO_SEAS://当线索即将进入公海池是发消息
+                $this->sendMessageWhenTrailWhileToSeas();
                 break;
         }
     }
@@ -55,6 +58,7 @@ class TrailMessageEventListener
     {
         $subheading = $title = "您负责的{$this->trail->title}线索即将进入公海池";
         $send_to[] = $this->trail->principal_id;
+        echo "消息发送";
         $this->sendMessage($title,$subheading,$send_to);
     }
     //最终发送消息方法调用
@@ -64,6 +68,6 @@ class TrailMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->task->id);
+            Message::TASK, null, $this->data, $send_to,$this->trail->id);
     }
 }

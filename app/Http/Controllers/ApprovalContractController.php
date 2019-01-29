@@ -508,16 +508,22 @@ class ApprovalContractController extends Controller
         $res = $data->orderBy('cs.created_at', 'desc')
             ->select('cs.contract_number','afb.form_instance_number','cs.title','af.name as form_name','us.name','cs.created_at','afb.form_status','cs.star_type','cs.stars')->get()->toArray();
 
-        $count = count($res);//总条数
         $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($res,$start,$pageSize);
 
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
+
         $arr = array();
-        $arr['total'] = $count;
         $arr['data'] = $article;
-        $arr['meta']['pagination'] = $count;
-        $arr['meta']['current_page'] = $count;
-        $arr['meta']['total_pages'] = ceil($count/20);
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
+
 
         return $arr;
     }

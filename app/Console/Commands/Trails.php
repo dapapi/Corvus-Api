@@ -115,7 +115,6 @@ class Trails extends Command
             } else {
                 $last_update_at = Carbon::createFromTimeString($value->created_at);
             }
-            Log::info("线索距离进入公海池有".$now->diffInDays($last_update_at)."天");
 //            if(!empty($operateInfo)){
 //                $created_at = $operateInfo[0]->created_at;
 //                //创建时间+14天 提醒

@@ -159,7 +159,7 @@ class ApprovalContractController extends Controller
         $article = array_slice($resArr, $start, $pageSize);
 
         $total = count($article);//总条数
-        $totalPages = ceil($total / $pageSize) ?? 1;
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
         $arr['data'] = $article;
@@ -168,7 +168,7 @@ class ApprovalContractController extends Controller
             'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
             'per_page' => $pageSize,
             'current_page' => $payload['page'],
-            'total_pages' => $totalPages,
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
 
@@ -355,7 +355,7 @@ class ApprovalContractController extends Controller
 
 
         $total = count($article);//总条数
-        $totalPages = ceil($total / $pageSize) ?? 1;
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
         $arr['data'] = $article;
@@ -364,7 +364,7 @@ class ApprovalContractController extends Controller
             'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
             'per_page' => $pageSize,
             'current_page' => $payload['page'],
-            'total_pages' => $totalPages,
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
         foreach ($arr['data'] as $key => &$value) {
@@ -444,7 +444,7 @@ class ApprovalContractController extends Controller
 
 
         $total = count($article);//总条数
-        $totalPages = ceil($total / $pageSize) ?? 1;
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
         $arr['data'] = $article;
@@ -453,7 +453,7 @@ class ApprovalContractController extends Controller
             'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
             'per_page' => $pageSize,
             'current_page' => $payload['page'],
-            'total_pages' => $totalPages,
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
         return $arr;
@@ -517,7 +517,7 @@ class ApprovalContractController extends Controller
         $article = array_slice($res, $start, $pageSize);
 
         $total = count($article);//总条数
-        $totalPages = ceil($total / $pageSize) ?? 1;
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
         $arr['data'] = $article;
@@ -526,7 +526,7 @@ class ApprovalContractController extends Controller
             'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
             'per_page' => $pageSize,
             'current_page' => $payload['page'],
-            'total_pages' => $totalPages,
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
 
@@ -585,7 +585,7 @@ class ApprovalContractController extends Controller
         $article = array_slice($dataInfo, $start, $pageSize);
 
         $total = count($article);//总条数
-        $totalPages = ceil($total / $pageSize) ?? 1;
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
         $arr['data'] = $article;
@@ -595,7 +595,7 @@ class ApprovalContractController extends Controller
             'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
             'per_page' => $pageSize,
             'current_page' => $payload['page'],
-            'total_pages' => $totalPages,
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
 

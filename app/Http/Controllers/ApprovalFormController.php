@@ -321,7 +321,7 @@ class ApprovalFormController extends Controller
             'count' => $payload['page'] < $totalPages ? $pageSize : $count - (($payload['page'] - 1) * $pageSize),
             'per_page' => $pageSize,
             'current_page' => $payload['page'],
-            'total_pages' => $totalPages,
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
         foreach ($arr['data'] as $key => &$value) {
@@ -507,7 +507,7 @@ class ApprovalFormController extends Controller
             'count' => $payload['page'] < $totalPages ? $pageSize : $count - (($payload['page'] - 1) * $pageSize),
             'per_page' => $pageSize,
             'current_page' => $payload['page'],
-            'total_pages' => $totalPages,
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
         foreach ($arr['data'] as $key => &$value) {

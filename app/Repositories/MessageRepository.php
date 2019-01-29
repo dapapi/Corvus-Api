@@ -39,14 +39,17 @@ class MessageRepository
             $recives = array_column(User::select('id')->where('id','!=',$user->id)->get()->toArray(),'id');
         }
         $recives = array_unique($recives);//去重
-        foreach ($recives as $recive){
+        foreach ($recives as $key => $recive){
             if ($recive != $user->id){
                 $recives_data[] = [
                     'message_id'  =>  $message->id,
                     'user_id' =>  $recive,
                     'created_at'    =>  Carbon::now()->toDateTimeString(),
                 ];
+            }else{
+                unset($recives[$key]);
             }
+
 
         }
 

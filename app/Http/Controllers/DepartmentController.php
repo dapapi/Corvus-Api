@@ -34,7 +34,6 @@ class DepartmentController extends Controller
     public function index(Request $request)
     {
 
-        Cache::flush();
         // 直接从缓存拿数组
         if (Cache::has(config('app.departments'))) {
             return response(Cache::get(config('app.departments')));

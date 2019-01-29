@@ -3,10 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Events\TaskMessageEvent;
+use App\Events\TrailMessageEvent;
 use App\Models\Trail;
+use App\OperateLogMethod;
 use App\Repositories\HttpRepository;
 use App\TriggerPoint\TrailTrigreePoint;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -62,76 +65,101 @@ class Trails extends Command
      */
     public function handle()
     {
+        Log::info("线索检测开始");
         $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
         if (!$res){
             echo "登录失败";
             Log::error("登录失败...");
             return;
         }
+
+        Log::info("系统用户登录成功");
         $body = $this->httpRepository->jar->getBody();
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
 
-        //获取今天时间
-        $dataDay = date('YmdHi');//当前时间
-        $Log = "加入公海池".$dataDay."\n";
-        Log::info($Log);
+    //        //获取今天时间
+    //        $dataDay = date('YmdHi');//当前时间
+    //        $Log = "加入公海池".$dataDay."\n";
+    //        Log::info($Log);
+        $now = Carbon::now();
 
-
         //获取今天时间
-        $dataDay = date('YmdHi');//当前时间
-        $trails = DB::table('trails')//
+//        $dataDay = date('YmdHi');//当前时间
+//        $trails = DB::table('trails')
+        //对线索进行查询
+        $trails = (new Trail())->setTable("trails")->from("trails")
         ->join('projects', function ($join) {
             $join->on('projects.trail_id', '=', 'trails.id');
         })
             ->join('approval_form_business as afb', function ($join) {
                 $join->on('afb.form_instance_number', '=', 'projects.project_number');
             })
-            ->where('afb.form_status', 231)->where('take_type',null)->where('pool_type',null)
-            ->select('*')->get()->toArray();
-
+//            ->where('afb.form_status', "<>",231)
+            ->where('trails.progress_status',Trail::STATUS_UNCONFIRMED)
+            ->where('take_type',null)->where('pool_type',null)
+            ->select('trails.id','trails.created_at','trails.type','trails.title','trails.principal_id','afb.form_status')->get();
         $receive = ['receive'=>1];
-        foreach ($trails as $value){
+        foreach ($trails as $value) {
             //查询跟进时间
-            $operateInfo = DB::table("operate_logs")->select('created_at')->where('logable_id',$value->id)->where('method',4)->orderBy('created_at','desc')->limit(1)->get()->toArray();
-            if(!empty($operateInfo)){
-                $created_at = $operateInfo[0]->created_at;
-                //创建时间+14天 提醒
-                $created = date('YmdHi',strtotime("$created_at +1 day"));//跟进时间
-            }else{
-                $created = date('YmdHi',strtotime("$value->created_at +1 day"));//创建时间
+            $fllow_update_at = DB::table("operate_logs")
+                ->where('logable_id', $value->id)
+                ->where('method', OperateLogMethod::FOLLOW_UP)
+                ->orderBy('created_at', 'desc')
+                ->limit(1)
+                ->value("created_at");
+            //最后跟进时间
+            $last_update_at = null;
+            if ($fllow_update_at) {
+                $last_update_at = Carbon::createFromTimeString($fllow_update_at);
+            } else {
+                $last_update_at = Carbon::createFromTimeString($value->created_at);
             }
+            Log::info("线索距离进入公海池有".$now->diffInDays($last_update_at)."天");
+//            if(!empty($operateInfo)){
+//                $created_at = $operateInfo[0]->created_at;
+//                //创建时间+14天 提醒
+//                $created = date('YmdHi',strtotime("$created_at +1 day"));//跟进时间
+//            }else{
+//                $created = date('YmdHi',strtotime("$value->created_at +1 day"));//创建时间
+//            }
 
             //创建时间+15天 入公海池
-            $created1 = date('YmdHi',strtotime("$value->created_at"));//入公海池时间
+//            $created1 = date('YmdHi', strtotime("$value->created_at"));//入公海池时间
             //创建时间大于等于当前时间
-            if($created <= $dataDay){
-                if($value->receive!==1){
-                    $num = DB::table('trails')->where('id',$value->id)->update($receive);
+//            if($created <= $dataDay){
+            if ($now->diffInMinutes($last_update_at) == 14 * 24 * 60) { #进入公海池前一天提醒
+                if ($value->receive !== 1) {
+                    $num = DB::table('trails')->where('id', $value->id)->update($receive);
+                    Log::info("发送线索即将进入公海池提醒,线索【" . $value->title."】将要进入公海池");
                     //提醒
-                    $trails = Trail::find($value['id']);
+//                    $trail = Trail::find($value->id);
                     $user = User::find(config("app.schdule_user_id"));
-                    $meta['created'] = $created;//跟进时间
-                    event(new TaskMessageEvent($trails,TrailTrigreePoint::REMIND_TRAIL_TO_SEAS,$authorization,$user,$meta));
+                    $meta['created'] = $last_update_at->toDateTimeString();//跟进时间
+                    event(new TrailMessageEvent($value, TrailTrigreePoint::REMIND_TRAIL_TO_SEAS, $authorization, $user, $meta));
                 }
             }
-            if($created1 <= $dataDay){
-                if($value->type ==4 ){
+
+//            if($created1 <= $dataDay){
+            if ($now->diffInMinutes($last_update_at) >= 15 * 24 * 60) {
+                Log::info("线索进入公海池".$value->title);
+                if ($value->type == 4) {
                     $type = 3;
-                }else{
+                } else {
                     $type = $value->type;
                 }
 //                        $operateInfo = DB::table("operate_logs")->where('logable_id',$value->id)->where('method',4)->get()->toArray();
 //
 //                        if(empty($operateInfo)){
 
-                $array = ['receive'=>1,'pool_type'=>$type,'principal_id'=>'','take_type'=>1];
-                $num = DB::table('trails')->where('id',$value->id)->update($array);
+                $array = ['receive' => 1, 'pool_type' => $type, 'principal_id' => '', 'take_type' => 1];
+                $num = DB::table('trails')->where('id', $value->id)->update($array);
 //                        }
 
             }
 
         }
+        Log::info("线索执行结束");
 
 
     }

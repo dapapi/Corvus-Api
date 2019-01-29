@@ -60,6 +60,7 @@ class ClientProtected extends Command
      */
     public function handle()
     {
+        Log::info("直客到期检查");
         $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
         if (!$res){
             echo "登录失败";
@@ -69,7 +70,8 @@ class ClientProtected extends Command
         $body = $this->httpRepository->jar->getBody();
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
-        Log::info("直客到期检查");
+        Log::info("系统用户登录成功");
+
         $now = Carbon::now();
         //获取保护截止日期在当前时间之后的直客
         $clients = Client::where('grade',Client::GRADE_NORMAL)->where('protected_client_time','>',$now->toDateTimeString())->get();

@@ -1172,7 +1172,7 @@ class ReportFormRepository
                     $join->on('op.logable_id','=','b.id')
                         ->where('op.logable_type','=',ModuleableType::BLOGGER)//可能有问题
                         ->where('op.method','=',OperateEntity::UPDATED_AT);
-                })->leftJoin("blogger_types as bt","bt.id","b.id")
+                })->leftJoin("blogger_types as bt","bt.id","b.type_id")
                 ->where($arr)
                 ->groupBy('b.id')
                 ->select('b.nickname','bt.name as type_id','b.communication_status','b.created_at','op.created_at as last_update_at')

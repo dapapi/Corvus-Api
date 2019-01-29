@@ -9,6 +9,7 @@ use App\Repositories\MessageRepository;
 use App\TriggerPoint\TrailTrigreePoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class TrailMessageEventListener
 {
@@ -58,7 +59,7 @@ class TrailMessageEventListener
     {
         $subheading = $title = "您负责的{$this->trail->title}线索即将进入公海池";
         $send_to[] = $this->trail->principal_id;
-        echo "消息发送";
+        Log::info("线索【{$this->trail->title}】进入公海池向".implode(",",$send_to)."发送消息");
         $this->sendMessage($title,$subheading,$send_to);
     }
     //最终发送消息方法调用
@@ -68,6 +69,6 @@ class TrailMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->trail->id);
+            Message::TRAILS, null, $this->data, $send_to,$this->trail->id);
     }
 }

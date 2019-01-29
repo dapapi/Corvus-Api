@@ -314,7 +314,7 @@ class ApprovalFormController extends Controller
 
         $arr = array();
 
-        $totalPages = ceil($count / $pageSize);
+        $totalPages = ceil($count / $pageSize) ?? 1;
         $arr['data'] = $article;
         $arr['meta']['pagination'] = [
             'total' => $count,
@@ -497,7 +497,7 @@ class ApprovalFormController extends Controller
         $article = array_slice($resArr, $start, $pageSize);
 
         $count = count($resArr);//总条数
-        $totalPages = ceil($count / $pageSize);
+        $totalPages = ceil($count / $pageSize) ?? 1;
 
         $arr = array();
         $arr['total'] = $count;

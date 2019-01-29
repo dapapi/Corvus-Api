@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Transformers\ContractApprovalTransformer;
+use App\Http\Transformers\ContractTransformer;
 use App\Models\ApprovalForm\Business;
 use App\Models\DataDictionarie;
 use App\Models\RoleUser;
@@ -49,14 +51,9 @@ class ApprovalContractController extends Controller
             ->whereIn('bu.form_status', $payload['status'])
             ->orderBy('cs.created_at', 'desc')
             ->select('cs.*', 'bu.*', 'users.name', 'cs.id', 'cs.title')
-            ->paginate($pageSize)->toArray();
+            ->paginate($pageSize);
 
-        foreach ($data['data'] as $key => &$value) {
-            $value->id = hashid_encode($value->id);
-            $value->creator_id = hashid_encode($value->creator_id);
-
-        }
-        return $data;
+        return $this->response->paginator($data, new ContractApprovalTransformer());
 
     }
 

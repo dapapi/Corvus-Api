@@ -50,7 +50,7 @@ class UserController extends Controller
         }
 
         $userArr = $manager->createData($data)->toArray();
-        Cache::set(config('app.users'), $userArr, 108000);
+        Cache::set(config('app.users'), $userArr, 10);
 
         return response($userArr);
     }

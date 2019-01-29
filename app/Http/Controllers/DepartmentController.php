@@ -49,7 +49,7 @@ class DepartmentController extends Controller
         }
 
         $departmentsArr = $manager->createData($data)->toArray();
-        Cache::set(config('app.departments'), $departmentsArr, 108000);
+        Cache::set(config('app.departments'), $departmentsArr, 10);
 
         return response($departmentsArr);
     }

@@ -6,6 +6,7 @@ use App\Helper\Generator;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
+use App\Http\Transformers\GeneralApprovalTransformer;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Http\Transformers\FormControlTransformer;
 use App\Models\ApprovalForm\Group;
@@ -76,18 +77,12 @@ class ApprovalGeneralController extends Controller
             ->where('afi.apply_id', $user->id)
             ->whereIn('afi.form_status', $payload['status'])
             ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*', 'users.name','afg.name as group_name','afg.id as group_id')
-            ->paginate($pageSize)->toArray();
+            ->select('afi.*', 'users.name', 'afg.name as group_name', 'afg.id as group_id')
+            ->paginate($pageSize);
 
-        foreach ($data['data'] as $key => &$value) {
-
-            $value->creator_id = hashid_encode($value->apply_id);
-
-        }
-        return $data;
+        return $this->response->paginator($data, new GeneralApprovalTransformer());
 
     }
-
 
 
     public function myApproval(Request $request)
@@ -107,66 +102,60 @@ class ApprovalGeneralController extends Controller
 
 
             //查询角色
-        $dataRole = DB::table('approval_flow_execute as afe')//
+            $dataRole = DB::table('approval_flow_execute as afe')//
             ->join('role_users as ru', function ($join) {
                 $join->on('afe.current_handler_id', '=', 'ru.role_id');
             })
-            ->join('users as u', function ($join) {
-                $join->on('ru.user_id', '=', 'u.id');
-            })
-            ->join('approval_form_instances as afi', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
-            })
+                ->join('users as u', function ($join) {
+                    $join->on('ru.user_id', '=', 'u.id');
+                })
+                ->join('approval_form_instances as afi', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
+                })
+                ->join('approval_forms as af', function ($join) {
+                    $join->on('af.form_id', '=', 'afi.form_id');
+                })
+                ->join('approval_form_groups as afg', function ($join) {
+                    $join->on('afg.id', '=', 'af.group_id');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('afi.apply_id', '=', 'us.id');
+                })
+                ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
+                ->orderBy('afi.created_at', 'desc')
+                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
+            //->paginate($pageSize)->toArray();
 
-            ->join('approval_forms as af', function ($join) {
-                $join->on('af.form_id', '=', 'afi.form_id');
-            })
-            ->join('approval_form_groups as afg', function ($join) {
-                $join->on('afg.id', '=', 'af.group_id');
-            })
-
-            ->join('users as us', function ($join) {
-                $join->on('afi.apply_id', '=', 'us.id');
-            })
-            ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
-            ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','us.name','afg.name as group_name','afg.id as group_id')->get()->toArray();
-        //->paginate($pageSize)->toArray();
-
-        //查询个人
-        $dataUser = DB::table('approval_flow_execute as afe')//
+            //查询个人
+            $dataUser = DB::table('approval_flow_execute as afe')//
 
 
             ->join('users as u', function ($join) {
-                $join->on('afe.current_handler_id', '=','u.id');
+                $join->on('afe.current_handler_id', '=', 'u.id');
             })
-
-            ->join('approval_form_instances as afi', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
-            })
-
-            ->join('approval_forms as af', function ($join) {
-                $join->on('af.form_id', '=', 'afi.form_id');
-            })
-            ->join('approval_form_groups as afg', function ($join) {
-                $join->on('afg.id', '=', 'af.group_id');
-            })
-
-            ->join('users as us', function ($join) {
-                $join->on('afi.apply_id', '=', 'us.id');
-            })
-
-            ->whereIn('afe.flow_type_id',$payload['status'])->where('afe.current_handler_type',245)->where('u.id',$userId)
-            ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*','afe.form_instance_number','afe.current_handler_type','afe.current_handler_type','afe.flow_type_id as form_status','us.name','afg.name as group_name','afg.id as group_id')->get()->toArray();
+                ->join('approval_form_instances as afi', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
+                })
+                ->join('approval_forms as af', function ($join) {
+                    $join->on('af.form_id', '=', 'afi.form_id');
+                })
+                ->join('approval_form_groups as afg', function ($join) {
+                    $join->on('afg.id', '=', 'af.group_id');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('afi.apply_id', '=', 'us.id');
+                })
+                ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 245)->where('u.id', $userId)
+                ->orderBy('afi.created_at', 'desc')
+                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
 
 
             //部门负责人
             $dataPrincipal = DB::table('approval_flow_execute as afe')//
 
-                ->join('approval_flow_change as recode', function ($join) {
-                    $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
-                })
+            ->join('approval_flow_change as recode', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
+            })
                 ->join('users as creator', function ($join) {
                     $join->on('recode.change_id', '=', 'creator.id');
                 })
@@ -179,7 +168,6 @@ class ApprovalGeneralController extends Controller
                 ->join('approval_form_instances as afi', function ($join) {
                     $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
                 })
-
                 ->join('approval_forms as af', function ($join) {
                     $join->on('af.form_id', '=', 'afi.form_id');
                 })
@@ -189,25 +177,29 @@ class ApprovalGeneralController extends Controller
                 ->where('dp.user_id', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*','afg.name as group_name','afg.id as group_id')->get()->toArray();
+                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
 
-            $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
+            $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
 
         } else {
             $resArr = $this->thenApproval();
         }
 
-        $count = count($resArr);//总条数
-        $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
-        $article = array_slice($resArr,$start,$pageSize);
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($resArr, $start, $pageSize);
+
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
 
         $arr = array();
-        $arr['total'] = $count;
         $arr['data'] = $article;
-        $arr['meta']['pagination'] = $count;
-        $arr['meta']['current_page'] = $count;
-        $arr['meta']['total_pages'] = ceil($count/20);
-
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
 //        foreach ($arr['data'] as $key => &$value) {
 //            $value->id = hashid_encode($value->id);
 //        }
@@ -215,17 +207,16 @@ class ApprovalGeneralController extends Controller
     }
 
     //获取已审批信息
-    public function thenApproval(){
+    public function thenApproval()
+    {
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //查询个人
         $dataUser = DB::table('approval_flow_change as afc')//
-            ->join('users as u', function ($join) {
-                $join->on('afc.change_id', '=', 'u.id');
-            })
-
-
+        ->join('users as u', function ($join) {
+            $join->on('afc.change_id', '=', 'u.id');
+        })
             ->join('approval_form_instances as afi', function ($join) {
                 $join->on('afc.form_instance_number', '=', 'afi.form_instance_number');
             })
@@ -242,7 +233,7 @@ class ApprovalGeneralController extends Controller
 
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)
             ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*', 'us.name','afg.name as group_name','afg.id as group_id')->get()->toArray();
+            ->select('afi.*', 'us.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
 
         return $dataUser;
     }
@@ -270,19 +261,18 @@ class ApprovalGeneralController extends Controller
             ->join('approval_form_instances as afi', function ($join) {
                 $join->on('afp.form_instance_number', '=', 'afi.form_instance_number');
             })
-            ->join('approval_forms as af', function ($join) {
-                $join->on('af.form_id', '=', 'afi.form_id');
-            })
-            ->join('approval_form_groups as afg', function ($join) {
-                $join->on('afg.id', '=', 'af.group_id');
-            })
-
-            ->join('users as us', function ($join) {
-                $join->on('afi.apply_id', '=', 'us.id');
-            })
-            ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', 7)
-            ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*','us.name', 'afp.created_at')->get()->toArray();
+                ->join('approval_forms as af', function ($join) {
+                    $join->on('af.form_id', '=', 'afi.form_id');
+                })
+                ->join('approval_form_groups as afg', function ($join) {
+                    $join->on('afg.id', '=', 'af.group_id');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('afi.apply_id', '=', 'us.id');
+                })
+                ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', 7)
+                ->orderBy('afi.created_at', 'desc')
+                ->select('afi.*', 'us.name', 'afp.created_at')->get()->toArray();
 
 
             //查询角色
@@ -290,12 +280,96 @@ class ApprovalGeneralController extends Controller
             ->join('role_users as ru', function ($join) {
                 $join->on('afe.notice_id', '=', 'ru.role_id');
             })
+                ->join('users as u', function ($join) {
+                    $join->on('ru.user_id', '=', 'u.id');
+                })
+                ->join('approval_form_instances as afi', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
+                })
+                ->join('approval_forms as af', function ($join) {
+                    $join->on('af.form_id', '=', 'afi.form_id');
+                })
+                ->join('approval_form_groups as afg', function ($join) {
+                    $join->on('afg.id', '=', 'af.group_id');
+                })
+                ->join('users as us', function ($join) {
+                    $join->on('afi.apply_id', '=', 'us.id');
+                })
+                ->whereIn('afi.form_status', $payload['status'])->where('afe.notice_type', 247)->where('u.id', $userId)
+                ->orderBy('afi.created_at', 'desc')
+                ->select('afe.form_instance_number', 'afe.notice_type', 'afi.form_status', 'us.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
 
-            ->join('users as u', function ($join) {
-                $join->on('ru.user_id', '=','u.id');
-            })
+
+            //部门负责人
+            $dataPrincipal = DB::table('approval_form_participants as afe')//
+
             ->join('approval_form_instances as afi', function ($join) {
                 $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
+            })
+                ->join('approval_forms as af', function ($join) {
+                    $join->on('af.form_id', '=', 'afi.form_id');
+                })
+                ->join('approval_form_groups as afg', function ($join) {
+                    $join->on('afg.id', '=', 'af.group_id');
+                })
+                ->join('approval_flow_change as recode', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
+                })
+                ->join('users as creator', function ($join) {
+                    $join->on('recode.change_id', '=', 'creator.id');
+                })
+                ->join('department_user as du', function ($join) {
+                    $join->on('creator.id', '=', 'du.user_id');
+                })
+                ->join('department_principal as dp', function ($join) {
+                    $join->on('dp.department_id', '=', 'du.department_id')->where('afe.notice_type', '=', 246);
+                })
+                ->where('dp.user_id', $userId)
+                ->whereIn('afi.form_status', $payload['status'])
+                ->orderBy('afi.created_at', 'desc')
+                ->select('afi.form_instance_number', 'afe.notice_type', 'afi.form_status', 'creator.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
+
+
+            $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
+
+
+        } else {
+            $resArr = $this->thenNotifyApproval();
+        }
+
+        $count = count($resArr);//总条数
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($resArr, $start, $pageSize);
+
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
+
+        $arr = array();
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
+
+        return $arr;
+    }
+
+    //获取已审批信息
+    public function thenNotifyApproval()
+    {
+
+        $user = Auth::guard('api')->user();
+        $userId = $user->id;
+        //查询个人
+        $dataUser = DB::table('approval_form_participants as afc')//
+        ->join('users as u', function ($join) {
+            $join->on('afc.notice_id', '=', 'u.id');
+        })
+            ->join('approval_form_instances as afi', function ($join) {
+                $join->on('afc.form_instance_number', '=', 'afi.form_instance_number');
             })
             ->join('approval_forms as af', function ($join) {
                 $join->on('af.form_id', '=', 'afi.form_id');
@@ -304,97 +378,12 @@ class ApprovalGeneralController extends Controller
                 $join->on('afg.id', '=', 'af.group_id');
             })
             ->join('users as us', function ($join) {
-                $join->on('afi.apply_id', '=','us.id');
+                $join->on('us.id', '=', 'afi.apply_id');
             })
-            ->whereIn('afi.form_status',$payload['status'])->where('afe.notice_type',247)->where('u.id',$userId)
+            ->where('afc.notice_type', '!=', 237)->where('afc.notice_type', '!=', 238)->where('afc.notice_id', $userId)
+            ->where('afi.form_status', '!=', 231)
             ->orderBy('afi.created_at', 'desc')
-            ->select('afe.form_instance_number','afe.notice_type','afi.form_status','us.name','afg.name as group_name','afg.id as group_id')->get()->toArray();
-
-
-            //部门负责人
-            $dataPrincipal = DB::table('approval_form_participants as afe')//
-
-            ->join('approval_form_instances as afi', function ($join) {
-                $join->on('afe.form_instance_number', '=','afi.form_instance_number');
-            })
-            ->join('approval_forms as af', function ($join) {
-                $join->on('af.form_id', '=', 'afi.form_id');
-            })
-            ->join('approval_form_groups as afg', function ($join) {
-                $join->on('afg.id', '=', 'af.group_id');
-            })
-            ->join('approval_flow_change as recode', function ($join) {
-                $join->on('afe.form_instance_number', '=','recode.form_instance_number')->where('recode.change_state','=',237);
-            })
-            ->join('users as creator', function ($join) {
-                $join->on('recode.change_id', '=','creator.id');
-            })
-            ->join('department_user as du', function ($join) {
-                $join->on('creator.id', '=', 'du.user_id');
-            })
-            ->join('department_principal as dp', function ($join) {
-                $join->on('dp.department_id', '=', 'du.department_id')->where('afe.notice_type','=',246);
-            })
-
-
-            ->where('dp.user_id',$userId)
-            ->whereIn('afi.form_status',$payload['status'])
-            ->orderBy('afi.created_at', 'desc')
-            ->select('afi.form_instance_number','afe.notice_type','afi.form_status','creator.name','afg.name as group_name','afg.id as group_id')->get()->toArray();
-
-
-        $resArr = array_merge($dataPrincipal,$dataUser,$dataRole);
-
-
-        } else {
-            $resArr = $this->thenNotifyApproval();
-        }
-
-            $count = count($resArr);//总条数
-            $start = ($payload['page']-1)*$pageSize;//偏移量，当前页-1乘以每页显示条数
-            $article = array_slice($resArr,$start,$pageSize);
-
-            $arr = array();
-            $arr['total'] = $count;
-            $arr['data'] = $article;
-            $arr['meta']['pagination'] = $count;
-            $arr['meta']['current_page'] = $count;
-            $arr['meta']['total_pages'] = ceil($count/20);
-
-           
-            return $arr;
-        }
-
-    //获取已审批信息
-    public function thenNotifyApproval(){
-
-        $user = Auth::guard('api')->user();
-        $userId = $user->id;
-        //查询个人
-        $dataUser = DB::table('approval_form_participants as afc')//
-        ->join('users as u', function ($join) {
-            $join->on('afc.notice_id', '=','u.id');
-        })
-
-        ->join('approval_form_instances as afi', function ($join) {
-            $join->on('afc.form_instance_number', '=','afi.form_instance_number');
-        })
-        ->join('approval_forms as af', function ($join) {
-            $join->on('af.form_id', '=', 'afi.form_id');
-        })
-        ->join('approval_form_groups as afg', function ($join) {
-            $join->on('afg.id', '=', 'af.group_id');
-        })
-
-        ->join('users as us', function ($join) {
-            $join->on('us.id', '=', 'afi.apply_id');
-        })
-
-
-        ->where('afc.notice_type','!=',237)->where('afc.notice_type','!=',238)->where('afc.notice_id',$userId)
-        ->where('afi.form_status','!=', 231)
-        ->orderBy('afi.created_at', 'desc')
-        ->select('afi.form_instance_number','afi.form_status','us.name', 'afi.created_at','afg.name as group_name','afg.id as group_id')->get()->toArray();
+            ->select('afi.form_instance_number', 'afi.form_status', 'us.name', 'afi.created_at', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
 
         return $dataUser;
     }

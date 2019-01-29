@@ -72,7 +72,8 @@ class ProjectController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $user = Auth::guard('api')->user();
-        $query =  Project::where(function ($query) use ($request, $payload,$user) {
+        $project_type = $request->get('project_type',null);
+        $query =  Project::where(function ($query) use ($request, $payload,$user,$project_type) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
 
@@ -84,8 +85,14 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-            if ($request->has('type'))#项目类型
-                $query->where('projects.type', $payload['type']);
+
+            if ($request->has('project_type') && $project_type <> '3,4' ){
+                $query->where('type',$project_type);
+
+            }
+            if($request->has('project_type') && $project_type == '3,4'){
+                $query->whereIn('type',[$project_type]);
+            }
             if ($request->has('status'))#项目状态
                 $query->where('status', $payload['status']);
         })->searchData();

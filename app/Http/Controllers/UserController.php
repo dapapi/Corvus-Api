@@ -35,6 +35,7 @@ class UserController extends Controller
     // todo 过一遍redis，如果redis有数据则取redis的
     public function index(Request $request)
     {
+        Cache::flush();
         // 直接从缓存拿数组
         if (Cache::has(config('app.users'))) {
             return response(Cache::get(config('app.users')));
@@ -50,7 +51,7 @@ class UserController extends Controller
         }
 
         $userArr = $manager->createData($data)->toArray();
-        Cache::set(config('app.users'), $userArr, 10);
+        Cache::put(config('app.users'), $userArr, 30);
 
         return response($userArr);
     }

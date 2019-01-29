@@ -8,7 +8,6 @@ class GeneralApprovalTransformer extends TransformerAbstract
 {
     public function transform(Object $obj)
     {
-        dd($obj);
         return [
             'form_instance_id' => hashid_encode($obj->form_instance_id),
             'form_id' => hashid_encode($obj->form_id),

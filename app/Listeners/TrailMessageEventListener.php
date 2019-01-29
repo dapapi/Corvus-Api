@@ -69,6 +69,6 @@ class TrailMessageEventListener
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            Message::TASK, null, $this->data, $send_to,$this->trail->id);
+            Message::TRAILS, null, $this->data, $send_to,$this->trail->id);
     }
 }

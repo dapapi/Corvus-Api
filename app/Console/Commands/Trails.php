@@ -95,7 +95,7 @@ class Trails extends Command
             ->join('approval_form_business as afb', function ($join) {
                 $join->on('afb.form_instance_number', '=', 'projects.project_number');
             })
-//            ->where('afb.form_status', "<>",231)
+            ->where('afb.form_status', "<>",231)
             ->where('trails.progress_status',Trail::STATUS_UNCONFIRMED)
             ->where('take_type',null)->where('pool_type',null)
             ->select('trails.id','trails.created_at','trails.type','trails.title','trails.principal_id','afb.form_status')->get();

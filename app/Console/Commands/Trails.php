@@ -123,12 +123,10 @@ class Trails extends Command
 
             //进入公海池前一天提醒
             if ($now->diffInMinutes($last_update_at) >= 14 * 24 * 60) { #进入公海池前一天提醒
-                Log::info("哈哈哈");
                 if ($value->receive !== 1) {
                     $num = DB::table('trails')->where('id', $value->id)->update($receive);
                     Log::info("发送线索即将进入公海池提醒,线索【" . $value->title."】将要进入公海池");
                     //提醒
-//                    $trail = Trail::find($value->id);
                     $user = User::find(config("app.schdule_user_id"));
                     $meta['created'] = $last_update_at->toDateTimeString();//跟进时间
                     event(new TrailMessageEvent($value, TrailTrigreePoint::REMIND_TRAIL_TO_SEAS, $authorization, $user, $meta));
@@ -146,7 +144,7 @@ class Trails extends Command
 //
 //                        if(empty($operateInfo)){
 
-                $array = ['receive' => null, 'pool_type' => $type, 'principal_id' => '', 'take_type' => 1];
+                $array = ['receive' => 1, 'pool_type' => $type, 'principal_id' => '', 'take_type' => 1];
                 $num = DB::table('trails')->where('id', $value->id)->update($array);
 //                        }
 

@@ -493,16 +493,22 @@ class ApprovalFormController extends Controller
             $resArr = $this->thenNotifyApproval();
         }
 
-        $count = count($resArr);//总条数
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($resArr, $start, $pageSize);
+
+        $count = count($resArr);//总条数
+        $totalPages = ceil($count / $pageSize);
 
         $arr = array();
         $arr['total'] = $count;
         $arr['data'] = $article;
-        $arr['meta']['pagination'] = $count;
-        $arr['meta']['current_page'] = $count;
-        $arr['meta']['total_pages'] = ceil($count / 20);
+        $arr['meta']['pagination'] = [
+            'total' => $count,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $count - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages,
+        ];
 
         foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);

@@ -95,7 +95,7 @@ class Trails extends Command
             ->join('approval_form_business as afb', function ($join) {
                 $join->on('afb.form_instance_number', '=', 'projects.project_number');
             })
-//            ->where('afb.form_status', "<>",231)
+            ->where('afb.form_status', "<>",231)
             ->where('trails.progress_status',Trail::STATUS_UNCONFIRMED)
             ->where('take_type',null)->where('pool_type',null)
             ->select('trails.id','trails.created_at','trails.type','trails.title','trails.principal_id','afb.form_status')->get();
@@ -115,7 +115,6 @@ class Trails extends Command
             } else {
                 $last_update_at = Carbon::createFromTimeString($value->created_at);
             }
-            Log::info("线索距离进入公海池有".$now->diffInDays($last_update_at)."天");
 //            if(!empty($operateInfo)){
 //                $created_at = $operateInfo[0]->created_at;
 //                //创建时间+14天 提醒

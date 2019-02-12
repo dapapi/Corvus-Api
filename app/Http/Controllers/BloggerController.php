@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\BloggerLevel;
 use App\CommunicationStatus;
 use App\Gender;
+use App\Models\TaskType;
 use App\Exports\BloggersExport;
 use App\Http\Requests\BloggerRequest;
 use App\Http\Requests\BloggerUpdateRequest;
@@ -711,11 +712,7 @@ class BloggerController extends Controller
                         $modeluseradd = $moduleuser->save();
                      }
                 }
-
-                $reviewquestionnairemodel = new ReviewQuestionnaire;
-                $reviewquestionnairemodel->name = '制作人视频评分-视频评分';
-                $reviewquestionnairemodel->creator_id = $array['creator_id'];
-              //  $now = now()->toDateTimeString();
+                //获取视频评分调查问卷截止时间
                 $number = date("w",time());  //当时是周几
                 $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
                 $diff_day = $number - 6; //求到周一差几天
@@ -723,6 +720,40 @@ class BloggerController extends Controller
                     $diff_day = - (7 + $diff_day) ;
                 }
                 $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
+                $task = new Task();
+                $task->title = '制作人视频评分';
+                $task->start_at = now()->toDateTimeString();
+                $task->end_at = $deadline;
+                $task->creator_id = $user->id;
+                $task->principal_id = $user->id;
+                $task->privacy = 0;
+
+                $user = Auth::guard('api')->user();
+
+                $departmentId = $user->department()->first()->id;
+                $taskType = TaskType::where('title', '视频评分')->where('department_id', $departmentId)->first();
+                if ($taskType) {
+                    $taskTypeId = $taskType->id;
+                } else {
+                    return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+                }
+
+                $task->principal_id = $user->id;
+                $task->type_id = $taskTypeId;
+                $task->save();
+            //   $task->type = $taskTypeId;
+                $reviewquestionnairemodel = new ReviewQuestionnaire;
+                $reviewquestionnairemodel->name = '制作人视频评分-视频评分';
+                $reviewquestionnairemodel->creator_id = $array['creator_id'];
+                $reviewquestionnairemodel->task_id = $task->id;
+              //  $now = now()->toDateTimeString();
+//                $number = date("w",time());  //当时是周几
+//                $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
+//                $diff_day = $number - 6; //求到周一差几天
+//                if($diff_day >= 0 ){
+//                    $diff_day = - (7 + $diff_day) ;
+//                }
+//                $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
                 $reviewquestionnairemodel->deadline = $deadline;
                 $reviewquestionnairemodel->reviewable_id = $production->id;
                 $reviewquestionnairemodel->reviewable_type = 'production';
@@ -780,6 +811,7 @@ class BloggerController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');
@@ -803,21 +835,22 @@ class BloggerController extends Controller
     }
     public function taskBloggerProductionIndex(Request $request,Task $task)
     {
-        $array['task_id'] = $task->id;
-        $array['resourceable_type'] = 'blogger';
-        $isblogger = TaskResource::where($array)->first();
-        if(!isset($isblogger)){
-            $data = ['data'=>''];
-            return $data;
-        }
-        $taskdata = Task::where('id',$task->id)->first(['title','end_at','creator_id','created_at']);
-        $arr['name'] =$taskdata->title;
-        // $taskdata->title
-        $arr['creator_id'] = $taskdata->creator_id;
-        $arr['deadline'] = $taskdata->end_at;
-        $arr[] = ['created_at','=',$taskdata->created_at];
-        $arr1[] = ['created_at','<',$taskdata->end_at];
-        $taskselect = ReviewQuestionnaire::where($arr)->orwhere($arr1)->orderby('created_at','desc')->first();
+//        $array['task_id'] = $task->id;
+//        $array['resourceable_type'] = 'blogger';
+//        $isblogger = TaskResource::where($array)->first();
+//        if(!isset($isblogger)){
+//            $data = ['data'=>''];
+//            return $data;
+//        }
+       // $taskdata = Task::where('id',$task->id)->first();
+//        $arr['name'] =$taskdata->title;
+//        // $taskdata->title
+//        $arr['creator_id'] = $taskdata->creator_id;
+//        $arr['deadline'] = $taskdata->end_at;
+//        $arr[] = ['create`d_at','=',$taskdata->created_at];
+//        $arr1[] = ['created_at','<',$taskdata->created_at];
+//        $taskselect = ReviewQuestionnaire::where($arr)->orwhere($arr1)->orderby('created_at','desc')->first();
+        $taskselect = ReviewQuestionnaire::where('task_id',$task->id)->first();
         if(!isset($taskselect)){
             $data = ['data'=>''];
             return $data;

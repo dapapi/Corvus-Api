@@ -364,6 +364,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
         //查看问劵
         $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
+
+      //  $api->post('/bloggers/{blogger}/producer/{id}', 'App\Http\Controllers\ReviewQuestionnaireController@store');
+
         $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
         $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
         $api->post('/reviewquestionnaires/{reviewquestionnaire}/create/excellent', 'App\Http\Controllers\ReviewQuestionnaireController@storeExcellent');

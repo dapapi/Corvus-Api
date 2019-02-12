@@ -1,0 +1,321 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ReviewQuestionnaireStoreRequest;
+use App\Http\Requests\ReviewUpdateRequest;
+use App\Http\Transformers\ReviewQuestionnaireTransformer;
+use App\Http\Transformers\ReviewQuestionnaireShowTransformer;
+use App\Models\DepartmentPrincipal;
+use App\Models\DepartmentUser;
+use App\Events\TaskMessageEvent;
+use App\TriggerPoint\TaskTriggerPoint;
+use App\Events\OperateLogEvent;
+use App\OperateLogMethod;
+use App\Models\OperateEntity;
+use App\Models\Production;
+use App\Models\ReviewQuestion;
+use App\Models\BloggerProducer;
+use App\Models\TaskResource;
+use App\Models\TaskType;
+use App\ModuleableType;
+use App\Models\ReviewQuestionItem;
+use App\Models\ModuleUser;
+use App\Models\Task;
+use App\Models\Blogger;
+use App\ReviewItemAnswer;
+use App\Models\ReviewAnswer;
+use App\Models\ReviewUser;
+use App\Models\ReviewQuestionnaire;
+use Illuminate\Support\Facades\Auth;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use tests\Mockery\Adapter\Phpunit\EmptyTestCase;
+
+class ReviewQuestionnaireController extends Controller {
+    public function index(Request $request) {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $reviews = ReviewQuestionnaire::createDesc()->paginate($pageSize);
+        return $this->response->paginator($reviews, new ReviewQuestionnaireTransformer());
+    }
+
+    public function show(Request $request,ReviewQuestionnaire $reviewquestionnaire) {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array['user_id'] = $user->id;
+        $array['reviewquestionnaire_id'] = $reviewquestionnaire->id;
+        dd($array);
+        $selectuser = ReviewUser::where($array)->get()->toarray();
+        if(empty($selectuser)){
+            $data = ['data'=>''];
+            return $data;
+        }
+        $due = $reviewquestionnaire->deadline;
+        if($due < now()->toDateTimeString()){
+            $error = ['data'=>'问卷已过期'];
+        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $reviews = ReviewQuestionnaire::where('id',$reviewquestionnaire->id)->createDesc()->paginate($pageSize);
+        $result = $this->response->paginator($reviews, new ReviewQuestionnaireShowTransformer());
+
+        if(isset($error)){
+
+        $result->addMeta('error', $error);
+        return $result;
+        }else{
+            return $result;
+        }
+    }
+
+
+    public function store(ReviewQuestionnaireStoreRequest $request,Blogger $blogger)
+    {
+        dd($blogger);
+
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array['creator_id'] = $user->id;
+
+        DB::beginTransaction();
+        try {
+            if (!empty($array['creator_id'])) {
+
+                //获取视频评分调查问卷截止时间
+                $number = date("w",time());  //当时是周几
+                $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
+                $diff_day = $number - 6; //求到周一差几天
+                if($diff_day >= 0 ){
+                    $diff_day = - (7 + $diff_day) ;
+                }
+                $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
+
+                $task = new Task();
+                $task->title = '任务-制作人视频评分';
+                $task->start_at = now()->toDateTimeString();
+                $task->end_at = $deadline;
+                $task->creator_id = $user->id;
+                $task->principal_id = $user->id;
+                $task->privacy = 0;
+
+                $user = Auth::guard('api')->user();
+
+                $departmentId = $user->department()->first()->id;
+                $taskType = TaskType::where('title', '视频评分')->where('department_id', $departmentId)->first();
+                if ($taskType) {
+                    $taskTypeId = $taskType->id;
+                } else {
+                    return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+                }
+
+                $task->principal_id = $user->id;
+                $task->type_id = $taskTypeId;
+                $task->save();
+
+                if(!$task->id)
+                {
+                    return $this->response->errorInternal('创建视频打分任务失败');
+                }
+
+                $array = [
+                    'task_id' => $task->id,
+                    'resource_id' => 1,
+                    'resourceable_id' => $blogger->id,
+                    'resourceable_type' => ModuleableType::BLOGGER
+                ];
+
+                //创建视频打分任务
+                TaskResource::create($array);
+
+
+                //创建视频评分调查问卷
+                $reviewquestionnairemodel = new ReviewQuestionnaire;
+                $reviewquestionnairemodel->name = '调查问卷-制作人视频评分';
+                $reviewquestionnairemodel->creator_id = $array['creator_id'];
+                $reviewquestionnairemodel->task_id = $task->id;
+                $reviewquestionnairemodel->deadline = $deadline;
+                $reviewquestionnairemodel->reviewable_id = $production->id;
+                $reviewquestionnairemodel->reviewable_type = 'production';
+                $reviewquestionnairemodel->auth_type = '2';
+                $reviewquestionnaireadd = $reviewquestionnairemodel->save();
+
+                //创建视频调查问卷参与人
+                $department_id = DepartmentUser::where('user_id',$array['creator_id'])->first()->department_id;
+                $users = DepartmentUser::where('department_id',$department_id)->get(['user_id'])->toArray();
+
+                if($reviewquestionnaireadd == true){
+                    foreach($users as $key => $val){
+                        $reviewuser = new ReviewUser;
+                        $reviewuser->user_id = $val['user_id'];
+                        $reviewuser->reviewquestionnaire_id = $reviewquestionnairemodel->id;
+                        $reviewuser->save();
+                    }
+                }
+
+                //创建视频评分调查问卷试题以及试题选项
+                $issues =ReviewItemAnswer::getIssue();
+                $answer =ReviewItemAnswer::getAnswer();
+                foreach ($issues as $key => $value){
+                    $issue['title'] = $value['titles'];
+                    $issue['review_id'] = $reviewquestionnairemodel->id;
+                    $issue['sort'] = $reviewquestionnairemodel->questions()->count() + 1;
+                    $reviewQuestion = ReviewQuestion::create($issue);
+                    $reviewQuestionId = $reviewQuestion->id;
+                    foreach ($answer[$key] as $key1 => $value1) {
+                        $arr = array();
+                        $arr['title'] = $value1['answer'];
+                        $arr['value'] = $value1['value'];
+                        $arr['review_question_id'] = $reviewQuestionId;
+                        $arr['sort'] = $reviewQuestion->items()->count() + 1;
+                        ReviewQuestionItem::create($arr);
+                    }
+
+                }
+            }
+        }
+        catch (Exception $e) {
+            dd($e);
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+        return $this->response->created();
+    }
+
+    public function storeExcellent(ReviewQuestionnaireStoreRequest $request, Production $production,ReviewQuestionnaire $reviewquestionnaire,ReviewQuestion $reviewquestion) {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array[] = ['user_id',$user->id];
+   //     $array[] = ['type',1];
+        $arr = empty(DepartmentPrincipal::where($array)->first());
+        if($arr){
+            return $this->response->errorInternal('创建失败');
+        }
+       // if($request->has('name','评优团视频评分任务')){
+     //       $array['name'] = '评优团视频评分任务';
+      //  }
+        $array['creator_id'] = $user->id;
+        DB::beginTransaction();
+        try {
+            if (!empty($array['creator_id'])) {
+//
+              $users =ReviewItemAnswer::getUsers();
+
+                if(isset($users)){
+
+                    foreach($users as $key => $val){
+                        $moduleuser = new ModuleUser;
+                        $moduleuser->user_id = $val['user_id'];
+                        $moduleuser->moduleable_id = $production->id;
+                        $moduleuser->moduleable_type = 'production';
+                        $moduleuser->type = 1;  //1  参与人
+                        $modeluseradd = $moduleuser->save();
+                    }
+                }
+
+                //更新评分团结果(分数和推优理由)
+                $reviewquestionnaire->excellent_sum = $payload['excellent_sum'];
+                $reviewquestionnaire->excellent = $payload['excellent'];
+                $reviewquestionnaire->save();
+
+                //创建推优团调查问卷
+                $reviewquestionnairemodel = new ReviewQuestionnaire;
+
+                $reviewquestionnairemodel->name = '评优团视频评分任务-视频评分';
+                $reviewquestionnairemodel->creator_id = $array['creator_id'];
+                //  $now = now()->toDateTimeString();
+                $number = date("w",time());  //当时是周几
+                $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
+                $diff_day = $number - 8; //求到周一差几天
+                $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
+                $reviewquestionnairemodel->deadline = $deadline;
+                $reviewquestionnairemodel->reviewable_id = $reviewquestionnaire->id;
+                $reviewquestionnairemodel->reviewable_type = 'reviewquestionnaire';
+                $reviewquestionnairemodel->auth_type = '2';
+                $reviewquestionnaireadd = $reviewquestionnairemodel->save();
+
+                if($reviewquestionnaireadd == true){
+                    foreach($users as $key => $val){
+                        $reviewuser = new ReviewUser;
+                        $reviewuser->user_id = $val['user_id'];
+                        $reviewuser->reviewquestionnaire_id = $reviewquestionnairemodel->id;
+                        $reviewuseradd = $reviewuser->save();
+                    }
+
+                }
+                $issues =ReviewItemAnswer::getIssue();
+                $answer =ReviewItemAnswer::getAnswer();
+                foreach ($issues as $key => $value){
+                    $issue['title'] = $value['titles'];
+                    $issue['review_id'] = $reviewquestionnairemodel->id;
+                    $issue['sort'] = $reviewquestionnaire->questions()->count() + 1;;
+                    $reviewQuestion = ReviewQuestion::create($issue);
+                    $reviewQuestionId = $reviewQuestion->id;
+                    foreach ($answer[$key] as $key1 => $value1) {
+                        $arr = array();
+                        $arr['title'] = $value1['answer'];
+                        $arr['value'] = $value1['value'];
+                        $arr['review_question_id'] = $reviewQuestionId;
+                        $arr['sort'] = $reviewquestion->items()->count() + 1;
+                        $reviewQuestion = ReviewQuestionItem::create($arr);
+                    }
+
+                }
+            }
+        } catch (Exception $e) {
+          //  dd($e);
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+        return $this->response->item($reviewquestionnairemodel, new ReviewQuestionnaireShowTransformer());
+
+    }
+
+    public function storeTask(Task $task, $taskTypeTitle,$request)
+    {
+        $user = Auth::guard('api')->user();
+
+        $departmentId = $user->department()->first()->id;
+        $taskType = TaskType::where('title', $taskTypeTitle)->where('department_id', $departmentId)->first();
+        if ($taskType) {
+            $taskTypeId = $taskType->id;
+        } else {
+            return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+        }
+
+        $task->principal_id = $user->id;
+        $task->type = $taskTypeId;
+
+        try {
+
+         //  $task = Task::create($task);
+
+            dd($task);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $task,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->response->errorInternal('创建视频打分失败!');
+        }
+        //发消息
+        $authorization = $request->header()['authorization'][0];
+        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+
+        return $task;
+    }
+}

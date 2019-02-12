@@ -83,8 +83,13 @@ class ReviewQuestionnaireShowTransformer extends TransformerAbstract{
 
     }
     public function includeProduction(ReviewQuestionnaire $reviewquestionnaire) {
+        if($reviewquestionnaire->name == '评优团视频评分任务-视频评分')
+        {
+            $reviewanswer = $reviewquestionnaire->review->production->where('id',$reviewquestionnaire->reviewable_id)->get();
+        }else{
+            $reviewanswer = $reviewquestionnaire->production->where('id',$reviewquestionnaire->reviewable_id)->get();
+        }
 
-        $reviewanswer = $reviewquestionnaire->production->where('id',$reviewquestionnaire->reviewable_id)->get();
         return $this->collection($reviewanswer, new ProductionTransformer());
     }
     public function includeReviewanswer(ReviewQuestionnaire $reviewquestionnaire) {

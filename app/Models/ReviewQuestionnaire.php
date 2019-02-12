@@ -56,6 +56,10 @@ class ReviewQuestionnaire extends Model
     {
         return $this->belongsTo(Production::class, 'reviewable_id', 'id');
     }
+    public function review()
+    {
+        return $this->hasOne(ReviewQuestionnaire::class, 'id', 'reviewable_id');
+    }
     public function reviewanswer()
     {
         return $this->hasMany(ReviewUser::class, 'reviewquestionnaire_id', 'id');

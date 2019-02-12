@@ -55,13 +55,23 @@ class ReviewQuestionTransformer extends TransformerAbstract
         $arr  = ReviewAnswer::where('review_id', $reviewquestion->review_id)->where('user_id',$user->id)->groupby('user_id')->get();
         $array[] = ['user_id',$user->id];
         $arrdate = !empty(DepartmentPrincipal::where($array)->first());
+        $is_reviewQuestionnaire = $reviewquestion->reviewQuestionnaire;
+        if($is_reviewQuestionnaire){
+            if($is_reviewQuestionnaire[0]['name'] == '评优团视频评分任务-视频评分')
+            {
+                if($user->id != 477)
+                {
+                    $arr = array();
+                    $arrdate = null;
+                }
+            }
+        }
         if($arrdate) {
             //return $this->item($selectrows, new BloggerProducerTransformer());
             return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer());
         }else if(count($arr)>0){
             $data = false;
             return $this->collection($selectrows, new ReviewAnswerSelectrowsTransformer($data));
-
         }else{
             return $this->null();
         }

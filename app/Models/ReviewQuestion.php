@@ -33,6 +33,9 @@ class ReviewQuestion extends Model {
     public function reviewQuestionnaires() {
         return $this->belongsTo(ReviewQuestionnaire::class);
     }
+    public function reviewQuestionnaire() {
+        return $this->hasMany(ReviewQuestionnaire::class,'id','review_id');
+    }
     public function bulletinReview()
     {
         return $this->hasMany(ReviewAnswer::class,'template_id','id' );

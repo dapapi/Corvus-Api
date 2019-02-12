@@ -61,7 +61,7 @@ class ReviewQuestionTransformer extends TransformerAbstract
             {
                 if($user->id != 477)
                 {
-                    $arr = array();
+                   // $arr = array();
                     $arrdate = null;
                 }else{
                     $arrdate = true;

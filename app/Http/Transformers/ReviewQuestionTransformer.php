@@ -63,6 +63,8 @@ class ReviewQuestionTransformer extends TransformerAbstract
                 {
                     $arr = array();
                     $arrdate = null;
+                }else{
+                    $arrdate = true;
                 }
             }
         }

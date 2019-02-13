@@ -3,17 +3,18 @@
 namespace App\Models;
 
 use App\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
 
-class AnnouncementScope extends Model
+class AnnouncementClassify extends Model
 {
-
-    protected $table =  'announcement_scope';
+    use SoftDeletes;
+    protected $table =  'announcement_classify';
     protected $fillable = [
-        'announcement_id',
-        'department_id'
-
+        'name',
+        'desc'
     ];
 
     public function scopeCreateDesc($query)
@@ -22,16 +23,8 @@ class AnnouncementScope extends Model
         return $query->orderBy('id');
 
     }
-    public function operateLogs()
+    public  function sum()
     {
-        return $this->morphMany(OperateLog::class, 'logable');
+        return $this->hasOne(Announcement::class, 'classify', 'id')->select(DB::raw('count(*) as sum'));
     }
-
-    public function broker()
-    {
-        return $this->belongsTo(User::class, 'broker_id', 'id');
-
-    }
-
-
 }

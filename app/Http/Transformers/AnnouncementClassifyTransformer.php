@@ -2,21 +2,22 @@
 
 namespace App\Http\Transformers;
 
+use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
 use League\Fractal\TransformerAbstract;
 
-class AnnouncementScopeTransformer extends TransformerAbstract
+class AnnouncementClassifyTransformer extends TransformerAbstract
 {
 
-    public function transform(AnnouncementScope $announcementScope)
+    public function transform(AnnouncementClassify $announcementClassify)
     {
 
         $array = [
-            'id' => hashid_encode($announcementScope->id),
-            'announcement_id' => hashid_encode($announcementScope->announcement_id),  //公告id
-            'department_id' => hashid_encode($announcementScope->department_id), // 部门id
-            'created_at' => $announcementScope->created_at->toDateTimeString(),//时间去掉秒,,
-            'updated_at' => $announcementScope->updated_at->toDateTimeString(),//时间去掉秒,
+            'id' => hashid_encode($announcementClassify->id),
+            'name' => $announcementClassify->name,  //公告id
+            'sum' => $announcementClassify->sum['sum'],
+            'created_at' => $announcementClassify->created_at->toDateTimeString(),//时间去掉秒,,
+            'updated_at' => $announcementClassify->updated_at->toDateTimeString(),//时间去掉秒,
 
 
         ];

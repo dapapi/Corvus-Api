@@ -10,9 +10,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
+use App\Http\Requests\AnnouncementClassifyUpdateRequest;
+use App\Http\Transformers\AnnouncementClassifyTransformer;
 use App\Http\Requests\AnnouncementUpdateRequest;
 use App\Models\Announcement;
 use App\Models\DepartmentUser;
+use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
@@ -37,6 +40,7 @@ class AnnouncementController extends Controller
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+        $status = empty($payload['status'])?1:$payload['status'];
         $userId = $user->id;
         $department = DepartmentUser::where('user_id',$userId)->get(['department_id'])->toarray();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -44,10 +48,10 @@ class AnnouncementController extends Controller
             $ar = '';
             $stars = Announcement::where('id',$ar)->createDesc()->paginate(0);
         }else{
+              if($status == 1 || $status == 2){
                 $len = count($department);
                 $array = array();
                 for ($i=0;$i<$len;$i++){
-
                     $announcement_id = DB::select('SELECT T3.announcement_id FROM  (SELECT T2.id as department_id FROM ( SELECT @r AS _id, (SELECT @r := department_pid FROM 
               departments WHERE id = _id) AS department_pid, @l := @l + 1 AS lvl FROM (SELECT @r := ?, @l := 0) vars, departments h WHERE @r <> 0 ) T1 JOIN departments T2 ON T1._id = T2.id 
               ORDER BY T1.lvl DESC) T4 JOIN announcement_scope T3 ON T4.department_id = T3.department_id', [$department[$i]['department_id']]);
@@ -59,7 +63,15 @@ class AnnouncementController extends Controller
                 {
                     $ar[$key] = $value->announcement_id;
                 }
-            $stars = Announcement::wherein('id',$ar)->createDesc()->paginate($pageSize);
+                if($status == 1){
+                    $stars = Announcement::whereIn('id',$ar)->createDesc()->paginate($pageSize);
+                }else{
+                    $stars = Announcement::whereIn('id',$ar)->where('creator_id',$userId)->createDesc()->paginate($pageSize);
+                }
+
+              }else{
+                  $stars = null;
+              }
         }
 
 
@@ -79,7 +91,65 @@ class AnnouncementController extends Controller
 //            }
 //        } return $tree;
 //    }
+    public function addClassify(AnnouncementClassifyUpdateRequest $request)
+    {
+        $payload = $request->all();
+        DB::beginTransaction();
+        try {
+            $name = AnnouncementClassify::where('name',$payload['name'])->get()->toArray();
 
+            if(!$name){
+                $Classify = AnnouncementClassify::create($payload);
+            }else{
+                $Classify = null;
+            }
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+
+        if($Classify != null){
+            return $this->response->item($Classify, new AnnouncementClassifyTransformer());
+        }else{
+            return $this->response->errorInternal('数据有重复');
+        }
+
+    }
+    public function deleteClassify(Request $request,AnnouncementClassify $announcementClassify)
+    {
+        DB::beginTransaction();
+        try {
+            $announcementClassify->delete();
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
+        }
+        DB::commit();
+    }
+    public function updateClassify(AnnouncementClassifyUpdateRequest $request,AnnouncementClassify $announcementClassify)
+    {
+        $payload = $request->all();
+        DB::beginTransaction();
+        try {
+      $announcementClassify->update($payload);
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
+    }
+    public function getClassify(Request $request)
+    {
+        $classify =AnnouncementClassify::get();
+        return $this->response->collection($classify,new AnnouncementClassifyTransformer());
+    }
     public function show(Request $request,Announcement $announcement)
     {
 

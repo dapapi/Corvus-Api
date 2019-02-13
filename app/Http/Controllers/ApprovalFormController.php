@@ -189,7 +189,7 @@ class ApprovalFormController extends Controller
             ->where('ph.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
             ->orderBy('ph.created_at', 'desc')
-            ->select('ph.*', 'bu.*', 'users.name', 'ph.id')
+            ->select('ph.*', 'bu.*', 'users.name', 'ph.id','bu.form_status as approval_status')
             //->pluck('ph.id');
             ->get()->toArray();
 
@@ -216,7 +216,7 @@ class ApprovalFormController extends Controller
             'current_page' => $payload['page'],
             'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
-       
+
         foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);
             $value->creator_id = hashid_encode($value->creator_id);

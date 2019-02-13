@@ -174,11 +174,14 @@ class ApprovalGeneralController extends Controller
                 ->join('approval_form_groups as afg', function ($join) {
                     $join->on('afg.id', '=', 'af.group_id');
                 })
+                ->join('users as us', function ($join) {
+                    $join->on('afi.apply_id', '=', 'us.id');
+                })
                 ->where('dp.user_id', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
-
+                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name')->get()->toArray();
+            
             $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
 
         } else {

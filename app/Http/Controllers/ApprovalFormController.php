@@ -189,17 +189,18 @@ class ApprovalFormController extends Controller
             ->whereIn('bu.form_status', $payload['status'])
             ->orderBy('ph.created_at', 'desc')
             ->select('ph.*', 'bu.*', 'users.name', 'ph.id')
-            ->pluck('ph.id');
+            //->pluck('ph.id');
+           ->paginate($pageSize)->toArray();
 
-        $projects = Project::whereIn('id', $data)->paginate($pageSize);
-        return $this->response->paginator($projects, new ProjectTransformer());
+//        $projects = Project::whereIn('id', $data)->paginate($pageSize);
+//        return $this->response->paginator($projects, new ProjectTransformer());
 //
-//        foreach ($data['data'] as $key => &$value) {
-//            $value->id = hashid_encode($value->id);
-//            $value->creator_id = hashid_encode($value->creator_id);
-//
-//        }
-//        return $data;
+        foreach ($data['data'] as $key => &$value) {
+            $value->id = hashid_encode($value->id);
+            $value->creator_id = hashid_encode($value->creator_id);
+
+        }
+        return $data;
 
     }
 

@@ -165,6 +165,7 @@ class ApprovalFormController extends Controller
         $user = Auth::guard('api')->user();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
 
         $payload['status'] = isset($payload['status']) ? $payload['status'] : 1;
         if ($payload['status'] == 1) {
@@ -188,19 +189,40 @@ class ApprovalFormController extends Controller
             ->where('ph.creator_id', $user->id)
             ->whereIn('bu.form_status', $payload['status'])
             ->orderBy('ph.created_at', 'desc')
-            ->select('ph.*', 'bu.*', 'users.name', 'ph.id')
+            ->select('ph.*', 'bu.*', 'users.name', 'ph.id','bu.form_status as approval_status')
             //->pluck('ph.id');
-           ->paginate($pageSize)->toArray();
+            ->get()->toArray();
 
 //        $projects = Project::whereIn('id', $data)->paginate($pageSize);
 //        return $this->response->paginator($projects, new ProjectTransformer());
 //
-        foreach ($data['data'] as $key => &$value) {
+//        foreach ($data['data'] as $key => &$value) {
+//            $value->id = hashid_encode($value->id);
+//            $value->creator_id = hashid_encode($value->creator_id);
+//
+//        }
+//        return $data;
+
+        $count = count($data);//总条数
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($data, $start, $pageSize);
+
+        $totalPages = ceil($count / $pageSize) ?? 1;
+        $arr['data'] = $data;
+        $arr['meta']['pagination'] = [
+            'total' => $count,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $count - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
+        ];
+
+        foreach ($arr['data'] as $key => &$value) {
             $value->id = hashid_encode($value->id);
             $value->creator_id = hashid_encode($value->creator_id);
 
         }
-        return $data;
+        return $arr;
 
     }
 

@@ -7,7 +7,7 @@ namespace App\Http\Controllers;
  * Date: 2018/11/19
  * Time: 下午2:14
  */
-
+use App\AffixType;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Requests\AnnouncementClassifyUpdateRequest;
@@ -172,7 +172,6 @@ class AnnouncementController extends Controller
                 $len = count($scope);
                 if($len >= 2){
                     $array = array();
-
                     foreach($scope as $key => $value){
                         $array['scope'][$key] = hashid_decode($value);
                     }
@@ -185,6 +184,11 @@ class AnnouncementController extends Controller
             DB::beginTransaction();
             try {
                 $star = Announcement::create($payload);
+                if ($request->has('affix')) {
+                    foreach ($payload['affix'] as $affix) {
+                        $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
+                    }
+                }
                 foreach($scope as $key => $value){
                     $arr['announcement_id'] = $star->id;
                     $arr['department_id'] = hashid_decode($value);
@@ -232,6 +236,7 @@ class AnnouncementController extends Controller
     public function edit(AnnouncementUpdateRequest $request, Announcement $announcement)
     {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
         $array = [];
         $arrayOperateLog = [];
         if ($request->has('title')) {
@@ -352,8 +357,14 @@ class AnnouncementController extends Controller
         }
         DB::beginTransaction();
         try {
-            if (count($array) == 0)
-                return $this->response->noContent();
+
+            if ($request->has('affix')) {
+                foreach ($payload['affix'] as $affix) {
+                    $this->affixRepository->addAffix($user, $announcement, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
+                }
+            }
+//            if (count($array) == 0)
+//                return $this->response->noContent();
             $announcement->update($array);
             if(!empty($scope)){
                $announdelete =  AnnouncementScope::where('announcement_id',$announcement->id)->delete();
@@ -361,9 +372,9 @@ class AnnouncementController extends Controller
             foreach($scope as $key => $value){
                 $arr['announcement_id'] = $announcement->id;
                 $arr['department_id'] = hashid_decode($value);
-                $data = AnnouncementScope::create($arr);
+                 AnnouncementScope::create($arr);
+              }
              }
-            }
             }
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));

@@ -58,5 +58,4 @@ abstract class OperateLogMethod
     const RECEIVE = 44;//领取销售线索
     const REFUND_TRAIL = 45;//退回线索
     const CREATE_STAR_SCHEDULE = 46;//创建艺人日程
-    const UPDATE_PROJECT_STATUS = 47;//更改项目进度
 }

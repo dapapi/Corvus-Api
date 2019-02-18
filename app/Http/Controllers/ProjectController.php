@@ -1094,7 +1094,7 @@ class ProjectController extends Controller
                 'title' => null,
                 'start' => $project->getProjectStatus($status1),
                 'end' => null,
-                'method' => OperateLogMethod::UPDATE_PROJECT_STATUS,
+                'method' => OperateLogMethod::FOLLOW_UP,
             ]);
             event(new OperateLogEvent([
                 $operate

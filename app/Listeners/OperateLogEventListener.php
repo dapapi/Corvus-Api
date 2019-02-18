@@ -96,7 +96,6 @@ class OperateLogEventListener
     protected $recevie = "领取了销售线索";
     protected $return_trail = "退回了销售线索,原因是:%s";
     protected $create_star_schedules = "创建了日程%s";
-    protected $update_project_status = "修改项目进度【%s】";
 
     /**
      * Handle the event.
@@ -403,9 +402,6 @@ class OperateLogEventListener
                     $level = OperateLogLevel::HIGH;
                     $content = sprintf($this->create_star_schedules,$title);
                     break;
-                case OperateLogMethod::UPDATE_PROJECT_STATUS://更改项目状态
-                    $level = OperateLogLevel::HIGH;
-                    $content = sprintf($this->update_project_status,$start);
 
             }
 

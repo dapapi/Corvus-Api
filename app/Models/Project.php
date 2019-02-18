@@ -172,4 +172,23 @@ class Project extends Model
         }
         return null;
     }
+    public function getProjectStatus($status){
+        if ($status == Project::STATUS_BEEVALUATING){
+            return "评估中";
+        }else if ($status == Project::STATUS_EVALUATINGACCOMPLISH){
+            return "评估完成";
+        }else if ($status == Project::STATUS_CONTRACT){
+            return "签约中";
+        }else if($status == Project::STATUS_CONTRACTACCOMPLISH){
+            return "签约完成";
+        }else if($status == Project::STATUS_EXECUTION){
+            return "执行中";
+        }else if($status == Project::STATUS_EXECUTIONACCOMPLISH){
+            return "执行完成";
+        }else if($status == Project::STATUS_RETURNEDMONEY){
+            return "回款中";
+        }else if($status == Project::STATUS_RETURNEDMONEYACCOMPLISH){
+            return "回款完成";
+        }
+    }
 }

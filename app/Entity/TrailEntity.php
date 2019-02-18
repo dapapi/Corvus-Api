@@ -9,118 +9,118 @@ namespace App\Entity;
 
 class TrailEntity
 {
-        /**
-     *@desc 
+    /**
+     *@desc 主键
      */
    private $id;
 
     /**
-     *@desc 
+     *@desc 线索名称
      */
    private $title;
 
     /**
-     *@desc 
+     *@desc 品牌
      */
    private $brand;
 
     /**
-     *@desc 
+     *@desc 负责人id
      */
    private $principal_id;
 
     /**
-     *@desc 
+     *@desc 行业
      */
    private $industry_id;
 
     /**
-     *@desc 
+     *@desc 客户
      */
    private $client_id;
 
     /**
-     *@desc 
+     *@desc 联系人
      */
    private $contact_id;
 
     /**
-     *@desc 
+     *@desc 创建人
      */
    private $creator_id;
 
     /**
-     *@desc 
+     *@desc 线索类型
      */
    private $type;
 
     /**
-     *@desc 
+     *@desc 线索状态
      */
    private $status;
 
     /**
-     *@desc 
+     *@desc 合作类型
      */
    private $cooperation_type;
 
     /**
-     *@desc 
+     *@desc 优先级
      */
    private $priority;
 
     /**
-     *@desc 
+     *@desc 锁价状态
      */
    private $lock_status;
 
     /**
-     *@desc 
+     *@desc 线索进度
      */
    private $progress_status;
 
     /**
-     *@desc 
+     *@desc 线索来源
      */
    private $resource;
 
     /**
-     *@desc 
+     *@desc 线索来源类型
      */
    private $resource_type;
 
     /**
-     *@desc 
+     *@desc 预计订单收入
      */
    private $fee;
 
     /**
-     *@desc 
+     *@desc 描述
      */
    private $desc;
 
     /**
-     *@desc 
+     *@desc 删除时间
      */
    private $deleted_at;
 
     /**
-     *@desc 
+     *@desc 创建时间
      */
    private $created_at;
 
     /**
-     *@desc 
+     *@desc 更新时间
      */
    private $updated_at;
 
     /**
-     *@desc 所属公海 1商务 2影视 3综艺
+     *@desc 所属公海
      */
    private $pool_type;
 
     /**
-     *@desc 领取 1未领取 2领取
+     *@desc 领取
      */
    private $take_type;
 

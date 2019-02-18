@@ -1017,7 +1017,6 @@ class ReportFormRepository
             ->groupBy(DB::raw('p.type,tfv.value'))->get()->toArray();
 
         $result = array_merge($result1,$result2);
-        dd($result);
         $list = [];
         $sum = array_sum(array_column($result,'total'));
         foreach ($result as $value){

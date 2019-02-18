@@ -226,6 +226,13 @@ class ApprovalMessageEventListener
         }
 
     }
+    public function sendMessageWhenProjectRemind(){
+        $send_to = $this->getNextApprovalUser();
+        $creator = User::find($this->creator_id);
+        $creator_name = $creator == null ? null : $creator->name;
+        $title = $subheading = "$creator_name 提醒你审批 $creator_name 的 $this->form_name";
+        $this->sendMessage($title,$subheading,$send_to);
+    }
 
     /**
      * @param $title
@@ -275,6 +282,32 @@ class ApprovalMessageEventListener
             return $this->instance->apply_id;
         }
         throw new \Exception("查找不到创建人");
+    }
+
+    //获取下一个审批人
+    public function getNextApprovalUser(){
+        //获取下一个审批人
+        $execute = Execute::where('form_instance_number',$this->instance->form_instance_number)->first();
+        $send_to = [];
+        if ($execute->current_handler_type == 245){//团队
+            $send_to[] = $execute->current_handler_id;
+        }elseif($execute->current_handler_type == 246){//创建人所在部门负责人
+            try{
+                //获取创建人
+                $creator_id = $this->getInstanceCreator();
+                $department_user = DepartmentUser::where("user_id",$creator_id)->first();
+                //获取部门负责人
+                $department_principal = DepartmentUser::where('department_id',$department_user->department_id)->where('type',1)->first();
+                $send_to[] = $department_principal == null ? $creator_id : $department_principal->user_id;
+            }catch (\Exception $e){
+                Log::error($e);
+            }
+        }elseif($execute->current_handler_type == 247){//角色
+            //获取角色
+            $users = RoleUser::where("role_id",$execute->current_handler_id)->select('user_id')->get()->toArray();
+            $send_to = array_column($users,'user_id');
+        }
+        return $send_to;
     }
 
 }

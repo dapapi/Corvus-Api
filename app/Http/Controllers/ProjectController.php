@@ -1076,6 +1076,17 @@ class ProjectController extends Controller
 
             $projects = ProjectStatusLogs::create($array);
 
+            $operate = new OperateEntity([
+                'obj' => $project,
+                'title' => null,
+                'start' => $status1,
+                'end' => null,
+                'method' => OperateLogMethod::UPDATE_PROJECT_STATUS,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
+
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

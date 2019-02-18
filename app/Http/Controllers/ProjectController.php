@@ -1092,7 +1092,7 @@ class ProjectController extends Controller
             $operate = new OperateEntity([
                 'obj' => $project,
                 'title' => null,
-                'start' => $status1,
+                'start' => $project->getProjectStatus($status1),
                 'end' => null,
                 'method' => OperateLogMethod::UPDATE_PROJECT_STATUS,
             ]);

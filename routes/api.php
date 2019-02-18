@@ -534,6 +534,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 //        $api->get("/reportfrom/starprojectanalysis", "App\Http\Controllers\ReportFormController@starProjectAnalysis");
         //博主报表
         $api->get("/reportfrom/bloggerreport", "App\Http\Controllers\ReportFormController@bloggerReport");
+        //博主报表导出
+        $api->get("/reportfrom/bloggerreport/explode", "App\Http\Controllers\ReportFormController@bloggerExport");
         //博主线索分析
 //        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
 //        博主项目分析

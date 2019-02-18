@@ -5,13 +5,15 @@ namespace App\Exports;
 use App\Models\Blogger;
 use Maatwebsite\Excel\Concerns\Exportable;
 use App\ModuleableType;
+use App\Repositories\ReportFormRepository;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Qiniu\Http\Request;
 
-class BloggersExport implements FromQuery, WithMapping, WithHeadings
+class BloggersStatementExport implements FromQuery, WithMapping, WithHeadings
 {
 
     use Exportable;
@@ -24,28 +26,15 @@ class BloggersExport implements FromQuery, WithMapping, WithHeadings
      */
     public function query()
     {
-
-        $array = [];//查询条件
-        //合同
-        $status = empty($status)?$array[] = ['sign_contract_status',2]:$array[] = ['sign_contract_status',$this->request['status']];
-        if( $this->request->has('name')){//姓名
-            $array[] = ['nickname','like','%'.$this->request['name'].'%'];
-        }
-
-        if($this->request->has('type')){//类型
-            $array[] = ['type_id',hashid_decode($this->request['type'])];
-        }
-        if($this->request->has('communication_status')){//沟通状态
-            $array[] = ['communication_status',$this->request['communication_status']];
-        }
-         return  Blogger::query()->where($array)->searchData()->leftJoin('operate_logs',function($join){
-             $join->on('bloggers.id','operate_logs.logable_id')
-                 ->where('logable_type',ModuleableType::BLOGGER)
-                 ->where('operate_logs.method','4');
-         })->groupBy('bloggers.id')
-             ->orderBy('up_at', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
-                 'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
-                 'bloggers.updated_at','bloggers.created_at','platform','sign_contract_other_name','operate_logs.updated_at as up_at']);
+        $request = $this->request;
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $sign_contract_status = $request->get('sign_contract_status',null);
+        $department = $request->get('department',null);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $department = $department == null ? null : hashid_decode($department);
+        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star);
 
 
     }

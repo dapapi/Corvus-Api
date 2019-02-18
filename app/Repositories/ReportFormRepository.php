@@ -5,7 +5,9 @@ namespace App\Repositories;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Contact;
+use App\OperateLogMethod;
 use App\Models\OperateEntity;
+use App\Models\OperateLog;
 use App\Models\Project;
 use App\Models\Star;
 use App\Models\Trail;
@@ -1170,19 +1172,24 @@ class ReportFormRepository
                 ->leftJoin(DB::raw("({$sub_query->toSql()}) as op"),function ($join){
                     $join->on('op.logable_id','=','b.id')
                         ->where('op.logable_type','=',ModuleableType::BLOGGER)//可能有问题
-                        ->where('op.method','=',OperateEntity::UPDATED_AT);
+                     //   ->where('op.method','=',OperateEntity::UPDATED_AT);
+                    ->where('op.method','=',OperateLogMethod::FOLLOW_UP);
                 })->leftJoin("blogger_types as bt","bt.id","b.type_id")
                 ->where($arr)
                 ->groupBy('b.id')
                 ->select('b.nickname','bt.name as type_id','b.communication_status','b.created_at','op.created_at as last_update_at')
                 ->get();
+//            $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
+//        dd($sql_with_bindings);
         }else{
             //合同，预计订单收入，花费金额都没查呢
             $bloggers = (new Blogger())->setTable("b")->from("bloggers as b")
                 ->leftJoin("module_users as mu",function ($join){
                     $join->on('mu.moduleable_id','=','b.id')
-                        ->where('mu.moduleable_type','=',ModuleableType::STAR)//艺人
-                        ->where('mu.type','=',ModuleUserType::BROKER);//经纪人
+                        // 从 star 修改成  blogger    张
+                        ->where('mu.moduleable_type','=',ModuleableType::BLOGGER)//艺人
+                        // 从 star 修改成  blogger    张
+                        ->where('mu.type','=',ModuleUserType::PRODUCER);//制作人
                 })->leftJoin("department_user as du",'du.user_id','=','mu.user_id')
                 ->leftJoin('departments as d','d.id','=','du.department_id')
                 ->leftJoin("trail_star as ts",function ($join){
@@ -1193,6 +1200,9 @@ class ReportFormRepository
                 ->leftJoin('projects as p','p.trail_id','=','t.id')
                 ->where($arr)
                 ->groupBy('b.id')
+//                       $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
+//        dd($sql_with_bindings);
+
                 ->get([
                     'b.id','b.nickname','sign_contract_status',
                     DB::raw('sum(distinct t.fee) as total_fee'),

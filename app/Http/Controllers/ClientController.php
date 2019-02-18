@@ -19,6 +19,7 @@ use App\OperateLogMethod;
 use App\TriggerPoint\ClientTriggerPoint;
 use App\User;
 use Carbon\Carbon;
+use App\ModuleableType;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,9 +33,18 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $clients = Client::orderBy('created_at', 'desc')
-            ->searchData()
+        $clients = Client::searchData()
+            ->leftJoin('operate_logs',function($join){
+                $join->on('clients.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::CLIENT)
+                    ->where('operate_logs.method','4');
+            })->groupBy('clients.id')
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
+                'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
+                'operate_logs.updated_at as up_time'])
             ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+//        dd($sql_with_bindings);
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
@@ -206,7 +216,17 @@ class ClientController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData() ->leftJoin('operate_logs',function($join){
+            $join->on('clients.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::CLIENT)
+                ->where('operate_logs.method','4');
+        })->groupBy('clients.id')
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
+                'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
+                'operate_logs.updated_at as up_time'])
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+//        dd($sql_with_bindings);
 
         return $this->response->paginator($clients, new ClientTransformer());
     }

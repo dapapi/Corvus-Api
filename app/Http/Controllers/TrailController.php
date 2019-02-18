@@ -19,6 +19,7 @@ use App\Models\Department;
 use App\Models\FilterJoin;
 use App\Models\Industry;
 use App\Models\Message;
+use App\ModuleableType;
 use App\Models\OperateEntity;
 use App\Models\Client;
 use App\Models\Contact;
@@ -67,7 +68,17 @@ class TrailController extends Controller
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
 
-        })->searchData()->poolType()->orderBy('created_at', 'desc')
+        })
+            ->searchData()->poolType()
+            //->orderBy('created_at', 'desc')
+            ->leftJoin('operate_logs',function($join){
+                $join->on('trails.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::TRAIL)
+                    ->where('operate_logs.method','4');
+            })->groupBy('trails.id')
+            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+                'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
+                'trails.updated_at','trails.created_at','pool_type','take_type','receive','operate_logs.updated_at'])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
@@ -925,7 +936,19 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->poolType()
+            ->leftJoin('operate_logs',function($join){
+                $join->on('trails.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::TRAIL)
+                    ->where('operate_logs.method','4');
+            })->groupBy('trails.id')
+            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+                'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
+                'trails.updated_at','trails.created_at','pool_type','take_type','receive','operate_logs.updated_at'])
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+//        dd($sql_with_bindings);
+
         return $this->response->paginator($trails, new TrailTransformer());
     }
 

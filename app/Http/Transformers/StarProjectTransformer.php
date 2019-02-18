@@ -10,11 +10,11 @@ class StarProjectTransformer extends TransformerAbstract
     public function transform(Project $project)
     {
         return [
-            "id"    =>  $project->id,
+            "id"    =>   hashid_encode($project->id),
             "title" =>  $project->title,
             "principal"    =>   $this->getPrincipalName($project),
             "company"  => $this->getCompanyName($project),
-            "created_at"    =>  $project->created_at,
+            "created_at"    =>  $project->created_at->toDateTimeString()
         ];
     }
     private function getPrincipalName($project)

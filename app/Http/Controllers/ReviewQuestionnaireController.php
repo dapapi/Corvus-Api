@@ -9,6 +9,8 @@ use App\Http\Transformers\ReviewQuestionnaireShowTransformer;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Production;
+use App\Models\Task;
+use App\Models\TaskType;
 use App\Models\ReviewQuestion;
 use App\Models\ReviewQuestionItem;
 use App\Models\ModuleUser;
@@ -168,11 +170,35 @@ class ReviewQuestionnaireController extends Controller {
 
                     }
                 }
+                //获取视频评分调查问卷截止时间
+                $number = date("w",time());  //当时是周几
+                $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
+                $diff_day = $number - 8; //求到周一差几天
+                $deadline = date("Y-m-d 00:00:00",time() - ($diff_day * 60 * 60 * 24));
+                $task = new Task();
+                $task->title = '评优团视频评分任务';
+                $task->start_at = now()->toDateTimeString();
+                $task->end_at = $deadline;
+                $task->creator_id = $user->id;
+                $task->principal_id = $user->id;
+                $task->privacy = 0;
+                $departmentId = $user->department()->first()->id;
+                $taskType = TaskType::where('title', '视频评分')->where('department_id', $departmentId)->first();
+                if ($taskType) {
+                    $taskTypeId = $taskType->id;
+                } else {
+                    return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+                }
+
+                $task->principal_id = $user->id;
+                $task->type_id = $taskTypeId;
+                $task->save();
 
                 $reviewquestionnairemodel = new ReviewQuestionnaire;
 
                 $reviewquestionnairemodel->name = '评优团视频评分任务-视频评分';
                 $reviewquestionnairemodel->creator_id = $array['creator_id'];
+                $reviewquestionnairemodel->task_id = $task->id;
                 //  $now = now()->toDateTimeString();
                 $number = date("w",time());  //当时是周几
                 $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
@@ -182,7 +208,7 @@ class ReviewQuestionnaireController extends Controller {
                 $reviewquestionnairemodel->excellent_sum = $payload['excellent_sum'];
                 $reviewquestionnairemodel->reviewable_id = $reviewquestionnaire->id;
                 $reviewquestionnairemodel->excellent = $payload['excellent'];
-                $reviewquestionnairemodel->reviewable_type = 'production';
+                $reviewquestionnairemodel->reviewable_type = 'reviewquestionnaire';
                 $reviewquestionnairemodel->auth_type = '2';
                 $reviewquestionnaireadd = $reviewquestionnairemodel->save();
 

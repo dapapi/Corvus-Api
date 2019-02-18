@@ -40,7 +40,7 @@ class TaskUpdateRequest extends FormRequest
             'principal_id' => 'numeric',
             'privacy' => 'boolean',
             'priority' => Rule::in([TaskPriorityStatus::NOTHING, TaskPriorityStatus::HIGH, TaskPriorityStatus::MIDDLE, TaskPriorityStatus::LOW]),
-            'start_at' => 'date|after_or_equal:curr_date',
+            'start_at' => 'date',
             'end_at' => 'date|after_or_equal:start_at',
         ];
     }

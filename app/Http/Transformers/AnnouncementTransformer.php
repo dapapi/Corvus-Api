@@ -14,7 +14,7 @@ class AnnouncementTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['scope','creator'];
+    protected $availableIncludes = ['scope','creator','affixes'];
 
     public function transform(Announcement $announcement)
     {

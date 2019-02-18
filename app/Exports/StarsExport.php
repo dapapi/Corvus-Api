@@ -3,6 +3,7 @@
 namespace App\Exports;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Star;
+use App\CommunicationStatus;
 use App\ModuleableType;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -32,6 +33,8 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
         }
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
+        }else{
+            $array[] = ['sign_contract_status', 2];
         }
         if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
             $array[] = ['communication_status', $payload['communication_status']];
@@ -59,9 +62,12 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
         $birthday = $star->birthday;
         $source = $this->source($star->source);
         $phone= $star->phone;
-        $eamail = $star->eamail;
+        $eamail = $star->email;
         $platform = $this->platform($star->platform);
         $artist_scout_name = $star->artist_scout_name;
+        $star_location =  $star->star_location;
+        $communication_status = CommunicationStatus::getStr($star->communication_status);
+        $intention = $this->getStr($star->intention);
         $sign_contract_other = $star->sign_contract_other == 1?'是':'否';
         return [
             $name,
@@ -72,8 +78,10 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
             $eamail,
             $platform,
             $artist_scout_name,
+            $star_location,
+            $communication_status,
+            $intention,
             $sign_contract_other
-
         ];
     }
 
@@ -95,6 +103,19 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
 
 
         ];
+    }
+    private function getStr($key)
+    {
+        $start = '';
+        switch ($key) {
+            case 1:
+                $start = '是';
+                break;
+            case 2:
+                $start = '否';
+                break;
+        }
+        return $start;
     }
     /**
      * @param string $type

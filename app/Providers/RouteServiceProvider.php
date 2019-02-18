@@ -18,6 +18,7 @@ use App\Models\Project;
 use App\Models\Report;
 use App\Models\Review;
 use App\Models\Announcement;
+use App\Models\AnnouncementClassify;
 use App\Models\Issues;
 use App\Models\Client;
 use App\Models\Production;
@@ -262,6 +263,15 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Announcement::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+        Route::bind('announcementClassify', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = AnnouncementClassify::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

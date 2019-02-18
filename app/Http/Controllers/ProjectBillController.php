@@ -21,7 +21,7 @@ use Exception;
 
 class ProjectBillController extends Controller
 {
-    public function index(Request $request, Blogger $Blogger, Star $star, Project $project)
+    public function index(Request $request, Blogger $blogger, Star $star, Project $project)
     {
         $payload = $request->all();
 
@@ -37,22 +37,27 @@ class ProjectBillController extends Controller
         } else {
             $array['expense_type'] = '';
         }
-        if ($Blogger && $Blogger->id) {
-            $array['action_user'] = $Blogger->nickname;
+        if ($blogger) {
+            $array['action_user'] = $blogger->nickname;
 
-        } else if ($project && $project->id) {
+        }
+
+        if ($project) {
             $approval = (new ApprovalContractController())->projectList($request, $project);
             $dataOne = array();
-            foreach ($approval['data'] as $key => $value) {
-                foreach ($value['stars_name'] as $key1 => $value1) {
+            $data = [];
+            foreach ($approval['data'] as $key => $contract) {
+                foreach ($contract['stars_name'] as $key1 => $talent) {
 
-                    $data[$key][$key1] = $value1->name;
+                    if ($contract['star_type'] == 'stars')
+                        $data[$key][$key1] = $talent->name;
+                    if ($contract['star_type'] == 'bloggers')
+                        $data[$key][$key1] = $talent->nickname;
                     // $dataOne[] = $value1->name;
                     //    $dataOne = array_unique($dataOne);
                 }
-
-                $dataOne[] = implode('/', $data[$key]);
-
+                $dataOne = $data[$key];
+            //    $dataOne[] = implode('/', $data[$key]);
 
             }
             $array['project_kd_name'] = $project->title;
@@ -63,7 +68,9 @@ class ProjectBillController extends Controller
                 $divide = null;
             }
 
-        } else if ($star && $star->id) {
+        }
+
+        if ($star) {
             $array['artist_name'] = $star->name;
         }
 
@@ -84,18 +91,17 @@ class ProjectBillController extends Controller
             $array['expense_type'] = '收入';
             $incomesum = ProjectBill::where($array)->select(DB::raw('sum(money) as incomesum'))->groupby('expense_type')->first();
             $array['expense_type'] = '支出';
-           // dd(ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum')));
+            // dd(ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum')));
             $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
 
             unset($array['expense_type']);
         }
         $projectbill = ProjectBill::where($array)->createDesc()->paginate($pageSize);
         $result = $this->response->paginator($projectbill, new ProjectBillTransformer());
-        if($project && $project->id) {
+        if ($project && $project->id) {
             $result->addMeta('appoval', $approval);
             $result->addMeta('datatitle', $dataOne);
         }
-
 
 
         if (!empty($expendituresum) && isset($expendituresum))
@@ -229,7 +235,7 @@ class ProjectBillController extends Controller
                     $date['money'] = $payload['star'][$key]['money'];
                     $date['moduleable_title'] = $payload['star'][$key]['moduleable_title'];
 
-                     ProjectBillsResourceUser::updateOrCreate($dateid, $date);
+                    ProjectBillsResourceUser::updateOrCreate($dateid, $date);
                 }
             }
 //

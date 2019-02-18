@@ -295,10 +295,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}/contracts', 'App\Http\Controllers\ContractController@getClientContracts');
         //announcement
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
+        $api->get('/announcements/Classify', 'App\Http\Controllers\AnnouncementController@getClassify');
+        $api->post('/announcements/Classify', 'App\Http\Controllers\AnnouncementController@addClassify');
+        $api->delete('/announcements/Classify/{announcementClassify}', 'App\Http\Controllers\AnnouncementController@deleteClassify');
+        $api->put('/announcements/Classify/{announcementClassify}', 'App\Http\Controllers\AnnouncementController@updateClassify');
         $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');
         $api->put('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@edit');
         $api->delete('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@remove');
         $api->post('/announcements', 'App\Http\Controllers\AnnouncementController@store');
+
         //  report
         $api->get('/report', 'App\Http\Controllers\ReportController@index');
         $api->post('/report', 'App\Http\Controllers\ReportController@store');
@@ -364,6 +369,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
         //查看问劵
         $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
+
+      //  $api->post('/bloggers/{blogger}/producer/{id}', 'App\Http\Controllers\ReviewQuestionnaireController@store');
+
         $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
         $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
         $api->post('/reviewquestionnaires/{reviewquestionnaire}/create/excellent', 'App\Http\Controllers\ReviewQuestionnaireController@storeExcellent');

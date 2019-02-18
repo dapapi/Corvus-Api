@@ -35,6 +35,7 @@ use App\Models\StarDouyinInfo;
 use App\Models\BloggerProducer;
 use App\Events\OperateLogEvent;
 use App\Models\Task;
+use App\ModuleableType;
 use App\Models\TaskResource;
 use App\Repositories\OperateLogRepository;
 use App\Models\OperateEntity;
@@ -76,7 +77,17 @@ class BloggerController extends Controller
             $array[] = ['communication_status',$payload['communication_status']];
         }
         // sign_contract_status   签约状态
-        $bloggers = Blogger::where($array)->searchData()->createDesc()->paginate($pageSize);
+        $bloggers = Blogger::where($array)->searchData()->leftJoin('operate_logs',function($join){
+            $join->on('bloggers.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::BLOGGER)
+                ->where('operate_logs.method','4');
+        })->groupBy('bloggers.id')
+            ->orderBy('up_at', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
+                'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
+                'bloggers.updated_at','bloggers.created_at','sign_contract_other_name','operate_logs.updated_at as up_at'])
+            ->paginate($pageSize);
+//                $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
+//        dd($sql_with_bindings);
         return $this->response->paginator($bloggers, new BloggerTransformer());
     }
     public function all(Request $request)

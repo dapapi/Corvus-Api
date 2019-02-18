@@ -61,9 +61,18 @@ class StarController extends Controller
             $array[] = ['source', $payload['source']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $stars = Star::createDesc()
-            ->searchData()
-        ->where($array)//根据条件查询
+        $stars = Star::where($array)->searchData()->leftJoin('operate_logs',function($join){
+            $join->on('stars.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::STAR)
+                ->where('operate_logs.method','4');
+        })->groupBy('stars.id')
+            ->orderBy('up_at', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
+                'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
+                'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
+                'platform','stars.created_at','operate_logs.updated_at as up_at'])
+        //根据条件查询
+//               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
         ->paginate($pageSize);
         return $this->response->paginator($stars, new StarTransformer());
     }

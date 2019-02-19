@@ -844,15 +844,22 @@ class PersonnelManageController extends Controller
     {
         $payload = $request->all();
         $userid = $user->id;
-        $res = $this->getImages($payload['name'],$userid);
-        $resUrl = $this->updateStore($userid,$res,$request);
+        /*
+         * icon_url 有值 用传入的值 如果没有则生成头像上传
+         */
+        if($payload['icon_url']){
+            $resUrl = $payload['icon_url'];
+        }else{
+            $res = $this->getImages($payload['name'],$userid);
+            $resUrl = $this->updateStore($userid,$res,$request);
+        }
         try {
             $array = [
                 'name' => $payload['name'],
                 'position_id' => $payload['position_id'],
                 'icon_url' => $resUrl,
             ];
-
+           
             $user->update($array);
         } catch (\Exception $exception) {
             Log::error($exception);

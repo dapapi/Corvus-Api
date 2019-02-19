@@ -731,7 +731,7 @@ class PersonnelManageController extends Controller
                 'department_id' => User::USER_DEPARTMENT_DEFAULT,
                 'user_id' => $userid,
             ];
-           // DepartmentUser::create($departmentarray);
+            DepartmentUser::create($departmentarray);
             //加入成员角色
             $roleUser = RoleUser::where('user_id',$userid)->get()->toArray();
             if(empty($roleUser)){
@@ -750,6 +750,8 @@ class PersonnelManageController extends Controller
         }else{
             $array = [
                 'entry_status' => $payload['entry_status'],
+                'phone' => '',
+                'email' => '',
             ];
         }
         try {
@@ -926,8 +928,8 @@ class PersonnelManageController extends Controller
             imagefill($myImage, 0, 0, $strColor.rand(1, 8));
 
             $str = $this->getColorNameInfo($name);
-            $path = base_path();
-            $fontUrl = $path.'/resources/font/Heiti.ttc';
+            //$path = base_path();
+            $fontUrl = '../resources/font/Heiti.ttc';
 
             if(preg_match("/^[a-zA-Z\s]+$/",$str))
             {
@@ -940,9 +942,9 @@ class PersonnelManageController extends Controller
             $path = base_path();
             //header('content-type:image/png');
             $code = rand(1000000000, 9999999999);
-            imagepng($myImage,$path."/photo/"."userid".$userid.'-'.$code.".png");
+            imagepng($myImage,"../photo/"."userid".$userid.'-'.$code.".png");
             $arr = array();
-            $arr['url'] = $path."/photo/"."userid".$userid.'-'.$code.".png";
+            $arr['url'] = "../photo/"."userid".$userid.'-'.$code.".png";
             $arr['url_name'] = "userid".$userid.'-'.$code.".png";
             return $arr;
     }

@@ -115,7 +115,6 @@ class PersonnelManageController extends Controller
     public function store(Request $request,User $user)
     {
         $payload = $request->all();
-        $user = Auth::guard('api')->user();
         $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
         $useremail = User::where('email', $payload['email'])->get()->keyBy('email')->toArray();
         $pageSize = config('api.page_size');
@@ -127,10 +126,20 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('手机号已经被注册!');
         }else{
 
-            if(!isset($payload['icon_url'])){
+//            if(!isset($payload['icon_url'])){
+//
+//                $iconName = $this->getColorName($payload['name']);
+//                $payload['icon_url'] = $iconName;
+//            }
 
-                $iconName = $this->getColorName($payload['name']);
-                $payload['icon_url'] = $iconName;
+            /*
+            * icon_url 有值 用传入的值 如果没有则生成头像上传
+            */
+            if($payload['icon_url']){
+                $payload['icon_url'] = $payload['icon_url'];
+            }else{
+                $res = $this->getImages($payload['name'],$userid=0);
+                $payload['icon_url'] = $this->updateStore($userid,$res,$request);
             }
             $payload['status'] = User::USER_STATUS_DEFAULT;
             $payload['hire_shape'] = User::USER_STATUS_DEFAULT;
@@ -404,6 +413,15 @@ class PersonnelManageController extends Controller
         $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
         try {
             //生成头像
+            /*
+            * icon_url 有值 用传入的值 如果没有则生成头像上传
+            */
+            if($payload['icon_url']){
+                $payload['icon_url'] = $payload['icon_url'];
+            }else{
+                $res = $this->getImages($payload['name'],$userid);
+                $payload['icon_url'] = $this->updateStore($userid,$res,$request);
+            }
 
             $array = [
                 'department_id' => $payload['department_id'],
@@ -437,11 +455,11 @@ class PersonnelManageController extends Controller
 //            if(!empty($userPhone)){
 //                return $this->response->errorInternal('手机号已经注册！');
 //            }
-            $icon_url = $this->getColorName($payload['name']);
+            //$icon_url = $this->getColorName($payload['name']);
 
             unset($payload['department']);
             unset($payload['department_id']);
-            $payload['icon_url'] = $icon_url;
+           // $payload['icon_url'] = $icon_url;
             $user->update($payload);
             //$personalDetail->update($payload);
 
@@ -859,7 +877,7 @@ class PersonnelManageController extends Controller
                 'position_id' => $payload['position_id'],
                 'icon_url' => $resUrl,
             ];
-           
+
             $user->update($array);
         } catch (\Exception $exception) {
             Log::error($exception);

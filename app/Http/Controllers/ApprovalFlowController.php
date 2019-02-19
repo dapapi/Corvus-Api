@@ -493,7 +493,7 @@ class ApprovalFlowController extends Controller
     public function remind(Request $request, $instance){
         $user = Auth::guard('api')->user();
         $authorization = $request->header()['authorization'][0];
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::TRANSFER,$authorization,$user));
+        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::REMIND,$authorization,$user));
     }
 
     public function discard(Request $request, $instance)

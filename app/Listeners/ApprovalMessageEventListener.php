@@ -116,6 +116,7 @@ class ApprovalMessageEventListener
                 $this->sendMessageWhenNotify();
                 break;
             case ApprovalTriggerPoint::REMIND://提醒
+                $this->sendMessageWhenProjectRemind();
                 break;
             case ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE://项目合同审批通过
                 break;

@@ -483,6 +483,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/personnel/position/{user}', 'App\Http\Controllers\PersonnelManageController@editPosition');//
         //获取公司列表
         $api->get('/company', 'App\Http\Controllers\PersonnelManageController@getCompany');
+        //后台修改个人资料
+        $api->put('/edit/data/{user}', 'App\Http\Controllers\PersonnelManageController@editData');//
 
 
 

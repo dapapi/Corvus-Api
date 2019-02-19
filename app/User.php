@@ -107,6 +107,7 @@ class User extends Authenticatable
     const  USER_ENTRY_STATUS = 3; //hr审核状态已同意
 
     const  USER_DEPARTMENT_DEFAULT = 1; //hr审核通过 默认职位未分配职位
+    const  USER_ROLE_DEFAULT = 112; //hr审核通过 默认成员角色
 
 
 

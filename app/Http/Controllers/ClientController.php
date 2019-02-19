@@ -38,10 +38,12 @@ class ClientController extends Controller
                 $join->on('clients.id','operate_logs.logable_id')
                     ->where('logable_type',ModuleableType::CLIENT)
                     ->where('operate_logs.method','4');
-            })->groupBy('clients.id')
+
+            })
+            ->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
                 'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
-                'operate_logs.updated_at as up_time'])
+                DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
 //        dd($sql_with_bindings);
@@ -223,7 +225,7 @@ class ClientController extends Controller
         })->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
                 'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
-                'operate_logs.updated_at as up_time'])
+                DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
 //        dd($sql_with_bindings);

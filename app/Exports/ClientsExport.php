@@ -7,6 +7,7 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use App\ModuleableType;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
@@ -47,7 +48,7 @@ class ClientsExport implements FromQuery, WithMapping, WithHeadings
         })->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
                 'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
-                'operate_logs.updated_at as up_time']);
+                DB::raw("max(operate_logs.updated_at) as up_time")]);
 
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
 //        dd($sql_with_bindings);

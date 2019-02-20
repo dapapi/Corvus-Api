@@ -811,7 +811,6 @@ class PersonnelManageController extends Controller
     public function entryDetail(Request $request, User $user)
     {
         return $this->response->item($user, new UserTransformer());
-
     }
 
     public function editPosition(Request $request, User $user)

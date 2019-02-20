@@ -42,7 +42,7 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
         if ($request->has('source') && !empty($payload['source'])) {//艺人来源
             $array[] = ['source', $payload['source']];
         }
-        $stars = Star::query()->searchData()->leftJoin('operate_logs',function($join){
+        $stars = Star::query()->where($array)->searchData()->leftJoin('operate_logs',function($join){
             $join->on('stars.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::STAR)
                 ->where('operate_logs.method','4');

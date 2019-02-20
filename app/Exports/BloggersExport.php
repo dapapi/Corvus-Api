@@ -27,7 +27,8 @@ class BloggersExport implements FromQuery, WithMapping, WithHeadings
 
         $array = [];//查询条件
         //合同
-        $status = empty($status)?$array[] = ['sign_contract_status',2]:$array[] = ['sign_contract_status',$this->request['status']];
+        $status = $this->request->get('status', config('app.status'));
+        $status = empty($status)?$array[] = ['sign_contract_status',2]:$array[] = ['sign_contract_status',$status];
         if( $this->request->has('name')){//姓名
             $array[] = ['nickname','like','%'.$this->request['name'].'%'];
         }

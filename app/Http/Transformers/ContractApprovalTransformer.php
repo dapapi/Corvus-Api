@@ -25,6 +25,9 @@ class ContractApprovalTransformer extends TransformerAbstract
             'form_status' => $obj->form_status,
             'id' => hashid_encode($obj->id),
             'name' => $obj->name,
+            'icon_url'  =>  $obj->icon_url,
+            'icon'  =>  $obj->icon,
+            'approval_status_name'  =>  $obj->approval_status_name
         ];
     }
 }

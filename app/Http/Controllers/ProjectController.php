@@ -98,7 +98,7 @@ class ProjectController extends Controller
         });
         if ($request->has('my')){
             switch ($payload['my']){
-                case 'my_principal'://我负责
+                case 'principal_id'://我负责
                     $query->where('principal_id', $user->id);
                     break;
                 case 'my_participant'://我参与
@@ -120,10 +120,10 @@ class ProjectController extends Controller
                 ->where('logable_type',ModuleableType::PROJECT)
                 ->where('operate_logs.method','4');
         })->groupBy('projects.id')
-        ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
-            'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc'])
+        ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
+            'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
 //        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
-//
+////
 //        dd($sql_with_bindings);
         ->paginate($pageSize);
         //  修改项目排序   按跟进时间  和 创建时间排序
@@ -1205,11 +1205,8 @@ class ProjectController extends Controller
             ->where('logable_type',ModuleableType::PROJECT)
             ->where('operate_logs.method','2');
         })->groupBy('projects.id')
-            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
-                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc'])
-//        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
-//
-//        dd($sql_with_bindings);
+            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
+                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
             ->paginate($pageSize);
                //  修改项目排序   按跟进时间  和 创建时间排序
         return $this->response->paginator($projects, new ProjectTransformer());

@@ -4,6 +4,7 @@ namespace App\Exports;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Project;
 use App\ModuleableType;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -61,8 +62,8 @@ class ProjectsExport implements FromQuery, WithMapping, WithHeadings
                     ->where('logable_type',ModuleableType::PROJECT)
                     ->where('operate_logs.method','2');
             })->groupBy('projects.id')
-            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
-                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc']);
+            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
+                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc']);
          return  $projects;
 
 

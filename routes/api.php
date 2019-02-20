@@ -242,7 +242,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
         $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
-         //账单
+        //账单
         $api->get('/bloggers/{blogger}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->get('/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
@@ -364,13 +364,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //review
         //查看问题
-      //  $api->get('/tasks/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
+        //  $api->get('/tasks/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->get('/reviews/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
         //查看问劵
         $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
 
-      //  $api->post('/bloggers/{blogger}/producer/{id}', 'App\Http\Controllers\ReviewQuestionnaireController@store');
+        //  $api->post('/bloggers/{blogger}/producer/{id}', 'App\Http\Controllers\ReviewQuestionnaireController@store');
 
         $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
         $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
@@ -483,8 +483,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/personnel/position/{user}', 'App\Http\Controllers\PersonnelManageController@editPosition');//
         //获取公司列表
         $api->get('/company', 'App\Http\Controllers\PersonnelManageController@getCompany');
-        //后台修改个人资料
-        $api->put('/edit/data/{user}', 'App\Http\Controllers\PersonnelManageController@editData');//
 
 
 
@@ -525,11 +523,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get("/reportfrom/percentageofproject", "App\Http\Controllers\ReportFormController@percentageOfProject");
         //客户报表
         $api->get("/reportfrom/clientreport", "App\Http\Controllers\ReportFormController@clientReport");
+        //客户报表导出
+        $api->get("/reportfrom/clientreport/explode", "App\Http\Controllers\ReportFormController@clientExport");
+
         //客户分析
         $api->get("/reportfrom/clientanalysis", "App\Http\Controllers\ReportFormController@clientAnalysis");
 
         //艺人报表
         $api->get("/reportfrom/starreport", "App\Http\Controllers\ReportFormController@starReport");
+        //博主报表导出
+        $api->get("/reportfrom/starreport/explode", "App\Http\Controllers\ReportFormController@starExport");
         //艺人线索分析
         $api->get("/reportfrom/startrailanalysis", "App\Http\Controllers\ReportFormController@starTrailAnalysis");
         //艺人项目分析
@@ -582,7 +585,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/position/disable', 'App\Http\Controllers\DepartmentController@disableList');
         $api->put('/position/disable/{user}', 'App\Http\Controllers\DepartmentController@disableEdit');
 
-        
+
         /*公海池*/
         $api->get('/pool','App\Http\Controllers\SeasPoolController@index');
         //领取
@@ -701,7 +704,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_instances/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
         $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
         $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
-        $api->put('/approval_instances/{instance}/remind', 'App\Http\Controllers\ApprovalFlowController@remind');
+
         //任务转私密
         $api->post('/task/secret/{task}', 'App\Http\Controllers\TaskController@secret');
 

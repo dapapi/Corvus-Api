@@ -25,11 +25,15 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
     {
         $request = $this->request;
         $payload =  $request->all();
-        return $trails = Trail::where(function ($query) use ($request, $payload) {
+
+        return $trails =  $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']))
-                $query->where('progress_status', $payload['status']);
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
+                $query->where('type', $payload['status']);
+            else if($request->has('status') && $payload['status'] == '3,4'){
+                $query->whereIn('type', [3,4]);
+            }
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -38,12 +42,9 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-            if($request->has('type') && $payload['type'])
-                $query->where('type',$payload['type']);
 
-        })
-            ->searchData()->poolType()
-            //->orderBy('created_at', 'desc')
+        })->searchData()->poolType()
+
             ->leftJoin('operate_logs',function($join){
                 $join->on('trails.id','operate_logs.logable_id')
                     ->where('logable_type',ModuleableType::TRAIL)
@@ -52,10 +53,9 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
             ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
                 'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")]);
-//                        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
-////
-//        dd($sql_with_bindings);
-    }
+
+               }
+
 
     /**
      * @param Trail $trail

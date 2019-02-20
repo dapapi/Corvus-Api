@@ -28,7 +28,7 @@ class ClientsExport implements FromQuery, WithMapping, WithHeadings
     {
         $request = $this->request;
         $payload =  $request->all();
-        return $clients = Client::where(function ($query) use ($request, $payload) {
+       return $clients = Client::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('grade'))

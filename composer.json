@@ -26,7 +26,6 @@
         "webpatser/laravel-uuid": "^3.0",
         "zgldh/qiniu-laravel-storage": "^0.10.0"
     },
-    
     "require-dev": {
         "filp/whoops": "^2.0",
         "fzaninotto/faker": "^1.4",

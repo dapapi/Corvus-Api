@@ -762,21 +762,16 @@ class PersonnelManageController extends Controller
                 RoleUser::create($rolearray);
             }else{
                 return $this->response->errorInternal('该用户已存在角色');
-
             }
-
-
         }else{
-
             $array = [
                 'entry_status' =>$payload['entry_status'],
-                'phone' =>0,
-                'email' =>0,
+                'phone' =>1,
+                'email' =>1,
             ];
-
         }
         try {
-//                // 操作日志
+                // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $user,
                     'title' => null,

@@ -23,7 +23,8 @@
         "overtrue/laravel-wechat": "~4.0",
         "predis/predis": "^1.1",
         "textalk/websocket": "^1.2",
-        "webpatser/laravel-uuid": "^3.0"
+        "webpatser/laravel-uuid": "^3.0",
+        "zgldh/qiniu-laravel-storage": "^0.10.0"
     },
     "require-dev": {
         "filp/whoops": "^2.0",

@@ -492,6 +492,7 @@ class ApprovalFlowController extends Controller
     //消息提醒
     public function remind(Request $request, $instance){
         $user = Auth::guard('api')->user();
+        
         $authorization = $request->header()['authorization'][0];
         event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::REMIND,$authorization,$user));
     }

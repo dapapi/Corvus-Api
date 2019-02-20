@@ -28,7 +28,7 @@ class ClientsExport implements FromQuery, WithMapping, WithHeadings
     {
         $request = $this->request;
         $payload =  $request->all();
-        $clients = Client::where(function ($query) use ($request, $payload) {
+        return $clients = Client::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('grade'))
@@ -38,10 +38,9 @@ class ClientsExport implements FromQuery, WithMapping, WithHeadings
                     $id = hashid_decode((int)$id);
                 }
                 unset($id);
-                $query->query()->whereIn('principal_id', $payload['principal_ids']);
+                $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        });
-        return  $clients->searchData()->leftJoin('operate_logs',function($join){
+        })->searchData() ->leftJoin('operate_logs',function($join){
             $join->on('clients.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::CLIENT)
                 ->where('operate_logs.method','4');

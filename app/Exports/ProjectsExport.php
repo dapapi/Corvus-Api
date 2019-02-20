@@ -27,13 +27,12 @@ class ProjectsExport implements FromQuery, WithMapping, WithHeadings
     {
         $request = $this->request;
         $payload = $request->all();
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $user = Auth::guard("api")->user();
-        $userid = $user->id;
-
-        $projects = Project::query()->where(function ($query) use ($request, $payload,$userid) {
+        $user = Auth::guard('api')->user();
+        $project_type = $request->get('project_type',null);
+        $query =  Project::where(function ($query) use ($request, $payload,$user,$project_type) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -42,29 +41,97 @@ class ProjectsExport implements FromQuery, WithMapping, WithHeadings
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-            if($request->has('administration'))
-                $query->where('principal_id','<>' ,$userid);
-            if($request->has('principal_id'))
-                $query->where('principal_id',$userid);
 
-            if ($request->has('type') && $payload['type'] <> '3,4'){
-                $query->where('type', $payload['type']);
-            }
-            if($request->has('type') && $payload['type'] == '3,4'){
-                $query->whereIn('type',[3,4]);
-            }
-            if ($request->has('status'))
-                $query->where('projects.status', $payload['status']);
+            if ($request->has('project_type') && $project_type <> '3,4' ){
+                $query->where('type',$project_type);
 
-        })->searchData()
+            }
+            if($request->has('project_type') && $project_type == '3,4'){
+                $query->whereIn('type',[$project_type]);
+            }
+            if ($request->has('status'))#项目状态
+                $query->where('status', $payload['status']);
+        });
+        if ($request->has('my')){
+            switch ($payload['my']){
+                case 'my_principal'://我负责
+                    $query->where('principal_id', $user->id);
+                    break;
+                case 'my_participant'://我参与
+                    $query->leftJoin("module_users as mu2",function ($join){
+                        $join->on("mu2.moduleable_id","projects.id")
+                            ->where('mu2.moduleable_type',ModuleableType::PROJECT);
+                    })->where('mu2.user_id',$user->id);
+                    break;
+                case 'my_create'://我创建
+                    $query->where('projects.creator_id', $user->id);
+                    break;
+
+            }
+        }
+        $projects = $query->searchData()
             ->leftJoin('operate_logs',function($join){
                 $join->on('projects.id','operate_logs.logable_id')
                     ->where('logable_type',ModuleableType::PROJECT)
-                    ->where('operate_logs.method','2');
+                    ->where('operate_logs.method','4');
             })->groupBy('projects.id')
             ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
                 'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc']);
-         return  $projects;
+//                $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
+////
+//        dd($sql_with_bindings);
+        return  $projects;
+//        $projects = Project::query()->where(function ($query) use ($request, $payload,$userid) {
+//            if ($request->has('keyword'))
+//                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+//            if ($request->has('principal_ids') && $payload['principal_ids']) {
+//                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+//                foreach ($payload['principal_ids'] as &$id) {
+//                    $id = hashid_decode((int)$id);
+//                }
+//                unset($id);
+//                $query->whereIn('principal_id', $payload['principal_ids']);
+//            }
+//            if($request->has('administration'))
+//                $query->where('principal_id','<>' ,$userid);
+//            if($request->has('principal_id'))
+//                $query->where('principal_id',$userid);
+//
+//            if ($request->has('type') && $payload['type'] <> '3,4'){
+//                $query->where('type', $payload['type']);
+//            }
+//            if($request->has('type') && $payload['type'] == '3,4'){
+//                $query->whereIn('type',[3,4]);
+//            }
+//            if ($request->has('status'))
+//                $query->where('projects.status', $payload['status']);
+////            if ($request->has('my')){
+////                switch ($payload['my']){
+////                    case 'my_principal'://我负责
+////                        $query->where('principal_id', $userid);
+////                        break;
+////                    case 'my_participant'://我参与
+////                        $query->leftJoin("module_users as mu2",function ($join){
+////                            $join->on("mu2.moduleable_id","projects.id")
+////                                ->where('mu2.moduleable_type',ModuleableType::PROJECT);
+////                        })->where('mu2.user_id',$userid);
+////                        break;
+////                    case 'my_create'://我创建
+////                        $query->where('projects.creator_id', $userid);
+////                        break;
+////
+////                }
+////            }
+//
+//        })->searchData()
+//            ->leftJoin('operate_logs',function($join){
+//                $join->on('projects.id','operate_logs.logable_id')
+//                    ->where('logable_type',ModuleableType::PROJECT)
+//                    ->where('operate_logs.method','2');
+//            })->groupBy('projects.id')
+//            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
+//                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc']);
+//         return  $projects;
 
 
     }

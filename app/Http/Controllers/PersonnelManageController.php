@@ -741,35 +741,36 @@ class PersonnelManageController extends Controller
         $department = DepartmentUser::where('user_id',$userid)->get()->toArray();
         if(empty($department)){
 
-        if($status == 3){
-            $array = [
-                'entry_status' => $payload['entry_status'],
-                'password' => User::USER_PSWORD,
-            ];
-            $departmentarray = [
-                'department_id' => User::USER_DEPARTMENT_DEFAULT,
-                'user_id' => $userid,
-            ];
-            DepartmentUser::create($departmentarray);
-            //加入成员角色
-            $roleUser = RoleUser::where('user_id',$userid)->get()->toArray();
-            if(empty($roleUser)){
-
-                $rolearray = [
-                    'role_id' => User::USER_ROLE_DEFAULT,
+            if($status == 3){
+                $array = [
+                    'entry_status' => $payload['entry_status'],
+                    'password' => User::USER_PSWORD,
+                ];
+                $departmentarray = [
+                    'department_id' => User::USER_DEPARTMENT_DEFAULT,
                     'user_id' => $userid,
                 ];
-                RoleUser::create($rolearray);
+                DepartmentUser::create($departmentarray);
+                //加入成员角色
+                $roleUser = RoleUser::where('user_id',$userid)->get()->toArray();
+                if(empty($roleUser)){
+
+                    $rolearray = [
+                        'role_id' => User::USER_ROLE_DEFAULT,
+                        'user_id' => $userid,
+                    ];
+                    RoleUser::create($rolearray);
+                }else{
+                    return $this->response->errorInternal('该用户已存在角色');
+                }
             }else{
-                return $this->response->errorInternal('该用户已存在角色');
+                $array = [
+                    'entry_status' =>$payload['entry_status'],
+                    'phone' =>0,
+                    //'email' =>0,
+                ];
+
             }
-        }else{
-            $array = [
-                'entry_status' =>$payload['entry_status'],
-                'phone' =>1,
-                'email' =>1,
-            ];
-        }
         try {
                 // 操作日志
                 $operate = new OperateEntity([

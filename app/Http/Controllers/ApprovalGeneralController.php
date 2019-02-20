@@ -123,7 +123,7 @@ class ApprovalGeneralController extends Controller
                 })
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
+                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id')->get()->toArray();
             //->paginate($pageSize)->toArray();
 
             //查询个人

@@ -98,7 +98,7 @@ class ProjectController extends Controller
         });
         if ($request->has('my')){
             switch ($payload['my']){
-                case 'principal_id'://我负责
+                case 'my_principal'://我负责
                     $query->where('principal_id', $user->id);
                     break;
                 case 'my_participant'://我参与

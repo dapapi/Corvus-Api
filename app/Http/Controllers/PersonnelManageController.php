@@ -740,6 +740,7 @@ class PersonnelManageController extends Controller
 
         $department = DepartmentUser::where('user_id',$userid)->get()->toArray();
         if(empty($department)){
+
         if($status == 3){
             $array = [
                 'entry_status' => $payload['entry_status'],
@@ -766,11 +767,13 @@ class PersonnelManageController extends Controller
 
 
         }else{
+
             $array = [
-                'entry_status' => $payload['entry_status'],
-                'phone' => '',
-                'email' => '',
+                'entry_status' =>$payload['entry_status'],
+                'phone' =>0,
+                'email' =>0,
             ];
+
         }
         try {
 //                // 操作日志
@@ -784,6 +787,7 @@ class PersonnelManageController extends Controller
                 event(new OperateLogEvent([
                     $operate,
                 ]));
+
             $user->update($array);
         } catch (\Exception $exception) {
             Log::error($exception);

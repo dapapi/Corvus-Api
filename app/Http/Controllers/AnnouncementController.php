@@ -182,6 +182,7 @@ class AnnouncementController extends Controller
                 }else{
                     $payload['scope'] = hashid_decode(array_values($payload['scope'])[0]);
                 }
+                $payload['classify'] = hashid_decode($payload['classify']);
             }
             DB::beginTransaction();
             try {

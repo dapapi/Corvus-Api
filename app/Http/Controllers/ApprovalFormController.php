@@ -186,7 +186,7 @@ class ApprovalFormController extends Controller
             })
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keywords')) {
-                    $query->where('bu.form_instance_number', $payload['keywords'])->orwhere('users.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    $query->where('bu.form_instance_number', 'LIKE', '%'. $payload['keywords'].'%')->orwhere('users.name', 'LIKE', '%' . $payload['keywords'] . '%');
                 }
             })
             ->where('ph.creator_id', $user->id)
@@ -287,7 +287,7 @@ class ApprovalFormController extends Controller
                 })
                 ->where(function ($query) use ($payload, $request) {
                     if ($request->has('keywords')) {
-                        $query->where('ph.project_number', $payload['keywords'])->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                        $query->where('ph.project_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
                     }
                 })
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
@@ -310,7 +310,7 @@ class ApprovalFormController extends Controller
                 })
                 ->where(function ($query) use ($payload, $request) {
                     if ($request->has('keywords')) {
-                        $query->where('ph.project_number', $payload['keywords'])->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                        $query->where('ph.project_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
                     }
                 })
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 245)->where('u.id', $userId)
@@ -342,7 +342,7 @@ class ApprovalFormController extends Controller
                 })
                 ->where(function ($query) use ($payload, $request) {
                     if ($request->has('keywords')) {
-                        $query->where('bu.form_instance_number', $payload['keywords'])->orwhere('creator.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                        $query->where('bu.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('creator.name', 'LIKE', '%' . $payload['keywords'] . '%');
                     }
                 })
                 ->where('dp.user_id', $userId)
@@ -404,7 +404,7 @@ class ApprovalFormController extends Controller
             })
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keywords')) {
-                    $query->where('ph.project_number', $payload['keywords'])->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    $query->where('ph.project_number', 'LIKE', '%' .$payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
                 }
             })
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
@@ -451,7 +451,7 @@ class ApprovalFormController extends Controller
             })
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keyword')) {
-                    $query->where('afe.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
+                    $query->where('afe.form_instance_number', 'LIKE', '%' . $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
                 }
             })
             ->whereIn('afe.change_id', $user)

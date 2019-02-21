@@ -301,6 +301,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/announcements/Classify/{announcementClassify}', 'App\Http\Controllers\AnnouncementController@updateClassify');
         $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');
         $api->put('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@edit');
+        // 部门id hash 后的数据
+        $api->get('/departments_lists', 'App\Http\Controllers\AnnouncementController@departmentsLists');
         $api->delete('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@remove');
         $api->post('/announcements', 'App\Http\Controllers\AnnouncementController@store');
 

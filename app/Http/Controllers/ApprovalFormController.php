@@ -1046,6 +1046,7 @@ class ApprovalFormController extends Controller
             DB::rollBack();
             return $this->response->errorBadRequest($exception->getMessage());
         } catch (Exception $exception) {
+            dd($exception);
             DB::rollBack();
             Log::error($exception);
             return $this->response->errorInternal('新建审批失败');

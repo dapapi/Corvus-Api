@@ -323,8 +323,12 @@ class TaskController extends Controller
         }
         //TODO 还有其他模块
         $tasks = $query->where('privacy', false)->paginate($pageSize);
+        //获取任务完成数量
+        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
 
-        return $this->response->paginator($tasks, new TaskTransformer());
+        $request = $this->response->paginator($tasks, new TaskTransformer());
+        $request->addMeta("complete_count",$complete_count);
+        return $request;
     }
 
     public function show(Task $task)

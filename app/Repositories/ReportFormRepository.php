@@ -14,6 +14,7 @@ use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\Models\Contract;
 use App\SignContractStatus;
 use App\User;
 use Carbon\Carbon;
@@ -830,7 +831,9 @@ class ReportFormRepository
             ->where($arr)
             ->where("cs.type",Contact::TYPE_KEY)
             ->groupBy('c.id')
-            ->get(['c.id','c.type','c.company','c.grade','u.name as principal_name',
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+//        dd($sql_with_bindings);
+            ->get(['c.id','c.type','c.company','c.client_rating','c.grade','u.name as principal_name',
                 DB::raw('GROUP_CONCAT(cs.name) as keyman'),
 //                DB::raw('GROUP_CONCAT(cs.phone) as contact_phone'),
                 DB::raw("case c.size when 1 then '上市公司' when 2 then '500强' end size"),
@@ -922,13 +925,22 @@ class ReportFormRepository
                 ->leftJoin(DB::raw("({$sub_query->toSql()}) as op"),function ($join){
                     $join->on('op.logable_id','=','s.id')
                         ->where('op.logable_type','=',ModuleableType::STAR)//可能有问题
-                        ->where('op.method','=',OperateEntity::UPDATED_AT);
+//                        ->where('op.method','=',OperateEntity::UPDATED_AT);
+                        ->where('op.method','=',OperateLogMethod::FOLLOW_UP);
                 })
                 ->where($arr)
                 ->groupBy('s.id')
                 ->select('s.sign_contract_status','s.name','s.birthday','s.source','s.communication_status','s.created_at','op.created_at as last_update_at')
+//                            $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//                            dd($sql_with_bindings);
                 ->get();
         }else{//已签约/解约
+//            $contract = (new Star())->get(['id']);
+//            $co = Contract::where('star_type','stars')->get();
+//           foreach($contract as $key => $val){
+//               $val
+//           }
+
             //合同，预计订单收入，花费金额都没查呢
             $stars = (new Star())->setTable("s")->from("stars as s")
                 ->leftJoin("module_users as mu",function ($join){
@@ -942,13 +954,24 @@ class ReportFormRepository
                         ->where('ts.starable_type','=',ModuleableType::STAR)//艺人
                         ->where('ts.type',TrailStar::EXPECTATION);//目标
                 })
+                ->leftJoin("contracts as co",function ($join){
+               //     $join->on('co.stars','like','s.id')//艺人
+               //     $join->on('co.stars','<', '(LENGTH(s.id)-LENGTH(REPLACE(s.id,\',\',\'\'))+1) ')
+                    $join->whereRaw("FIND_IN_SET(s.id,stars)")
+                    ->where('co.star_type','=','stars');
+                })
                 ->leftJoin('trails as t','t.id','=','ts.trail_id')
                 ->leftJoin('projects as p','p.trail_id','=','ts.trail_id')
                 ->where($arr)
                 ->groupBy('s.id')
+
+//                               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
                 ->get([
                     's.id','s.name','sign_contract_status',
                     DB::raw('sum(distinct t.fee) as total_fee'),
+                    DB::raw('sum(distinct co.contract_money) as total_contract_money'),
+           //         DB::raw('SUBSTRING_INDEX(SUBSTRING_INDEX(leave_entries.dates, \',\', numbers.n), \',\', -1)  as total_contract_money'),
                     DB::raw("count(distinct ts.id) as trail_total"),
                     DB::raw("count(distinct p.id) as project_total"),
                     DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
@@ -958,8 +981,10 @@ class ReportFormRepository
         return [
             "total" =>  count($stars),
             "total_fee" => array_sum(array_column($stars->toArray(),'total_fee')),
-            "total_contract_amount" =>  211221,//合同总金额
-            "total_expenditure" => 213123,//花费总金额
+
+            "total_contract_amount" => array_sum(array_column($stars->toArray(),'total_contract_money')), //合同总金额
+            "total_expenditure",   //花费金额
+
             "stars" =>  $stars
         ];
 
@@ -1081,7 +1106,6 @@ class ReportFormRepository
             })
             ->where($arr)
             ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id');
-
         $result1 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_MOVIE)//电影
                 ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
@@ -1206,9 +1230,10 @@ class ReportFormRepository
                 ->groupBy('b.id')
 //                       $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
 //        dd($sql_with_bindings);
-
+//
                 ->get([
-                    'b.id','b.nickname','sign_contract_status',
+                    'b.id','b.nickname','t.fee','sign_contract_status',
+                    // 少了合同金额    花费金额
                     DB::raw('sum(distinct t.fee) as total_fee'),
                     DB::raw("count(ts.id) as trail_total"),
                     DB::raw("count(p.id) as project_total"),

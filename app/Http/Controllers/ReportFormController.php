@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ReportForm\CommercialFunnelRequest;
 use App\Repositories\ReportFormRepository;
 use Carbon\Carbon;
+use App\Exports\BloggersStatementExport;
+use App\Exports\ClientsStatementExport;
+use App\Exports\StarsStatementExport;
 use Illuminate\Http\Request;
 
 class ReportFormController extends Controller
@@ -114,6 +117,12 @@ class ReportFormController extends Controller
         return (new ReportFormRepository())->clientReport($start_time,$end_time,$type);
 
     }
+    //客户报表导出
+    public function clientExport(Request $request)
+    {
+        $file = '当前艺人报表导出' . date('YmdHis', time()) . '.xlsx';
+        return (new ClientsStatementExport($request))->download($file);
+    }
     //客户分析
     public function clientAnalysis(Request $request)
     {
@@ -134,6 +143,12 @@ class ReportFormController extends Controller
         $type = $request->get('type',null);
 
         return (new ReportFormRepository())->starReport($start_time,$end_time,$sign_contract_status,$department,$target_star,$type);
+    }
+    //艺人导出
+    public function starExport(Request $request)
+    {
+        $file = '当前艺人报表导出' . date('YmdHis', time()) . '.xlsx';
+        return (new StarsStatementExport($request))->download($file);
     }
     //艺人线索分析
     public function starTrailAnalysis(Request $request)
@@ -169,6 +184,11 @@ class ReportFormController extends Controller
         $target_star = $target_star == null ? null :hashid_decode($target_star);
         $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star);
+    }
+    public function bloggerExport(Request $request)
+    {
+        $file = '当前博主报表导出' . date('YmdHis', time()) . '.xlsx';
+        return (new BloggersStatementExport($request))->download($file);
     }
     //博主线索分析
     public function bloggerTrailAnalysis(Request $request)

@@ -403,7 +403,7 @@ class ApprovalContractController extends Controller
 
 
         } else {
-            $resArr = $this->thenNotifyApproval();
+            $resArr = $this->thenNotifyApproval($request,$payload);
         }
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
@@ -430,7 +430,7 @@ class ApprovalContractController extends Controller
     }
 
     //获取已审批信息
-    public function thenNotifyApproval()
+    public function thenNotifyApproval($request,$payload)
     {
 
         $user = Auth::guard('api')->user();
@@ -451,6 +451,11 @@ class ApprovalContractController extends Controller
             })
             ->join("data_dictionaries as dds",function ($join){
                 $join->on("dds.id",'=','afb.form_status');
+            })
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                }
             })
             ->where('afc.notice_type', '!=', 237)->where('afc.notice_type', '!=', 238)->where('afc.notice_id', $userId)
             ->where('afb.form_status', '!=', 231)

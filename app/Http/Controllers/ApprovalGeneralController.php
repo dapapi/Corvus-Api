@@ -290,7 +290,7 @@ class ApprovalGeneralController extends Controller
                 })
                 ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', 7)
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afi.*', 'us.name', 'user.icon_url','afp.created_at')->get()->toArray();
+                ->select('afi.*', 'us.name', 'us.icon_url','afp.created_at')->get()->toArray();
 
 
             //查询角色

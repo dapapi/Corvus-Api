@@ -390,14 +390,15 @@ class AnnouncementController extends Controller
         return $this->response->accepted();
 
     }
-    public function departmentsLists(Request $request,Department $department)
+    public function departmentsLists(Request $request)
     {
-        $department = $department->get();
+        $department = Department::get();
         foreach ($department as $key => $val)
         {
             $val['id'] = hashid_encode($val['id']);
         }
+       // dd($this->response->item($department, new DepartmentTransformer()));
 
-        return $this->response->collection($department, new DepartmentTransformer());
+        return $department;
     }
 }

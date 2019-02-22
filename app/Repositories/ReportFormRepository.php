@@ -584,6 +584,10 @@ class ReportFormRepository
                     ->where('mu.moduleable_type',ModuleableType::STAR)//艺人
                     ->where('mu.type',ModuleUserType::BROKER);//经纪人
             })
+            ->leftJoin('contracts as co',function ($join){
+                $join->on('co.project_id','=','p.id')
+                    ->where('mu.type',ModuleUserType::BROKER);//经纪人
+            })
             ->leftJoin('users as u1','u1.id','=','mu.user_id')
             ->leftjoin('department_user as du','du.user_id','=','u1.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
@@ -591,9 +595,12 @@ class ReportFormRepository
             ->whereIn('p.type',[Project::TYPE_VARIETY,Project::TYPE_ENDORSEMENT,Project::TYPE_MOVIE])
             ->where($arr)
             ->groupBy('p.id')
+//             $sql_with_bindings = str_replace_array('?', $peroject_list->getBindings(), $peroject_list->toSql());
+//             dd($sql_with_bindings);
             ->get([
                 DB::raw('p.id'),
                 DB::raw("GROUP_CONCAT(distinct d.name) as deparment_name"),
+                DB::raw('sum(distinct co.contract_money) as total_contract_money'),
                 DB::raw("GROUP_CONCAT(distinct s.name) as star_name"),
                 'p.status','p.type','p.title',
                 DB::raw('u.name as principal_name'),
@@ -630,8 +637,9 @@ class ReportFormRepository
 //            $project->star_name = trim($project->star_name,",");
 //        }
         return [
-            "sum"   =>  count($peroject_list),//数量合计
-            "total_contract_amount" => 8888,//合同总金额
+
+            "sum"   =>  count($peroject_list),
+            "total_contract_amount" => array_sum(array_column($peroject_list->toArray(),'total_contract_money')), //合同总金额
             "total_project_cost"    =>  99999,//项目成本总额
             "project"   =>  $peroject_list
         ];
@@ -983,8 +991,7 @@ class ReportFormRepository
             "total_fee" => array_sum(array_column($stars->toArray(),'total_fee')),
 
             "total_contract_amount" => array_sum(array_column($stars->toArray(),'total_contract_money')), //合同总金额
-            "total_expenditure",   //花费金额
-
+            "total_expenditure" => '',   //花费金额
             "stars" =>  $stars
         ];
 
@@ -1207,6 +1214,7 @@ class ReportFormRepository
                 ->groupBy('b.id')
                 ->select('b.nickname','bt.name as type_id','b.communication_status','b.created_at','op.created_at as last_update_at')
                 ->get();
+//
 //            $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
 //        dd($sql_with_bindings);
         }else{
@@ -1220,6 +1228,10 @@ class ReportFormRepository
                         ->where('mu.type','=',ModuleUserType::PRODUCER);//制作人
                 })->leftJoin("department_user as du",'du.user_id','=','mu.user_id')
                 ->leftJoin('departments as d','d.id','=','du.department_id')
+                ->leftJoin("contracts as co",function ($join){
+                    $join->whereRaw("FIND_IN_SET(b.id,stars)")
+                        ->where('co.star_type','=','bloggers');
+                })
                 ->leftJoin("trail_star as ts",function ($join){
                     $join->on('ts.starable_id','=','b.id')
                         ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
@@ -1235,6 +1247,7 @@ class ReportFormRepository
                     'b.id','b.nickname','t.fee','sign_contract_status',
                     // 少了合同金额    花费金额
                     DB::raw('sum(distinct t.fee) as total_fee'),
+                    DB::raw('sum(distinct co.contract_money) as total_contract_money'),
                     DB::raw("count(ts.id) as trail_total"),
                     DB::raw("count(p.id) as project_total"),
                     DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
@@ -1243,6 +1256,8 @@ class ReportFormRepository
         return [
             "total" =>  count($bloggers),
             "total_fee" => array_sum(array_column($bloggers->toArray(),'total_fee')),
+            "total_contract_money" => array_sum(array_column($bloggers->toArray(),'total_contract_money')), //合同总金额
+            "total_expenditure_money" => '',   //花费金额
             "blogger" =>  $bloggers
         ];
     }

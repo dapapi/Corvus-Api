@@ -66,10 +66,10 @@ class StarController extends Controller
                 ->where('logable_type',ModuleableType::STAR)
                 ->where('operate_logs.method','4');
         })->groupBy('stars.id')
-            ->orderBy('up_at', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
+            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
                 'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
                 'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
-                'platform','stars.created_at','operate_logs.updated_at as up_at'])
+                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])
         //根据条件查询
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);

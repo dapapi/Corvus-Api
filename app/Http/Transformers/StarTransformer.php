@@ -100,7 +100,7 @@ class StarTransformer extends TransformerAbstract
     public function includeTasks(Star $star)
     {
         $tasks = $star->tasks()->stopAsc()
-            ->where('status',TaskStatus::NORMAL)
+            ->where('status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
         return $this->collection($tasks, new TaskTransformer());
     }

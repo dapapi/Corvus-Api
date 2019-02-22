@@ -6,6 +6,7 @@ use App\Models\Star;
 use App\CommunicationStatus;
 use App\ModuleableType;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -33,8 +34,6 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
         }
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
-        }else{
-            $array[] = ['sign_contract_status', 2];
         }
         if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
             $array[] = ['communication_status', $payload['communication_status']];
@@ -42,15 +41,15 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
         if ($request->has('source') && !empty($payload['source'])) {//艺人来源
             $array[] = ['source', $payload['source']];
         }
-        $stars = Star::query()->searchData()->leftJoin('operate_logs',function($join){
+        $stars = Star::where($array)->searchData()->leftJoin('operate_logs',function($join){
             $join->on('stars.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::STAR)
                 ->where('operate_logs.method','4');
         })->groupBy('stars.id')
-            ->orderBy('up_at', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
-                'email','source','communication_status','intention','intention_desc','sign_contract_other','artist_scout_name','star_location','sign_contract_other_name','sign_contract_at','sign_contract_status',
+            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
+                'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
                 'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
-                'platform','stars.created_at','operate_logs.updated_at as up_at']);
+                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")]);
          return  $stars;
 
 

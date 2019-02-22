@@ -10,10 +10,12 @@ namespace App\Http\Controllers;
 use App\AffixType;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
+use App\Http\Transformers\DepartmentTransformer;
 use App\Http\Requests\AnnouncementClassifyUpdateRequest;
 use App\Http\Transformers\AnnouncementClassifyTransformer;
 use App\Http\Requests\AnnouncementUpdateRequest;
 use App\Models\Announcement;
+use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
@@ -180,6 +182,7 @@ class AnnouncementController extends Controller
                 }else{
                     $payload['scope'] = hashid_decode(array_values($payload['scope'])[0]);
                 }
+                $payload['classify'] = hashid_decode($payload['classify']);
             }
             DB::beginTransaction();
             try {
@@ -388,5 +391,15 @@ class AnnouncementController extends Controller
         return $this->response->accepted();
 
     }
+    public function departmentsLists(Request $request)
+    {
+        $department = Department::get();
+        foreach ($department as $key => $val)
+        {
+            $val['id'] = hashid_encode($val['id']);
+        }
+       // dd($this->response->item($department, new DepartmentTransformer()));
 
+        return $department;
+    }
 }

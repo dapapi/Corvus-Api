@@ -7,6 +7,7 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use App\ModuleableType;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Qiniu\Http\Request;
@@ -44,9 +45,9 @@ class BloggersExport implements FromQuery, WithMapping, WithHeadings
                  ->where('logable_type',ModuleableType::BLOGGER)
                  ->where('operate_logs.method','4');
          })->groupBy('bloggers.id')
-             ->orderBy('up_at', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
+             ->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
                  'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
-                 'bloggers.updated_at','bloggers.created_at','platform','sign_contract_other_name','operate_logs.updated_at as up_at']);
+                 'bloggers.updated_at','bloggers.created_at','platform','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")]);
 
 
     }

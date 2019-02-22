@@ -68,16 +68,21 @@ class ApprovalGeneralController extends Controller
             ->join('approval_form_groups as afg', function ($join) {
                 $join->on('afg.id', '=', 'af.group_id');
             })
-//
-//            ->where(function ($query) use ($payload, $request) {
-//                if ($request->has('keyword')) {
-//                    $query->where('bu.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
-//                }
-//            })
+            ->join("data_dictionaries as dds",function ($join){
+                $join->on("dds.id",'=','afi.form_status');
+            })
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('users.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                }
+                if ($request->has('group_name')) {
+                    $query->where('afg.name',$payload['group_name']);
+                }
+            })
             ->where('afi.apply_id', $user->id)
             ->whereIn('afi.form_status', $payload['status'])
             ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*', 'users.name', 'afg.name as group_name', 'afg.id as group_id')
+            ->select('afi.*', 'users.name', 'afg.name as group_name','users.icon_url', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')
             ->paginate($pageSize);
 
         return $this->response->paginator($data, new GeneralApprovalTransformer());
@@ -121,9 +126,20 @@ class ApprovalGeneralController extends Controller
                 ->join('users as us', function ($join) {
                     $join->on('afi.apply_id', '=', 'us.id');
                 })
+                ->join("data_dictionaries as dds",function ($join){
+                    $join->on("dds.id",'=','afi.form_status');
+                })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    }
+                    if ($request->has('group_name')) {
+                        $query->where('afg.name',$payload['group_name']);
+                    }
+                })
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id')->get()->toArray();
+                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
             //->paginate($pageSize)->toArray();
 
             //查询个人
@@ -145,9 +161,21 @@ class ApprovalGeneralController extends Controller
                 ->join('users as us', function ($join) {
                     $join->on('afi.apply_id', '=', 'us.id');
                 })
+                ->join("data_dictionaries as dds",function ($join){
+                    $join->on("dds.id",'=','afi.form_status');
+                })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    }
+                    if ($request->has('group_name')) {
+                        $query->where('afg.name',$payload['group_name']);
+                    }
+                })
+
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 245)->where('u.id', $userId)
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
+                ->select('afi.*', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'us.name','us.icon_url', 'afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
 
             //部门负责人
@@ -177,15 +205,26 @@ class ApprovalGeneralController extends Controller
                 ->join('users as us', function ($join) {
                     $join->on('afi.apply_id', '=', 'us.id');
                 })
+                ->join("data_dictionaries as dds",function ($join){
+                    $join->on("dds.id",'=','afi.form_status');
+                })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    }
+                    if ($request->has('group_name')) {
+                        $query->where('afg.name',$payload['group_name']);
+                    }
+                })
                 ->where('dp.user_id', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name')->get()->toArray();
+                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
             
             $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
 
         } else {
-            $resArr = $this->thenApproval();
+            $resArr = $this->thenApproval($request,$payload);
         }
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
@@ -210,7 +249,7 @@ class ApprovalGeneralController extends Controller
     }
 
     //获取已审批信息
-    public function thenApproval()
+    public function thenApproval($request,$payload)
     {
 
         $user = Auth::guard('api')->user();
@@ -232,11 +271,22 @@ class ApprovalGeneralController extends Controller
             ->join('users as us', function ($join) {
                 $join->on('us.id', '=', 'afi.apply_id');
             })
+            ->join("data_dictionaries as dds",function ($join){
+                $join->on("dds.id",'=','afi.form_status');
+            })
             //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
 
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                }
+                if ($request->has('group_name')) {
+                    $query->where('afg.name',$payload['group_name']);
+                }
+            })
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)
             ->orderBy('afi.created_at', 'desc')
-            ->select('afi.*', 'us.name', 'afg.name as group_name', 'afg.id as group_id')->get()->toArray();
+            ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
         return $dataUser;
     }
@@ -273,9 +323,17 @@ class ApprovalGeneralController extends Controller
                 ->join('users as us', function ($join) {
                     $join->on('afi.apply_id', '=', 'us.id');
                 })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    }
+                    if ($request->has('group_name')) {
+                        $query->where('afg.name',$payload['group_name']);
+                    }
+                })
                 ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', 7)
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afi.*', 'us.name', 'afp.created_at')->get()->toArray();
+                ->select('afi.*', 'us.name', 'us.icon_url','afp.created_at')->get()->toArray();
 
 
             //查询角色
@@ -297,6 +355,14 @@ class ApprovalGeneralController extends Controller
                 })
                 ->join('users as us', function ($join) {
                     $join->on('afi.apply_id', '=', 'us.id');
+                })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    }
+                    if ($request->has('group_name')) {
+                        $query->where('afg.name',$payload['group_name']);
+                    }
                 })
                 ->whereIn('afi.form_status', $payload['status'])->where('afe.notice_type', 247)->where('u.id', $userId)
                 ->orderBy('afi.created_at', 'desc')
@@ -327,6 +393,14 @@ class ApprovalGeneralController extends Controller
                 ->join('department_principal as dp', function ($join) {
                     $join->on('dp.department_id', '=', 'du.department_id')->where('afe.notice_type', '=', 246);
                 })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('creator.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    }
+                    if ($request->has('group_name')) {
+                        $query->where('afg.name',$payload['group_name']);
+                    }
+                })
                 ->where('dp.user_id', $userId)
                 ->whereIn('afi.form_status', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
@@ -337,7 +411,7 @@ class ApprovalGeneralController extends Controller
 
 
         } else {
-            $resArr = $this->thenNotifyApproval();
+            $resArr = $this->thenNotifyApproval($request,$payload);
         }
 
         $count = count($resArr);//总条数
@@ -361,7 +435,7 @@ class ApprovalGeneralController extends Controller
     }
 
     //获取已审批信息
-    public function thenNotifyApproval()
+    public function thenNotifyApproval($request,$payload)
     {
 
         $user = Auth::guard('api')->user();
@@ -382,6 +456,14 @@ class ApprovalGeneralController extends Controller
             })
             ->join('users as us', function ($join) {
                 $join->on('us.id', '=', 'afi.apply_id');
+            })
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                }
+                if ($request->has('group_name')) {
+                    $query->where('afg.name',$payload['group_name']);
+                }
             })
             ->where('afc.notice_type', '!=', 237)->where('afc.notice_type', '!=', 238)->where('afc.notice_id', $userId)
             ->where('afi.form_status', '!=', 231)

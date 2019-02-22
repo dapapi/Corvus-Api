@@ -506,10 +506,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //报表
         //商务报表
         $api->get("/reportfrom/commercialfunnel", "App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
+        //商务报表导出
+        $api->get("/reportfrom/commercialfunnel/explode", "App\Http\Controllers\ReportFormController@reportExport")->middleware('export');
         //销售漏斗
         $api->get("/reportfrom/salesFunnel","App\Http\Controllers\ReportFormController@salesFunnel");
         //销售线索报表--线索报表
         $api->get("/reportfrom/trail","App\Http\Controllers\ReportFormController@trailReportFrom");
+        //销售线索报表导出
+        $api->get("/reportfrom/trail/explode", "App\Http\Controllers\ReportFormController@trailExport")->middleware('export');
         //销售线索报表--线索新增
         $api->get("/reportfrom/newtrail","App\Http\Controllers\ReportFormController@newTrail");
         //销售线索报表--线索占比perTrail
@@ -519,6 +523,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get("/reportfrom/industryanalysis", "App\Http\Controllers\ReportFormController@industryAnalysis");
         //项目报表
         $api->get("/reportfrom/projectreport", "App\Http\Controllers\ReportFormController@projectReport");
+        //项目报表报表
+        $api->get("/reportfrom/projectreport/explode", "App\Http\Controllers\ReportFormController@projectExport")->middleware('export');
         //项目新增
         $api->get("/reportfrom/newproject", "App\Http\Controllers\ReportFormController@newProject");
         //项目占比

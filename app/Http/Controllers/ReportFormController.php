@@ -6,7 +6,10 @@ use App\Http\Requests\ReportForm\CommercialFunnelRequest;
 use App\Repositories\ReportFormRepository;
 use Carbon\Carbon;
 use App\Exports\BloggersStatementExport;
+use App\Exports\TrailsStatementExport;
+use App\Exports\ReportStatementExport;
 use App\Exports\ClientsStatementExport;
+use App\Exports\ProjectsStatementExport;
 use App\Exports\StarsStatementExport;
 use Illuminate\Http\Request;
 
@@ -19,6 +22,12 @@ class ReportFormController extends Controller
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         return (new ReportFormRepository())->CommercialFunnelReportFrom($start_time,$end_time);
+    }
+    //商务报表报表导出
+    public function reportExport(Request $request)
+    {
+        $file = '当前商务报表报表导出' . date('YmdHis', time()) . '.xlsx';
+        return (new ReportStatementExport($request))->download($file);
     }
     //商业漏斗分析报表---销售漏斗
     public function salesFunnel(CommercialFunnelRequest $request){
@@ -36,6 +45,12 @@ class ReportFormController extends Controller
         $department = $request->get('department',null);
         $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->trailReportFrom($start_time,$end_time,$type,$department);
+    }
+    //销售线索报表导出
+    public function trailExport(Request $request)
+    {
+        $file = '当前销售线索报表导出' . date('YmdHis', time()) . '.xlsx';
+        return (new TrailsStatementExport($request))->download($file);
     }
     //线索新曾
     public function newTrail(Request $request)
@@ -85,6 +100,12 @@ class ReportFormController extends Controller
         $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->projectReport($start_time,$end_time,$type,$department);
     }
+    //项目报表导出
+    public function projectExport(Request $request)
+    {
+        $file = '当前项目报表导出' . date('YmdHis', time()) . '.xlsx';
+        return (new ProjectsStatementExport($request))->download($file);
+    }
     //项目新增
     public function newProject(Request $request)
     {
@@ -120,7 +141,7 @@ class ReportFormController extends Controller
     //客户报表导出
     public function clientExport(Request $request)
     {
-        $file = '当前艺人报表导出' . date('YmdHis', time()) . '.xlsx';
+        $file = '当前客户报表导出' . date('YmdHis', time()) . '.xlsx';
         return (new ClientsStatementExport($request))->download($file);
     }
     //客户分析

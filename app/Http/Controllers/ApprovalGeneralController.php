@@ -331,9 +331,10 @@ class ApprovalGeneralController extends Controller
                         $query->where('afg.name',$payload['group_name']);
                     }
                 })
-                ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', 7)
+                ->whereIn('afi.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', $userId)
                 ->orderBy('afi.created_at', 'desc')
                 ->select('afi.*', 'us.name', 'us.icon_url','afp.created_at')->get()->toArray();
+
             //查询角色
             $dataRole = DB::table('approval_form_participants as afe')//
             ->join('role_users as ru', function ($join) {

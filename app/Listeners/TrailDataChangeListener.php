@@ -7,6 +7,7 @@ use App\Events\TrailDataChangeEvent;
 use App\Models\Trail;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Rafrsr\LibArray2Object\Array2ObjectBuilder;
 
 class TrailDataChangeListener
 {
@@ -34,14 +35,17 @@ class TrailDataChangeListener
         $newModel = $event->newModel;
         $oldData = $oldModel->toArray();
         $newData = $newModel->toArray();
-        foreach ($oldData as $key => $value){
+        $old_trail = Array2ObjectBuilder::create()->build()->createObject(TrailEntity::class,$oldData);
+        $new_trail = Array2ObjectBuilder::create()->build()->createObject(TrailEntity::class,$newData);
+        foreach ($old_trail as $key => $value){
 
-            if ($value != $newData[$key]){
+            if ($value != $new_trail->$key){
+                $func = "get_".$key;
                 $operateStartAt = new OperateEntity([
                     'obj' => $newModel,
                     'title' => $class->$key->desc(),
-                    'start' => $value,
-                    'end' => $newData[$key],
+                    'start' => $old_trail->$func(),
+                    'end' => $new_trail->$func(),
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 $arrayOperateLog[] = $operateStartAt;

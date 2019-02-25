@@ -926,6 +926,21 @@ class TaskController extends Controller
             }
         }
 
+        //修改关联资源
+        if ($request->has('resource_type')) {
+            $resourceableId = hashid_decode($payload['resourceable_id']);
+            $resourceType = $payload['resource_type'];
+            $taskResource = TaskResource::where('task_id',$task->id)->first();
+            $resource = [
+                'resource_id' => $resourceType,
+                'resourceable_id' =>$resourceableId,
+                'resourceable_type' => $payload['code'],
+            ];
+            $taskResource->update($resource);
+            unset($payload['code']);
+
+        }
+
         if ($request->has('start_at')) {
             $array['start_at'] = $payload['start_at'];
             $start = $task->start_at;

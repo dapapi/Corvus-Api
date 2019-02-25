@@ -74,7 +74,14 @@ class Entity extends GeneratorCommand
             $content .= "    /**\n";
             $content .= "     *@desc ".$columns_notes->getColumn($column)->getComment()."\n";
             $content .= "     */\n";
-            $content .= '   private $'.$column.";\n\n";
+            $content .= '   public $'.$column.";\n\n";
+        }
+
+        foreach ($columns as $column){
+            $content .= "   public function get_".$column."()\n";
+            $content .= "   {\n";
+            $content .= "       return \$this->{$column};\n";
+            $content .= "   }\n";
         }
 
 

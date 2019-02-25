@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientDataChangeEvent;
 use App\Events\ClientMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exports\ClientsExport;
@@ -125,7 +126,7 @@ class ClientController extends Controller
     public function edit(EditClientRequest $request, Client $client)
     {
         $payload = $request->all();
-
+        $old_client = clone $client; //记录客户初始对象，用于记录日志
         if (array_key_exists('_url', $payload))
             unset($payload['_url']);
 
@@ -146,12 +147,15 @@ class ClientController extends Controller
                         $value = $client->getGrade($value);
                     }
                     $comment = $columns->getColumn($key)->getComment();
-                    $this->editLog($client, $comment, $lastValue, $value);//修改客户日志
+//                    $this->editLog($client, $comment, $lastValue, $value);//修改客户日志
                 }
 
             }
             $client->update($payload);
+            event(new ClientDataChangeEvent($old_client,$client));
+
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             return $this->response->errorInternal('修改失败');
         }

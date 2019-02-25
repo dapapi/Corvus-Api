@@ -3,6 +3,7 @@
 namespace App\Exports;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Star;
+use Carbon\Carbon;
 use App\CommunicationStatus;
 use App\ModuleableType;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -10,6 +11,11 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use App\SignContractStatus;
+use App\ModuleUserType;
+use App\Models\TrailStar;
+use App\OperateLogMethod;
+use Illuminate\Support\Facades\DB;
 use Qiniu\Http\Request;
 
 class StarsStatementExport implements FromQuery, WithMapping, WithHeadings
@@ -26,34 +32,94 @@ class StarsStatementExport implements FromQuery, WithMapping, WithHeadings
     public function query()
     {
         $request = $this->request;
-        $payload = $request->all();
-        $array = [];//查询条件
-        if ($request->has('name')) {//姓名
-            $array[] = ['name', 'like', '%' . $payload['name'] . '%'];
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+        $sign_contract_status = $request->get('sign_contract_status',null);
+        $department = $request->get("departmnet",null);
+        $department = $department == null ? null : hashid_decode($department);
+        $target_star = $request->get('target_star',null);
+        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $type = $request->get('type',null);
+        $arr[] = ['s.created_at','>=',Carbon::parse($start_time)->toDateString()];
+        $arr[]  =   ['s.created_at','<=',Carbon::parse($end_time)->toDateString()];
+        $arr[] = ['s.sign_contract_status',$sign_contract_status];
+        if($type != null){
+            $arr[] = ['p.type','=',$type];
+            $arr[]  =   ['t.type',$type];
         }
-        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
-            $array[] = ['sign_contract_status', $payload['sign_contract_status']];
-        }else{
-            $array[] = ['sign_contract_status', 2];
+
+        if($department != null){
+            $arr[] = ['d.id','=',$department];
         }
-        if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
-            $array[] = ['communication_status', $payload['communication_status']];
+        if($target_star != null){
+            $arr[] = ['s.id',$target_star];
         }
-        if ($request->has('source') && !empty($payload['source'])) {//艺人来源
-            $array[] = ['source', $payload['source']];
-        }
-        $stars = Star::query()->searchData()->leftJoin('operate_logs',function($join){
-            $join->on('stars.id','operate_logs.logable_id')
-                ->where('logable_type',ModuleableType::STAR)
-                ->where('operate_logs.method','4');
-        })->groupBy('stars.id')
-            ->orderBy('up_at', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
-                'email','source','communication_status','intention','intention_desc','sign_contract_other','artist_scout_name','star_location','sign_contract_other_name','sign_contract_at','sign_contract_status',
-                'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
-                'platform','stars.created_at','operate_logs.updated_at as up_at']);
-         return  $stars;
+        //签约中
+        if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
+            $sub_query = DB::table("operate_logs")
+                ->groupBy("created_at")
+                ->select(DB::raw("max(created_at) as created_at,id,logable_id,logable_type,method"));
+
+            $stars = (new Star())->setTable("s")->from("stars as s")
+                ->leftJoin(DB::raw("({$sub_query->toSql()}) as op"),function ($join){
+                    $join->on('op.logable_id','=','s.id')
+                        ->where('op.logable_type','=',ModuleableType::STAR)//可能有问题
+//                        ->where('op.method','=',OperateEntity::UPDATED_AT);
+                        ->where('op.method','=',OperateLogMethod::FOLLOW_UP);
+                })
+                ->where($arr)
+                ->groupBy('s.id')
+                ->select('s.sign_contract_status','s.name','s.birthday','s.source','s.communication_status','s.created_at','op.created_at as last_update_at');
+//                            $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//                            dd($sql_with_bindings);
+              //  ->get();
+            return $stars;
+        }else {//已签约/解约
+//            $contract = (new Star())->get(['id']);
+//            $co = Contract::where('star_type','stars')->get();
+//           foreach($contract as $key => $val){
+//               $val
+//           }
+
+            //合同，预计订单收入，花费金额都没查呢
+            $stars = (new Star())->setTable("s")->from("stars as s")
+                ->leftJoin("module_users as mu", function ($join) {
+                    $join->on('mu.moduleable_id', '=', 's.id')
+                        ->where('mu.moduleable_type', '=', ModuleableType::STAR)//艺人
+                        ->where('mu.type', '=', ModuleUserType::BROKER);//经纪人
+                })->leftJoin("department_user as du", 'du.user_id', '=', 'mu.user_id')
+                ->leftJoin('departments as d', 'd.id', '=', 'du.department_id')
+                ->leftJoin("trail_star as ts", function ($join) {
+                    $join->on('ts.starable_id', '=', 's.id')
+                        ->where('ts.starable_type', '=', ModuleableType::STAR)//艺人
+                        ->where('ts.type', TrailStar::EXPECTATION);//目标
+                })
+                ->leftJoin("contracts as co", function ($join) {
+                    //     $join->on('co.stars','like','s.id')//艺人
+                    //     $join->on('co.stars','<', '(LENGTH(s.id)-LENGTH(REPLACE(s.id,\',\',\'\'))+1) ')
+                    $join->whereRaw("FIND_IN_SET(s.id,stars)")
+                        ->where('co.star_type', '=', 'stars');
+                })
+                ->leftJoin('trails as t', 't.id', '=', 'ts.trail_id')
+                ->leftJoin('projects as p', 'p.trail_id', '=', 'ts.trail_id')
+                ->where($arr)
+                ->groupBy('s.id')
+//                               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
+                ->select([
+                    's.id', 's.name', 'sign_contract_status',
+                    DB::raw('sum(distinct t.fee) as total_fee'),
+                    DB::raw('sum(distinct co.contract_money) as total_contract_money'),
+                    //         DB::raw('SUBSTRING_INDEX(SUBSTRING_INDEX(leave_entries.dates, \',\', numbers.n), \',\', -1)  as total_contract_money'),
+                    DB::raw("count(distinct ts.id) as trail_total"),
+                    DB::raw("count(distinct p.id) as project_total"),
+                    DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
+                ]);
 
 
+            return $stars;
+
+        }
     }
 
     /**
@@ -62,53 +128,67 @@ class StarsStatementExport implements FromQuery, WithMapping, WithHeadings
      */
     public function map($star): array
     {
-
+        $request = $this->request;
         $name = $star->name;
-        $gender = $star->gender == 1 ? '男':'女';
-        $birthday = $star->birthday;
-        $source = $this->source($star->source);
-        $phone= $star->phone;
-        $eamail = $star->email;
-        $platform = $this->platform($star->platform);
-        $artist_scout_name = $star->artist_scout_name;
-        $star_location =  $star->star_location;
+
+        $source =  $this->source($star->source);
+        $department_name = $star->department_name;
+        $total_fee = $star->total_fee;
+        $total_contract_money = $star->total_contract_money;
         $communication_status = CommunicationStatus::getStr($star->communication_status);
-        $intention = $this->getStr($star->intention);
-        $sign_contract_other = $star->sign_contract_other == 1?'是':'否';
-        return [
-            $name,
-            $gender,
-            $birthday,
-            $source,
-            $phone,
-            $eamail,
-            $platform,
-            $artist_scout_name,
-            $star_location,
-            $communication_status,
-            $intention,
-            $sign_contract_other
-        ];
+        $created_at = $star->created_at;
+        $last_update_at = $star->last_update_at;
+        $sign_contract_status = $request->get('sign_contract_status',null);
+        if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING) {
+            $birthday =$this->howOld($star->birthday);
+            return [
+                $name,
+                $birthday,
+                $source,
+                $communication_status,
+                $created_at,
+                $last_update_at
+            ];
+
+        }else{
+            return [
+                $department_name,
+                $name,
+                $total_fee,
+                $total_contract_money
+            ];
+        }
+
     }
 
     public function headings(): array
     {
-        return [
-            '姓名',
-            '性别',
-            '出生日期',
-            '艺人来源',
-            '手机号',
-            '邮箱',
-            '社交平台',
-            '星探',
-            '地区',
-            '沟通状态',
-            '与我司签约意向',
-            '是否签约其他公司'
+
+        $request = $this->request;
+        $sign_contract_status = $request->get('sign_contract_status',null);
+        if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING) {
+                return [
+                    '姓名',
+                    '年龄',
+                    '艺人来源',
+                    '沟通状态',
+                    '录入时间',
+                    '最后跟进时间'
 
 
-        ];
+                ];
+        }else{
+            return [
+                '组别',
+                '姓名',
+                '预计订单收入',
+                '合同金额',
+                '花费金额'
+
+
+
+            ];
+        }
     }
     private function getStr($key)
     {
@@ -127,6 +207,16 @@ class StarsStatementExport implements FromQuery, WithMapping, WithHeadings
      * @param string $type
      * @return string $type
      */
+    private function howOld($birth) {
+        list($birthYear, $birthMonth, $birthDay) = explode('-', date($birth));
+        list($currentYear, $currentMonth, $currentDay) = explode('-', date('Y-m-d'));
+        $age = $currentYear - $birthYear - 1;
+        if($currentMonth > $birthMonth || $currentMonth == $birthMonth && $currentDay >= $birthDay)
+            $age++;
+
+        return $age;
+    }
+
     private function source($source)
     {
         switch ($source) {

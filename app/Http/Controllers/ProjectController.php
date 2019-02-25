@@ -845,7 +845,7 @@ class ProjectController extends Controller
 //            $Viewprivacy2 = array();
 //            $array['moduleable_id'] = $project->id;
 //            $array['moduleable_type'] = ModuleableType::PROJECT;
-//            $array['is_privacy'] = PrivacyType::OTHER;
+//           $array['is_privacy'] = PrivacyType::OTHER;
 //            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
 //            foreach ($setprivacy as $key => $v) {
 //

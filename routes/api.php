@@ -712,6 +712,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_instances/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
         $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
         $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
+        $api->put('/approval_instances/{instance}/remind', 'App\Http\Controllers\ApprovalFlowController@remind');
+
 
         //任务转私密
         $api->post('/task/secret/{task}', 'App\Http\Controllers\TaskController@secret');
@@ -735,5 +737,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //艺人项目列表
         $api->get("/stars/{star}/project","App\Http\Controllers\ProjectController@getProjectList");
         $api->get("/bloggers/{blogger}/project","App\Http\Controllers\ProjectController@getProjectList");
+
+        //删除附件api
+        $api->delete('/affixe', 'App\Http\Controllers\PersonnelManageController@affixe');
+
     });
 });

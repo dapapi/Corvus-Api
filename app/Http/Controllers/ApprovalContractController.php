@@ -46,8 +46,8 @@ class ApprovalContractController extends Controller
 //            })
 
             ->where(function ($query) use ($payload, $request) {
-                if ($request->has('keyword')) {
-                    $query->where('bu.form_instance_number', $payload['keyword'])->orwhere('users.name', 'LIKE', '%' . $payload['keyword'] . '%');
+                if ($request->has('keywords')) {
+                    $query->where('bu.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('users.name', 'LIKE', '%' . $payload['keywords'] . '%');
                 }
             })
             ->where('cs.creator_id', $user->id)
@@ -97,6 +97,11 @@ class ApprovalContractController extends Controller
 //            ->join('approval_form_instance_values as afis', function ($join) {
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    }
+                })
 
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
                 //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
@@ -122,7 +127,11 @@ class ApprovalContractController extends Controller
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
                 // ->where('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afe.form_instance_number',$payload['keyword'])
-
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    }
+                })
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 245)->where('u.id', $userId)
                 ->orderBy('ph.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'us.name', 'us.icon_url','ph.created_at', 'ph.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
@@ -154,7 +163,11 @@ class ApprovalContractController extends Controller
 //            ->join('approval_form_instance_values as afis', function ($join) {
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
-
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('creator.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    }
+                })
                 ->where('dp.user_id', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 //->where('afe.form_instance_number',$payload['keyword'])->orwhere('creator.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('ph.title', 'LIKE', '%' . $payload['keyword'] . '%')
@@ -164,7 +177,7 @@ class ApprovalContractController extends Controller
             $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
 
         } else {
-            $resArr = $this->thenApproval();
+            $resArr = $this->thenApproval($request,$payload);
         }
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
@@ -191,7 +204,7 @@ class ApprovalContractController extends Controller
     }
 
     //获取已审批信息
-    public function thenApproval()
+    public function thenApproval($request,$payload)
     {
 
         $user = Auth::guard('api')->user();
@@ -216,8 +229,11 @@ class ApprovalContractController extends Controller
 //            ->leftjoin('approval_form_instance_values as afis', function ($join) {
 //                $join->on('afis.form_instance_number', '=', 'ph.form_instance_number')->whereIn('form_control_id',[6,25,43]);
 //            })
-            //->where('afe.form_instance_number',$payload['keyword'])->orwhere('us.name', 'LIKE', '%' . $payload['keyword'] . '%')->orwhere('afis.form_control_value', 'LIKE', '%' . $payload['keyword'] . '%')
-
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                }
+            })
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)
             ->orderBy('afc.change_at', 'desc')
             ->groupBy('afb.form_instance_number')
@@ -307,6 +323,11 @@ class ApprovalContractController extends Controller
                 ->join("data_dictionaries as dds",function ($join){
                     $join->on("dds.id",'=','afb.form_status');
                 })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('cs.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    }
+                })
                 ->whereIn('afb.form_status', $payload['status'])->where('afp.notice_type', 245)->where('afp.notice_id', $userId)
                 ->orderBy('afp.created_at', 'desc')
                 ->select('afb.form_instance_number', 'cs.title', 'us.name', 'us.icon_url', 'afp.created_at', 'afb.form_status', 'cs.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
@@ -331,6 +352,12 @@ class ApprovalContractController extends Controller
                 })
                 ->join("data_dictionaries as dds",function ($join){
                     $join->on("dds.id",'=','afb.form_status');
+                })
+
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    }
                 })
                 ->whereIn('afb.form_status', $payload['status'])->where('afe.notice_type', 247)->where('u.id', $userId)
                 ->orderBy('ph.created_at', 'desc')
@@ -361,6 +388,11 @@ class ApprovalContractController extends Controller
                 ->join("data_dictionaries as dds",function ($join){
                     $join->on("dds.id",'=','bu.form_status');
                 })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('creator.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    }
+                })
                 ->where('dp.user_id', $userId)
                 ->whereIn('bu.form_status', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
@@ -371,7 +403,7 @@ class ApprovalContractController extends Controller
 
 
         } else {
-            $resArr = $this->thenNotifyApproval();
+            $resArr = $this->thenNotifyApproval($request,$payload);
         }
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
@@ -398,7 +430,7 @@ class ApprovalContractController extends Controller
     }
 
     //获取已审批信息
-    public function thenNotifyApproval()
+    public function thenNotifyApproval($request,$payload)
     {
 
         $user = Auth::guard('api')->user();
@@ -419,6 +451,11 @@ class ApprovalContractController extends Controller
             })
             ->join("data_dictionaries as dds",function ($join){
                 $join->on("dds.id",'=','afb.form_status');
+            })
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('us.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                }
             })
             ->where('afc.notice_type', '!=', 237)->where('afc.notice_type', '!=', 238)->where('afc.notice_id', $userId)
             ->where('afb.form_status', '!=', 231)

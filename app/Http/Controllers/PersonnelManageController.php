@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\Log;
 use Qiniu\Storage\UploadManager;
 use Qiniu\Auth;
 use Qiniu\Storage\BucketManager;
+use App\Http\Requests\AffixeRequest;
+
 
 
 class PersonnelManageController extends Controller
@@ -811,7 +813,6 @@ class PersonnelManageController extends Controller
     public function entryDetail(Request $request, User $user)
     {
         return $this->response->item($user, new UserTransformer());
-
     }
 
     public function editPosition(Request $request, User $user)
@@ -993,6 +994,46 @@ class PersonnelManageController extends Controller
             }
         }
         return $icon_name;
+    }
+
+    //删除附件七牛云
+    public function affixe(AffixeRequest $request)
+    {
+        $payload = $request->all();
+        $accessKey = $request->get('access_key', config('app.access_key'));
+        $secretKey = $request->get('secret_key', config('app.secret_key'));
+        $auth = new Auth($accessKey, $secretKey);    // 要上传的空间
+        // 要上传的空间
+        $bucket = 'corvus';
+        //自定义上传回复的凭证 返回的数据
+        $returnBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(fname)"}';
+        $policy = array(
+            'returnBody' => $returnBody,
+        );
+        //token过期时间
+        $expires = 3600;
+        // 生成上传 Token
+        $token = $auth->uploadToken($bucket, null, $expires, $policy, true);
+       //初始化BucketManager
+        $config = new \Qiniu\Config();
+        $bucketMgr = new BucketManager($auth,$config);
+        //你要测试的空间， 并且这个key在你空间中存在
+        $key = substr($payload['affixe'],strpos($payload['affixe'],'/')+23);
+        DB::beginTransaction();
+        try {
+        //删除$bucket 中的文件 $key
+        $err = $bucketMgr->delete($bucket, $key);
+        if ($err !== null) {
+            return $this->response->errorInternal('删除失败！');
+        } else {
+            return $this->response->errorInternal('删除成功！');
+        }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
     }
 
 }

@@ -323,8 +323,12 @@ class TaskController extends Controller
         }
         //TODO 还有其他模块
         $tasks = $query->where('privacy', false)->paginate($pageSize);
+        //获取任务完成数量
+        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
 
-        return $this->response->paginator($tasks, new TaskTransformer());
+        $request = $this->response->paginator($tasks, new TaskTransformer());
+        $request->addMeta("complete_count",$complete_count);
+        return $request;
     }
 
     public function show(Task $task)
@@ -954,6 +958,15 @@ class TaskController extends Controller
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
+                //修改日期 如果日期大于当前时间 状态为1正常 反之则状态为4 延期
+                $endAt = strtotime($payload['end_at']);
+                $currentAt = time();
+                if($endAt > $currentAt){
+                    $array['status'] = 1;
+                }else{
+                    $array['status'] = 4;
+                }
+                
             } else {
                 unset($array['end_at']);
             }

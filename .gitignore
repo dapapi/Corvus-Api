@@ -16,3 +16,4 @@ yarn-error.log
 .env_back
 .DS_Store
 /shell
+/tests

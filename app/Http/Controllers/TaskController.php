@@ -956,6 +956,15 @@ class TaskController extends Controller
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
+                //修改日期 如果日期大于当前时间 状态为1正常 反之则状态为4 延期
+                $endAt = strtotime($payload['end_at']);
+                $currentAt = time();
+                if($endAt > $currentAt){
+                    $array['status'] = 1;
+                }else{
+                    $array['status'] = 4;
+                }
+                
             } else {
                 unset($array['end_at']);
             }

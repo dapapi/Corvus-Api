@@ -469,9 +469,7 @@ class ApprovalFormController extends Controller
 
     public function notify(Request $request)
     {
-
         $payload = $request->all();
-
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));

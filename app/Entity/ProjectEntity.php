@@ -137,8 +137,8 @@ class ProjectEntity
    }
    public function get_privacy()
    {
-       if ($this->privacy == 0){
-           return "隐私";
+       if ($this->privacy == 1){
+           return "私有";
        }else{
            return "公开";
        }

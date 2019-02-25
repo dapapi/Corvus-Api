@@ -260,6 +260,7 @@ class ApprovalFormController extends Controller
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
+
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
@@ -1415,5 +1416,30 @@ class ApprovalFormController extends Controller
             default:
                 break;
         }
+    }
+
+    public function pendingSum(Request $request)
+    {
+        //项目立项我审批的数量
+        $projectRes = $this->myApproval($request);
+        $projectCount = $projectRes['meta']['pagination']['count'];
+
+        //合同我审批的数量
+        $contract = new ApprovalContractController();
+        $contractRes = $contract->myApproval($request);
+        $contractCount = $contractRes['meta']['pagination']['count'];
+
+        //一般我审批的数量
+        $general = new ApprovalGeneralController();
+        $generalRes = $general->myApproval($request);
+        $generalCount = $generalRes['meta']['pagination']['count'];
+
+        $array = array();
+        $array['project'] = $projectCount;
+        $array['contract'] = $contractCount;
+        $array['general'] = $generalCount;
+
+        return $array;
+
     }
 }

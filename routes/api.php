@@ -741,5 +741,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //删除附件api
         $api->delete('/affixe', 'App\Http\Controllers\PersonnelManageController@affixe');
 
+        //统计我审批的待审批数量
+        $api->get('/pending_sum', 'App\Http\Controllers\ApprovalFormController@pendingSum');
+
+
     });
 });

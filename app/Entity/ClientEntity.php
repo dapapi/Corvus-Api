@@ -1,6 +1,7 @@
 <?php
 namespace App\Entity;
 use App\Models\Client;
+use App\User;
 
 /**
  * Created by PhpStorm.
@@ -148,7 +149,8 @@ class ClientEntity
    }
    public function get_principal_id()
    {
-       return $this->principal_id;
+       $user = User::find($this->principal_id);
+       return $user == null ? null: $user->name;
    }
    public function get_creator_id()
    {

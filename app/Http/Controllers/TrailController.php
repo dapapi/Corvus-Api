@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientDataChangeEvent;
 use App\Events\OperateLogEvent;
 use App\Events\TrailDataChangeEvent;
 use App\Exports\TrailsExport;
@@ -307,6 +308,8 @@ class TrailController extends Controller
     public function edit(EditTrailRequest $request, Trail $trail)
     {
         $old_trail = clone $trail;
+        $client = $trail->client;
+        $old_client = clone $client;
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
@@ -557,30 +560,29 @@ class TrailController extends Controller
             }
             $trail->update($payload);
             if ($request->has('client')) {
-                $client = $trail->client;
                 if (isset($payload['client']['company'] )){
                     if($payload['client']['company'] != $client->company){//公司名称
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => '公司名称',
-                            'start' => $client->company,
-                            'end' => $payload['client']['company'],
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+//                        $operateName = new OperateEntity([
+//                            'obj' => $trail,
+//                            'title' => '公司名称',
+//                            'start' => $client->company,
+//                            'end' => $payload['client']['company'],
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operateName;
                         $client->update($payload['client']);
                     }
                 }
                 if(isset($payload['client']['grade'])){
                     if($payload['client']['grade'] != $client->grade){//公司级别
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => '客户级别',
-                            'start' => $client->grade,
-                            'end' => $payload['client']['grade'],
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+//                        $operateName = new OperateEntity([
+//                            'obj' => $trail,
+//                            'title' => '客户级别',
+//                            'start' => $client->grade,
+//                            'end' => $payload['client']['grade'],
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operateName;
                         $client->update($payload['client']);
                     }
                 }
@@ -763,6 +765,7 @@ class TrailController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//关联销售线索的客户和联系人日志
             event(new TrailDataChangeEvent($old_trail,$trail));//销售线索日志
+            event(new ClientDataChangeEvent($old_client,$client));//客户日志
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();

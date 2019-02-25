@@ -637,8 +637,7 @@ class ReportFormRepository
 //            $project->star_name = trim($project->star_name,",");
 //        }
         return [
-
-            "sum"   =>  count($peroject_list),
+            "sum"   =>  count($peroject_list),//数量合计
             "total_contract_amount" => array_sum(array_column($peroject_list->toArray(),'total_contract_money')), //合同总金额
             "total_project_cost"    =>  99999,//项目成本总额
             "project"   =>  $peroject_list
@@ -989,9 +988,9 @@ class ReportFormRepository
         return [
             "total" =>  count($stars),
             "total_fee" => array_sum(array_column($stars->toArray(),'total_fee')),
-
             "total_contract_amount" => array_sum(array_column($stars->toArray(),'total_contract_money')), //合同总金额
             "total_expenditure" => '',   //花费金额
+
             "stars" =>  $stars
         ];
 

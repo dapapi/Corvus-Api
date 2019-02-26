@@ -1176,6 +1176,7 @@ class ProjectController extends Controller
             if ($request->has('tasks')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::TASK)->delete();
                 $tasks = $request->get('tasks');
+                $tasks = array_unique($tasks);
                 foreach ($tasks as $value) {
                     $id = hashid_decode($value);
                     $task = Task::find($id);
@@ -1194,6 +1195,7 @@ class ProjectController extends Controller
             if ($request->has('projects')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::PROJECT)->delete();
                 $projects = $request->get('projects');
+                $projects = array_unique($projects);
                 foreach ($projects as $value) {
                     $id = hashid_decode($value);
                     $temp_project = Project::find($id);

@@ -930,10 +930,23 @@ class TaskController extends Controller
             $resourceableId = hashid_decode($payload['resourceable_id']);
             $resourceType = $payload['resource_type'];
             $taskResource = TaskResource::where('task_id',$task->id)->first();
+            if($payload['code'] == 'bloggers'){
+                $code = ModuleableType::BLOGGER;
+            }elseif($payload['code'] == 'stars'){
+                $code = ModuleableType::STAR;
+            }elseif($payload['code'] == 'projects'){
+                $code = ModuleableType::PROJECT;
+            }elseif($payload['code'] == 'clients'){
+                $code = ModuleableType::CLIENT;
+            }elseif($payload['code'] == 'trails'){
+                $code = ModuleableType::TRAIL;
+            }else{
+                return $this->response->errorInternal('上传类型不正确');
+            }
             $resource = [
                 'resource_id' => $resourceType,
                 'resourceable_id' =>$resourceableId,
-                'resourceable_type' => $payload['code'],
+                'resourceable_type' =>$code,
             ];
             $taskResource->update($resource);
             unset($payload['code']);
@@ -977,6 +990,7 @@ class TaskController extends Controller
                 $currentAt = time();
                 if($endAt > $currentAt){
                     $array['status'] = 1;
+
                 }else{
                     $array['status'] = 4;
                 }

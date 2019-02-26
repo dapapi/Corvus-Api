@@ -674,7 +674,7 @@ class ContractController extends Controller
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $producer_id = BloggerProducer::where($array)->get(['producer_id']);
-        $stars = Production::wherein('id',$producer_id)->createDesc()->paginate($pageSize);
+        $stars = Production::whereIn('id',$producer_id)->createDesc()->paginate($pageSize);
         return $this->response->paginator($stars, new ProductionTransformer());
     }
 

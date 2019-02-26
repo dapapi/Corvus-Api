@@ -94,7 +94,7 @@ class ProjectsStatementExport implements FromQuery, WithMapping, WithHeadings
         $deparment_name = $project->deparment_name;
         $star_name = $project->star_name;
         $total_contract_money = $project->total_contract_money;
-        $status = $project->status;
+        $status = $this->status($project->status);
         $principal_name = $project->principal_name;
         return[
             $project_type,
@@ -178,16 +178,16 @@ class ProjectsStatementExport implements FromQuery, WithMapping, WithHeadings
     {
         switch ($status) {
             case 1:
-                $status = 'S';
+                $status = '进行中';
                 break;
             case 2:
-                $status = 'A';
+                $status = '完成';
                 break;
             case 3:
-                $status = 'B';
+                $status = '终止';
                 break;
             case 4:
-                $status = 'C';
+                $status = '';
                 break;
         }
         return $status;

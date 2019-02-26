@@ -5,8 +5,10 @@ namespace App\Listeners;
 use App\Events\AnnouncementMessageEvent;
 use App\Models\DepartmentUser;
 use App\Models\Message;
+use App\Models\Project;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\AnnouncementTriggerPoint;
+use App\TriggerPoint\ApprovalTriggerPoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -49,7 +51,7 @@ class AnnouncementMessageEventListener
         $this->module = Message::ANNOUNCENMENT;
         $this->user = $event->user;
         $this->instance = $event->model;
-        $this->data = json_decode(sprintf($this->message_content,$this->instance->title,$this->user->name,$this->instance->create_at),true);
+        $this->data = json_decode(sprintf($this->message_content,$this->instance->title,$this->user->name,$this->instance->creatd_at),true);
         switch ($event->trigger_point){
             case AnnouncementTriggerPoint::CREATE:
                 $this->sendMessageWhenCreate();
@@ -66,7 +68,8 @@ class AnnouncementMessageEventListener
     {
         //获取所有要接受消息的用户
         $this->deparments = explode(",",$this->instance->scope);
-        $send_to = DepartmentUser::whereIn('department_id', explode(",",$this->deparments))->select('user_id');
+        $send_to = DepartmentUser::whereIn('department_id', $this->deparments)->select('user_id')->get();
+        $send_to = array_column($send_to->toArray(),"user_id");
         $subheading = $title = $this->user->name."发布了新公告";
         $this->sendMessage($title,$subheading,$send_to);
 
@@ -82,20 +85,8 @@ class AnnouncementMessageEventListener
         //消息接受人去重
         $send_to = array_unique($send_to);
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
-        $module_data_id = 0;
-        if ($this->module == Message::CONTRACT || $this->module == Message::APPROVAL){
-            $module_data_id = $this->instance->form_instance_number;
-        }else{
-            $project = Project::where('project_number',$this->instance->form_instance_number)->first();
-            if ($project){
-                $module_data_id = $project->id;
-            }
-        }
-        if ($this->trigger_point == ApprovalTriggerPoint::NOTIFY){
-            Log::info("消息函数向".implode(",",$send_to)."发消息");
-        }
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->module, null, $this->data, $send_to,$module_data_id);
+            Message::ANNOUNCENMENT, null, $this->data, $send_to,$this->instance->id);
     }
 
 }

@@ -450,24 +450,27 @@ class ReportFormRepository
             )
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
             ->get();
-            $start_month = Carbon::parse($start_time);
-            $end_moth = Carbon::parse($end_time);
+//        dd($trails->toArray());
+
+            $start_month = Carbon::parse(date("Y-m",strtotime($start_time)));
+            $end_moth = Carbon::parse(date("Y-m",strtotime($end_time)));
             $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
+
             $list = [];
-            for ($i = 0;$i <= $diff;$i++){
+            for ($i = 0;$i <= $diff;$i++){//获取两个时间之间
                 $curr = $start_month->copy()->addMonth($i)->format('Y-m');
-                foreach ($trails as $trail){
+                foreach ($trails as $trail){//循环线索
                     if($trail->date == $curr){
                         $list[$curr][] = $trail;
                         $cloum = array_column($list[$curr],'type');
                         $sum_key = array_search('sum',$cloum);
                         if($sum_key === false){
                             $list[$curr][] = [
-                                'total' => $trail['total'],
+                                'total' => $trail->total,
                                 "type"  =>  "sum"
                             ];
                         }else{
-                            $list[$curr][$sum_key]['total'] +=  $trail['total'];
+                            $list[$curr][$sum_key]['total'] +=  $trail->total;
                         }
                     }
                 }

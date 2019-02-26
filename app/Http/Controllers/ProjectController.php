@@ -803,7 +803,7 @@ class ProjectController extends Controller
                     }
                     else
                     {
-                        $result->addMeta('contractmoney', '0');
+                        $result->addMeta('contractmoney', "".'0');
                     }
                 }
 
@@ -819,7 +819,7 @@ class ProjectController extends Controller
                     }
                     else
                     {
-                        $result->addMeta('expendituresum', 0);
+                        $result->addMeta('expendituresum', "".'0');
                     }
                 }
             }
@@ -831,14 +831,14 @@ class ProjectController extends Controller
                 }
                 else
                 {
-                    $result->addMeta('contractmoney', 0);
+                    $result->addMeta('contractmoney', "".'0');
                 }
                 if (isset($expendituresum)) {
                     $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
                 }
                 else
                 {
-                    $result->addMeta('expendituresum', 0);
+                    $result->addMeta('expendituresum',"".'0');
                 }
             }
 //            $setprivacy1 = array();

@@ -2,6 +2,8 @@
 namespace App\Entity;
 use App\CommunicationStatus;
 use App\Gender;
+
+use App\SignContractStatus;
 use App\StarSource;
 use App\User;
 use App\Whether;

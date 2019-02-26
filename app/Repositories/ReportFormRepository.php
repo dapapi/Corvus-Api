@@ -420,7 +420,7 @@ class ReportFormRepository
     public function newTrail($start_time,$end_time,$department=null,$target_star=null)
     {
         $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->addDay(1)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -551,7 +551,7 @@ class ReportFormRepository
         if($type != null){
             $arr[] = ['d.id',$type];
         }
-        (new Trail())->setTable("t")->from("trails as t")
+        return (new Trail())->setTable("t")->from("trails as t")
             ->leftJoin('industries as i',"i.id",'=','t.industry_id')
             ->where($arr)
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
@@ -808,21 +808,6 @@ class ReportFormRepository
                 ];
             }
         }
-//        foreach ($result as $value){
-//            if(!isset($list[$value['type']])){
-//                $list[$value['type']]['type_total'] = floor(($value['p_total'])*10000)/10000;
-//                $list[$value['type']]['per_type_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-//                $list[$value['type']]['type'] = $value['type'];
-//                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-//                $list[$value['type']][] = $value;
-//            }else{
-//                $list[$value['type']]['type_total'] += $value['p_total'];
-//                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-//                $list[$value['type']][] = $value;
-//                $list[$value['type']]['per_type_total'] += floor(($value['p_total'] / $sum)*10000)/10000;
-//            }
-//
-//        }
 
         return $list;
 

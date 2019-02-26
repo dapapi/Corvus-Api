@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
-use App\Events\TaskDataChangeEvent;
+use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Project\AddRelateProjectRequest;
@@ -510,7 +510,7 @@ class ProjectController extends Controller
         $payload = $request->all();
         $arrayOperateLog = [];
         $old_project = clone $project;
-        $trail = $project->trail();
+        $trail = $project->trail;
         $old_trail = clone $trail;
         DB::beginTransaction();
         try {
@@ -565,6 +565,7 @@ class ProjectController extends Controller
             $project->update($payload);//更新项目
 
             $projectId = $project->id;
+//            $trail = $project->trail;
             //只有新增或者要删除的参与人不为空是才更新
             if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids']) != 0) {
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
@@ -733,7 +734,7 @@ class ProjectController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
-            event(new TaskDataChangeEvent($old_trail,$trail));//更新线索操作日志
+            event(new TrailDataChangeEvent($old_trail,$trail));
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();

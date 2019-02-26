@@ -67,8 +67,13 @@ class ProjectRepository
 //        }
 //        //查找项目
 //        return Project::whereIn('id',$project_ids)->paginate($pageSize);
-        $query = (new Project)
-            ->leftJoin("contracts as c",'projects.id',"c.project_id")
+
+        $sub_query = (new Project())->searchData();
+        $sub_bindings = $sub_query->getBindings();
+        $sql = str_replace("?",'%s',$sub_query->toSql());
+        $sql = sprintf($sql,...$sub_bindings);
+        $query = DB::table(DB::raw("({$sql}) as p"))//查询权限
+            ->leftJoin("contracts as c",'p.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
             })

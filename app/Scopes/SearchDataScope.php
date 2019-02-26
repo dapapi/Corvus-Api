@@ -111,6 +111,7 @@ class SearchDataScope implements Scope
             default:
                 break;
         }
+
 //        $sub_query = "select u.id from projects as p left join module_users as mu on mu.moduleable_id = p.id and mu.moduleable_type=".ModuleableType::PROJECT." left join users as u on u.id = mu.user_id";
 //        拼接默认搜索条件
         return $query;

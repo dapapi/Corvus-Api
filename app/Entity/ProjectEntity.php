@@ -1,5 +1,6 @@
 <?php
 namespace App\Entity;
+use App\Models\DataDictionarie;
 use App\Models\Project;
 use App\Models\Trail;
 use App\Priority;
@@ -145,22 +146,7 @@ class ProjectEntity
    }
    public function get_priority()
    {
-       $priority = null;
-       switch ($this->priority){
-           case Priority::PRIORITY_S:
-                $priority = "S";
-                break;
-           case Priority::PRIORITY_A:
-               $priority = "A";
-               break;
-           case Priority::PRIORITY_B:
-               $priority = "B";
-               break;
-           case Priority::PRIORITY_C:
-               $priority = "C";
-               break;
-       }
-       return $priority;
+       return (new DataDictionarie())->getName(DataDictionarie::PRIORITY,$this->priority);
    }
    public function get_status()
    {

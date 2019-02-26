@@ -20,6 +20,7 @@ class EventServiceProvider extends ServiceProvider
 //        'App\Events\MessageEvent'   =>  [
 //            'App\Listeners\MessageEventListener',
 //        ],
+        //发消息
         'App\Events\TaskMessageEvent'   =>  [//监听任务事件
             'App\Listeners\TaskMessageEventListener',
         ],
@@ -40,6 +41,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         'App\Events\TrailMessageEvent'   =>  [//监听博主签约解约
             'App\Listeners\TrailMessageEventListener',
+        ],
+        'App\Events\AnnouncementMessageEvent'   =>  [//监听博主签约解约
+            'App\Listeners\AnnouncementMessageEventListener',
         ],
 
         //日志

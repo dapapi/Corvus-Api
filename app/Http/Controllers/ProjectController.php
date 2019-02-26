@@ -6,6 +6,7 @@ use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
 use App\Events\TaskDataChangeEvent;
+use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Project\AddRelateProjectRequest;
@@ -733,7 +734,7 @@ class ProjectController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
-            event(new TaskDataChangeEvent($old_trail,$trail));//更新线索操作日志
+            event(new TrailDataChangeEvent($old_trail,$trail));//更新线索操作日志
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();

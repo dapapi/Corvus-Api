@@ -155,7 +155,6 @@ class ClientController extends Controller
             event(new ClientDataChangeEvent($old_client,$client));//记录日志
 
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             return $this->response->errorInternal('修改失败');
         }

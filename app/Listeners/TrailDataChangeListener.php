@@ -2,9 +2,13 @@
 
 namespace App\Listeners;
 
+use App\Annotation\DescAnnotation;
 use App\Entity\TrailEntity;
+use App\Events\OperateLogEvent;
 use App\Events\TrailDataChangeEvent;
+use App\Models\OperateEntity;
 use App\Models\Trail;
+use App\OperateLogMethod;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Rafrsr\LibArray2Object\Array2ObjectBuilder;

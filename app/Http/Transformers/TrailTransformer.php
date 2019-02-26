@@ -54,7 +54,7 @@ class TrailTransformer extends TransformerAbstract
                 'resource_type' => $trail->resource_type,
                 'resource' => $trail->resource,
                 'type' => $trail->type,
-                'fee' => $trail->fee,
+                'fee' => "".$trail->fee,
                 'priority' => $trail->priority,
                 'status' => $trail->status,
                 'progress_status' => $trail->progress_status,

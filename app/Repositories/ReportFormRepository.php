@@ -420,7 +420,7 @@ class ReportFormRepository
     public function newTrail($start_time,$end_time,$department=null,$target_star=null)
     {
         $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->addDay(1)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Production\ProductionStoreRequest;
 use App\Models\Blogger;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductionController extends Controller
 {
@@ -21,13 +24,23 @@ class ProductionController extends Controller
     public function store(ProductionStoreRequest $request, Blogger $blogger)
     {
         $payload = $request->all();
-        $blogger->productions()->create([
-            'nickname' => $blogger->nickname,
-            'videoname' => $payload['videoname'],
-            'release_time' => $payload['release_time'],
-            'read_proportion' => $payload['read_proportion'],
-            'link' => $payload['link'],
-            'advertising' => $payload['advertising'],
-        ]);
+
+        DB::beginTransaction();
+        try {
+            $blogger->productions()->create([
+                'nickname' => $blogger->nickname,
+                'videoname' => $payload['videoname'],
+                'release_time' => $payload['release_time'],
+                'read_proportion' => $payload['read_proportion'],
+                'link' => $payload['link'],
+                'advertising' => $payload['advertising'],
+            ]);
+        } catch (Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+        }
+        Db::commit();
     }
+
+
 }

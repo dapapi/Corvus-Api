@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientDataChangeEvent;
 use App\Events\OperateLogEvent;
+use App\Events\TrailDataChangeEvent;
 use App\Exports\TrailsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Trail\EditTrailRequest;
@@ -19,6 +21,7 @@ use App\Models\Department;
 use App\Models\FilterJoin;
 use App\Models\Industry;
 use App\Models\Message;
+use App\ModuleableType;
 use App\Models\OperateEntity;
 use App\Models\Client;
 use App\Models\Contact;
@@ -67,7 +70,17 @@ class TrailController extends Controller
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
 
-        })->searchData()->poolType()->orderBy('created_at', 'desc')
+        })
+            ->searchData()->poolType()
+            //->orderBy('created_at', 'desc')
+            ->leftJoin('operate_logs',function($join){
+                $join->on('trails.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::TRAIL)
+                    ->where('operate_logs.method','4');
+            })->groupBy('trails.id')
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+                'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
+                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
@@ -294,6 +307,9 @@ class TrailController extends Controller
     //todo 操作日志怎么记
     public function edit(EditTrailRequest $request, Trail $trail)
     {
+        $old_trail = clone $trail;
+        $client = $trail->client;
+        $old_client = clone $client;
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
@@ -301,14 +317,14 @@ class TrailController extends Controller
         if($request->has('title') && !is_null($payload['title'])){//销售线索名称
             $array['title'] = $payload['title'];
             if($payload['title'] != $trail->title){
-                $operateName = new OperateEntity([
-                    'obj' => $trail,
-                    'title' => '销售线索名称',
-                    'start' => $trail->title,
-                    'end' => $payload['title'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $trail,
+//                    'title' => '销售线索名称',
+//                    'start' => $trail->title,
+//                    'end' => $payload['title'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }else{
                 unset($array['title']);
             }
@@ -328,14 +344,14 @@ class TrailController extends Controller
             }
             $end = $resource_type->name;
             if($payload['resource_type'] != $trail->resource_type){
-                $operateName = new OperateEntity([
-                    'obj' => $trail,
-                    'title' => '销售线索来源类型',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $trail,
+//                    'title' => '销售线索来源类型',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }else{
                 unset($array['resource_type']);
             }
@@ -353,14 +369,14 @@ class TrailController extends Controller
                         $end = User::find(hashid_decode($payload['resource']))->name;
                     }
 
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => '销售线索来源',
-                        'start' => $start,
-                        'end' => $end,
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateName;
+//                    $operateName = new OperateEntity([
+//                        'obj' => $trail,
+//                        'title' => '销售线索来源',
+//                        'start' => $start,
+//                        'end' => $end,
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]);
+//                    $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
                     Log::error($e);
                     return $this->response->errorBadRequest("销售线索来源错误");
@@ -376,16 +392,16 @@ class TrailController extends Controller
             $array['principal_id'] = $payload['principal_id'];
             if($payload['principal_id'] != $trail->principal_id){
                 try{
-                    $curr_principal = User::find($trail->principal_id);
-                    $principal = User::findOrFail($array['principal_id']);
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => '负责人',
-                        'start' => $curr_principal->name,
-                        'end' => $principal->name,
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateName;
+//                    $curr_principal = User::find($trail->principal_id);
+//                    $principal = User::findOrFail($array['principal_id']);
+//                    $operateName = new OperateEntity([
+//                        'obj' => $trail,
+//                        'title' => '负责人',
+//                        'start' => $curr_principal->name,
+//                        'end' => $principal->name,
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]);
+//                    $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
                     Log::error($e);
                     return $this->response->errorBadRequest("负责人错误");
@@ -410,16 +426,16 @@ class TrailController extends Controller
                         $start = $curr_industry->name;
                     }
                     //要修改的行业
-                    $industry = Industry::findOrFail($payload['industry_id']);
-                    $end = $industry->name;
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => '行业',
-                        'start' => $start,
-                        'end' => $end,
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateName;
+//                    $industry = Industry::findOrFail($payload['industry_id']);
+//                    $end = $industry->name;
+//                    $operateName = new OperateEntity([
+//                        'obj' => $trail,
+//                        'title' => '行业',
+//                        'start' => $start,
+//                        'end' => $end,
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]);
+//                    $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
                     return $this->response->errorBadRequest("行业信息错误");
                 }
@@ -433,14 +449,14 @@ class TrailController extends Controller
         if ($request->has('fee') && !is_null($payload['fee'])) {//预计订单收入
             $array['fee'] = $payload['fee'];
             if($trail->fee != $payload['fee']){
-                $operateName = new OperateEntity([
-                    'obj' => $trail,
-                    'title' => '预计订单收入',
-                    'start' => $trail->fee,
-                    'end' => $payload['fee'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $trail,
+//                    'title' => '预计订单收入',
+//                    'start' => $trail->fee,
+//                    'end' => $payload['fee'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }else{
                 unset($array['fee']);
             }
@@ -448,14 +464,14 @@ class TrailController extends Controller
         if ($request->has('priority') && !is_null($payload['priority'])) {//优先级
             $array['priority'] = $payload['priority'];
             if($trail->priority != $payload['priority']){
-                $operateName = new OperateEntity([
-                    'obj' => $trail,
-                    'title' => '优先级',
-                    'start' => $trail->getPriority($trail->priority),
-                    'end' => $trail->getPriority($payload['priority']),
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $trail,
+//                    'title' => '优先级',
+//                    'start' => $trail->getPriority($trail->priority),
+//                    'end' => $trail->getPriority($payload['priority']),
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }else{
                 unset($array['priority']);
             }
@@ -464,19 +480,19 @@ class TrailController extends Controller
         if ($request->has('cooperation_type') && $payload['cooperation_type']) {//合作类型
             $array['cooperation_type'] = $payload['cooperation_type'];
             if($payload['cooperation_type'] != $trail->cooperation_type){
-                $curr_cooperation_type = (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
+//                $curr_cooperation_type = (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
                 $cooperation_type =  (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
                 if($cooperation_type == null){
                     return $this->response->errorBadRequest("合作类型错误");
                 }
-                $operateName = new OperateEntity([
-                    'obj' => $trail,
-                    'title' => '合作类型',
-                    'start' => $curr_cooperation_type,
-                    'end' => $cooperation_type,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $trail,
+//                    'title' => '合作类型',
+//                    'start' => $curr_cooperation_type,
+//                    'end' => $cooperation_type,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }else{
                 unset($array['cooperation_type']);
             }
@@ -485,14 +501,14 @@ class TrailController extends Controller
         if ($request->has('brand') && !is_null($payload['brand'])) {//品牌名称
             $array['brand'] = $payload['brand'];
             if($trail->brand != $payload['brand']){
-                $operateName = new OperateEntity([
-                    'obj' => $trail,
-                    'title' => '品牌',
-                    'start' => $trail->brand,
-                    'end' => $payload['brand'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $trail,
+//                    'title' => '品牌',
+//                    'start' => $trail->brand,
+//                    'end' => $payload['brand'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }else{
                 unset($array['brand']);
             }
@@ -500,14 +516,14 @@ class TrailController extends Controller
         if ($request->has('desc') && !is_null($payload['desc'])){//备注
             $array['desc'] = $payload['desc'];
             if($trail->desc != $payload['desc']){
-                $operateName = new OperateEntity([
-                    'obj' => $trail,
-                    'title' => '备注',
-                    'start' => $trail->desc,
-                    'end' => $payload['desc'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $trail,
+//                    'title' => '备注',
+//                    'start' => $trail->desc,
+//                    'end' => $payload['desc'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }else{
                 unset($array['desc']);
             }
@@ -529,14 +545,14 @@ class TrailController extends Controller
                     Trail::where('id',$trail_id)->update($data);
                     // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
 
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => '锁价',
-                        'start' => $trail->lock_status == 1?"锁价":"未锁价",
-                        'end' => $array['lock_status'] == 1?"锁价":"未锁价",
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateName;
+//                    $operateName = new OperateEntity([
+//                        'obj' => $trail,
+//                        'title' => '锁价',
+//                        'start' => $trail->lock_status == 1?"锁价":"未锁价",
+//                        'end' => $array['lock_status'] == 1?"锁价":"未锁价",
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]);
+//                    $arrayOperateLog[] = $operateName;
                 }else{
                     unset($array['lock_status']);
 
@@ -544,30 +560,29 @@ class TrailController extends Controller
             }
             $trail->update($payload);
             if ($request->has('client')) {
-                $client = $trail->client;
                 if (isset($payload['client']['company'] )){
                     if($payload['client']['company'] != $client->company){//公司名称
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => '公司名称',
-                            'start' => $client->company,
-                            'end' => $payload['client']['company'],
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+//                        $operateName = new OperateEntity([
+//                            'obj' => $trail,
+//                            'title' => '公司名称',
+//                            'start' => $client->company,
+//                            'end' => $payload['client']['company'],
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operateName;
                         $client->update($payload['client']);
                     }
                 }
                 if(isset($payload['client']['grade'])){
                     if($payload['client']['grade'] != $client->grade){//公司级别
-                        $operateName = new OperateEntity([
-                            'obj' => $trail,
-                            'title' => '客户级别',
-                            'start' => $client->grade,
-                            'end' => $payload['client']['grade'],
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+//                        $operateName = new OperateEntity([
+//                            'obj' => $trail,
+//                            'title' => '客户级别',
+//                            'start' => $client->grade,
+//                            'end' => $payload['client']['grade'],
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operateName;
                         $client->update($payload['client']);
                     }
                 }
@@ -748,7 +763,9 @@ class TrailController extends Controller
                     return $this->response->errorInternal("推荐艺人关联失败");
                 }
             }
-            event(new OperateLogEvent($arrayOperateLog));//更新日志
+            event(new OperateLogEvent($arrayOperateLog));//关联销售线索的客户和联系人日志
+            event(new TrailDataChangeEvent($old_trail,$trail));//销售线索日志
+            event(new ClientDataChangeEvent($old_client,$client));//客户日志
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -863,10 +880,10 @@ class TrailController extends Controller
 
     public function refuse(RefuseTrailReuqest $request, Trail $trail)
     {
-        $power = (new ScopeRepository())->checkMangePower($trail->creator_id, $trail->principal_id, []);
-        if (!$power) {
-            return $this->response->errorInternal("你没有更改线索状态的权限");
-        }
+//        $power = (new ScopeRepository())->checkMangePower($trail->creator_id, $trail->principal_id, []);
+//        if (!$power) {
+//            return $this->response->errorInternal("你没有更改线索状态的权限");
+//        }
         $type = $request->get('type');
         $reason = $request->get('reason');
 
@@ -925,7 +942,19 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData()->poolType()
+            ->leftJoin('operate_logs',function($join){
+                $join->on('trails.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::TRAIL)
+                    ->where('operate_logs.method','4');
+            })->groupBy('trails.id')
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+                'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
+                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+//        dd($sql_with_bindings);
+
         return $this->response->paginator($trails, new TrailTransformer());
     }
 

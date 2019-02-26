@@ -6,6 +6,7 @@ use App\AffixType;
 use App\Events\dataChangeEvent;
 use App\Events\MessageEvent;
 use App\Events\OperateLogEvent;
+use App\Events\TaskDataChangeEvent;
 use App\Events\TaskMessageEvent;
 use App\Models\DataDictionarie;
 use App\Models\Message;
@@ -299,9 +300,7 @@ class TaskController extends Controller
             default:
                 break;
         }
-        DB::connection()->enableQueryLog();
         $tasks = $query->get();
-        dd(DB::getQueryLog());
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
@@ -323,8 +322,12 @@ class TaskController extends Controller
         }
         //TODO 还有其他模块
         $tasks = $query->where('privacy', false)->paginate($pageSize);
+        //获取任务完成数量
+        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
 
-        return $this->response->paginator($tasks, new TaskTransformer());
+        $request = $this->response->paginator($tasks, new TaskTransformer());
+        $request->addMeta("complete_count",$complete_count);
+        return $request;
     }
 
     public function show(Task $task)
@@ -819,29 +822,29 @@ class TaskController extends Controller
 
         if ($request->has('title')) {
             $array['title'] = $payload['title'];
-            if ($array['title'] != $task->title) {
-                $operateTitle = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '标题',
-                    'start' => $task->title,
-                    'end' => $array['title'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateTitle;
-            }
+//            if ($array['title'] != $task->title) {
+//                $operateTitle = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '标题',
+//                    'start' => $task->title,
+//                    'end' => $array['title'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateTitle;
+//            }
         }
 
         if ($request->has('desc')) {
             $array['desc'] = $payload['desc'];
 
-            $operateDesc = new OperateEntity([
-                'obj' => $task,
-                'title' => '描述',
-                'start' => $task->desc,
-                'end' => $array['desc'],
-                'method' => OperateLogMethod::UPDATE,
-            ]);
-            $arrayOperateLog[] = $operateDesc;
+//            $operateDesc = new OperateEntity([
+//                'obj' => $task,
+//                'title' => '描述',
+//                'start' => $task->desc,
+//                'end' => $array['desc'],
+//                'method' => OperateLogMethod::UPDATE,
+//            ]);
+//            $arrayOperateLog[] = $operateDesc;
         }
 
         if ($request->has('type')) {
@@ -850,23 +853,23 @@ class TaskController extends Controller
             $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
             if ($taskType) {
                 $array['type_id'] = $taskType->id;
-                $start = null;
-                if ($task->type) {
-                    $start = $task->type->title;
-                }
-                $end = $taskType->title;
+//                $start = null;
+//                if ($task->type) {
+//                    $start = $task->type->title;
+//                }
+//                $end = $taskType->title;
 
-                $operateType = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '类型',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
+//                $operateType = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '类型',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
                 if ($task->type && $task->type->id == $taskType->id) {
                     unset($array['type_id']);
                 } else {
-                    $arrayOperateLog[] = $operateType;
+//                    $arrayOperateLog[] = $operateType;
                 }
             } else {
                 return $this->response->errorBadRequest('你所在的部门下没有这个类型');
@@ -877,23 +880,23 @@ class TaskController extends Controller
             try {
                 $currentPrincipalUser = User::find($task->principal_id);
                 $start = null;
-                if ($currentPrincipalUser)
-                    $start = $currentPrincipalUser->name;
+//                if ($currentPrincipalUser)
+//                    $start = $currentPrincipalUser->name;
 
                 $principalId = hashid_decode($payload['principal_id']);
-                $principalUser = User::findOrFail($principalId);
+//                $principalUser = User::findOrFail($principalId);
                 $array['principal_id'] = $principalId;
 
                 if ($currentPrincipalUser) {
                     if ($currentPrincipalUser->id != $array['principal_id']) {
-                        $operatePrincipal = new OperateEntity([
-                            'obj' => $task,
-                            'title' => '负责人',
-                            'start' => $start,
-                            'end' => $principalUser->name,
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operatePrincipal;
+//                        $operatePrincipal = new OperateEntity([
+//                            'obj' => $task,
+//                            'title' => '负责人',
+//                            'start' => $start,
+//                            'end' => $principalUser->name,
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operatePrincipal;
                     } else {
                         unset($arrayOperateLog['principal_id']);
                     }
@@ -906,20 +909,48 @@ class TaskController extends Controller
         if ($request->has('priority')) {
             $array['priority'] = $payload['priority'];
             if ($array['priority'] != $task->priority) {
-                $start = TaskPriorityStatus::getStr($task->priority);
-                $end = TaskPriorityStatus::getStr($array['priority']);
-
-                $operatePriority = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '优先级',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operatePriority;
+//                $start = TaskPriorityStatus::getStr($task->priority);
+//                $end = TaskPriorityStatus::getStr($array['priority']);
+//
+//                $operatePriority = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '优先级',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operatePriority;
             } else {
                 unset($array['priority']);
             }
+        }
+
+        //修改关联资源
+        if ($request->has('resource_type')) {
+            $resourceableId = hashid_decode($payload['resourceable_id']);
+            $resourceType = $payload['resource_type'];
+            $taskResource = TaskResource::where('task_id',$task->id)->first();
+            if($payload['code'] == 'bloggers'){
+                $code = ModuleableType::BLOGGER;
+            }elseif($payload['code'] == 'stars'){
+                $code = ModuleableType::STAR;
+            }elseif($payload['code'] == 'projects'){
+                $code = ModuleableType::PROJECT;
+            }elseif($payload['code'] == 'clients'){
+                $code = ModuleableType::CLIENT;
+            }elseif($payload['code'] == 'trails'){
+                $code = ModuleableType::TRAIL;
+            }else{
+                return $this->response->errorInternal('上传类型不正确');
+            }
+            $resource = [
+                'resource_id' => $resourceType,
+                'resourceable_id' =>$resourceableId,
+                'resourceable_type' =>$code,
+            ];
+            $taskResource->update($resource);
+            unset($payload['code']);
+
         }
 
         if ($request->has('start_at')) {
@@ -928,14 +959,14 @@ class TaskController extends Controller
             $end = $array['start_at'];
 
             if ($start != $end) {
-                $operateStartAt = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '开始时间',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateStartAt;
+//                $operateStartAt = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '开始时间',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateStartAt;
             } else {
                 unset($array['start_at']);
             }
@@ -946,14 +977,24 @@ class TaskController extends Controller
             $start = $task->end_at;
             $end = $array['end_at'];
             if ($start != $end) {
-                $operateStartAt = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '结束时间',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateStartAt;
+//                $operateStartAt = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '结束时间',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateStartAt;
+                //修改日期 如果日期大于当前时间 状态为1正常 反之则状态为4 延期
+                $endAt = strtotime($payload['end_at']);
+                $currentAt = time();
+                if($endAt > $currentAt){
+                    $array['status'] = 1;
+
+                }else{
+                    $array['status'] = 4;
+                }
+                
             } else {
                 unset($array['end_at']);
             }
@@ -965,7 +1006,8 @@ class TaskController extends Controller
 
             $task->update($array);
             // 操作日志
-            event(new OperateLogEvent($arrayOperateLog));
+//            event(new OperateLogEvent($arrayOperateLog));
+            event(new TaskDataChangeEvent($oldTask,$task));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

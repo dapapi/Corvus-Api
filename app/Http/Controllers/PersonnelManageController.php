@@ -27,9 +27,13 @@ use App\Models\DataDictionarie;
 use Illuminate\Http\Request;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Qiniu\Storage\UploadManager;
+use Qiniu\Auth;
+use Qiniu\Storage\BucketManager;
+use App\Http\Requests\AffixeRequest;
+
 
 
 class PersonnelManageController extends Controller
@@ -113,7 +117,6 @@ class PersonnelManageController extends Controller
     public function store(Request $request,User $user)
     {
         $payload = $request->all();
-        $user = Auth::guard('api')->user();
         $userPhone = User::where('phone', $payload['phone'])->get()->keyBy('phone')->toArray();
         $useremail = User::where('email', $payload['email'])->get()->keyBy('email')->toArray();
         $pageSize = config('api.page_size');
@@ -125,10 +128,20 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('手机号已经被注册!');
         }else{
 
-            if(!isset($payload['icon_url'])){
+//            if(!isset($payload['icon_url'])){
+//
+//                $iconName = $this->getColorName($payload['name']);
+//                $payload['icon_url'] = $iconName;
+//            }
 
-                $iconName = $this->getColorName($payload['name']);
-                $payload['icon_url'] = $iconName;
+            /*
+            * icon_url 有值 用传入的值 如果没有则生成头像上传
+            */
+            if($payload['icon_url']){
+                $payload['icon_url'] = $payload['icon_url'];
+            }else{
+                $res = $this->getImages($payload['name'],$userid=0);
+                $payload['icon_url'] = $this->updateStore($userid,$res,$request);
             }
             $payload['status'] = User::USER_STATUS_DEFAULT;
             $payload['hire_shape'] = User::USER_STATUS_DEFAULT;
@@ -401,16 +414,17 @@ class PersonnelManageController extends Controller
 
         $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
         try {
-//            $operate = new OperateEntity([
-//                    'obj' => $user,
-//                    'title' => '个人',
-//                    'start' => '信息',
-//                    'end' => '档案',
-//                    'method' => OperateLogMethod::UPDATE,
-//                ]);
-//                event(new OperateLogEvent([
-//                    $operate,
-//                ]));
+            //生成头像
+            /*
+            * icon_url 有值 用传入的值 如果没有则生成头像上传
+            */
+            if($payload['icon_url']){
+                $payload['icon_url'] = $payload['icon_url'];
+            }else{
+                $res = $this->getImages($payload['name'],$userid);
+                $payload['icon_url'] = $this->updateStore($userid,$res,$request);
+            }
+
             $array = [
                 'department_id' => $payload['department_id'],
                 'user_id' => $userid,
@@ -443,11 +457,11 @@ class PersonnelManageController extends Controller
 //            if(!empty($userPhone)){
 //                return $this->response->errorInternal('手机号已经注册！');
 //            }
-            $icon_url = $this->getColorName($payload['name']);
+            //$icon_url = $this->getColorName($payload['name']);
 
             unset($payload['department']);
             unset($payload['department_id']);
-            $payload['icon_url'] = $icon_url;
+           // $payload['icon_url'] = $icon_url;
             $user->update($payload);
             //$personalDetail->update($payload);
 
@@ -728,23 +742,39 @@ class PersonnelManageController extends Controller
 
         $department = DepartmentUser::where('user_id',$userid)->get()->toArray();
         if(empty($department)){
-        if($status == 3){
-            $array = [
-                'entry_status' => $payload['entry_status'],
-                'password' => User::USER_PSWORD,
-            ];
-            $departmentarray = [
-                'department_id' => User::USER_DEPARTMENT_DEFAULT,
-                'user_id' => $userid,
-            ];
-            DepartmentUser::create($departmentarray);
-        }else{
-            $array = [
-                'entry_status' => $payload['entry_status'],
-            ];
-        }
+
+            if($status == 3){
+                $array = [
+                    'entry_status' => $payload['entry_status'],
+                    'password' => User::USER_PSWORD,
+                ];
+                $departmentarray = [
+                    'department_id' => User::USER_DEPARTMENT_DEFAULT,
+                    'user_id' => $userid,
+                ];
+                DepartmentUser::create($departmentarray);
+                //加入成员角色
+                $roleUser = RoleUser::where('user_id',$userid)->get()->toArray();
+                if(empty($roleUser)){
+
+                    $rolearray = [
+                        'role_id' => User::USER_ROLE_DEFAULT,
+                        'user_id' => $userid,
+                    ];
+                    RoleUser::create($rolearray);
+                }else{
+                    return $this->response->errorInternal('该用户已存在角色');
+                }
+            }else{
+                $array = [
+                    'entry_status' =>$payload['entry_status'],
+                    'phone' =>0,
+                    //'email' =>0,
+                ];
+
+            }
         try {
-//                // 操作日志
+                // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $user,
                     'title' => null,
@@ -755,6 +785,7 @@ class PersonnelManageController extends Controller
                 event(new OperateLogEvent([
                     $operate,
                 ]));
+
             $user->update($array);
         } catch (\Exception $exception) {
             Log::error($exception);
@@ -782,7 +813,6 @@ class PersonnelManageController extends Controller
     public function entryDetail(Request $request, User $user)
     {
         return $this->response->item($user, new UserTransformer());
-
     }
 
     public function editPosition(Request $request, User $user)
@@ -826,6 +856,184 @@ class PersonnelManageController extends Controller
         $companys = DataDictionarie::where('parent_id', '413')->get();
         return $this->response->collection($companys, new DataDictionarieTransformer());
 
+    }
+
+    //后台修改 头像 职位 姓名
+    public function editData(Request $request, User $user,PersonalSalary $personalSalary)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        /*
+         * icon_url 有值 用传入的值 如果没有则生成头像上传
+         */
+        if($payload['icon_url']){
+            $resUrl = $payload['icon_url'];
+        }else{
+            $res = $this->getImages($payload['name'],$userid);
+            $resUrl = $this->updateStore($userid,$res,$request);
+        }
+        try {
+            $array = [
+                'name' => $payload['name'],
+                'position_id' => $payload['position_id'],
+                'icon_url' => $resUrl,
+            ];
+
+            $user->update($array);
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return $this->response->errorInternal('修改失败');
+        }
+        return $this->response->accepted();
+    }
+
+    public function updateStore($userid,$res,$request)
+    {
+//        $accessKey = 'M04mO4zzKx-FCMTilFGTPW3Fd-r4wpyIHZ00e-s8';
+//        $secretKey = 'VwA17wgx2Zt0TDVLxRlRQIauI7pWlUW9BY63PbTu';    // 构建鉴权对象
+        $accessKey = $request->get('access_key', config('app.access_key'));
+        $secretKey = $request->get('secret_key', config('app.secret_key'));
+        $auth = new Auth($accessKey, $secretKey);    // 要上传的空间
+
+        // 要上传的空间
+        $bucket = 'corvus';
+        //自定义上传回复的凭证 返回的数据
+        $returnBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(fname)"}';
+        $policy = array(
+            'returnBody' => $returnBody,
+
+        );
+        //token过期时间
+        $expires = 3600;
+        // 生成上传 Token
+        $token = $auth->uploadToken($bucket, null, $expires, $policy, true);
+        // 要上传文件的本地路径
+        $path = base_path();
+        //header('content-type:image/png');
+        $filePath = $res['url'];  // 上传到七牛后保存的文件名，可拼接
+        $key = $res['url_name'];  //userid'.$userid.'.png';  // 初始化 UploadManager 对象并进行文件的上传。
+
+        $uploadMgr = new UploadManager(); // 调用 UploadManager 的 putFile 方法进行文件的上传。
+        list($ret, $err) = $uploadMgr->putFile($token, $key, $filePath);
+        $baseUrl = 'https://res-crm.papitube.com/'.$res['url_name'];
+        // 对链接进行签名
+        $signedUrl = $auth->privateDownloadUrl($baseUrl);
+        unlink($filePath);
+        return $baseUrl;
+
+        // 初始化BucketManager
+//        $config = new \Qiniu\Config();
+//        $bucketMgr = new BucketManager($auth,$config);
+//        //你要测试的空间， 并且这个key在你空间中存在
+//
+//        $key = 'userid'.$userid.'.png';
+//        //删除$bucket 中的文件 $key
+//        $err = $bucketMgr->delete($bucket, $key);
+//        var_dump($err);
+//        if ($err !== null) {
+//            var_dump($err);
+//        } else {
+//            var_dump('删除成功');
+//        }
+    }
+
+    public function getImages($name,$userid){
+
+            $myImage = ImageCreate(140,140); //参数为宽度和高度
+            $strColor = ImageColorAllocate($myImage, 255, 255, 255);
+            $strColor1 = ImageColorAllocate($myImage, 242, 62, 124);
+            $strColor2 = ImageColorAllocate($myImage, 255, 104, 266);
+            $strColor3 = ImageColorAllocate($myImage, 255, 140, 0);
+            $strColor4 = ImageColorAllocate($myImage, 181, 63, 175);
+            $strColor5 = ImageColorAllocate($myImage, 39, 211, 168);
+            $strColor6 = ImageColorAllocate($myImage, 44, 204, 218);
+            $strColor7 = ImageColorAllocate($myImage, 56, 186, 93);
+            $strColor8 = ImageColorAllocate($myImage, 63, 81, 181);
+            $white = ImageColorAllocate($myImage, 255, 255, 255);
+            $color = '$strColor'.rand(1, 8);
+            imagefill($myImage, 0, 0, $strColor.rand(1, 8));
+
+            $str = $this->getColorNameInfo($name);
+            //$path = base_path();
+            $fontUrl = '../resources/font/Heiti.ttc';
+
+            if(preg_match("/^[a-zA-Z\s]+$/",$str))
+            {
+                imagettftext($myImage, 50, 0, 35, 90,$white, $fontUrl, $str);
+            }else{
+
+                $data= iconv("UTF-8","GB2312//IGNORE",$str);
+                imagettftext($myImage, 44, 0, 10, 90,$white, $fontUrl, $str);
+            }
+            $path = base_path();
+            //header('content-type:image/png');
+            $code = rand(1000000000, 9999999999);
+            imagepng($myImage,"../photo/"."userid".$userid.'-'.$code.".png");
+            $arr = array();
+            $arr['url'] = "../photo/"."userid".$userid.'-'.$code.".png";
+            $arr['url_name'] = "userid".$userid.'-'.$code.".png";
+            return $arr;
+    }
+
+
+    //随机颜色 名字
+    public function getColorNameInfo($name){
+
+        if(preg_match("/^[a-zA-Z\s]+$/",$name)){
+            $icon_name  = strtoupper(substr($name,0,2));
+        }else{
+            if(strlen($name) > 6){
+
+                if (preg_match('/[a-zA-Z]/',$name)){
+                    $icon_name = mb_substr($name,0,2, 'utf-8');
+                }else{
+                    $icon_name = substr($name,(strlen($name)-6));
+                }
+            }else{
+                $icon_name = $name;
+            }
+        }
+        return $icon_name;
+    }
+
+    //删除附件七牛云
+    public function affixe(AffixeRequest $request)
+    {
+        $payload = $request->all();
+        $accessKey = $request->get('access_key', config('app.access_key'));
+        $secretKey = $request->get('secret_key', config('app.secret_key'));
+        $auth = new Auth($accessKey, $secretKey);    // 要上传的空间
+        // 要上传的空间
+        $bucket = 'corvus';
+        //自定义上传回复的凭证 返回的数据
+        $returnBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(fname)"}';
+        $policy = array(
+            'returnBody' => $returnBody,
+        );
+        //token过期时间
+        $expires = 3600;
+        // 生成上传 Token
+        $token = $auth->uploadToken($bucket, null, $expires, $policy, true);
+       //初始化BucketManager
+        $config = new \Qiniu\Config();
+        $bucketMgr = new BucketManager($auth,$config);
+        //你要测试的空间， 并且这个key在你空间中存在
+        $key = substr($payload['affixe'],strpos($payload['affixe'],'/')+23);
+        DB::beginTransaction();
+        try {
+        //删除$bucket 中的文件 $key
+        $err = $bucketMgr->delete($bucket, $key);
+        if ($err !== null) {
+            return $this->response->errorInternal('删除失败！');
+        } else {
+            return $this->response->errorInternal('删除成功！');
+        }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
     }
 
 }

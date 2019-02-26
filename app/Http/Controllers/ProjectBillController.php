@@ -56,9 +56,8 @@ class ProjectBillController extends Controller
                     // $dataOne[] = $value1->name;
                     //    $dataOne = array_unique($dataOne);
                 }
-
-                $dataOne[] = implode('/', $data[$key]);
-
+                $dataOne = $data[$key];
+            //    $dataOne[] = implode('/', $data[$key]);
 
             }
             $array['project_kd_name'] = $project->title;

@@ -3,8 +3,10 @@
 namespace App\Exports;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Star;
+use App\CommunicationStatus;
 use App\ModuleableType;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -39,9 +41,15 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
         if ($request->has('source') && !empty($payload['source'])) {//艺人来源
             $array[] = ['source', $payload['source']];
         }
-        $stars = Star::query()->createDesc()
-            ->searchData()
-            ->where($array);//根据条件查询
+        $stars = Star::where($array)->searchData()->leftJoin('operate_logs',function($join){
+            $join->on('stars.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::STAR)
+                ->where('operate_logs.method','4');
+        })->groupBy('stars.id')
+            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
+                'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
+                'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
+                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")]);
          return  $stars;
 
 
@@ -59,9 +67,12 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
         $birthday = $star->birthday;
         $source = $this->source($star->source);
         $phone= $star->phone;
-        $eamail = $star->eamail;
+        $eamail = $star->email;
         $platform = $this->platform($star->platform);
         $artist_scout_name = $star->artist_scout_name;
+        $star_location =  $star->star_location;
+        $communication_status = CommunicationStatus::getStr($star->communication_status);
+        $intention = $this->getStr($star->intention);
         $sign_contract_other = $star->sign_contract_other == 1?'是':'否';
         return [
             $name,
@@ -72,8 +83,10 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
             $eamail,
             $platform,
             $artist_scout_name,
+            $star_location,
+            $communication_status,
+            $intention,
             $sign_contract_other
-
         ];
     }
 
@@ -95,6 +108,19 @@ class StarsExport implements FromQuery, WithMapping, WithHeadings
 
 
         ];
+    }
+    private function getStr($key)
+    {
+        $start = '';
+        switch ($key) {
+            case 1:
+                $start = '是';
+                break;
+            case 2:
+                $start = '否';
+                break;
+        }
+        return $start;
     }
     /**
      * @param string $type

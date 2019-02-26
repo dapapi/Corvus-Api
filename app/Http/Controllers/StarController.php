@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\AffixType;
 use App\CommunicationStatus;
 use App\Events\OperateLogEvent;
+use App\Events\StarDataChangeEvent;
 use App\Gender;
 use App\Exports\StarsExport;
 use App\Http\Requests\Excel\ExcelImportRequest;
@@ -61,9 +62,18 @@ class StarController extends Controller
             $array[] = ['source', $payload['source']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $stars = Star::createDesc()
-            ->searchData()
-        ->where($array)//根据条件查询
+        $stars = Star::where($array)->searchData()->leftJoin('operate_logs',function($join){
+            $join->on('stars.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::STAR)
+                ->where('operate_logs.method','4');
+        })->groupBy('stars.id')
+            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
+                'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
+                'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
+                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])
+        //根据条件查询
+//               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
         ->paginate($pageSize);
         return $this->response->paginator($stars, new StarTransformer());
     }
@@ -158,24 +168,25 @@ class StarController extends Controller
         DB::commit();
     }
 
-    //update
+    //编辑艺人，艺人概况
     public function edit(StarUpdateRequest $request, Star $star)
     {
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
+        $old_star = clone $star;
         $user = Auth::guard('api')->user();
         if ($request->has('name') && !empty($payload['name'])) {
             $array['name'] = $payload['name'];//姓名
             if ($array['name'] != $star->name) {
-                $operateName = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '名称',
-                    'start' => $star->name,
-                    'end' => $array['name'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateName;
+//                $operateName = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '名称',
+//                    'start' => $star->name,
+//                    'end' => $array['name'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateName;
             }
         }
 
@@ -183,17 +194,17 @@ class StarController extends Controller
             $array['gender'] = $payload['gender'];
             if ($array['gender'] != $star->gender) {
 
-                $start = Gender::getStr($star->gender);
-                $end = Gender::getStr($array['gender']);
-
-                $operateGender = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '性别',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateGender;
+//                $start = Gender::getStr($star->gender);
+//                $end = Gender::getStr($array['gender']);
+//
+//                $operateGender = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '性别',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateGender;
             } else {
                 unset($array['gender']);
             }
@@ -202,14 +213,14 @@ class StarController extends Controller
         if ($request->has('avatar')) {//头像
             $array['avatar'] = $payload['avatar'];
 
-            $operateAvatar = new OperateEntity([
-                'obj' => $star,
-                'title' => '头像',
-                'start' => null,
-                'end' => null,
-                'method' => OperateLogMethod::RENEWAL,
-            ]);
-            $arrayOperateLog[] = $operateAvatar;
+//            $operateAvatar = new OperateEntity([
+//                'obj' => $star,
+//                'title' => '头像',
+//                'start' => null,
+//                'end' => null,
+//                'method' => OperateLogMethod::RENEWAL,
+//            ]);
+//            $arrayOperateLog[] = $operateAvatar;
         }
 
         if ($request->has('broker_id')) {//经纪人
@@ -226,14 +237,14 @@ class StarController extends Controller
                 $array['broker_id'] = $brokerId;
 
                 if ($brokerUser->id != $currentBroker->id) {
-                    $operateBroker = new OperateEntity([
-                        'obj' => $star,
-                        'title' => '经纪人',
-                        'start' => $start,
-                        'end' => $brokerUser->name,
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateBroker;
+//                    $operateBroker = new OperateEntity([
+//                        'obj' => $star,
+//                        'title' => '经纪人',
+//                        'start' => $start,
+//                        'end' => $brokerUser->name,
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]);
+//                    $arrayOperateLog[] = $operateBroker;
                 } else {
                     unset($array['broker_id']);
                 }
@@ -245,14 +256,14 @@ class StarController extends Controller
         if ($request->has('birthday')) {//生日
             $array['birthday'] = $payload['birthday'];
             if ($array['birthday'] != $star->birthday) {
-                $operateBirthday = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '生日',
-                    'start' => $star->birthday,
-                    'end' => $array['birthday'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateBirthday;
+//                $operateBirthday = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '生日',
+//                    'start' => $star->birthday,
+//                    'end' => $array['birthday'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateBirthday;
             } else {
                 unset($array['birthday']);
             }
@@ -261,14 +272,14 @@ class StarController extends Controller
         if ($request->has('phone')) {//电话
             $array['phone'] = $payload['phone'];
             if ($array['phone'] != $star->phone) {
-                $operatePhone = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '手机号',
-                    'start' => $star->phone,
-                    'end' => $array['phone'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operatePhone;
+//                $operatePhone = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '手机号',
+//                    'start' => $star->phone,
+//                    'end' => $array['phone'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operatePhone;
             } else {
                 unset($array['phone']);
             }
@@ -277,14 +288,14 @@ class StarController extends Controller
         if ($request->has('desc')) { //描述
             $array['desc'] = $payload['desc'];
             if ($array['desc'] != $star->desc) {
-                $operateDesc = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '描述',
-                    'start' => $star->desc,
-                    'end' => $array['desc'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateDesc;
+//                $operateDesc = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '描述',
+//                    'start' => $star->desc,
+//                    'end' => $array['desc'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateDesc;
             } else {
                 unset($array['desc']);
             }
@@ -293,14 +304,14 @@ class StarController extends Controller
         if ($request->has('wechat')) { //微信
             $array['wechat'] = $payload['wechat'];
             if ($array['wechat'] != $star->wechat) {
-                $operateWechat = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '微信号',
-                    'start' => $star->wechat,
-                    'end' => $array['wechat'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateWechat;
+//                $operateWechat = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '微信号',
+//                    'start' => $star->wechat,
+//                    'end' => $array['wechat'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateWechat;
             } else {
                 unset($array['wechat']);
             }
@@ -309,14 +320,14 @@ class StarController extends Controller
         if ($request->has('email')) {//邮箱
             $array['email'] = $payload['email'];
             if ($array['email'] != $star->email) {
-                $operateEmail = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '邮箱',
-                    'start' => $star->email,
-                    'end' => $array['email'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateEmail;
+//                $operateEmail = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '邮箱',
+//                    'start' => $star->email,
+//                    'end' => $array['email'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateEmail;
             } else {
                 unset($array['email']);
             }
@@ -326,17 +337,17 @@ class StarController extends Controller
             $array['source'] = $payload['source'];
             if ($array['source'] != $star->source) {
 
-                $start = StarSource::getStr($star->source);
-                $end = StarSource::getStr($array['source']);
-
-                $operateSource = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '艺人来源',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateSource;
+//                $start = StarSource::getStr($star->source);
+//                $end = StarSource::getStr($array['source']);
+//
+//                $operateSource = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '艺人来源',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateSource;
             } else {
                 unset($array['source']);
             }
@@ -346,17 +357,17 @@ class StarController extends Controller
             $array['communication_status'] = $payload['communication_status'];
             if ($array['communication_status'] != $star->communication_status) {
 
-                $start = CommunicationStatus::getStr($star->communication_status);
-                $end = CommunicationStatus::getStr($array['communication_status']);
-
-                $operateCommunicationStatus = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '沟通状态',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateCommunicationStatus;
+//                $start = CommunicationStatus::getStr($star->communication_status);
+//                $end = CommunicationStatus::getStr($array['communication_status']);
+//
+//                $operateCommunicationStatus = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '沟通状态',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateCommunicationStatus;
             } else {
                 unset($array['communication_status']);
             }
@@ -366,17 +377,17 @@ class StarController extends Controller
             $array['intention'] = $payload['intention'];
             if ($array['intention'] != $star->intention) {
 
-                $start = Whether::getStr($star->intention);
-                $end = Whether::getStr($array['intention']);
-
-                $operateIntention = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '与我司签约意向',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateIntention;
+//                $start = Whether::getStr($star->intention);
+//                $end = Whether::getStr($array['intention']);
+//
+//                $operateIntention = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '与我司签约意向',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateIntention;
             } else {
                 unset($array['intention']);
             }
@@ -385,14 +396,14 @@ class StarController extends Controller
         if ($request->has('intention_desc')) {//不与我公司签约原因
             $array['intention_desc'] = $payload['intention_desc'];
             if ($array['intention_desc'] != $star->intention_desc) {
-                $operateIntentionDesc = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '不与我司签约原因',
-                    'start' => $star->intention_desc,
-                    'end' => $array['intention_desc'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateIntentionDesc;
+//                $operateIntentionDesc = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '不与我司签约原因',
+//                    'start' => $star->intention_desc,
+//                    'end' => $array['intention_desc'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateIntentionDesc;
             } else {
                 unset($array['intention_desc']);
             }
@@ -402,17 +413,17 @@ class StarController extends Controller
             $array['sign_contract_other'] = $payload['sign_contract_other'];
             if ($array['sign_contract_other'] != $star->sign_contract_other) {
 
-                $start = Whether::getStr($star->sign_contract_other);
-                $end = Whether::getStr($array['sign_contract_other']);
-
-                $operateSignContractOther = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '是否签约其他公司',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateSignContractOther;
+//                $start = Whether::getStr($star->sign_contract_other);
+//                $end = Whether::getStr($array['sign_contract_other']);
+//
+//                $operateSignContractOther = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '是否签约其他公司',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateSignContractOther;
             } else {
                 unset($array['sign_contract_other']);
             }
@@ -421,14 +432,14 @@ class StarController extends Controller
         if ($request->has('sign_contract_other_name')) {//签约公司名称
             $array['sign_contract_other_name'] = $payload['sign_contract_other_name'];
             if ($array['sign_contract_other_name'] != $star->sign_contract_other_name) {
-                $operateSignContractOtherName = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '签约公司名称',
-                    'start' => $star->sign_contract_other_name,
-                    'end' => $array['sign_contract_other_name'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateSignContractOtherName;
+//                $operateSignContractOtherName = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '签约公司名称',
+//                    'start' => $star->sign_contract_other_name,
+//                    'end' => $array['sign_contract_other_name'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateSignContractOtherName;
             } else {
                 unset($array['sign_contract_other_name']);
             }
@@ -437,14 +448,14 @@ class StarController extends Controller
         if ($request->has('sign_contract_at')) {//签约日期
             $array['sign_contract_at'] = $payload['sign_contract_at'];
             if ($array['sign_contract_at'] != $star->sign_contract_at) {
-                $operateSignContractAt = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '签约日期',
-                    'start' => $star->sign_contract_at,
-                    'end' => $array['sign_contract_at'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateSignContractAt;
+//                $operateSignContractAt = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '签约日期',
+//                    'start' => $star->sign_contract_at,
+//                    'end' => $array['sign_contract_at'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateSignContractAt;
             } else {
                 unset($array['sign_contract_at']);
             }
@@ -474,14 +485,14 @@ class StarController extends Controller
         if ($request->has('terminate_agreement_at')) {
             $array['terminate_agreement_at'] = $payload['terminate_agreement_at'];
             if ($array['terminate_agreement_at'] != $star->terminate_agreement_at) {
-                $operateTerminateAgreementAt = new OperateEntity([
-                    'obj' => $star,
-                    'title' => '解约日期',
-                    'start' => $star->terminate_agreement_at,
-                    'end' => $array['terminate_agreement_at'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateTerminateAgreementAt;
+//                $operateTerminateAgreementAt = new OperateEntity([
+//                    'obj' => $star,
+//                    'title' => '解约日期',
+//                    'start' => $star->terminate_agreement_at,
+//                    'end' => $array['terminate_agreement_at'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateTerminateAgreementAt;
             } else {
                 unset($array['terminate_agreement_at']);
             }
@@ -490,143 +501,143 @@ class StarController extends Controller
         if ($request->has('platform') && !empty($payload['platform'])) {
             $array['platform'] = $payload['platform'];
             if ($array['platform'] != $star->platform) {
-                $operatePlatform = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '社交平台',
-                        'start' => $star->platform,
-                        'end' => $array['platform'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operatePlatform;
+//                $operatePlatform = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '社交平台',
+//                        'start' => $star->platform,
+//                        'end' => $array['platform'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operatePlatform;
             }
         }
         //微博url
         if ($request->has('weibo_url')) {
             $array['weibo_url'] = $payload['weibo_url'];
             if ($array['weibo_url'] != $star->weibo_url) {
-                $operateWeiboUrl = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '微博主页地址',
-                        'start' => $star->weibo_url,
-                        'end' => $array['weibo_url'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateWeiboUrl;
+//                $operateWeiboUrl = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '微博主页地址',
+//                        'start' => $star->weibo_url,
+//                        'end' => $array['weibo_url'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateWeiboUrl;
             }
         }
         //微博粉丝数
         if ($request->has('weibo_fans_num')) {
             $array['weibo_fans_num'] = $payload['weibo_fans_num'];
             if ($array['weibo_fans_num'] != $star->weibo_fans_num) {
-                $operateWeiboFansNum = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '微博粉丝数',
-                        'start' => $star->weibo_fans_num,
-                        'end' => $array['weibo_fans_num'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateWeiboFansNum;
+//                $operateWeiboFansNum = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '微博粉丝数',
+//                        'start' => $star->weibo_fans_num,
+//                        'end' => $array['weibo_fans_num'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateWeiboFansNum;
             }
         }
         //抖音id
         if ($request->has('douyin_id')) {
             $array['douyin_id'] = $payload['douyin_id'];
             if ($array['douyin_id'] != $star->douyin_id) {
-                $operateDouyinId = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '抖音id',
-                        'start' => $star->douyin_id,
-                        'end' => $array['douyin_id'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateDouyinId;
+//                $operateDouyinId = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '抖音id',
+//                        'start' => $star->douyin_id,
+//                        'end' => $array['douyin_id'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateDouyinId;
             }
         }
         //抖音粉丝数
         if ($request->has('douyin_fans_num')) {
             $array['douyin_fans_num'] = $payload['douyin_fans_num'];
             if ($array['douyin_fans_num'] != $star->douyin_fans_num) {
-                $operateDouyinFansNum = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '抖音粉丝数',
-                        'start' => $star->douyin_fans_num,
-                        'end' => $array['douyin_fans_num'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateDouyinFansNum;
+//                $operateDouyinFansNum = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '抖音粉丝数',
+//                        'start' => $star->douyin_fans_num,
+//                        'end' => $array['douyin_fans_num'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateDouyinFansNum;
             }
         }
         //其他url
         if ($request->has('qita_url')) {
             $array['qita_url'] = $payload['qita_url'];
             if ($array['qita_url'] != $star->qita_url) {
-                $operateQitaUrl = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '其他url',
-                        'start' => $star->qita_url,
-                        'end' => $array['qita_url'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateQitaUrl;
+//                $operateQitaUrl = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '其他url',
+//                        'start' => $star->qita_url,
+//                        'end' => $array['qita_url'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateQitaUrl;
             }
         }
         //其他粉丝数
         if ($request->has('qita_fans_num')) {
             $array['qita_fans_num'] = $payload['qita_fans_num'];
             if ($array['qita_fans_num'] != $star->qita_fans_num) {
-                $operateQitaFansNum = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '其他粉丝数',
-                        'start' => $star->qita_fans_num,
-                        'end' => $array['qita_fans_num'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateQitaFansNum;
+//                $operateQitaFansNum = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '其他粉丝数',
+//                        'start' => $star->qita_fans_num,
+//                        'end' => $array['qita_fans_num'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateQitaFansNum;
             }
         }
         //星探
         if ($request->has('artist_scout_name')) {
             $array['artist_scout_name'] = $payload['artist_scout_name'];
             if ($array['artist_scout_name'] != $star->artist_scout_name) {
-                $operateArtistScoutName = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '星探',
-                        'start' => $star->artist_scout_name,
-                        'end' => $array['artist_scout_name'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateArtistScoutName;
+//                $operateArtistScoutName = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '星探',
+//                        'start' => $star->artist_scout_name,
+//                        'end' => $array['artist_scout_name'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateArtistScoutName;
             }
         }
         if ($request->has('star_location')) {
             $array['star_location'] = $payload['star_location'];
             if ($array['star_location'] != $star->star_location) {
-                $operateStarLocation = new OperateEntity(
-                    [
-                        'obj' => $star,
-                        'title' => '星探地区',
-                        'start' => $star->star_location,
-                        'end' => $array['star_location'],
-                        'method' => OperateLogMethod::UPDATE,
-                    ]
-                );
-                $arrayOperateLog[] = $operateStarLocation;
+//                $operateStarLocation = new OperateEntity(
+//                    [
+//                        'obj' => $star,
+//                        'title' => '星探地区',
+//                        'start' => $star->star_location,
+//                        'end' => $array['star_location'],
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]
+//                );
+//                $arrayOperateLog[] = $operateStarLocation;
             }
         }
         DB::beginTransaction();
@@ -657,7 +668,8 @@ class StarController extends Controller
             if (count($array) != 0)
                 $star->update($array);
             // 操作日志
-            event(new OperateLogEvent($arrayOperateLog));
+//            event(new OperateLogEvent($arrayOperateLog));
+            event(new StarDataChangeEvent($old_star,$star));//记录日志
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();

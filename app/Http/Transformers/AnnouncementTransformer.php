@@ -14,7 +14,7 @@ class AnnouncementTransformer extends TransformerAbstract
     {
         $this->isAll = $isAll;
     }
-    protected $availableIncludes = ['scope','creator'];
+    protected $availableIncludes = ['scope','creator','affixes'];
 
     public function transform(Announcement $announcement)
     {
@@ -23,7 +23,7 @@ class AnnouncementTransformer extends TransformerAbstract
             'id' => hashid_encode($announcement->id),
             'title' => $announcement->title,  //标题
            // 'scope' => $announcement->scope,   //公告范围
-            'classify' => $announcement->classify,  //分类  1 规则制度   2 内部公告
+            'classify' => hashid_encode($announcement->classify),  //分类  1 规则制度   2 内部公告
             'desc' => $announcement->desc, //输入内容
             'readflag' => $announcement->readflag, //默认 0  未读  1 读
             'is_accessory' => $announcement->is_accessory, //是否选择附件  默认  0   无附件    1 有附件

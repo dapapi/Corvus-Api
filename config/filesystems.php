@@ -64,6 +64,27 @@ return [
             'url' => env('AWS_URL'),
         ],
 
+        'qiniu' => [
+            'driver'  => 'qiniu',
+            'domains' => [
+                'default'   => 'res-crm.papitube.com', //你的七牛域名
+                'https'     => 'sandbox-corvus.papitube.com',         //你的HTTPS域名
+                'custom'    => 'res-crm.papitube.com',     //你的自定义域名
+            ],
+            'access_key'=> 'M04mO4zzKx-FCMTilFGTPW3Fd-r4wpyIHZ00e-s8',  //AccessKey
+            'secret_key'=> 'VwA17wgx2Zt0TDVLxRlRQIauI7pWlUW9BY63PbTu',  //SecretKey
+            'bucket'    => 'corvus',  //Bucket名字
+            'notify_url'=> '',  //持久化处理回调地址
+        ],
+
+        'upload' => [
+            'driver' => 'local',
+            'root' => storage_path('photo'),
+        ],
+
     ],
+
+
+
 
 ];

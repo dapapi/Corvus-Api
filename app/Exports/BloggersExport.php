@@ -4,8 +4,10 @@ namespace App\Exports;
 
 use App\Models\Blogger;
 use Maatwebsite\Excel\Concerns\Exportable;
+use App\ModuleableType;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Qiniu\Http\Request;
@@ -26,7 +28,8 @@ class BloggersExport implements FromQuery, WithMapping, WithHeadings
 
         $array = [];//查询条件
         //合同
-        $status = empty($status)?$array[] = ['sign_contract_status',1]:$array[] = ['sign_contract_status',$this->request['status']];
+        $status = $this->request->get('status', config('app.status'));
+        $status = empty($status)?$array[] = ['sign_contract_status',2]:$array[] = ['sign_contract_status',$status];
         if( $this->request->has('name')){//姓名
             $array[] = ['nickname','like','%'.$this->request['name'].'%'];
         }
@@ -37,7 +40,14 @@ class BloggersExport implements FromQuery, WithMapping, WithHeadings
         if($this->request->has('communication_status')){//沟通状态
             $array[] = ['communication_status',$this->request['communication_status']];
         }
-         return  Blogger::query()->where($array)->searchData()->createDesc();
+         return  Blogger::query()->where($array)->searchData()->leftJoin('operate_logs',function($join){
+             $join->on('bloggers.id','operate_logs.logable_id')
+                 ->where('logable_type',ModuleableType::BLOGGER)
+                 ->where('operate_logs.method','4');
+         })->groupBy('bloggers.id')
+             ->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
+                 'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
+                 'bloggers.updated_at','bloggers.created_at','platform','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")]);
 
 
     }

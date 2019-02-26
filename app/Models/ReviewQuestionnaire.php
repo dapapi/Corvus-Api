@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class ReviewQuestionnaire extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['name','creator_id', 'deadline', 'reviewable_id','excellent','excellent_sum', 'reviewable_type', 'auth_type'];
+    protected $fillable = ['name','creator_id', 'task_id','deadline', 'reviewable_id','excellent','excellent_sum', 'reviewable_type', 'auth_type'];
 
 
     public function scopeCreateDesc($query)
@@ -55,6 +55,10 @@ class ReviewQuestionnaire extends Model
     public function production()
     {
         return $this->belongsTo(Production::class, 'reviewable_id', 'id');
+    }
+    public function review()
+    {
+        return $this->hasOne(ReviewQuestionnaire::class, 'id', 'reviewable_id');
     }
     public function reviewanswer()
     {

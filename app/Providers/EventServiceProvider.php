@@ -41,8 +41,25 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\TrailMessageEvent'   =>  [//监听博主签约解约
             'App\Listeners\TrailMessageEventListener',
         ],
-        'App\Events\dataChangeEvent'    =>  [
-            'App\Listeners\dataChangeListener',
+
+        //日志
+        'App\Events\TaskDataChangeEvent'    =>  [//任务修改，增加操作日志
+            'App\Listeners\TaskDataChangeListener',
+        ],
+        'App\Events\TrailDataChangeEvent'    =>  [//监听线索修改，增加操作日志
+            'App\Listeners\TrailDataChangeListener',
+        ],
+        'App\Events\ClientDataChangeEvent'    =>  [//监听客户修改，增加操作日志
+            'App\Listeners\ClientDataChangeListener',
+        ],
+        'App\Events\ProjectDataChangeEvent'    =>  [//监听客户修改，增加操作日志
+            'App\Listeners\ProjejctDataChangeListener',
+        ],
+        'App\Events\StarDataChangeEvent'    =>  [//监听艺人修改，增加操作日志
+            'App\Listeners\StarDataChangeListener',
+        ],
+        'App\Events\BloggerDataChangeEvent'    =>  [//监听博主修改，增加操作日志
+            'App\Listeners\BloggerDataChangeListener',
         ],
 
     ];

@@ -69,7 +69,7 @@ class ReviewItemAnswer {
         $issues[1][] = ['answer' => '有一些共鸣，可能会转发','value'=>'10'];
         $issues[1][] = ['answer' => '其中有几处觉得还是有共鸣的，但是不想转发','value'=>'5'];
         $issues[1][] = ['answer' => '完全没被戳到，一点也不想转发','value'=>'0'];
-        $issues[2][] = ['answer' => '非常有吸引力/不需要拖跩，想一直看到最后','value'=>'15'];
+        $issues[2][] = ['answer' => '非常有吸引力/不需要拖拽，想一直看到最后','value'=>'15'];
         $issues[2][] = ['answer' => '是有吸引力的/凑合可以看到最后','value'=>'10'];
         $issues[2][] = ['answer' => '只有几处还有点意思/需要拖拽，或者中途会退出','value'=>'5'];
         $issues[2][] = ['answer' => '很无聊/完全看不下去','value'=>'0'];

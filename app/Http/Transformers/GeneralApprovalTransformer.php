@@ -18,7 +18,10 @@ class GeneralApprovalTransformer extends TransformerAbstract
             'created_at' => $obj->created_at,
             'name' => $obj->name,
             'group_name' => $obj->group_name,
-            'group_id' => hashid_encode($obj->group_id)
+            'group_id' => hashid_encode($obj->group_id),
+            'icon_url'  =>  $obj->icon_url,
+            'approval_status_name'  =>  $obj->approval_status_name,
+            'icon'  =>  $obj->icon
         ];
     }
 }

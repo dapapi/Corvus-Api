@@ -242,7 +242,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
         $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
-         //账单
+        //账单
         $api->get('/bloggers/{blogger}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->get('/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
@@ -295,10 +295,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}/contracts', 'App\Http\Controllers\ContractController@getClientContracts');
         //announcement
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
+        $api->get('/announcements/Classify', 'App\Http\Controllers\AnnouncementController@getClassify');
+        $api->post('/announcements/Classify', 'App\Http\Controllers\AnnouncementController@addClassify');
+        $api->delete('/announcements/Classify/{announcementClassify}', 'App\Http\Controllers\AnnouncementController@deleteClassify');
+        $api->put('/announcements/Classify/{announcementClassify}', 'App\Http\Controllers\AnnouncementController@updateClassify');
         $api->get('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@show');
         $api->put('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@edit');
+        // 部门id hash 后的数据
+        $api->get('/departments_lists', 'App\Http\Controllers\AnnouncementController@departmentsLists');
         $api->delete('/announcements/{announcement}', 'App\Http\Controllers\AnnouncementController@remove');
         $api->post('/announcements', 'App\Http\Controllers\AnnouncementController@store');
+
         //  report
         $api->get('/report', 'App\Http\Controllers\ReportController@index');
         $api->post('/report', 'App\Http\Controllers\ReportController@store');
@@ -359,11 +366,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //review
         //查看问题
-      //  $api->get('/tasks/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
+        //  $api->get('/tasks/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->get('/reviews/{reviewquestionnaire}/questions', 'App\Http\Controllers\ReviewQuestionController@index');
         $api->post('/reviews/{reviewquestionnaire}/create', 'App\Http\Controllers\ReviewQuestionController@store');
         //查看问劵
         $api->get('/reviewquestionnaires', 'App\Http\Controllers\ReviewQuestionnaireController@index');
+
+        //  $api->post('/bloggers/{blogger}/producer/{id}', 'App\Http\Controllers\ReviewQuestionnaireController@store');
+
         $api->get('/reviewquestionnaires/{reviewquestionnaire}/show', 'App\Http\Controllers\ReviewQuestionnaireController@show');
         $api->post('/reviewquestionnaires/{production}/create', 'App\Http\Controllers\ReviewQuestionnaireController@store');
         $api->post('/reviewquestionnaires/{reviewquestionnaire}/create/excellent', 'App\Http\Controllers\ReviewQuestionnaireController@storeExcellent');
@@ -385,7 +395,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
-        $api->get('/projects/export', 'App\Http\Controllers\ProjectController@export');
+        $api->get('/projects/export', 'App\Http\Controllers\ProjectController@export')->middleware('export');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->get('/projects/relate_client', 'App\Http\Controllers\ProjectController@getClient');
@@ -496,10 +506,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //报表
         //商务报表
         $api->get("/reportfrom/commercialfunnel", "App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
+        //商务报表导出
+        $api->get("/reportfrom/commercialfunnel/export", "App\Http\Controllers\ReportFormController@reportExport")->middleware('export');
         //销售漏斗
         $api->get("/reportfrom/salesFunnel","App\Http\Controllers\ReportFormController@salesFunnel");
         //销售线索报表--线索报表
         $api->get("/reportfrom/trail","App\Http\Controllers\ReportFormController@trailReportFrom");
+        //销售线索报表导出
+        $api->get("/reportfrom/trail/export", "App\Http\Controllers\ReportFormController@trailExport")->middleware('export');
         //销售线索报表--线索新增
         $api->get("/reportfrom/newtrail","App\Http\Controllers\ReportFormController@newTrail");
         //销售线索报表--线索占比perTrail
@@ -509,23 +523,32 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get("/reportfrom/industryanalysis", "App\Http\Controllers\ReportFormController@industryAnalysis");
         //项目报表
         $api->get("/reportfrom/projectreport", "App\Http\Controllers\ReportFormController@projectReport");
+        //项目报表报表
+        $api->get("/reportfrom/projectreport/export", "App\Http\Controllers\ReportFormController@projectExport")->middleware('export');
         //项目新增
         $api->get("/reportfrom/newproject", "App\Http\Controllers\ReportFormController@newProject");
         //项目占比
         $api->get("/reportfrom/percentageofproject", "App\Http\Controllers\ReportFormController@percentageOfProject");
         //客户报表
         $api->get("/reportfrom/clientreport", "App\Http\Controllers\ReportFormController@clientReport");
+        //客户报表导出
+        $api->get("/reportfrom/clientreport/export", "App\Http\Controllers\ReportFormController@clientExport")->middleware('export');
+
         //客户分析
         $api->get("/reportfrom/clientanalysis", "App\Http\Controllers\ReportFormController@clientAnalysis");
 
         //艺人报表
         $api->get("/reportfrom/starreport", "App\Http\Controllers\ReportFormController@starReport");
+        //博主报表导出
+        $api->get("/reportfrom/starreport/export", "App\Http\Controllers\ReportFormController@starExport")->middleware('export');
         //艺人线索分析
         $api->get("/reportfrom/startrailanalysis", "App\Http\Controllers\ReportFormController@starTrailAnalysis");
         //艺人项目分析
 //        $api->get("/reportfrom/starprojectanalysis", "App\Http\Controllers\ReportFormController@starProjectAnalysis");
         //博主报表
         $api->get("/reportfrom/bloggerreport", "App\Http\Controllers\ReportFormController@bloggerReport");
+        //博主报表导出
+        $api->get("/reportfrom/bloggerreport/export", "App\Http\Controllers\ReportFormController@bloggerExport")->middleware('export');
         //博主线索分析
 //        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
 //        博主项目分析
@@ -570,7 +593,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/position/disable', 'App\Http\Controllers\DepartmentController@disableList');
         $api->put('/position/disable/{user}', 'App\Http\Controllers\DepartmentController@disableEdit');
 
-        
+
         /*公海池*/
         $api->get('/pool','App\Http\Controllers\SeasPoolController@index');
         //领取
@@ -689,6 +712,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/approval_instances/{instance}/transfer', 'App\Http\Controllers\ApprovalFlowController@transfer');
         $api->put('/approval_instances/{instance}/cancel', 'App\Http\Controllers\ApprovalFlowController@cancel');
         $api->put('/approval_instances/{instance}/discard', 'App\Http\Controllers\ApprovalFlowController@discard');
+        $api->put('/approval_instances/{instance}/remind', 'App\Http\Controllers\ApprovalFlowController@remind');
+
 
         //任务转私密
         $api->post('/task/secret/{task}', 'App\Http\Controllers\TaskController@secret');
@@ -712,5 +737,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //艺人项目列表
         $api->get("/stars/{star}/project","App\Http\Controllers\ProjectController@getProjectList");
         $api->get("/bloggers/{blogger}/project","App\Http\Controllers\ProjectController@getProjectList");
+
+        //删除附件api
+        $api->delete('/affixe', 'App\Http\Controllers\PersonnelManageController@affixe');
+
+        //统计我审批的待审批数量
+        $api->get('/pending_sum', 'App\Http\Controllers\ApprovalFormController@pendingSum');
+
+
     });
 });

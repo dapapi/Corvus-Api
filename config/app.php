@@ -137,6 +137,9 @@ return [
     "schdule_password"  =>  env("SCHDULE_PASSWORD","123456"),
     "scdule_user_name"  =>  env("SCHDULE_USER_NAME","李乐"),
 
+    //七牛云ken
+    "access_key"  =>  env("ACCESS_KEY","M04mO4zzKx-FCMTilFGTPW3Fd-r4wpyIHZ00e-s8"),
+    "secret_key"  =>  env("SECRET_KEY","VwA17wgx2Zt0TDVLxRlRQIauI7pWlUW9BY63PbTu"),
 
     /*
     |--------------------------------------------------------------------------
@@ -177,6 +180,7 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
+        zgldh\QiniuStorage\QiniuFilesystemServiceProvider::class,
         /*
          * Package Service Providers...
          */

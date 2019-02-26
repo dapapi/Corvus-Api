@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientDataChangeEvent;
 use App\Events\ClientMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exports\ClientsExport;
@@ -19,6 +20,7 @@ use App\OperateLogMethod;
 use App\TriggerPoint\ClientTriggerPoint;
 use App\User;
 use Carbon\Carbon;
+use App\ModuleableType;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,9 +34,20 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $clients = Client::orderBy('created_at', 'desc')
-            ->searchData()
+        $clients = Client::searchData()
+            ->leftJoin('operate_logs',function($join){
+                $join->on('clients.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::CLIENT)
+                    ->where('operate_logs.method','4');
+
+            })
+            ->groupBy('clients.id')
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
+                'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
+                DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+//        dd($sql_with_bindings);
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
@@ -113,7 +126,7 @@ class ClientController extends Controller
     public function edit(EditClientRequest $request, Client $client)
     {
         $payload = $request->all();
-
+        $old_client = clone $client; //记录客户初始对象，用于记录日志
         if (array_key_exists('_url', $payload))
             unset($payload['_url']);
 
@@ -122,23 +135,25 @@ class ClientController extends Controller
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         try {
-            foreach ($payload as $key => $value) {
-                $lastValue = $client[$key];
-                if($lastValue != $value){
-                    if($key == "principal_id"){
-                        $lastValue = User::find($client->principal_id)->name;
-                        $value = User::findOrFail($value)->name;
-                    }
-                    if ($key == "grade"){
-                        $lastValue = $client->getGrade($client->grade);
-                        $value = $client->getGrade($value);
-                    }
-                    $comment = $columns->getColumn($key)->getComment();
-                    $this->editLog($client, $comment, $lastValue, $value);//修改客户日志
-                }
-
-            }
+//            foreach ($payload as $key => $value) {
+//                $lastValue = $client[$key];
+//                if($lastValue != $value){
+//                    if($key == "principal_id"){
+//                        $lastValue = User::find($client->principal_id)->name;
+//                        $value = User::findOrFail($value)->name;
+//                    }
+//                    if ($key == "grade"){
+//                        $lastValue = $client->getGrade($client->grade);
+//                        $value = $client->getGrade($value);
+//                    }
+//                    $comment = $columns->getColumn($key)->getComment();
+////                    $this->editLog($client, $comment, $lastValue, $value);//修改客户日志
+//                }
+//
+//            }
             $client->update($payload);
+            event(new ClientDataChangeEvent($old_client,$client));//记录日志
+
         } catch (\Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('修改失败');
@@ -206,7 +221,17 @@ class ClientController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData()->orderBy('created_at', 'desc')->paginate($pageSize);
+        })->searchData() ->leftJoin('operate_logs',function($join){
+            $join->on('clients.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::CLIENT)
+                ->where('operate_logs.method','4');
+        })->groupBy('clients.id')
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
+                'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
+                DB::raw("max(operate_logs.updated_at) as up_time")])
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+//        dd($sql_with_bindings);
 
         return $this->response->paginator($clients, new ClientTransformer());
     }

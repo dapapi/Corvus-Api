@@ -100,7 +100,7 @@ class StarTransformer extends TransformerAbstract
     public function includeTasks(Star $star)
     {
         $tasks = $star->tasks()->stopAsc()
-            ->where('status',TaskStatus::NORMAL)
+            ->where('status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
         return $this->collection($tasks, new TaskTransformer());
     }
@@ -151,8 +151,8 @@ class StarTransformer extends TransformerAbstract
     public function includeSchedule(Star $star)
     {
 
-        $calendars = $star->calendar()->first();
-        if($calendars){
+        $calendars = $star->calendar()->first();//查找艺人日历
+        if($calendars){//日历存在查找日程
             $calendar = $calendars->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
             return $this->collection($calendar,new ScheduleTransformer());
         }else{

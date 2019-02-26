@@ -86,7 +86,9 @@ class BloggerTransformer extends TransformerAbstract
             'xiaohongshu_url'=> $blogger->xiaohongshu_url,//微博url
             'xiaohongshu_fans_num'=> $blogger->xiaohongshu_fans_num,//微博粉丝数
             'created_at'=> $blogger->created_at->toDateTimeString(),
+            'last_follow_up_at' => $blogger->last_follow_up_at,
             'last_updated_user' => $blogger->last_updated_user,
+            'last_updated_at' => $blogger->last_updated_at,
             'updated_at' => $blogger->updated_at->toDateTimeString()
         ];
 

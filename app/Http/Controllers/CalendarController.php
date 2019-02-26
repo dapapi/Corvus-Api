@@ -119,6 +119,12 @@ class CalendarController extends Controller
             if(count($calendars) >= 1){
                 return $this->response->errorMethodNotAllowed("该艺人已存在相关日历");
             }
+            // 艺人在该日历 下创建了日程也不能 修改    张峪铭
+            $is_calendars = Schedule::where('calendar_id',$calendar->id)->get();
+            if(count($is_calendars) >= 1){
+                return $this->response->errorMethodNotAllowed("该艺人已有相关日程，不能修改");
+            }
+            //艺人在该日历 下创建了日程也不能 修改
         }
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];

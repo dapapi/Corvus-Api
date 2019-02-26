@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
+use App\Events\ProjectDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Project\AddRelateProjectRequest;
@@ -95,7 +96,7 @@ class ProjectController extends Controller
             }
             if ($request->has('status'))#项目状态
                 $query->where('status', $payload['status']);
-        })->searchData();
+        });
         if ($request->has('my')){
             switch ($payload['my']){
                 case 'my_principal'://我负责
@@ -113,7 +114,20 @@ class ProjectController extends Controller
 
             }
         }
-            $projects = $query->orderBy('projects.created_at', 'desc')->paginate($pageSize);
+            //$projects = $query->orderBy('projects.created_at', 'desc')->paginate($pageSize);
+        $projects = $query->searchData()
+        ->leftJoin('operate_logs',function($join){
+            $join->on('projects.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::PROJECT)
+                ->where('operate_logs.method','4');
+        })->groupBy('projects.id')
+        ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
+            'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
+//        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
+////
+//        dd($sql_with_bindings);
+        ->paginate($pageSize);
+        //  修改项目排序   按跟进时间  和 创建时间排序
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
@@ -494,7 +508,7 @@ class ProjectController extends Controller
     {
         $payload = $request->all();
         $arrayOperateLog = [];
-
+        $old_project = clone $project;
 
         DB::beginTransaction();
         try {
@@ -502,18 +516,18 @@ class ProjectController extends Controller
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
                 if ($project->principal_id != $payload['principal_id']) {
                     try {
-                        $curr_principal = User::find($project->principal_id)->name;
-                        $principal = User::findOrFail($payload['principal_id'])->name;
-
-                        //操作日志
-                        $operateName = new OperateEntity([
-                            'obj' => $project,
-                            'title' => "负责人",
-                            'start' => $curr_principal,
-                            'end' => $principal,
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operateName;
+//                        $curr_principal = User::find($project->principal_id)->name;
+//                        $principal = User::findOrFail($payload['principal_id'])->name;
+//
+//                        //操作日志
+//                        $operateName = new OperateEntity([
+//                            'obj' => $project,
+//                            'title' => "负责人",
+//                            'start' => $curr_principal,
+//                            'end' => $principal,
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operateName;
 
                     } catch (Exception $e) {
                         Log::error($e);
@@ -671,61 +685,7 @@ class ProjectController extends Controller
                         $repository->store($trail,$payload['trail']['expectations'],TrailStar::EXPECTATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
-//                        $start = null;
-//                        $end = null;
-//                        if ($trail->type == Trail::TYPE_PAPI) {
-//                            $starableType = ModuleableType::BLOGGER;
-//                            //获取当前的博主
-//                            $blogger_list = $trail->bloggerExpectations()->get()->toArray();
-//                            if (count($blogger_list) != 0) {
-//                                $bloggers = array_column($blogger_list, 'nickname');
-//                                $start = implode(",", $bloggers);
-//                            }
-//                        } else {
-//                            $starableType = ModuleableType::STAR;
-//                            //获取当前的艺人
-//                            $star_list = $trail->expectations()->get()->toArray();
-//                            if (count($star_list) != 0) {
-//                                $stars = array_column($star_list, 'name');
-//                                $start = implode(",", $stars);
-//                            }
-//                        }
-//                        //删除
-//                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
-//                        foreach ($val as $expectation) {
-//
-//                            $starId = hashid_decode($expectation);
-//                            if ($starableType == ModuleableType::BLOGGER) {
-//                                $blogger = Blogger::find($starId);
-//                                if ($blogger) {
-//                                    $end .= "," . $blogger->nickname;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::EXPECTATION,
-//                                    ]);
-//                                }
-//                            } else {
-//                                $star = Star::find($starId);
-//                                if ($star) {
-//                                    $end .= "," . $star->name;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::EXPECTATION,
-//                                    ]);
-//                                }
-//                            }
-//                        }
-//                        $end = trim($end, ",");
-//
-//                        if ($starableType == ModuleableType::BLOGGER) {
-//                            $title = "关联目标博主";
-//                        } else {
-//                            $title = "关联目标艺人";
-//                        }
+
                         $title = "关联目标艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([
@@ -749,53 +709,7 @@ class ProjectController extends Controller
                         $repository->store($trail,$payload['trail']['recommendations'],TrailStar::RECOMMENDATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
-//                        $start = null;
-//                        $end = null;
-//                        if ($trail->type == Trail::TYPE_PAPI) {
-//                            $starableType = ModuleableType::BLOGGER;
-//                            //当前关联的博主
-//                            $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
-//                            $bloggers = array_column($blogger_list, 'nickname');
-//                            $start = implode(",", $bloggers);
-//                        } else {
-//                            $starableType = ModuleableType::STAR;
-//                            $star_list = $trail->recommendations()->get()->toArray();
-//                            $stars = array_column($star_list, 'name');
-//                            $start = implode(",", $stars);
-//                        }
-//                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
-//                        foreach ($val as $recommendation) {
-//                            $starId = hashid_decode($recommendation);
-//
-//                            if ($starableType == ModuleableType::BLOGGER) {
-//                                $blogger = Blogger::find($starId);
-//                                if ($blogger)
-//                                    $end .= $blogger->nickname;
-//                                TrailStar::create([
-//                                    'trail_id' => $trail->id,
-//                                    'starable_id' => $starId,
-//                                    'starable_type' => $starableType,
-//                                    'type' => TrailStar::RECOMMENDATION,
-//                                ]);
-//                            } else {
-//                                $star = Star::find($starId);
-//                                if ($star)
-//                                    $end .= $star->name;
-//                                TrailStar::create([
-//                                    'trail_id' => $trail->id,
-//                                    'starable_id' => $starId,
-//                                    'starable_type' => $starableType,
-//                                    'type' => TrailStar::RECOMMENDATION,
-//                                ]);
-//                            }
-//                        }
-//                        $end = trim($end, ",");
-//
-//                        if ($starableType == ModuleableType::BLOGGER) {
-//                            $title = "关联推荐博主";
-//                        } else {
-//                            $title = "关联推荐艺人";
-//                        }
+
                         $title = "关联推荐艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([
@@ -817,6 +731,7 @@ class ProjectController extends Controller
 
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
+            event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -930,7 +845,7 @@ class ProjectController extends Controller
 //            $Viewprivacy2 = array();
 //            $array['moduleable_id'] = $project->id;
 //            $array['moduleable_type'] = ModuleableType::PROJECT;
-//            $array['is_privacy'] = PrivacyType::OTHER;
+//           $array['is_privacy'] = PrivacyType::OTHER;
 //            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
 //            foreach ($setprivacy as $key => $v) {
 //
@@ -1076,6 +991,17 @@ class ProjectController extends Controller
 
             $projects = ProjectStatusLogs::create($array);
 
+            $operate = new OperateEntity([
+                'obj' => $project,
+                'title' => null,
+                'start' => $project->getProjectStatus($status1),
+                'end' => null,
+                'method' => OperateLogMethod::FOLLOW_UP,
+            ]);
+            event(new OperateLogEvent([
+                $operate
+            ]));
+
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -1181,11 +1107,8 @@ class ProjectController extends Controller
             ->where('logable_type',ModuleableType::PROJECT)
             ->where('operate_logs.method','2');
         })->groupBy('projects.id')
-            ->orderBy('operate_logs.updated_at', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','type','privacy','projects.status',
-                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at','desc'])
-//        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
-//
-//        dd($sql_with_bindings);
+            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
+                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
             ->paginate($pageSize);
                //  修改项目排序   按跟进时间  和 创建时间排序
         return $this->response->paginator($projects, new ProjectTransformer());
@@ -1253,6 +1176,7 @@ class ProjectController extends Controller
             if ($request->has('tasks')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::TASK)->delete();
                 $tasks = $request->get('tasks');
+                $tasks = array_unique($tasks);
                 foreach ($tasks as $value) {
                     $id = hashid_decode($value);
                     $task = Task::find($id);
@@ -1271,6 +1195,7 @@ class ProjectController extends Controller
             if ($request->has('projects')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::PROJECT)->delete();
                 $projects = $request->get('projects');
+                $projects = array_unique($projects);
                 foreach ($projects as $value) {
                     $id = hashid_decode($value);
                     $temp_project = Project::find($id);

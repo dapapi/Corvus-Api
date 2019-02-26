@@ -156,7 +156,22 @@ class ClientEntity
    }
    public function get_client_rating()
    {
-       return $this->client_rating;
+       $size = '';
+       switch ($this->client_rating) {
+           case 4:
+               $size = 'S';
+               break;
+           case 3:
+               $size = 'A';
+               break;
+           case 2:
+               $size = 'B';
+               break;
+           case 1:
+               $size = 'C';
+               break;
+       }
+       return $size;
    }
    public function get_size()
    {

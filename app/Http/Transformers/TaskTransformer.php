@@ -25,7 +25,7 @@ class TaskTransformer extends TransformerAbstract
             'desc' => $task->desc,
             'privacy' => boolval($task->privacy),
             'start_at' => $task->start_at,
-            'end_at' => $task->end_at,
+            'end_at' => date('Y-m-d H:i',strtotime($task->end_at)),
             'complete_at' => $task->complete_at,
             'stop_at' => $task->stop_at,
             'created_at' => $task->created_at->toDateTimeString(),

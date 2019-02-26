@@ -68,6 +68,7 @@ class ProjectRepository
 //        }
 //        //查找项目
 //        return Project::whereIn('id',$project_ids)->paginate($pageSize);
+
         $sub_query = (new Project())->searchData();
         $sub_bindings = $sub_query->getBindings();
         $sql = str_replace("?",'%s',$sub_query->toSql());

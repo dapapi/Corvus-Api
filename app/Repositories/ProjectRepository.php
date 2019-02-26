@@ -67,14 +67,15 @@ class ProjectRepository
 //        }
 //        //查找项目
 //        return Project::whereIn('id',$project_ids)->paginate($pageSize);
-        $query = (new Project)->setTable("p")->from("projects as p")
-            ->leftJoin("contracts as c",'p.id',"c.project_id")
+        $query = (new Project)
+            ->leftJoin("contracts as c",'projects.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
             })
             ->where('afe.flow_type_id',232)->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
-            ->select("p.id","p.title","p.created_at");
+            ->searchData()//查询权限
+            ->select("projects.id","projects.title","projects.created_at");
         return $query->paginate($pageSize);
 
 

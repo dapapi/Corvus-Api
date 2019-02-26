@@ -74,7 +74,7 @@ class ProjectTransformer extends TransformerAbstract
                 'privacy' => $project->privacy,
                 'priority' => $project->priority,
                 'status' => $project->status,
-                'projected_expenditure'=> $project->projected_expenditure,
+                'projected_expenditure'=> "".$project->projected_expenditure,
                 'start_at' => $project->start_at,
                 'end_at' => $project->end_at,
                 'created_at' => $project->created_at->toDateTimeString(),

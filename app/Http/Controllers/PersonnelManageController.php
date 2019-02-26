@@ -1025,9 +1025,37 @@ class PersonnelManageController extends Controller
         $err = $bucketMgr->delete($bucket, $key);
         if ($err !== null) {
             return $this->response->errorInternal('删除失败！');
-        } else {
-            return $this->response->errorInternal('删除成功！');
         }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $accessKey = $request->get('access_key', config('app.access_key'));
+        $secretKey = $request->get('secret_key', config('app.secret_key'));
+        $auth = new Auth($accessKey, $secretKey);    // 要上传的空间
+
+        // 要上传的空间
+        $bucket = 'corvus';
+        //自定义上传回复的凭证 返回的数据
+        $returnBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(fname)"}';
+        $policy = array(
+            'returnBody' => $returnBody,
+        );
+        DB::beginTransaction();
+        try {
+            $disk = \Storage::disk('qiniu');             // 使用七牛云上传
+            $time = date('Y/m/d');
+            $filename = $disk->put($time, $request->file('file')); // 上传
+            $img_url  = $disk->downloadUrl($filename);  // 获取下载链接
+
+            return $img_url;
+
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

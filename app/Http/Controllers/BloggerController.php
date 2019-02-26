@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\BloggerLevel;
 use App\CommunicationStatus;
+use App\Events\BloggerDataChangeEvent;
 use App\Gender;
 use App\Models\TaskType;
 use App\Exports\BloggersExport;
@@ -204,17 +205,18 @@ class BloggerController extends Controller
         $payload = $request->all();
         $array = [];
         $arrayOperateLog = [];
+        $old_blogger = clone $blogger;
         if ($request->has('nickname')) {
             $array['nickname'] = $payload['nickname'];
             if ($array['nickname'] != $blogger->nickname) {
-                $operateNickname = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '昵称',
-                    'start' => $blogger->nickname,
-                    'end' => $array['nickname'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateNickname;
+//                $operateNickname = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '昵称',
+//                    'start' => $blogger->nickname,
+//                    'end' => $array['nickname'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateNickname;
             } else {
                 unset($array['nickname']);
             }
@@ -227,14 +229,14 @@ class BloggerController extends Controller
                 $bloggerType = BloggerType::findOrFail($typeId);
                 $end = $bloggerType->name;
                 if ($start != $end) {
-                    $operateBloggerType = new OperateEntity([
-                        'obj' => $blogger,
-                        'title' => '类型',
-                        'start' => $start,
-                        'end' => $end,
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateBloggerType;
+//                    $operateBloggerType = new OperateEntity([
+//                        'obj' => $blogger,
+//                        'title' => '类型',
+//                        'start' => $start,
+//                        'end' => $end,
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]);
+//                    $arrayOperateLog[] = $operateBloggerType;
                 } else {
                     unset($array['type_id']);
                 }
@@ -246,17 +248,17 @@ class BloggerController extends Controller
             $array['communication_status'] = $payload['communication_status'];
             if ($array['communication_status'] != $blogger->communication_status) {
 
-                $start = CommunicationStatus::getStr($blogger->communication_status);
-                $end = CommunicationStatus::getStr($array['communication_status']);
-
-                $operateCommunicationStatus = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '沟通状态',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateCommunicationStatus;
+//                $start = CommunicationStatus::getStr($blogger->communication_status);
+//                $end = CommunicationStatus::getStr($array['communication_status']);
+//
+//                $operateCommunicationStatus = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '沟通状态',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateCommunicationStatus;
             } else {
                 unset($array['communication_status']);
             }
@@ -266,17 +268,17 @@ class BloggerController extends Controller
             $array['intention'] = $payload['intention'];
             if ($array['intention'] != $blogger->intention) {
 
-                $start = Whether::getStr($blogger->intention);
-                $end = Whether::getStr($array['intention']);
-
-                $operateIntention = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '与我司签约意向',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateIntention;
+//                $start = Whether::getStr($blogger->intention);
+//                $end = Whether::getStr($array['intention']);
+//
+//                $operateIntention = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '与我司签约意向',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateIntention;
             } else {
                 unset($array['intention']);
             }
@@ -285,14 +287,14 @@ class BloggerController extends Controller
         if ($request->has('intention_desc')) {
             $array['intention_desc'] = $payload['intention_desc'];
             if ($array['intention_desc'] != $blogger->intention_desc) {
-                $operateIntentionDesc = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '不与我司签约原因',
-                    'start' => $blogger->intention_desc,
-                    'end' => $array['intention_desc'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateIntentionDesc;
+//                $operateIntentionDesc = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '不与我司签约原因',
+//                    'start' => $blogger->intention_desc,
+//                    'end' => $array['intention_desc'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateIntentionDesc;
             } else {
                 unset($array['intention_desc']);
             }
@@ -301,14 +303,14 @@ class BloggerController extends Controller
         if ($request->has('sign_contract_at')) {
             $array['sign_contract_at'] = $payload['sign_contract_at'];
             if ($array['sign_contract_at'] != $blogger->sign_contract_at) {
-                $operateSignContractAt = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '签约日期',
-                    'start' => $blogger->sign_contract_at,
-                    'end' => $array['sign_contract_at'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateSignContractAt;
+//                $operateSignContractAt = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '签约日期',
+//                    'start' => $blogger->sign_contract_at,
+//                    'end' => $array['sign_contract_at'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateSignContractAt;
             } else {
                 unset($array['sign_contract_at']);
             }
@@ -318,17 +320,17 @@ class BloggerController extends Controller
             $array['level'] = $payload['level'];
             if ($array['level'] != $blogger->level) {
 
-                $start = BloggerLevel::getStr($blogger->level);
-                $end = BloggerLevel::getStr($array['level']);
-
-                $operateLevel = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '级别',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateLevel;
+//                $start = BloggerLevel::getStr($blogger->level);
+//                $end = BloggerLevel::getStr($array['level']);
+//
+//                $operateLevel = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '级别',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateLevel;
             } else {
                 unset($array['level']);
             }
@@ -336,14 +338,14 @@ class BloggerController extends Controller
         if ($request->has('hatch_star_at')) {
             $array['hatch_star_at'] = $payload['hatch_star_at'];
             if ($array['hatch_star_at'] != $blogger->hatch_star_at) {
-                $operateHatchStarAt = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '孵化期开始时间',
-                    'start' => $blogger->hatch_star_at,
-                    'end' => $array['hatch_star_at'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateHatchStarAt;
+//                $operateHatchStarAt = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '孵化期开始时间',
+//                    'start' => $blogger->hatch_star_at,
+//                    'end' => $array['hatch_star_at'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateHatchStarAt;
             } else {
                 unset($array['hatch_star_at']);
             }
@@ -352,14 +354,14 @@ class BloggerController extends Controller
         if ($request->has('hatch_end_at')) {
             $array['hatch_end_at'] = $payload['hatch_end_at'];
             if ($array['hatch_end_at'] != $blogger->hatch_end_at) {
-                $operateHatchEndAt = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '孵化期结束时间',
-                    'start' => $blogger->hatch_end_at,
-                    'end' => $array['hatch_end_at'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateHatchEndAt;
+//                $operateHatchEndAt = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '孵化期结束时间',
+//                    'start' => $blogger->hatch_end_at,
+//                    'end' => $array['hatch_end_at'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateHatchEndAt;
             } else {
                 unset($array['hatch_end_at']);
             }
@@ -379,14 +381,14 @@ class BloggerController extends Controller
                 $array['producer_id'] = $producerUser->id;
 
                 if ($producerUser->id != $array['producer_id']) {
-                    $operateProducer = new OperateEntity([
-                        'obj' => $blogger,
-                        'title' => '制作人',
-                        'start' => $start,
-                        'end' => $producerUser->name,
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateProducer;
+//                    $operateProducer = new OperateEntity([
+//                        'obj' => $blogger,
+//                        'title' => '制作人',
+//                        'start' => $start,
+//                        'end' => $producerUser->name,
+//                        'method' => OperateLogMethod::UPDATE,
+//                    ]);
+//                    $arrayOperateLog[] = $operateProducer;
                 } else {
                     unset($array['producer_id']);
                 }
@@ -419,14 +421,14 @@ class BloggerController extends Controller
         if ($request->has('desc')) {
             $array['desc'] = $payload['desc'];
             if ($array['desc'] != $blogger->desc) {
-                $operateDesc = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '描述',
-                    'start' => $blogger->desc,
-                    'end' => $array['desc'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateDesc;
+//                $operateDesc = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '描述',
+//                    'start' => $blogger->desc,
+//                    'end' => $array['desc'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateDesc;
             } else {
                 unset($array['desc']);
             }
@@ -434,14 +436,14 @@ class BloggerController extends Controller
         if ($request->has('avatar')) {
             $array['avatar'] = $payload['avatar'];
             if ($array['avatar'] != $blogger->avatar) {
-                $operateAvatar = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '头像',
-                    'start' => null,
-                    'end' => null,
-                    'method' => OperateLogMethod::RENEWAL,
-                ]);
-                $arrayOperateLog[] = $operateAvatar;
+//                $operateAvatar = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '头像',
+//                    'start' => null,
+//                    'end' => null,
+//                    'method' => OperateLogMethod::RENEWAL,
+//                ]);
+//                $arrayOperateLog[] = $operateAvatar;
             } else {
                 unset($array['avatar']);
             }
@@ -453,14 +455,14 @@ class BloggerController extends Controller
                 $start = Gender::getStr($blogger->gender);
                 $end = Gender::getStr($array['gender']);
 
-                $operateGender = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '性别',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateGender;
+//                $operateGender = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '性别',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateGender;
             } else {
                 unset($array['gender']);
             }
@@ -469,14 +471,14 @@ class BloggerController extends Controller
         if ($request->has('cooperation_demand')) {
             $array['cooperation_demand'] = $payload['cooperation_demand'];
             if ($array['cooperation_demand'] != $blogger->cooperation_demand) {
-                $operateCooperationDemand = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '合作需求',
-                    'start' => $blogger->cooperation_demand,
-                    'end' => $array['cooperation_demand'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateCooperationDemand;
+//                $operateCooperationDemand = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '合作需求',
+//                    'start' => $blogger->cooperation_demand,
+//                    'end' => $array['cooperation_demand'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateCooperationDemand;
             } else {
                 unset($array['cooperation_demand']);
             }
@@ -485,14 +487,14 @@ class BloggerController extends Controller
         if ($request->has('terminate_agreement_at')) {
             $array['terminate_agreement_at'] = $payload['terminate_agreement_at'];
             if ($array['terminate_agreement_at'] != $blogger->terminate_agreement_at) {
-                $operateTerminateAgreementAt = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '解约日期',
-                    'start' => $blogger->terminate_agreement_at,
-                    'end' => $array['terminate_agreement_at'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateTerminateAgreementAt;
+//                $operateTerminateAgreementAt = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '解约日期',
+//                    'start' => $blogger->terminate_agreement_at,
+//                    'end' => $array['terminate_agreement_at'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateTerminateAgreementAt;
             } else {
                 unset($array['terminate_agreement_at']);
             }
@@ -502,17 +504,17 @@ class BloggerController extends Controller
             $array['sign_contract_other'] = $payload['sign_contract_other'];
             if ($array['sign_contract_other'] != $blogger->sign_contract_other) {
 
-                $start = Whether::getStr($blogger->sign_contract_other);
-                $end = Whether::getStr($array['sign_contract_other']);
-
-                $operateSignContractOther = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '是否签约其他公司',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateSignContractOther;
+//                $start = Whether::getStr($blogger->sign_contract_other);
+//                $end = Whether::getStr($array['sign_contract_other']);
+//
+//                $operateSignContractOther = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '是否签约其他公司',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateSignContractOther;
             } else {
                 unset($array['sign_contract_other']);
             }
@@ -521,14 +523,14 @@ class BloggerController extends Controller
         if ($request->has('sign_contract_other_name')) {
             $array['sign_contract_other_name'] = $payload['sign_contract_other_name'];
             if ($array['sign_contract_other_name'] != $blogger->sign_contract_other_name) {
-                $operateSignContractOtherName = new OperateEntity([
-                    'obj' => $blogger,
-                    'title' => '签约公司名称',
-                    'start' => $blogger->sign_contract_other_name,
-                    'end' => $array['sign_contract_other_name'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateSignContractOtherName;
+//                $operateSignContractOtherName = new OperateEntity([
+//                    'obj' => $blogger,
+//                    'title' => '签约公司名称',
+//                    'start' => $blogger->sign_contract_other_name,
+//                    'end' => $array['sign_contract_other_name'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateSignContractOtherName;
             } else {
                 unset($array['sign_contract_other_name']);
             }
@@ -557,7 +559,8 @@ class BloggerController extends Controller
                 return $this->response->noContent();
             $blogger->update($array);
             // 操作日志
-            event(new OperateLogEvent($arrayOperateLog));
+//            event(new OperateLogEvent($arrayOperateLog));
+            event(new BloggerDataChangeEvent($old_blogger,$blogger));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

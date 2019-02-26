@@ -55,8 +55,11 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\ProjectDataChangeEvent'    =>  [//监听客户修改，增加操作日志
             'App\Listeners\ProjejctDataChangeListener',
         ],
-        'App\Events\StarDataChangeEvent'    =>  [//监听客户修改，增加操作日志
+        'App\Events\StarDataChangeEvent'    =>  [//监听艺人修改，增加操作日志
             'App\Listeners\StarDataChangeListener',
+        ],
+        'App\Events\BloggerDataChangeEvent'    =>  [//监听博主修改，增加操作日志
+            'App\Listeners\BloggerDataChangeListener',
         ],
 
 

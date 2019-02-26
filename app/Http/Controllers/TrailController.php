@@ -874,10 +874,10 @@ class TrailController extends Controller
 
     public function refuse(RefuseTrailReuqest $request, Trail $trail)
     {
-        $power = (new ScopeRepository())->checkMangePower($trail->creator_id, $trail->principal_id, []);
-        if (!$power) {
-            return $this->response->errorInternal("你没有更改线索状态的权限");
-        }
+//        $power = (new ScopeRepository())->checkMangePower($trail->creator_id, $trail->principal_id, []);
+//        if (!$power) {
+//            return $this->response->errorInternal("你没有更改线索状态的权限");
+//        }
         $type = $request->get('type');
         $reason = $request->get('reason');
 

@@ -893,46 +893,39 @@ class BloggerController extends Controller
      */
     public function getFilter(FilterRequest $request)
     {
-//        $pageSize = $request->get('page_size', config('app.page_size'));
-//
-        $all = $request->get('all', false);
-//
-//        $query = Blogger::query();
-//        $conditions = $request->get('conditions');
-//        foreach ($conditions as $condition) {
-//            $field = $condition['field'];
-//            $operator = $condition['operator'];
-//            $type = $condition['type'];
-//            if ($operator == 'LIKE') {
-//                $value = '%' . $condition['value'] . '%';
-//                $query->whereRaw("$field $operator ?", [$value]);
-//            } else if ($operator == 'in') {
-//                $value = $condition['value'];
-//                if ($type >= 5)
-//                    foreach ($value as &$v) {
-//                        $v = hashid_decode($v);
-//                    }
-//                unset($v);
-//                $query->whereIn($field, $value);
-//            } else {
-//                $value = $condition['value'];
-//                $query->whereRaw("$field $operator ?", [$value]);
-//            }
-//
-//        }
-//        // 这句用来检查绑定的参数
-//      //  $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
-//
-//        $stars = $query->orderBy('created_at', 'desc')->paginate($pageSize);
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
-//        $dataWhere = (new FilterFieldController())->getTableNameAndCondition($request,$model);
-//        $dataWhereIn = (new FilterFieldController())->getTableNameInCondition($request,$model);
         $bloggers = Blogger::where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-        $bloggers = $bloggers->searchData()->leftJoin('operate_logs',function($join){
+//        $bloggers = $bloggers->searchData()->leftJoin('operate_logs',function($join){
+//            $join->on('bloggers.id','operate_logs.logable_id')
+//                ->where('logable_type',ModuleableType::BLOGGER)
+//                ->where('operate_logs.method','4');
+//        })->groupBy('bloggers.id')
+//            ->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
+//                'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
+//                'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")])
+//            ->paginate($pageSize);
+//                $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
+//        dd($sql_with_bindings);
+
+        $array = [];//查询条件
+        //合同
+        $status = empty($status) ? $array[] = ['sign_contract_status',1] : $array[] = ['sign_contract_status',$status];
+        if($request->has('name')){//姓名
+            $array[] = ['nickname','like','%'.$payload['name'].'%'];
+        }
+
+        if($request->has('type')){//类型
+            $array[] = ['type_id',hashid_decode($payload['type'])];
+        }
+        if($request->has('communication_status')){//沟通状态
+            $array[] = ['communication_status',$payload['communication_status']];
+        }
+        // sign_contract_status   签约状态
+        $bloggers = $bloggers->where($array)->searchData()->leftJoin('operate_logs',function($join){
             $join->on('bloggers.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::BLOGGER)
                 ->where('operate_logs.method','4');
@@ -941,7 +934,9 @@ class BloggerController extends Controller
                 'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
                 'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
-        return $this->response->paginator($bloggers, new BloggerTransformer(!$all));
+//                $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
+//        dd($sql_with_bindings);
+        return $this->response->paginator($bloggers, new BloggerTransformer());
     }
 
     public function import(ExcelImportRequest $request)

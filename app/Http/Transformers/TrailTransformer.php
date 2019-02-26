@@ -74,6 +74,7 @@ class TrailTransformer extends TransformerAbstract
                 'last_updated_at' => $trail->last_updated_at,
                 'refused_at' => $trail->refused_at,
                 'refused_user' => $trail->refused_user,
+                'refused_detail'=> $trail->refused_detail,
                 'created_at' => $trail->created_at->toDatetimeString(),//时间去掉秒
                 'creator' => $trail->creator->name,
             ];

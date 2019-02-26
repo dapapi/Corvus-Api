@@ -23,6 +23,7 @@ class ContractTransformer extends TransformerAbstract
     {
         $arr = [
             'contract_number' => $contract->contract_number,
+            'instance_number' => $contract->form_instance_number,
             'type' => $contract->type,
             'creator_name' => $contract->creator_name,
         ];

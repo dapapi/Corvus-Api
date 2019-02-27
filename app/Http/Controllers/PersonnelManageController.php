@@ -601,6 +601,7 @@ class PersonnelManageController extends Controller
 
             $userArr = [
                 'status' => $payload['status'],
+                'entry_time' => $payload['entry_time'],
             ];
             $user->update($userArr);
 

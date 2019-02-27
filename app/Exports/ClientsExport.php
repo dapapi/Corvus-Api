@@ -74,7 +74,7 @@ class ClientsExport implements FromQuery, WithMapping, WithHeadings
         if ($contact) {
             $contactName = $contact->name;
             $phone = $contact->phone . '';
-            $keyman = $contact->type == 1 ? '是' : '否';
+            $keyman = $contact->type == 1 ? '否' : '是';
             $position = $contact->position;
         } else {
             $contactName = null;

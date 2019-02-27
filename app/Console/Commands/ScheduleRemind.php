@@ -64,14 +64,14 @@ class ScheduleRemind extends Command
      */
     public function handle()
     {
-        Log::info("日程提醒检测开始");
+//        Log::info("日程提醒检测开始");
         $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
         if (!$res){
-            echo "登录失败";
-            Log::error("登录失败...");
+//            echo "登录失败";
+            Log::error("日程到期提醒,登录失败...");
             return;
         }
-        Log::info("系统用户登录成功");
+//        Log::info("系统用户登录成功");
         $body = $this->httpRepository->jar->getBody();
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
@@ -135,7 +135,7 @@ class ScheduleRemind extends Command
                 event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
             }
         }
-        Log::info("日程提醒检测结束");
+//        Log::info("日程提醒检测结束");
 
     }
 }

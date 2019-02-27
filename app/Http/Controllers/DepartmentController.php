@@ -477,8 +477,15 @@ class DepartmentController extends Controller
 
     public function positionList(Request $request)
     {
-        $positions = Position::get();
-        return $this->response->collection($positions, new positionTransformer());
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+
+        $positions = Position::orderBy('id','asc')
+        ->where(function($query) use($request){
+
+        })->paginate($pageSize);
+
+        return $this->response->paginator($positions, new positionTransformer());
     }
 
 

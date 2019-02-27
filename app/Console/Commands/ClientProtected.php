@@ -60,17 +60,17 @@ class ClientProtected extends Command
      */
     public function handle()
     {
-        Log::info("直客到期检查");
+//        Log::info("直客到期检查");
         $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
         if (!$res){
             echo "登录失败";
-            Log::error("登录失败...");
+            Log::error("直客到期检测登录失败...");
             return;
         }
         $body = $this->httpRepository->jar->getBody();
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
-        Log::info("系统用户登录成功");
+//        Log::info("系统用户登录成功");
 
         $now = Carbon::now();
         //获取保护截止日期在当前时间之后的直客
@@ -79,7 +79,7 @@ class ClientProtected extends Command
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
             echo $protected_client_time->diffInDays($now);
             if ($protected_client_time->diffInMinutes($now) == 5*24*60){
-                Log::info("发送消息");
+//                Log::info("发送消息");
                 $user = User::find(config("app.schdule_user_id"));
                 //发消息
                 event(new ClientMessageEvent($client,ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE,$authorization,$user));

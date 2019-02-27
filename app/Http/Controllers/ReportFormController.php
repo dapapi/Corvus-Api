@@ -83,7 +83,7 @@ class ReportFormController extends Controller
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $type = $request->get('type',null);
-        return (new ReportFormRepository())->percentageOfSalesLeads($start_time,$end_time,$type);
+        return (new ReportFormRepository())->industryAnalysis($start_time,$end_time,$type);
     }
 
     /**

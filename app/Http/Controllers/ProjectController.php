@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
+
+use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Project\AddRelateProjectRequest;
@@ -509,7 +511,8 @@ class ProjectController extends Controller
         $payload = $request->all();
         $arrayOperateLog = [];
         $old_project = clone $project;
-
+        $trail = $project->trail;
+        $old_trail = clone $trail;
         DB::beginTransaction();
         try {
             if ($request->has('principal_id')) {//负责人
@@ -563,7 +566,7 @@ class ProjectController extends Controller
             $project->update($payload);//更新项目
 
             $projectId = $project->id;
-            $trail = $project->trail;
+//            $trail = $project->trail;
             //只有新增或者要删除的参与人不为空是才更新
             if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids']) != 0) {
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $project, ModuleUserType::PARTICIPANT);
@@ -630,22 +633,22 @@ class ProjectController extends Controller
                     if ($key == 'fee') {
 //                        $trail->fee = $val;
                         if ($val != $trail->fee) {
-                            $operateName = new OperateEntity([
-                                'obj' => $project,
-                                'title' => "预计订单收入",
-                                'start' => $trail->fee,
-                                'end' => $val,
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
-                            $operateName = new OperateEntity([
-                                'obj' => $trail,
-                                'title' => "预计订单收入",
-                                'start' => $trail->fee,
-                                'end' => $val,
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
+//                            $operateName = new OperateEntity([
+//                                'obj' => $project,
+//                                'title' => "预计订单收入",
+//                                'start' => $trail->fee,
+//                                'end' => $val,
+//                                'method' => OperateLogMethod::UPDATE,
+//                            ]);
+//                            $arrayOperateLog[] = $operateName;
+//                            $operateName = new OperateEntity([
+//                                'obj' => $trail,
+//                                'title' => "预计订单收入",
+//                                'start' => $trail->fee,
+//                                'end' => $val,
+//                                'method' => OperateLogMethod::UPDATE,
+//                            ]);
+//                            $arrayOperateLog[] = $operateName;
                         }
                         continue;
                     }
@@ -655,23 +658,23 @@ class ProjectController extends Controller
 //                        $trail->lock_status = $val;
 
                         if ($val != $trail->lock_status) {
-                            $operateName = new OperateEntity([
-                                'obj' => $project,
-                                'title' => "是否锁价",
-                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
-                                'end' => $val == 1 ? "锁价" : "未锁价",
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
-
-                            $operateName = new OperateEntity([
-                                'obj' => $trail,
-                                'title' => "是否锁价",
-                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
-                                'end' => $val == 1 ? "锁价" : "未锁价",
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
+//                            $operateName = new OperateEntity([
+//                                'obj' => $project,
+//                                'title' => "是否锁价",
+//                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
+//                                'end' => $val == 1 ? "锁价" : "未锁价",
+//                                'method' => OperateLogMethod::UPDATE,
+//                            ]);
+//                            $arrayOperateLog[] = $operateName;
+//
+//                            $operateName = new OperateEntity([
+//                                'obj' => $trail,
+//                                'title' => "是否锁价",
+//                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
+//                                'end' => $val == 1 ? "锁价" : "未锁价",
+//                                'method' => OperateLogMethod::UPDATE,
+//                            ]);
+//                            $arrayOperateLog[] = $operateName;
                         }
                         continue;
                     }
@@ -732,6 +735,9 @@ class ProjectController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
+
+            event(new TrailDataChangeEvent($old_trail,$trail));//更新线索操作日志
+
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -803,7 +809,7 @@ class ProjectController extends Controller
                     }
                     else
                     {
-                        $result->addMeta('contractmoney', '0');
+                        $result->addMeta('contractmoney', "".'0');
                     }
                 }
 
@@ -819,7 +825,7 @@ class ProjectController extends Controller
                     }
                     else
                     {
-                        $result->addMeta('expendituresum', 0);
+                        $result->addMeta('expendituresum', "".'0');
                     }
                 }
             }
@@ -831,14 +837,14 @@ class ProjectController extends Controller
                 }
                 else
                 {
-                    $result->addMeta('contractmoney', 0);
+                    $result->addMeta('contractmoney', "".'0');
                 }
                 if (isset($expendituresum)) {
                     $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
                 }
                 else
                 {
-                    $result->addMeta('expendituresum', 0);
+                    $result->addMeta('expendituresum',"".'0');
                 }
             }
 //            $setprivacy1 = array();

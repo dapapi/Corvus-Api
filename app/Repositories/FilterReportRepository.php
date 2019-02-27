@@ -4,6 +4,8 @@ namespace App\Repositories;
 
 
 
+use App\Models\FilterField;
+
 class FilterReportRepository
 {
 
@@ -20,6 +22,9 @@ class FilterReportRepository
           $operator = $v['operator'];
           $value = $v['value'];
           $type = $v['type'];
+          $id = $v['id'];
+          $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')[0];//查找附加搜索条件
+
           switch ($v['operator']) {
               case 'LIKE':
                   $value = '%' . $v['value'] . '%';
@@ -60,8 +65,11 @@ class FilterReportRepository
                   $query->whereRaw("$field $operator ?", [$value]);
                   break;
           }
+          if ($relation_contidion){
+              $query->whereRaw($relation_contidion);
+          }
         }
-      //  return $query;
+
       return $query;
     }
 

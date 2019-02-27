@@ -68,16 +68,8 @@ class UserRepository {
 //                }
                 throw new SystemInternalException('用户不在系统中');
             }
-
-            //更新绑定信息
-            try {
-                $userPlatformInfo->update([
-                    'user_id' => $user->id
-                ]);
-            } catch (Exception $exception) {
-                Log::error($exception->getMessage());
-                throw new SystemInternalException('更新用户worktile信息失败');
-            }
+        } else {
+            throw new SystemInternalException('您的手机号已经被绑定');
         }
 
 

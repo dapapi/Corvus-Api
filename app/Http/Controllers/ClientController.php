@@ -152,7 +152,7 @@ class ClientController extends Controller
 //
 //            }
             $client->update($payload);
-            event(new ClientDataChangeEvent($old_client,$client));
+            event(new ClientDataChangeEvent($old_client,$client));//记录日志
 
         } catch (\Exception $exception) {
             Log::error($exception);

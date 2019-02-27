@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 
+use App\Annotation\DescAnnotation;
 use App\Models\ApprovalFlowExecute;
 use App\Models\Contract;
 use App\Models\OperateLog;
@@ -79,8 +80,9 @@ class ProjectRepository
             })
             ->where('afe.flow_type_id',232)->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
-            ->searchData()//查询权限
-            ->select("projects.id","projects.title","projects.created_at");
+
+            ->select("p.id","p.title","p.created_at");
+
         return $query->paginate($pageSize);
 
 

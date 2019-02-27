@@ -21,4 +21,5 @@ class FilterFieldController extends Controller
         return $this->response->collection($fields, new FilterFieldTransformer());
     }
 
+
 }

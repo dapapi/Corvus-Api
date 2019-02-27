@@ -45,12 +45,12 @@ class ReviewController extends Controller
         $user = Auth::guard('api')->user();
         $arr = ReportTemplateUser::where('user_id',$user->id)->get(['report_template_name_id']);
         if(!empty($search)){
-            $arr1 = Report::wherein('id',$arr)->where('template_name','like','%'.$search.'%')->get(['id']);
+            $arr1 = Report::whereIn('id',$arr)->where('template_name','like','%'.$search.'%')->get(['id']);
          }else{
-            $arr1 = Report::wherein('id',$arr)->get(['id']);
+            $arr1 = Report::whereIn('id',$arr)->get(['id']);
         }
         if($arr1){
-            $stars = BulletinReview::wherein('template_id',$arr1->toarray())->where('status',$status)->createDesc()->paginate($pageSize);
+            $stars = BulletinReview::whereIn('template_id',$arr1->toarray())->where('status',$status)->createDesc()->paginate($pageSize);
         }
         return $this->response->paginator($stars, new ReviewTransformer());
     }
@@ -157,7 +157,7 @@ class ReviewController extends Controller
         $arraydate[] = ['created_at','<=', $payload['end_time']];
         $arraydatemember['member'] = array_unique($array);//成员
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $str = BulletinReview::where($arraydate)->wherein('member',$arraydatemember['member'])->createDesc()->paginate($pageSize);
+        $str = BulletinReview::where($arraydate)->whereIn('member',$arraydatemember['member'])->createDesc()->paginate($pageSize);
 //        $payload = $request->all();
 //        $status = $request->get('status')?$request->get('status'):1;
 //        $pageSize = $request->get('page_size', config('app.page_size'));

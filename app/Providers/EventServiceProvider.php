@@ -66,7 +66,6 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\BloggerDataChangeListener',
         ],
 
-
     ];
 
     /**

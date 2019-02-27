@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
+
 use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
@@ -734,7 +735,9 @@ class ProjectController extends Controller
             }
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
-            event(new TrailDataChangeEvent($old_trail,$trail));
+
+            event(new TrailDataChangeEvent($old_trail,$trail));//更新线索操作日志
+
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -806,7 +809,7 @@ class ProjectController extends Controller
                     }
                     else
                     {
-                        $result->addMeta('contractmoney', '0');
+                        $result->addMeta('contractmoney', "".'0');
                     }
                 }
 
@@ -822,7 +825,7 @@ class ProjectController extends Controller
                     }
                     else
                     {
-                        $result->addMeta('expendituresum', 0);
+                        $result->addMeta('expendituresum', "".'0');
                     }
                 }
             }
@@ -834,21 +837,21 @@ class ProjectController extends Controller
                 }
                 else
                 {
-                    $result->addMeta('contractmoney', 0);
+                    $result->addMeta('contractmoney', "".'0');
                 }
                 if (isset($expendituresum)) {
                     $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
                 }
                 else
                 {
-                    $result->addMeta('expendituresum', 0);
+                    $result->addMeta('expendituresum',"".'0');
                 }
             }
 //            $setprivacy1 = array();
 //            $Viewprivacy2 = array();
 //            $array['moduleable_id'] = $project->id;
 //            $array['moduleable_type'] = ModuleableType::PROJECT;
-//            $array['is_privacy'] = PrivacyType::OTHER;
+//           $array['is_privacy'] = PrivacyType::OTHER;
 //            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
 //            foreach ($setprivacy as $key => $v) {
 //
@@ -1179,6 +1182,7 @@ class ProjectController extends Controller
             if ($request->has('tasks')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::TASK)->delete();
                 $tasks = $request->get('tasks');
+                $tasks = array_unique($tasks);
                 foreach ($tasks as $value) {
                     $id = hashid_decode($value);
                     $task = Task::find($id);
@@ -1197,6 +1201,7 @@ class ProjectController extends Controller
             if ($request->has('projects')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::PROJECT)->delete();
                 $projects = $request->get('projects');
+                $projects = array_unique($projects);
                 foreach ($projects as $value) {
                     $id = hashid_decode($value);
                     $temp_project = Project::find($id);

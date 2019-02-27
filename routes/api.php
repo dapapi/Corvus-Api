@@ -21,6 +21,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->any('/wechat_open', 'App\Http\Controllers\Wechat\OpenPlatformController@serve');
     $api->get('/wechat_open/oauth', 'App\Http\Controllers\Wechat\OpenPlatformController@getLoginUrl');
     $api->get('/wechat_open/oauth/callback', 'App\Http\Controllers\Wechat\OpenPlatformController@oauthCallback');
+    $api->get('/wechat_open/oauth/app_callback', 'App\Http\Controllers\Wechat\OpenPlatformController@appCallback');
 
     # 服务
     $api->get('services/request_token', 'App\Http\Controllers\ServiceController@requestToken');

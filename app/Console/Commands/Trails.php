@@ -65,15 +65,15 @@ class Trails extends Command
      */
     public function handle()
     {
-        Log::info("线索检测开始");
+//        Log::info("线索检测开始");
         $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
         if (!$res){
             echo "登录失败";
-            Log::error("登录失败...");
+            Log::error("线索进入公海池,登录失败...");
             return;
         }
 
-        Log::info("系统用户登录成功");
+//        Log::info("系统用户登录成功");
         $body = $this->httpRepository->jar->getBody();
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
@@ -125,7 +125,7 @@ class Trails extends Command
             if ($now->diffInMinutes($last_update_at) >= 14 * 24 * 60) { #进入公海池前一天提醒
                 if ($value->receive !== 1) {
                     $num = DB::table('trails')->where('id', $value->id)->update($receive);
-                    Log::info("发送线索即将进入公海池提醒,线索【" . $value->title."】将要进入公海池");
+//                    Log::info("发送线索即将进入公海池提醒,线索【" . $value->title."】将要进入公海池");
                     //提醒
                     $user = User::find(config("app.schdule_user_id"));
                     $meta['created'] = $last_update_at->toDateTimeString();//跟进时间
@@ -134,7 +134,7 @@ class Trails extends Command
             }
 
             if ($now->diffInMinutes($last_update_at) >= 15 * 24 * 60) {
-                Log::info("线索进入公海池【".$value->title."】");
+//                Log::info("线索进入公海池【".$value->title."】");
                 if ($value->type == 4) {
                     $type = 3;
                 } else {
@@ -151,7 +151,7 @@ class Trails extends Command
             }
 
         }
-        Log::info("线索执行结束");
+//        Log::info("线索执行结束");
 
 
     }

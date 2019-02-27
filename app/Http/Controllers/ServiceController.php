@@ -7,6 +7,7 @@ use App\Http\Requests\SendSmsRequest;
 use App\Http\Transformers\RequestTokenTransformer;
 use App\Models\RequestVerityToken;
 use App\Sms\VerifyCodeSms;
+use App\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Overtrue\EasySms\EasySms;
@@ -15,7 +16,8 @@ use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use Qiniu\Auth;
 use Webpatser\Uuid\Uuid;
 
-class ServiceController extends Controller {
+class ServiceController extends Controller
+{
 
     public function cloudStorageToken()
     {
@@ -27,7 +29,8 @@ class ServiceController extends Controller {
     /**
      * @throws Exception
      */
-    public function requestToken(GetRequestTokenRequest $request) {
+    public function requestToken(GetRequestTokenRequest $request)
+    {
 
         $token = Uuid::generate(4)->string;
         $payload = $request->all();
@@ -59,11 +62,16 @@ class ServiceController extends Controller {
      * @throws \Overtrue\EasySms\Exceptions\InvalidArgumentException
      * @throws \Overtrue\EasySms\Exceptions\NoGatewayAvailableException
      */
-    public function sendSMSCode(SendSmsRequest $request) {
+    public function sendSMSCode(SendSmsRequest $request)
+    {
         $payload = $request->all();
         $telephone = $payload['telephone'];
         $device = $payload['device'];
         $token = $payload['token'];
+
+        $user = User::where('phone', $telephone)->first();
+        if (!$user)
+            return $this->response->errorBadRequest('该手机号未被注册');
 
         #查询该请求
         $requestToken = RequestVerityToken::where('device', $device)->where('token', $token)->first();
@@ -92,10 +100,11 @@ class ServiceController extends Controller {
             return $this->response->errorInternal('缓存短信验证码失败');
         }
 
-        return $this->response->accepted('','发送成功');
+        return $this->response->accepted('', '发送成功');
     }
 
-    public function getQiniuToken() {
+    public function getQiniuToken()
+    {
         $qiniuAuth = new Auth(env('QINIU_ACCESS_KEY'), env('QINIU_SECRET_KEY'));
         try {
             $qiniuToken = $qiniuAuth->uploadToken(env('QINIU_BUCKET'));
@@ -106,7 +115,8 @@ class ServiceController extends Controller {
         return $this->response->array(['token' => $qiniuToken]);
     }
 
-    public function getImageQiniuToken() {
+    public function getImageQiniuToken()
+    {
         $qiniuAuth = new Auth(env('QINIU_ACCESS_KEY'), env('QINIU_SECRET_KEY'));
         try {
             $qiniuToken = $qiniuAuth->uploadToken(env('QINIU_BUCKET', null, 3600, ['mimeLimit' => 'image/*']));

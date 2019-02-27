@@ -603,7 +603,7 @@ class ReportFormRepository
             ->get([
                 DB::raw('p.id'),
                 DB::raw("GROUP_CONCAT(distinct d.name) as deparment_name"),
-                  DB::raw('sum(distinct co.contract_money) as total_contract_money'),
+                DB::raw('sum(distinct co.contract_money) as total_contract_money'),
                 DB::raw("GROUP_CONCAT(distinct s.name) as star_name"),
                 'p.status','p.type','p.title',
                 DB::raw('u.name as principal_name'),
@@ -977,7 +977,8 @@ class ReportFormRepository
             "total" =>  count($stars),
             "total_fee" => array_sum(array_column($stars->toArray(),'total_fee')),
             "total_contract_amount" => array_sum(array_column($stars->toArray(),'total_contract_money')), //合同总金额
-            "total_expenditure",   //花费金额
+            "total_expenditure" => '',   //花费金额
+
             "stars" =>  $stars
         ];
 

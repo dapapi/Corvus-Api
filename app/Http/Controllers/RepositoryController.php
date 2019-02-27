@@ -48,18 +48,18 @@ class RepositoryController extends Controller
                     $department_name  = !empty(Department::where('id',$department[0]['department_id'])->get()->toArray())?Department::where('id',$department[0]['department_id'])->get()->toArray():'';
                     $scope = RepositoryScope::getStr($department_name[0]['name']);
                     if($scope == 0){
-                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+                        $stars = Repository::whereIn('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
                     }else if($scope == 1){
-                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
+                        $stars = Repository::whereIn('creator_id',$users)->orwhere('scope',1)->createDesc()->paginate($pageSize);
                     }else if($scope == 2){
 
-                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',2)->createDesc()->paginate($pageSize);
+                        $stars = Repository::whereIn('creator_id',$users)->orwhere('scope',2)->createDesc()->paginate($pageSize);
                     }else if($scope == 3){
 
-                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',3)->createDesc()->paginate($pageSize);
+                        $stars = Repository::whereIn('creator_id',$users)->orwhere('scope',3)->createDesc()->paginate($pageSize);
                     }else if($scope == 4){
 
-                        $stars = Repository::wherein('creator_id',$users)->orwhere('scope',4)->createDesc()->paginate($pageSize);
+                        $stars = Repository::whereIn('creator_id',$users)->orwhere('scope',4)->createDesc()->paginate($pageSize);
                     }
               }else{
 

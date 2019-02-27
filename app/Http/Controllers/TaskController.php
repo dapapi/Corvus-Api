@@ -300,9 +300,7 @@ class TaskController extends Controller
             default:
                 break;
         }
-        DB::connection()->enableQueryLog();
         $tasks = $query->get();
-        dd(DB::getQueryLog());
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }

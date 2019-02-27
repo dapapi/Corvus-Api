@@ -565,7 +565,7 @@ class ApprovalContractController extends Controller
         }
         $data->join('users as us', function ($join) {
             $join->on('us.id', '=', 'cs.creator_id');
-        })
+        })->join('data_dictionaries as dd','dd.id','afb.form_status')
             ->whereIn('afb.form_id', [5, 6, 7, 8])
             ->where('cs.title', 'LIKE', '%' . $payload['keyword'] . '%');
         if ($payload['number'])
@@ -575,7 +575,7 @@ class ApprovalContractController extends Controller
             $data->Where('afb.form_id', $payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status', 'cs.star_type', 'cs.stars')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name','us.icon_url', 'cs.created_at', 'afb.form_status','dd.icon','dd.name', 'cs.star_type', 'cs.stars')->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($res, $start, $pageSize);

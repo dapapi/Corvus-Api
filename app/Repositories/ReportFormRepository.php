@@ -420,7 +420,7 @@ class ReportFormRepository
     public function newTrail($start_time,$end_time,$department=null,$target_star=null)
     {
         $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
-        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
+        $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->addDay(1)->toDateString()];
         if($department != null){
             $arr[] = ['d.id',$department];
         }
@@ -450,24 +450,27 @@ class ReportFormRepository
             )
             ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
             ->get();
-            $start_month = Carbon::parse($start_time);
-            $end_moth = Carbon::parse($end_time);
+//        dd($trails->toArray());
+
+            $start_month = Carbon::parse(date("Y-m",strtotime($start_time)));
+            $end_moth = Carbon::parse(date("Y-m",strtotime($end_time)));
             $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
+
             $list = [];
-            for ($i = 0;$i <= $diff;$i++){
+            for ($i = 0;$i <= $diff;$i++){//获取两个时间之间
                 $curr = $start_month->copy()->addMonth($i)->format('Y-m');
-                foreach ($trails as $trail){
+                foreach ($trails as $trail){//循环线索
                     if($trail->date == $curr){
                         $list[$curr][] = $trail;
                         $cloum = array_column($list[$curr],'type');
                         $sum_key = array_search('sum',$cloum);
                         if($sum_key === false){
                             $list[$curr][] = [
-                                'total' => $trail['total'],
+                                'total' => $trail->total,
                                 "type"  =>  "sum"
                             ];
                         }else{
-                            $list[$curr][$sum_key]['total'] +=  $trail['total'];
+                            $list[$curr][$sum_key]['total'] +=  $trail->total;
                         }
                     }
                 }
@@ -548,7 +551,7 @@ class ReportFormRepository
         if($type != null){
             $arr[] = ['d.id',$type];
         }
-        (new Trail())->setTable("t")->from("trails as t")
+        return (new Trail())->setTable("t")->from("trails as t")
             ->leftJoin('industries as i',"i.id",'=','t.industry_id')
             ->where($arr)
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
@@ -600,7 +603,7 @@ class ReportFormRepository
             ->get([
                 DB::raw('p.id'),
                 DB::raw("GROUP_CONCAT(distinct d.name) as deparment_name"),
-                  DB::raw('sum(distinct co.contract_money) as total_contract_money'),
+                DB::raw('sum(distinct co.contract_money) as total_contract_money'),
                 DB::raw("GROUP_CONCAT(distinct s.name) as star_name"),
                 'p.status','p.type','p.title',
                 DB::raw('u.name as principal_name'),
@@ -805,21 +808,6 @@ class ReportFormRepository
                 ];
             }
         }
-//        foreach ($result as $value){
-//            if(!isset($list[$value['type']])){
-//                $list[$value['type']]['type_total'] = floor(($value['p_total'])*10000)/10000;
-//                $list[$value['type']]['per_type_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-//                $list[$value['type']]['type'] = $value['type'];
-//                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-//                $list[$value['type']][] = $value;
-//            }else{
-//                $list[$value['type']]['type_total'] += $value['p_total'];
-//                $value['per_p_total'] = floor(($value['p_total'] / $sum)*10000)/10000;
-//                $list[$value['type']][] = $value;
-//                $list[$value['type']]['per_type_total'] += floor(($value['p_total'] / $sum)*10000)/10000;
-//            }
-//
-//        }
 
         return $list;
 
@@ -989,7 +977,8 @@ class ReportFormRepository
             "total" =>  count($stars),
             "total_fee" => array_sum(array_column($stars->toArray(),'total_fee')),
             "total_contract_amount" => array_sum(array_column($stars->toArray(),'total_contract_money')), //合同总金额
-            "total_expenditure",   //花费金额
+            "total_expenditure" => '',   //花费金额
+
             "stars" =>  $stars
         ];
 

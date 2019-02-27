@@ -1,6 +1,7 @@
 <?php
 namespace App\Entity;
 use App\Models\Client;
+use App\User;
 
 /**
  * Created by PhpStorm.
@@ -148,7 +149,8 @@ class ClientEntity
    }
    public function get_principal_id()
    {
-       return $this->principal_id;
+       $user = User::find($this->principal_id);
+       return $user == null ? null: $user->name;
    }
    public function get_creator_id()
    {
@@ -156,7 +158,22 @@ class ClientEntity
    }
    public function get_client_rating()
    {
-       return $this->client_rating;
+       $size = '';
+       switch ($this->client_rating) {
+           case 4:
+               $size = 'S';
+               break;
+           case 3:
+               $size = 'A';
+               break;
+           case 2:
+               $size = 'B';
+               break;
+           case 1:
+               $size = 'C';
+               break;
+       }
+       return $size;
    }
    public function get_size()
    {

@@ -42,8 +42,8 @@ class Project extends Command
     public function handle()
     {
         $dataDay = date('Y-m-d H:i:s');//当前时间
-        $Log = "延期脚本执行".$dataDay."\n";
-        Log::info($Log);
+//        $Log = "延期脚本执行".$dataDay."\n";
+//        Log::info($Log);
         //获取今天时间
         $dataDay = date('YmdHis');//当前时间
         $tasks = DB::table("tasks")->where('status',1)->get()->toArray();
@@ -55,7 +55,7 @@ class Project extends Command
                     ->where('id',$value['id'])
                     ->update(['status'=>4]);
                 $Log = "延期Id".$value['id']."\n";
-                Log::info($Log);
+//                Log::info($Log);
             }
 
         }

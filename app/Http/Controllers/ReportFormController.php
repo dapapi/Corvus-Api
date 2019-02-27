@@ -83,7 +83,7 @@ class ReportFormController extends Controller
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
         $type = $request->get('type',null);
-        return (new ReportFormRepository())->percentageOfSalesLeads($start_time,$end_time,$type);
+        return (new ReportFormRepository())->industryAnalysis($start_time,$end_time,$type);
     }
 
     /**
@@ -197,11 +197,11 @@ class ReportFormController extends Controller
     //博主报表
     public function bloggerReport(Request $request)
     {
-        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
-        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        $sign_contract_status = $request->get('sign_contract_status',null);
-        $department = $request->get('department',null);
-        $target_star = $request->get('target_star',null);
+        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());//开始时间
+        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());//结束时间
+        $sign_contract_status = $request->get('sign_contract_status',null);//签约状态
+        $department = $request->get('department',null);//组别
+        $target_star = $request->get('target_star',null);//目标艺人
         $target_star = $target_star == null ? null :hashid_decode($target_star);
         $department = $department == null ? null : hashid_decode($department);
         return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star);

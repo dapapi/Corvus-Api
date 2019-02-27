@@ -3,17 +3,16 @@
 namespace App\Listeners;
 
 use App\Annotation\DescAnnotation;
-use App\Entity\TrailEntity;
+use App\Entity\TaskEntity;
 use App\Events\OperateLogEvent;
-use App\Events\TrailDataChangeEvent;
+use App\Events\TaskDataChangeEvent;
 use App\Models\OperateEntity;
-use App\Models\Trail;
 use App\OperateLogMethod;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Rafrsr\LibArray2Object\Array2ObjectBuilder;
 
-class TrailDataChangeListener
+class TaskDataChangeListener
 {
     /**
      * Create the event listener.
@@ -28,28 +27,28 @@ class TrailDataChangeListener
     /**
      * Handle the event.
      *
-     * @param  TrailDataChangeEvent  $event
+     * @param  TaskDataChangeEvent  $event
      * @return void
      */
-    public function handle(TrailDataChangeEvent $event)
+    public function handle(TaskDataChangeEvent $event)
     {
         $arrayOperateLog = [];
-        $class = new DescAnnotation(TrailEntity::class);
+        $class = new DescAnnotation(TaskEntity::class);
         $oldModel = $event->oldModel;
         $newModel = $event->newModel;
         $oldData = $oldModel->toArray();
         $newData = $newModel->toArray();
-        $old_trail = Array2ObjectBuilder::create()->build()->createObject(TrailEntity::class,$oldData);
-        $new_trail = Array2ObjectBuilder::create()->build()->createObject(TrailEntity::class,$newData);
-        foreach ($old_trail as $key => $value){
+        $old_task = Array2ObjectBuilder::create()->build()->createObject(TaskEntity::class,$oldData);
+        $new_task = Array2ObjectBuilder::create()->build()->createObject(TaskEntity::class,$newData);
+        foreach ($old_task as $key => $value){
 
-            if ($value != $new_trail->$key){
+            if ($value != $new_task->$key){
                 $func = "get_".$key;
                 $operateStartAt = new OperateEntity([
                     'obj' => $newModel,
                     'title' => $class->$key->desc(),
-                    'start' => $old_trail->$func(),
-                    'end' => $new_trail->$func(),
+                    'start' => $old_task->$func(),
+                    'end' => $new_task->$func(),
                     'method' => OperateLogMethod::UPDATE,
                 ]);
                 $arrayOperateLog[] = $operateStartAt;

@@ -63,7 +63,7 @@ class LaunchController extends Controller
             }
 //            Report::find($num)->state = $sally;
         }
-        $stars = Report::wherein('id',$arr)->createDesc()->paginate($pageSize);
+        $stars = Report::whereIn('id',$arr)->createDesc()->paginate($pageSize);
 
         return $this->response->paginator($stars, new ReportTransformer());
     }

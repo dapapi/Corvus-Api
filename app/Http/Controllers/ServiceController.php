@@ -7,6 +7,7 @@ use App\Http\Requests\SendSmsRequest;
 use App\Http\Transformers\RequestTokenTransformer;
 use App\Models\RequestVerityToken;
 use App\Sms\VerifyCodeSms;
+use App\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Overtrue\EasySms\EasySms;
@@ -67,6 +68,10 @@ class ServiceController extends Controller
         $telephone = $payload['telephone'];
         $device = $payload['device'];
         $token = $payload['token'];
+
+        $user = User::where('phone', $telephone)->first();
+        if (!$user)
+            return $this->response->errorBadRequest('该手机号未被注册');
 
         #查询该请求
         $requestToken = RequestVerityToken::where('device', $device)->where('token', $token)->first();

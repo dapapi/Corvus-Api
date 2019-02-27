@@ -599,16 +599,33 @@ class ConsoleController extends Controller
     public function directorList(Request $request)
     {
         $payload = $request->all();
-
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
+
         $data = DB::table('department_principal as dp')
             ->join('users', function ($join) {
                 $join->on('users.id', '=','dp.user_id');
             })
             ->groupBy('users.id')
             ->select('users.name','users.icon_url','users.phone','users.email')
-            ->paginate($pageSize)->toArray();
+            //->paginate($pageSize)->toArray();
+            ->get()->toArray();
+        //return $data;
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($data, $start, $pageSize);
 
-        return $data;
+        $total = count($data);//总条数
+        $totalPages = ceil($total / $pageSize);
+
+        $arr = array();
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
+        ];
+        return $arr;
     }
 }

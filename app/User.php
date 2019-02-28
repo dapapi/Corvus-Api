@@ -131,6 +131,7 @@ class User extends Authenticatable
     public function findForPassport($name)
     {
         $user = User::where('name', $name)
+            ->where('disable', 1)//用户禁用 1启用 2禁用
             ->orWhere('phone', $name)
             ->orWhere('email', $name)
             ->first();

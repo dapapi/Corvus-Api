@@ -585,6 +585,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取职位列表
         $api->get('/departments_jobs', 'App\Http\Controllers\DepartmentController@jobsList');
 
+        $api->get('/departments_position', 'App\Http\Controllers\DepartmentController@position');
 
         /*组织架构 职位管理*/
         $api->get('/position', 'App\Http\Controllers\DepartmentController@positionList');
@@ -748,5 +749,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/pending_sum', 'App\Http\Controllers\ApprovalFormController@pendingSum');
         //上传图片七牛云api
         $api->post('/image', 'App\Http\Controllers\PersonnelManageController@uploadImage');
+        //获取部门主管
+        $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
     });
 });

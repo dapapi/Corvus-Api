@@ -979,7 +979,9 @@ class TrailController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $trail = Trail::where(function ($query) use ($payload) {
+        $joinSql = FilterJoin::where('table_name', 'trails')->first()->join_sql;
+        $query = Trail::selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
+        $trail = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
         $trails = $trail->where(function ($query) use ($request, $payload) {
@@ -999,18 +1001,35 @@ class TrailController extends Controller
                 $query->where('type',$payload['type']);
 
         })
-            ->searchData()->poolType()
-            //->orderBy('created_at', 'desc')
-            ->leftJoin('operate_logs',function($join){
+            ->searchData()->poolType()->groupBy('trails.id')
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+//        dd($sql_with_bindings);
+        $trails = Trail::whereIn('trails.id', $trails)->leftJoin('operate_logs',function($join){
                 $join->on('trails.id','operate_logs.logable_id')
                     ->where('logable_type',ModuleableType::TRAIL)
                     ->where('operate_logs.method','4');
-            })->groupBy('trails.id')
-            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+            })->where(function ($query) use ($payload) {
+            if(!empty($payload['conditions'])){
+                foreach($payload['conditions'] as $k => $v) {
+                    $field = $v['field'];
+                    $operator = $v['operator'];
+                    $value = $v['value'];
+                    $type = $v['type'];
+
+                    if ($field == 'operate_logs.created_at' && $type == '2') {
+                        //  Blogger::from(DB::raw($bloggers))->where(NOW(),'>', 'SUBDATE(`operate_logs`.`created_at`,INTERVAL -1 day)');
+                        $query->whereRaw("NOW() > SUBDATE(operate_logs.created_at,INTERVAL -$value day)");
+                    }
+                }
+            }
+
+        })->groupBy('trails.id')->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
                 'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
-
+//               $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+//        dd($sql_with_bindings);
 //        $company = $user->company->name;
 
 //        $joinSql = FilterJoin::where('company', $company)->where('table_name', 'trails')->first()->join_sql;

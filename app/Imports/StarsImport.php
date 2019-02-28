@@ -38,11 +38,15 @@ class StarsImport implements ToCollection, WithBatchInserts, WithChunkReading
         $user = Auth::guard('api')->user();
         try {
             foreach ($rows as $key => $row){
-                foreach ($rows as $key1 => $row2){
+                if(count($rows)>2) {
+                    foreach ($rows as $key1 => $row2) {
 
-                    if($key <> $key1){
-                        if($row[0] == $row2[0]){
-                            throw new Exception('excel中有重复数据，请处理后再进行上传');
+                        if ($key <> $key1) {
+                            if ($row[0] == $row2[0] && $row[0]!= null && $row2[0] != null) {
+
+                                    throw new Exception('excel中有重复数据，请处理后再进行上传');
+
+                            }
                         }
                     }
                 }

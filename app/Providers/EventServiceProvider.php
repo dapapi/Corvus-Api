@@ -46,6 +46,7 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\AnnouncementMessageEventListener',
         ],
 
+
         //日志
         'App\Events\TaskDataChangeEvent'    =>  [//任务修改，增加操作日志
             'App\Listeners\TaskDataChangeListener',

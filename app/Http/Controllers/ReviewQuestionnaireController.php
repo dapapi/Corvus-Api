@@ -201,6 +201,20 @@ class ReviewQuestionnaireController extends Controller {
                     $modeluseradd = $moduleuser->save();
                 }
 
+
+                if(isset($users)){
+
+                    foreach($users as $key => $val){
+                        $moduleuser = new ModuleUser;
+                        $moduleuser->user_id = $val['user_id'];
+                        $moduleuser->moduleable_id = $task->id;
+                        $moduleuser->moduleable_type = 'task';
+                        $moduleuser->type = 1;  //1  参与人
+                        $modeluseradd = $moduleuser->save();
+
+                    }
+                }
+
                 //向任务参与人发消息
                 try{
                     $authorization = $request->header()['authorization'][0];
@@ -208,7 +222,6 @@ class ReviewQuestionnaireController extends Controller {
                 }catch (Exception $e){
                     Log::error("推优消息发送失败");
                     Log::error($e);
-                    DB::rollBack();
                 }
                 $reviewquestionnairemodel = new ReviewQuestionnaire;
 

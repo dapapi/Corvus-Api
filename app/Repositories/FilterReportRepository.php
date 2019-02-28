@@ -6,6 +6,7 @@ namespace App\Repositories;
 
 use App\Models\FilterField;
 use http\Env\Request;
+use phpDocumentor\Reflection\Types\Null_;
 
 class FilterReportRepository
 {
@@ -23,9 +24,13 @@ class FilterReportRepository
           $operator = $v['operator'];
           $value = $v['value'];
           $type = $v['type'];
-          $id = hashid_decode($v['id']);
-          $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')->toArray();//查找附加搜索条件
+          if(!empty($v['id'])){
+              $id = hashid_decode($v['id']);
 
+          }else{
+              $id = Null;
+          }
+          $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')->toArray();//查找附加搜索条件
           if($field == 'operate_logs.created_at' && $type == '2')
           {
 

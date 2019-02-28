@@ -830,9 +830,9 @@ class StarController extends Controller
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-
+        DB::connection()->enableQueryLog();
         $stars = $stars->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
-
+        dd(DB::getQueryLog());
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }

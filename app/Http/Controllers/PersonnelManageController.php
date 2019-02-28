@@ -465,10 +465,9 @@ class PersonnelManageController extends Controller
             unset($payload['department_id']);
             //
             if($position_id !=1){
-                $position_id = hashid_encode($payload['position_id']);
-
+                $position = hashid_decode($payload['position_id']);
             }
-            $payload['position_id'] = $position_id;
+            $payload['position_id'] = $position;
             $user->update($payload);
             //$personalDetail->update($payload);
 

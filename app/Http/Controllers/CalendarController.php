@@ -122,7 +122,10 @@ class CalendarController extends Controller
             // 艺人在该日历 下创建了日程也不能 修改    张峪铭
             $is_calendars = Schedule::where('calendar_id',$calendar->id)->get();
             if(count($is_calendars) >= 1){
-                return $this->response->errorMethodNotAllowed("该艺人已有相关日程，不能修改");
+                if($payload['starable_id'] != $calendar['starable_id'] || $payload['starable_type'] != $calendar['starable_type']){
+                    return $this->response->errorMethodNotAllowed("该艺人已有相关日程，不能修改");
+                }
+
             }
             //艺人在该日历 下创建了日程也不能 修改
         }

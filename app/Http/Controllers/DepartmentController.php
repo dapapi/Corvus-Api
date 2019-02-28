@@ -577,18 +577,19 @@ class DepartmentController extends Controller
 
     public function disableList(Request $request)
     {
+        $payload = $request->all();
+        $disable = isset($payload['disable']) ? $payload['disable'] : 1;
+
         $search = addslashes($request->input('search'));//姓名 手机号
 
-        $userInfo = User::where('disable', 1)->get();
+        //$userInfo = User::where('disable', $disable)->get();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $userInfo = User::orderBy('updated_at','DESC')
-            ->where(function($query) use($request,$search){
-                $query->where('disable',1);
-                if(!empty($search)) {
-                    $query->where('name', 'like', '%'.$search.'%')->orWhere('phone', 'like', '%'.$search.'%');
-                }
+            ->where(function($query) use($request,$search,$disable){
+                $query->where('disable',$disable);
+
             })->paginate($pageSize);
-        
+       
         return $this->response->paginator($userInfo, new UserTransformer());
     }
 

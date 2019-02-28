@@ -73,11 +73,13 @@ class TrailsImport implements ToCollection, WithBatchInserts, WithChunkReading
 
         try {
             foreach ($rows as $key => $row){
-                foreach ($rows as $key1 => $row2){
+                if(count($rows)>2) {
+                    foreach ($rows as $key1 => $row2) {
 
-                    if($key <> $key1){
-                        if($row[3] == $row2[3]){
-                            throw new Exception('excel中有重复数据，请处理后再进行上传');
+                        if ($key <> $key1) {
+                            if ($row[3] == $row2[3] && $row[3]!= null && $row2[3] != null) {
+                                throw new Exception('excel中有重复数据，请处理后再进行上传');
+                            }
                         }
                     }
                 }
@@ -94,7 +96,7 @@ class TrailsImport implements ToCollection, WithBatchInserts, WithChunkReading
 //                ]);
                 $client = Client::where('company',$row[2])->first();
                 if(!$client){
-                    throw new Exception('请重新确认'.$key.'导入公司是否存在');
+                    throw new Exception('请重新确认第'.$key.'行导入公司是否存在');
                 }else {
 
 //                    $contact = $client->contacts()->create([

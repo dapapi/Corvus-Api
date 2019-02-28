@@ -48,41 +48,15 @@ class ProjectRepository
      */
     public static function getSignContractProjectBySatr($id,$star_type,$pageSize)
     {
-//        //查询艺人下的项目
-//        $contracts = Contract::whereRaw("find_in_set({$star_id},stars)")
-//            ->where("star_type","stars")
-//            ->whereRaw("project_id is not null")
-//            ->select('id',"project_id","form_instance_number")->get()->toArray();
-//        $instance_numbers = array_column($contracts,"form_instance_number");
-//        //获取项目中审核通过的项目
-//        $flow_exceute = ApprovalFlowExecute::where("flow_type_id",232)->whereIn('form_instance_number',$instance_numbers)
-//            ->select("form_instance_number")->get()->toArray();
-//        $pass_instance_numbers = array_column($flow_exceute,"form_instance_number");
-//        //获取审核通过的项目id
-//        $contracts = array_column($contracts,null,'form_instance_number');
-//        $project_ids = [];
-//        foreach ($contracts as $key => $value){
-//            if (in_array($key,$pass_instance_numbers)){
-//                $project_ids[] = $value['project_id'];
-//            }
-//        }
-//        //查找项目
-//        return Project::whereIn('id',$project_ids)->paginate($pageSize);
 
-        $sub_query = (new Project())->searchData();
-        $sub_bindings = $sub_query->getBindings();
-        $sql = str_replace("?",'%s',$sub_query->toSql());
-        $sql = sprintf($sql,...$sub_bindings);
-        $query = DB::table(DB::raw("({$sql}) as p"))//查询权限
-            ->leftJoin("contracts as c",'p.id',"c.project_id")
+        $query = Project::leftJoin("contracts as c",'projects.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
-            })
-            ->where('afe.flow_type_id',232)->whereRaw("find_in_set({$id},c.stars)")
+            })->searchData()
+            ->where('afe.flow_type_id',232)
+            ->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
-
-            ->select("p.id","p.title","p.created_at");
-
+            ->select("projects.id","projects.title","projects.created_at","c.contract_sharing_ratio");
         return $query->paginate($pageSize);
 
 

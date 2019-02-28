@@ -264,6 +264,7 @@ class ApprovalFlowController extends Controller
         DB::beginTransaction();
         try {
             $currentHandlerId = $this->verifyHandler($num, $userId);
+            //获取下一个审批人及审批人类型
             list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
 
             $this->storeRecord($num, $userId, $now, 239, $comment);

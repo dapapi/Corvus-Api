@@ -8,8 +8,6 @@ use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\Traits\OperateLogTrait;
 use App\User;
-use App\Models\RoleUser;
-
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -44,22 +42,7 @@ class Task extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-
-        //查询管理员id
-        $roleInfo = RoleUser::where('role_id', 1)->select('user_id')->get()->toArray();
-        $result = array_reduce($roleInfo, function ($result, $value) {
-            return array_merge($result, array_values($value));
-        }, array());
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
-        if(in_array($userid,$result)){
-            return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
-                select u.id from tasks as t 
-                left join module_users as mu on mu.moduleable_id = t.id and 
-                mu.moduleable_type='".ModuleableType::TASK.
-                    "' left join users as u on u.id = mu.user_id where t.id = tasks.id
-            )");
-        }else{
-
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from tasks as t 
             left join module_users as mu on mu.moduleable_id = t.id and 
@@ -69,13 +52,7 @@ class Task extends Model
             $query->where("privacy",Self::PRIVACY)->where(function ($query) use ($user){
                 $query->where('tasks.creator_id',$user->id)->orWhere('tasks.principal_id',$user->id);
             });
-        })->orWhere(DB::raw("{$userid} in (SELECT T3.user_id  FROM ( SELECT @r AS _id, (SELECT @r := department_pid FROM departments WHERE id = _id) AS department_pid,
-                @l := @l + 1 AS lvl
-                 FROM (SELECT @r := (select department_id from department_user where user_id = 'tasks.creator_id') as departmentIds  , @l := 0) vars,departments h WHERE @r <> 0 ) T1 
-              JOIN departments T2 ON T1._id = T2.id 
-              JOIN department_principal T3 ON T3.`department_id`=T2.id
-              ORDER BY T1.lvl DESC)"));
-        }
+        });
     }
     public function scopeCreateDesc($query)
     {

@@ -499,6 +499,7 @@ class PersonnelManageController extends Controller
 //                    $operate,
 //                ]));
             if($data == 0){
+                $payload['user_id'] = $userid;
                 $personalDetail->create($payload);
             }else{
                 $departmentInfo = $personalDetail->where('user_id', $userid)->first();

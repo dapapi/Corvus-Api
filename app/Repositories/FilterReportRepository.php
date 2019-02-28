@@ -67,7 +67,8 @@ class FilterReportRepository
                       break;
               }
           }
-          if ($relation_contidion){
+
+          if (!$field && $relation_contidion){
               $relation_contidion = $relation_contidion;
               $relation_contidion = str_replace('{operator}',$operator,$relation_contidion);
               $relation_contidion = str_replace('{value}',$value,$relation_contidion);

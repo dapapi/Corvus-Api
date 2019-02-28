@@ -55,6 +55,14 @@ class TaskMessageEventListener
             case TaskTriggerPoint::COMPLETE_TSAK: //完成任务
                 $this->sendMessageWhenComplete();
                 break;
+            case TaskTriggerPoint::CREATE_VIDEO_TASK://博主创建视频任务时
+                $title = "邀请你参加视频评分任务";
+                $this->sendMessageWhenCreateVideoTask($title);
+                break;
+            case TaskTriggerPoint::VIDEO_SCRE://评优团视频评分任务
+                $title = "邀请你参加评优团视频评分任务";
+                $this->sendMessageWhenCreateVideoTask($title);
+                break;
         }
     }
 
@@ -173,6 +181,15 @@ class TaskMessageEventListener
     public function createSonTaskSendMessagePTaskPrincipal()
     {
 
+    }
+
+    //创建视频任务时向参与人发消息
+    public function sendMessageWhenCreateVideoTask($title)
+    {
+        $subheading = $title = $this->user->name.$title;
+        //任务参与人
+        $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
+        $this->sendMessage($title,$subheading,$send_to);
     }
     //最终发送消息方法调用
     public function sendMessage($title,$subheading,$send_to)

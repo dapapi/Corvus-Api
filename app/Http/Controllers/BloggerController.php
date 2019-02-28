@@ -791,7 +791,7 @@ class BloggerController extends Controller
                 //向任务参与人发消息
                 try{
                     $authorization = $request->header()['authorization'][0];
-                    event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+                    event(new TaskMessageEvent($task,TaskTriggerPoint::CREATE_VIDEO_TASK,$authorization,$user));
                 }catch (Exception $e){
                     Log::error("消息发送失败");
                     Log::error($e);

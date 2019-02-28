@@ -831,7 +831,7 @@ class StarController extends Controller
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
-        $stars->select('stars.id','stars.source','stars.created_at','stars.updated_at');
+        $stars->select('stars.id','stars.name','stars.source','stars.created_at','stars.updated_at');
         $stars = $stars->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
 
         return $this->response->paginator($stars, new StarTransformer(!$all));

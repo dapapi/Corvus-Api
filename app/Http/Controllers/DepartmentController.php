@@ -711,6 +711,14 @@ class DepartmentController extends Controller
         return $this->response->collection($positions, new positionTransformer());
     }
 
+    public function position(Request $request)
+    {
+        $positionInfo = Position::get()->toArray();
+
+        return $positionInfo;
+
+    }
+
     public function storeJobs(Request $request)
     {
         $payload = $request->all();
@@ -739,7 +747,26 @@ class DepartmentController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
+    }
 
+    public function director(Request $request,User $user)
+    {
+        $payload = $request->all();
+        $userid = $user->id;
+        //获取用户部门id
+        $departmentInfo = DepartmentUser::where('user_id',$userid)->first()->toArray();
+        if($departmentInfo['department_id']==1){
+            return $this->response->errorInternal('该用户在未分配部门');
+        }else{
+            $principalInfo = DepartmentPrincipal::where('department_id',$departmentInfo['department_id'])->first()->toArray();
+        }
+        $arr = array();
+        if(!empty($principalInfo)){
+            $arr['principal_id'] = hashid_encode($principalInfo['user_id']);
+        }else{
+            return $this->response->errorInternal('没有部门负责人');
+        }
+        return $arr;
 
     }
 

@@ -413,6 +413,8 @@ class PersonnelManageController extends Controller
         $userid = $user->id;
 
         $data = $departmentUser->where('department_id',$payload['department_id'])->where('user_id',$userid)->count();
+        $position_id = isset($payload['position_id']) ? $payload['position_id'] : 1;
+
         try {
             //生成头像
             /*
@@ -461,7 +463,11 @@ class PersonnelManageController extends Controller
 
             unset($payload['department']);
             unset($payload['department_id']);
-           // $payload['icon_url'] = $icon_url;
+            //
+            if($position_id !=1){
+                $position = hashid_decode($payload['position_id']);
+            }
+            $payload['position_id'] = $position;
             $user->update($payload);
             //$personalDetail->update($payload);
 

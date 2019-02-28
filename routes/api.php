@@ -21,6 +21,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->any('/wechat_open', 'App\Http\Controllers\Wechat\OpenPlatformController@serve');
     $api->get('/wechat_open/oauth', 'App\Http\Controllers\Wechat\OpenPlatformController@getLoginUrl');
     $api->get('/wechat_open/oauth/callback', 'App\Http\Controllers\Wechat\OpenPlatformController@oauthCallback');
+    $api->get('/wechat_open/oauth/app_callback', 'App\Http\Controllers\Wechat\OpenPlatformController@appCallback');
 
     # 服务
     $api->get('services/request_token', 'App\Http\Controllers\ServiceController@requestToken');
@@ -485,6 +486,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/personnel/position/{user}', 'App\Http\Controllers\PersonnelManageController@editPosition');//
         //获取公司列表
         $api->get('/company', 'App\Http\Controllers\PersonnelManageController@getCompany');
+        //后台修改个人资料
+        $api->put('/edit/data/{user}', 'App\Http\Controllers\PersonnelManageController@editData');//
 
 
 

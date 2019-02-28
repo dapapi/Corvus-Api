@@ -480,6 +480,7 @@ class PersonnelManageController extends Controller
         $payload = $request->all();
         $userid = $user->id;
         $data = $personalDetail->where('user_id',$userid)->count();
+
 //        $userEmail = User::where('email', $payload['email'])->get()->toArray();
 //
 //        if(!empty($userEmail)){
@@ -498,14 +499,14 @@ class PersonnelManageController extends Controller
 //                    $operate,
 //                ]));
             if($data == 0){
+                $payload['user_id'] = $userid;
                 $personalDetail->create($payload);
             }else{
                 $departmentInfo = $personalDetail->where('user_id', $userid)->first();
                 $departmentInfo->update($payload);
             }
-
              $userArr = [
-                'email' => $payload['email'],
+                'work_email' => $payload['work_email'],
                 'hire_shape' => $payload['hire_shape']
              ];
             $user->update($userArr);
@@ -601,6 +602,7 @@ class PersonnelManageController extends Controller
 
             $userArr = [
                 'status' => $payload['status'],
+                'entry_time' => $payload['entry_time'],
             ];
             $user->update($userArr);
 
@@ -723,9 +725,15 @@ class PersonnelManageController extends Controller
     public function entry(Request $request, User $user)
     {
         $payload = $request->all();
-        $userInfo = $user->where('entry_status',$payload['entry_status'])->orderBy('created_at', 'desc')->get();
+        $entry_status = isset($payload['entry_status']) ? $payload['entry_status'] : 1;
 
-        return $this->response->collection($userInfo, new UserTransformer());
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $positions = User::orderBy('updated_at','desc')
+            ->where(function($query) use($request,$payload){
+                $query->where('entry_status',$payload['entry_status']);
+            })->paginate($pageSize);
+
+        return $this->response->paginator($positions, new UserTransformer());
     }
 
     //审核人员信息

@@ -940,15 +940,12 @@ class BloggerController extends Controller
 
                     if ($field == 'operate_logs.created_at' && $type == '2') {
                         //  Blogger::from(DB::raw($bloggers))->where(NOW(),'>', 'SUBDATE(`operate_logs`.`created_at`,INTERVAL -1 day)');
-                        $query->whereRaw("NOW() > SUBDATE(operate_logs.created_at,INTERVAL -$value day)")->groupBy('bloggers.id');
+                        $query->whereRaw("NOW() > SUBDATE(operate_logs.created_at,INTERVAL -$value day)");
                     }
                   }
-                }else{
-                    $query->groupBy('bloggers.id');
-
                 }
 
-        })->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
+        })->groupBy('bloggers.id')->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
             'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
             'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);

@@ -57,7 +57,9 @@ class ProjectRepository
             ->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
             ->select("projects.id","projects.title","projects.created_at","c.contract_sharing_ratio");
-        return $query->paginate($pageSize) ;
+
+        return $query->paginate($pageSize);
+
 
     }
 }

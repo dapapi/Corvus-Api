@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\BloggerLevel;
 use App\CommunicationStatus;
 use App\Events\BloggerDataChangeEvent;
+use App\Events\TaskMessageEvent;
 use App\Gender;
 use App\Models\TaskType;
 use App\Exports\BloggersExport;
@@ -43,6 +44,7 @@ use App\Repositories\OperateLogRepository;
 use App\Repositories\FilterReportRepository;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use App\Whether;
 use Exception;
@@ -773,6 +775,17 @@ class BloggerController extends Controller
                 $task->principal_id = $user->id;
                 $task->type_id = $taskTypeId;
                 $task->save();
+
+                //向任务参与人发消息
+                try{
+                    $authorization = $request->header()['authorization'][0];
+                    event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+                }catch (Exception $e){
+                    Log::error("消息发送失败");
+                    Log::error($e);
+                    DB::rollBack();
+                }
+
             //   $task->type = $taskTypeId;
                 $reviewquestionnairemodel = new ReviewQuestionnaire;
                 $reviewquestionnairemodel->name = '制作人视频评分-视频评分';

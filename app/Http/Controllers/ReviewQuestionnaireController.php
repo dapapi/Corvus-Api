@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskMessageEvent;
 use App\Http\Requests\ReviewQuestionnaireStoreRequest;
 use App\Http\Requests\ReviewUpdateRequest;
 use App\Http\Transformers\ReviewQuestionnaireTransformer;
@@ -18,6 +19,7 @@ use App\ReviewItemAnswer;
 use App\Models\ReviewAnswer;
 use App\Models\ReviewUser;
 use App\Models\ReviewQuestionnaire;
+use App\TriggerPoint\TaskTriggerPoint;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 use Illuminate\Http\Request;
@@ -189,14 +191,24 @@ class ReviewQuestionnaireController extends Controller {
                 $task->principal_id = $user->id;
                 $task->type_id = $taskTypeId;
                 $task->save();
-                foreach($users as $key => $val){
+
+                foreach($users as $key => $val) {
                     $moduleuser = new ModuleUser;
                     $moduleuser->user_id = $val['user_id'];
                     $moduleuser->moduleable_id = $task->id;
                     $moduleuser->moduleable_type = 'task';
                     $moduleuser->type = 1;  //1  参与人
                     $modeluseradd = $moduleuser->save();
+                }
 
+                //向任务参与人发消息
+                try{
+                    $authorization = $request->header()['authorization'][0];
+                    event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+                }catch (Exception $e){
+                    Log::error("推优消息发送失败");
+                    Log::error($e);
+                    DB::rollBack();
                 }
                 $reviewquestionnairemodel = new ReviewQuestionnaire;
 

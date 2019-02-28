@@ -29,6 +29,7 @@ use App\Models\ModuleUser;
 use App\Models\ReviewQuestion;
 use App\Models\ReviewQuestionItem;
 use App\Models\ReviewUser;
+use App\ModuleUserType;
 use App\ReviewItemAnswer;
 use App\Models\ReviewQuestionnaire;
 use App\Models\StarWeiboshuInfo;
@@ -765,6 +766,7 @@ class BloggerController extends Controller
 
                 $departmentId = $user->department()->first()->id;
                 $taskType = TaskType::where('title', '视频评分')->where('department_id', $departmentId)->first();
+
                 if ($taskType) {
                     $taskTypeId = $taskType->id;
                 } else {
@@ -774,6 +776,16 @@ class BloggerController extends Controller
                 $task->principal_id = $user->id;
                 $task->type_id = $taskTypeId;
                 $task->save();
+                if(isset($users)){
+                    foreach($users as $key => $val){
+                        $moduleuser = new ModuleUser;
+                        $moduleuser->user_id = $val['user_id'];
+                        $moduleuser->moduleable_id = $task->id;
+                        $moduleuser->moduleable_type = 'task';
+                        $moduleuser->type = 1;  //1  参与人
+                        $modeluseradd = $moduleuser->save();
+                    }
+                }
 
                 //向任务参与人发消息
                 try{
@@ -782,7 +794,6 @@ class BloggerController extends Controller
                 }catch (Exception $e){
                     Log::error("消息发送失败");
                     Log::error($e);
-                    DB::rollBack();
                 }
 
             //   $task->type = $taskTypeId;

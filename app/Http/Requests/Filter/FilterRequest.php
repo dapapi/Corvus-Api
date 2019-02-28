@@ -26,7 +26,7 @@ class FilterRequest extends FormRequest
         return [
             'keyword' => 'nullable',
             'conditions' => 'array',
-            'conditions.*.field' => 'required|exists:filter_fields,code',
+//            'conditions.*.field' => 'required|exists:filter_fields,code',
             'conditions.*.operator' => 'required',
             'conditions.*.value' => 'required',
             'conditions.*.type' => 'required',

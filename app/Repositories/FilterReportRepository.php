@@ -23,33 +23,32 @@ class FilterReportRepository
           $operator = $v['operator'];
           $value = $v['value'];
           $type = $v['type'];
-          if($type >= 5 && !empty($v['id'])){
+          $id = hashid_decode($v['id']);
+          $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')->toArray();//查找附加搜索条件
 
-              $id = hashid_decode($v['id']);
-              $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')->toArray();//查找附加搜索条件
-          }
           if($field == 'operate_logs.created_at' && $type == '2')
           {
 
               unset($payload['conditions'][$k]);
           }
 
-          switch ($v['operator']) {
-              case 'LIKE':
-                  $value = '%' . $v['value'] . '%';
-                  $query->whereRaw("$field $operator ?", [$value]);
-              //    $array[]  = [$field,'like','%'.$value.'%'];
-                  break;
-              case 'in':
-                  if ($type >= 5)
-                      foreach ($value as &$v) {
-                          $v = hashid_decode($v);
-                      }
-                  unset($v);
-                  $query->whereIn($field, $value);
-                 // $array[]  = [$field,'In',$value];
-                  break;
-              case '>':
+          if ($field){
+              switch ($v['operator']) {
+                  case 'LIKE':
+                      $value = '%' . $v['value'] . '%';
+                      $query->whereRaw("$field $operator ?", [$value]);
+                      //    $array[]  = [$field,'like','%'.$value.'%'];
+                      break;
+                  case 'in':
+                      if ($type >= 5)
+                          foreach ($value as &$v) {
+                              $v = hashid_decode($v);
+                          }
+                      unset($v);
+                      $query->whereIn($field, $value);
+                      // $array[]  = [$field,'In',$value];
+                      break;
+                  case '>':
                       //  $query->whereIn($field,'>',$value);
                       $query->where($field,'>',$value);
                       break;
@@ -74,14 +73,14 @@ class FilterReportRepository
                       break;
               }
           }
-          if(isset($relation_contidion)) {
-              if (count($relation_contidion) !== 0) {
-                  $relation_contidion = $relation_contidion[0];
-                  $relation_contidion = str_replace('{operator}', $operator, $relation_contidion);
-                  $relation_contidion = str_replace('{value}', $value, $relation_contidion);
-                  $query->whereRaw($relation_contidion);
-              }
+          if (count($relation_contidion) !== 0) {
+              $relation_contidion = $relation_contidion[0];
+              $relation_contidion = str_replace('{operator}', $operator, $relation_contidion);
+              $relation_contidion = str_replace('{value}', $value, $relation_contidion);
+              $query->whereRaw($relation_contidion);
           }
+          }
+
 
 
       return $query;

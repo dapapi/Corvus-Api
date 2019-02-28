@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskMessageEvent;
 use App\Http\Requests\ReviewQuestionnaireStoreRequest;
 use App\Http\Requests\ReviewUpdateRequest;
 use App\Http\Transformers\ReviewQuestionnaireTransformer;
@@ -18,6 +19,7 @@ use App\ReviewItemAnswer;
 use App\Models\ReviewAnswer;
 use App\Models\ReviewUser;
 use App\Models\ReviewQuestionnaire;
+use App\TriggerPoint\TaskTriggerPoint;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 use Illuminate\Http\Request;
@@ -193,7 +195,15 @@ class ReviewQuestionnaireController extends Controller {
                 $task->principal_id = $user->id;
                 $task->type_id = $taskTypeId;
                 $task->save();
-
+                //向任务参与人发消息
+                try{
+                    $authorization = $request->header()['authorization'][0];
+                    event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+                }catch (Exception $e){
+                    Log::error("推优消息发送失败");
+                    Log::error($e);
+                    DB::rollBack();
+                }
                 $reviewquestionnairemodel = new ReviewQuestionnaire;
 
                 $reviewquestionnairemodel->name = '评优团视频评分任务-视频评分';

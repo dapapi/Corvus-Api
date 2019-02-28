@@ -578,6 +578,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取职位列表
         $api->get('/departments_jobs', 'App\Http\Controllers\DepartmentController@jobsList');
 
+        $api->get('/departments_position', 'App\Http\Controllers\DepartmentController@position');
 
         /*组织架构 职位管理*/
         $api->get('/position', 'App\Http\Controllers\DepartmentController@positionList');

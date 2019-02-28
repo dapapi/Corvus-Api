@@ -711,6 +711,14 @@ class DepartmentController extends Controller
         return $this->response->collection($positions, new positionTransformer());
     }
 
+    public function position(Request $request)
+    {
+        $positionInfo = Position::get()->toArray();
+
+        return $positionInfo;
+
+    }
+
     public function storeJobs(Request $request)
     {
         $payload = $request->all();

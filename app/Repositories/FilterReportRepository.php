@@ -26,16 +26,16 @@ class FilterReportRepository
           $type = $v['type'];
           if(!empty($v['id'])){
               $id = hashid_decode($v['id']);
-
           }else{
               $id = Null;
           }
-          $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')->toArray();//查找附加搜索条件
+          $relation_contidion = FilterField::where('id',$id)->value('relate_contion');//查找附加搜索条件
           if($field == 'operate_logs.created_at' && $type == '2')
           {
 
               unset($payload['conditions'][$k]);
           }
+
 
           if ($field){
               switch ($v['operator']) {
@@ -78,13 +78,14 @@ class FilterReportRepository
                       break;
               }
           }
-          if (count($relation_contidion) !== 0) {
-              $relation_contidion = $relation_contidion[0];
-              $relation_contidion = str_replace('{operator}', $operator, $relation_contidion);
-              $relation_contidion = str_replace('{value}', $value, $relation_contidion);
+
+          if ($relation_contidion){
+              $relation_contidion = $relation_contidion;
+              $relation_contidion = str_replace('{operator}',$operator,$relation_contidion);
+              $relation_contidion = str_replace('{value}',$value,$relation_contidion);
               $query->whereRaw($relation_contidion);
           }
-          }
+      }
 
 
 

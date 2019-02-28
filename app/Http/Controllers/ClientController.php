@@ -15,8 +15,10 @@ use App\Http\Transformers\ClientTransformer;
 use App\Imports\ClientsImport;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\Repositories\FilterReportRepository;
 use App\TriggerPoint\ClientTriggerPoint;
 use App\User;
 use Carbon\Carbon;
@@ -277,38 +279,18 @@ class ClientController extends Controller
      */
     public function getFilter(FilterRequest $request)
     {
+        $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $all = $request->get('all', false);
+        $joinSql = FilterJoin::where('table_name', 'clients')->first()->join_sql;
+        $query = Client::from(DB::raw($joinSql));
+        $clients = $query->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        });
 
-        $query = Client::query();
-        $conditions = $request->get('conditions');
-        foreach ($conditions as $condition) {
-            $field = $condition['field'];
-            $operator = $condition['operator'];
-            $type = $condition['type'];
-            if ($operator == 'LIKE') {
-                $value = '%' . $condition['value'] . '%';
-                $query->whereRaw("$field $operator ?", [$value]);
-            } else if ($operator == 'in') {
-                $value = $condition['value'];
-                if ($type >= 5)
-                    foreach ($value as &$v) {
-                        $v = hashid_decode($v);
-                    }
-                unset($v);
-                $query->whereIn($field, $value);
-            } else {
-                $value = $condition['value'];
-                $query->whereRaw("$field $operator ?", [$value]);
-            }
+        $stars = $clients->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
 
-        }
-        // 这句用来检查绑定的参数
-        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
-
-        $clients = $query->orderBy('created_at', 'desc')->paginate($pageSize);
-
-        return $this->response->paginator($clients, new ClientTransformer(!$all));
+        return $this->response->paginator($stars, new ClientTransformer(!$all));
     }
 }

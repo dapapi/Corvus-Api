@@ -59,6 +59,5 @@ class ProjectRepository
             ->select("projects.id","projects.title","projects.created_at","c.contract_sharing_ratio");
         return $query->paginate($pageSize) ;
 
-
     }
 }

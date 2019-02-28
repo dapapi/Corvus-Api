@@ -22,27 +22,9 @@ class FilterReportRepository
           $operator = $v['operator'];
           $value = $v['value'];
           $type = $v['type'];
-<<<<<<< HEAD
-          $id = $v['id'];
+          $id = hashid_decode($v['id']);
           $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')[0];//查找附加搜索条件
 
-          switch ($v['operator']) {
-              case 'LIKE':
-                  $value = '%' . $v['value'] . '%';
-                  $query->whereRaw("$field $operator ?", [$value]);
-              //    $array[]  = [$field,'like','%'.$value.'%'];
-                  break;
-              case 'in':
-                  if ($type >= 5)
-                      foreach ($value as &$v) {
-                          $v = hashid_decode($v);
-                      }
-                  unset($v);
-                  $query->whereIn($field, $value);
-                 // $array[]  = [$field,'In',$value];
-                  break;
-              case '>':
-=======
           $id = hashid_decode($v['id']);
 
           $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')->toArray();//查找附加搜索条件
@@ -63,7 +45,6 @@ class FilterReportRepository
                       // $array[]  = [$field,'In',$value];
                       break;
                   case '>':
->>>>>>> lile
 
                       //  $query->whereIn($field,'>',$value);
                       $query->where($field,'>',$value);

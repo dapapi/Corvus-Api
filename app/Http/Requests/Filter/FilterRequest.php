@@ -30,7 +30,7 @@ class FilterRequest extends FormRequest
             'conditions.*.operator' => 'required',
             'conditions.*.value' => 'required',
             'conditions.*.type' => 'required',
-            'conditions.*.id'   =>  'required',
+//            'conditions.*.id'   =>  'required',
         ];
     }
 }

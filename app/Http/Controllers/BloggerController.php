@@ -102,7 +102,7 @@ class BloggerController extends Controller
                 ->where('operate_logs.method','4');
         })->groupBy('bloggers.id')
             ->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
-                'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
+                'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
                 'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //                $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
@@ -902,27 +902,14 @@ class BloggerController extends Controller
         $status = $request->get('status', config('app.status'));
         $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
         $query = Blogger::selectRaw('DISTINCT(bloggers.id) as ids')->from(DB::raw($joinSql));
-        //$query = Blogger::query();
-
-
         $bloggers = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-//        $bloggers = $bloggers->searchData()->leftJoin('operate_logs',function($join){
-//            $join->on('bloggers.id','operate_logs.logable_id')
-//                ->where('logable_type',ModuleableType::BLOGGER)
-//                ->where('operate_logs.method','4');
-//        })->groupBy('bloggers.id')
-//            ->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
-//                'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
-//                'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")])
-//            ->paginate($pageSize);
-//                $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
-//        dd($sql_with_bindings);
-
         $array = [];//查询条件
         //合同
-        $status = empty($status) ? $array[] = ['sign_contract_status',1] : $array[] = ['sign_contract_status',$status];
+        if($request->has('status')){//姓名
+            $array[] = ['sign_contract_status',$status];
+        }
         if($request->has('name')){//姓名
             $array[] = ['nickname','like','%'.$payload['name'].'%'];
         }
@@ -934,29 +921,40 @@ class BloggerController extends Controller
             $array[] = ['communication_status',$payload['communication_status']];
         }
         // sign_contract_status   签约状态
-        $bloggers = $bloggers->where($array)->searchData()
-//            ->leftJoin('operate_logs',function($join){
-//            $join->on('bloggers.id','operate_logs.logable_id')
-//                ->where('logable_type',ModuleableType::BLOGGER)
-//                ->where('operate_logs.method','4');
-//        })
-            ->groupBy('bloggers.id')
-           ->get();
+        $bloggers = $bloggers->where($array)->searchData()->groupBy('bloggers.id')
+            ->get();
 
 //                $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
-//        dd($sql_with_bindings);
-   //    $result = $joinSqlId->pluck('ids')->toArray();
+//                dd($sql_with_bindings);
         $bloggers = Blogger::whereIn('bloggers.id', $bloggers)->leftJoin('operate_logs',function($join){
            $join->on('bloggers.id','operate_logs.logable_id')
                ->where('logable_type',ModuleableType::BLOGGER)
                ->where('operate_logs.method','4');
-       })->groupBy('bloggers.id')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
-                        'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
-                        'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")]) ->orderBy('operate_logs.updated_at', 'desc')->orderBy('bloggers.created_at', 'desc')
-           ->paginate($pageSize);
+       })->where(function ($query) use ($payload) {
+            if(!empty($payload['conditions'])){
+                foreach($payload['conditions'] as $k => $v) {
+                    $field = $v['field'];
+                    $operator = $v['operator'];
+                    $value = $v['value'];
+                    $type = $v['type'];
+
+                    if ($field == 'operate_logs.created_at' && $type == '2') {
+                        //  Blogger::from(DB::raw($bloggers))->where(NOW(),'>', 'SUBDATE(`operate_logs`.`created_at`,INTERVAL -1 day)');
+                        $query->whereRaw("NOW() > SUBDATE(operate_logs.created_at,INTERVAL -$value day)")->groupBy('bloggers.id');
+                    }
+                  }
+                }else{
+                    $query->groupBy('bloggers.id');
+
+                }
+
+        })->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
+            'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
+            'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")])
+            ->paginate($pageSize);
+//
 //                        $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
 //        dd($sql_with_bindings);
-     //     $trails = $query->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($bloggers, new BloggerTransformer());
     }
 

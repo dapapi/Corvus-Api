@@ -24,7 +24,7 @@ class FilterReportRepository
           $type = $v['type'];
           $id = hashid_decode($v['id']);
 
-          $relation_contidion = FilterField::where('id',$id)->pluck('relate_contion')->toArray();//查找附加搜索条件
+          $relation_contidion = FilterField::where('id',$id)->value('relate_contion');//查找附加搜索条件
           if ($field){
               switch ($v['operator']) {
                   case 'LIKE':
@@ -68,7 +68,7 @@ class FilterReportRepository
               }
           }
 
-          if (count($relation_contidion) !== 0){
+          if ($relation_contidion){
               $relation_contidion = $relation_contidion[0];
               $relation_contidion = str_replace('{operator}',$operator,$relation_contidion);
               $relation_contidion = str_replace('{value}',$value,$relation_contidion);

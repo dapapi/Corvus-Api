@@ -289,7 +289,7 @@ class ClientController extends Controller
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
-        $stars = $clients->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
+        $stars = $clients->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
 
         return $this->response->paginator($stars, new ClientTransformer(!$all));
     }

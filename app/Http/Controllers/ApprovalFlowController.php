@@ -264,6 +264,17 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+        // 判断分支
+        $form = $instance->form;
+        $formId = $instance->form_id;
+        $condition = null;
+        if ($form->change_type == 224) {
+            // todo 拼value
+            $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
+            $value = $this->getValuesForCondition($formControlId, $num);
+            $condition = $this->getCondition($formId, $value);
+        }
+
         $comment = $request->get('comment', null);
 
         $user = Auth::guard('api')->user();
@@ -277,7 +288,18 @@ class ApprovalFlowController extends Controller
             //获取下一个审批人及审批人类型
             list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
 
+            // todo 在此处处理连续相同人审批
             $this->storeRecord($num, $userId, $now, 239, $comment);
+            if ($type == 246) {
+                $header = $this->departmentHeaderToUser($now, $formId, $condition);
+                if ($userId == $header->id) {
+                    list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+                    $this->storeRecord($num, $userId, $now, 239, $comment);
+                }
+            } elseif ($nextId == $userId) {
+                list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+                $this->storeRecord($num, $userId, $now, 239, $comment);
+            }
 
             if ($nextId)
                 $this->createOrUpdateHandler($num, $nextId, $type);
@@ -604,7 +626,6 @@ class ApprovalFlowController extends Controller
      */
     private function getChainNext($instance, $preId, $close = false)
     {
-        // todo 在此处处理连续相同人审批
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
         if (!$form)

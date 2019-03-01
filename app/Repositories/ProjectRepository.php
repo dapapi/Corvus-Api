@@ -49,14 +49,22 @@ class ProjectRepository
     public static function getSignContractProjectBySatr($id,$star_type,$pageSize)
     {
 
-        $query = Project::leftJoin("contracts as c",'projects.id',"c.project_id")
+        //绑定权限参数
+        $builder = Project::searchData();
+        $bingings = $builder->getBindings();
+        $sql = str_replace("?","%s",$builder->toSql());
+        $sql = sprintf($sql,...$bingings);
+
+
+        $query = Project::from(DB::raw("({$sql}) as projects"))->
+        leftJoin("contracts as c",'projects.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
             })->searchData()
             ->where('afe.flow_type_id',232)
             ->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
-            ->select("projects.id","projects.title","projects.created_at","c.contract_sharing_ratio");
+            ->select("projects.id","projects.title","projects.created_at","projects.principal_id","c.contract_sharing_ratio");
         return $query->paginate($pageSize);
 
 

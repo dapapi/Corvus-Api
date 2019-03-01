@@ -159,9 +159,6 @@ class ReviewQuestionnaireController extends Controller {
             if (!empty($array['creator_id'])) {
 //
               $users =ReviewItemAnswer::getUsers();
-
-                if(isset($users)){
-
                     foreach($users as $key => $val){
                         $moduleuser = new ModuleUser;
                         $moduleuser->user_id = $val['user_id'];
@@ -171,7 +168,6 @@ class ReviewQuestionnaireController extends Controller {
                         $modeluseradd = $moduleuser->save();
 
                     }
-                }
                 //获取视频评分调查问卷截止时间
                 $number = date("w",time());  //当时是周几
                 $number = $number == 0 ? 7 : $number; //如遇周末,将0换成7
@@ -196,6 +192,16 @@ class ReviewQuestionnaireController extends Controller {
                 $task->type_id = $taskTypeId;
                 $task->save();
 
+                foreach($users as $key => $val) {
+                    $moduleuser = new ModuleUser;
+                    $moduleuser->user_id = $val['user_id'];
+                    $moduleuser->moduleable_id = $task->id;
+                    $moduleuser->moduleable_type = 'task';
+                    $moduleuser->type = 1;  //1  参与人
+                    $modeluseradd = $moduleuser->save();
+                }
+
+
                 if(isset($users)){
 
                     foreach($users as $key => $val){
@@ -208,6 +214,7 @@ class ReviewQuestionnaireController extends Controller {
 
                     }
                 }
+
                 //向任务参与人发消息
                 try{
                     $authorization = $request->header()['authorization'][0];

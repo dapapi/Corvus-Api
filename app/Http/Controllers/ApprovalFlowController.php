@@ -289,7 +289,7 @@ class ApprovalFlowController extends Controller
             // todo 在此处处理连续相同人审批
             $this->storeRecord($num, $userId, $now, 239, $comment);
             if ($type == 246) {
-                $header = $this->departmentHeaderToUser($now, $formId, $condition);
+                $header = $this->departmentHeaderToUser($num, $formId, $condition);
                 if ($userId == $header->id) {
                     list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
                     $this->storeRecord($num, $userId, $now, 239, $comment);
@@ -837,7 +837,7 @@ class ApprovalFlowController extends Controller
 
     private function departmentHeaderToUser($num, $formId, $condition)
     {
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243,])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count('form_instance_number');
 
         $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');

@@ -184,8 +184,6 @@ class ApprovalFlowController extends Controller
         }
 
         try {
-
-
             $now = Execute::where('form_instance_number', $num)->first();
             if ($now->flow_type_id == 232)
                 return $this->response->array(['data' => $array]);
@@ -209,10 +207,10 @@ class ApprovalFlowController extends Controller
                 ];
             }
         } catch (ApprovalVerifyException $exception) {
-
+            return $this->response->errorBadRequest($exception->getMessage());
         }
 
-        list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);
+        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id);
         if ($nextId == 0)
             return $this->response->array(['data' => $array]);
 
@@ -225,7 +223,7 @@ class ApprovalFlowController extends Controller
                 ->orderBy('sort_number')
                 ->get();
         } else {
-            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->first();
+            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->where('principal_level', $principalLevel)->first();
             $chains = ChainFixed::where('form_id', $formId)
                 ->where('condition_id', $condition)
                 ->where('next_id', '!=', 0)
@@ -286,18 +284,18 @@ class ApprovalFlowController extends Controller
         try {
             $currentHandlerId = $this->verifyHandler($num, $userId);
             //获取下一个审批人及审批人类型
-            list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+            list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
 
             // todo 在此处处理连续相同人审批
             $this->storeRecord($num, $userId, $now, 239, $comment);
             if ($type == 246) {
-                $header = $this->departmentHeaderToUser($now, $formId, $condition);
+                $header = $this->departmentHeaderToUser($num, $formId, $condition);
                 if ($userId == $header->id) {
-                    list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+                    list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
                     $this->storeRecord($num, $userId, $now, 239, $comment);
                 }
             } elseif ($nextId == $userId) {
-                list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
                 $this->storeRecord($num, $userId, $now, 239, $comment);
             }
 
@@ -486,7 +484,7 @@ class ApprovalFlowController extends Controller
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
-        list($nextId, $type) = $this->getChainNext($instance, 0);
+        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, 0);
 
         $currentStatus = Execute::where('form_instance_number', $num)->first();
         if ($currentStatus->flow_type_id != 231 || $currentStatus->current_handler_id != $nextId) {
@@ -628,11 +626,12 @@ class ApprovalFlowController extends Controller
     {
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
+        $principalLevel = null;
         if (!$form)
             throw new Exception('form不存在');
 
         if ($close)
-            return [0, 245];
+            return [0, 245, $principalLevel];
 
         $formId = $form->form_id;
         $num = $instance->form_instance_number;
@@ -661,15 +660,16 @@ class ApprovalFlowController extends Controller
             return $this->getTransferNextChain($instance, $now);
         }
         if ($chain->next_id == 0)
-            return [0, 245];
+            return [0, 245, $principalLevel];
 
         $next = $chain->next;
 
         $type = $chain->approver_type;
+        $principalLevel = $chain->principal_level;
         if (is_null($type))
             $type = 245;
 
-        return [$next->id, $type];
+        return [$next->id, $type, $principalLevel];
     }
 
 
@@ -678,6 +678,7 @@ class ApprovalFlowController extends Controller
         $num = $instance->form_instance_number;
         $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [240, 241, 242, 243])->count('form_instance_number');
 
+        $principalLevel = null;
         $form = $instance->form;
         if ($form->change_type == 223) {
             $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
@@ -690,20 +691,20 @@ class ApprovalFlowController extends Controller
             $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
         }
         if ($preId == 0 && $count > 1)
-            $arr = [0, 245];
+            $arr = [0, 245, $principalLevel];
         else {
             if ($form->change_type == 223) {
                 $chain = ChainFree::where('form_number', $num)->where('sort_number', $count + 1)->first();
                 $arr = [$chain->next_id, 245];
             } else if ($form->change_type == 222) {
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, $chain->approver_type];
+                $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];
             } else if ($form->change_type == 224) {
                 $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
                 $value = $this->getValuesForCondition($formControlIds, $num);
                 $conditionId = $this->getCondition($instance->form_id, $value);
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, $chain->approver_type];
+                $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];
             }
         }
 
@@ -836,12 +837,12 @@ class ApprovalFlowController extends Controller
 
     private function departmentHeaderToUser($num, $formId, $condition)
     {
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [237, 241, 242, 243,])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count('form_instance_number');
 
         $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
 
-        $currentChain = ChainFixed::where('form_id', $formId)->where('condition', $condition)->where('sort_number', $count)->first();
+        $currentChain = ChainFixed::where('form_id', $formId)->where('condition_id', $condition)->where('sort_number', $count)->first();
         if ($currentChain->principal_level == 1)
             $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
         elseif ($currentChain->principal_level == 2) {

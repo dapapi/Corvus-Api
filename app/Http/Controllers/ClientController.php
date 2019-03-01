@@ -280,6 +280,19 @@ class ClientController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
+        $array = [];
+        if ($request->has('keyword'))
+            $array[] = ['clients.company', 'LIKE', '%' . $payload['keyword'] . '%'];
+        if ($request->has('grade'))
+            $array[] = ['clients.grade', $payload['grade']];
+        if ($request->has('principal_ids') && count($payload['principal_ids'])) {
+            foreach ($payload['principal_ids'] as &$id) {
+                $id = hashid_decode((int)$id);
+            }
+            unset($id);
+            $array[] = ['clients.principal_id', $payload['principal_ids']];
+        }
+
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $all = $request->get('all', false);
@@ -289,7 +302,8 @@ class ClientController extends Controller
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
-        $stars = $clients->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
+        $stars = $clients->where($array)
+            ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
 
         return $this->response->paginator($stars, new ClientTransformer(!$all));
     }

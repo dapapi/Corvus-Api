@@ -853,7 +853,6 @@ class ApprovalFlowController extends Controller
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
 
         $currentChain = ChainFixed::where('form_id', $formId)->where('condition_id', $condition)->where('sort_number', $count)->first();
-        dd($currentChain);
         if ($currentChain->principal_level == 1)
             $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
         elseif ($currentChain->principal_level == 2) {

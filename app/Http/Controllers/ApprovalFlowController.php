@@ -841,7 +841,7 @@ class ApprovalFlowController extends Controller
         $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
 
-        $currentChain = ChainFixed::where('form_id', $formId)->where('condition', $condition)->where('sort_number', $count)->first();
+        $currentChain = ChainFixed::where('form_id', $formId)->where('condition_id', $condition)->where('sort_number', $count)->first();
         if ($currentChain->principal_level == 1)
             $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
         elseif ($currentChain->principal_level == 2) {

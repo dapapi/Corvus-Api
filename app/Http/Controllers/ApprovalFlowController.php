@@ -210,7 +210,7 @@ class ApprovalFlowController extends Controller
             return $this->response->errorBadRequest($exception->getMessage());
         }
 
-        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id, $now->principal_level);
+        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id, false, $now->principal_level);
         if ($nextId == 0)
             return $this->response->array(['data' => $array]);
 
@@ -657,7 +657,7 @@ class ApprovalFlowController extends Controller
         $now = Execute::where('form_instance_number', $num)->where('flow_type_id', 231)->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程
-            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count + $now)->where('principal_level', $level)->first();
+            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count + $now)->where('principal_level', $level + 1)->first();
         } else if ($changeType == 223) {
             // 自由流程
             $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->where('sort_number', $count + $now)->first();
@@ -667,7 +667,7 @@ class ApprovalFlowController extends Controller
             $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
             $value = $this->getValuesForCondition($formControlIds, $num);
             $conditionId = $this->getCondition($instance->form_id, $value);
-            $chain = ChainFixed::where('form_id', $formId)->where('sort_number', $count + $now)->where('pre_id', $preId)->where('condition_id', $conditionId)->first();
+            $chain = ChainFixed::where('form_id', $formId)->where('sort_number', $count + $now)->where('pre_id', $preId)->where('principal_level', $level + 1)->where('condition_id', $conditionId)->first();
         } else {
             throw new Exception('审批流转不存在');
         }

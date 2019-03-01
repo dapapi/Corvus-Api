@@ -867,7 +867,6 @@ class BloggerController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

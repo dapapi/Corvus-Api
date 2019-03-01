@@ -1067,7 +1067,6 @@ class TrailController extends Controller
     {
         DB::beginTransaction();
         try {
-
             $clientName = $request->file('file') -> getClientOriginalName();
             Excel::import(new TrailsImport($clientName), $request->file('file'));
         } catch (Exception $exception) {

@@ -29,6 +29,7 @@ use App\Models\ApprovalForm\Participant;
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Contract;
+use App\Models\Department;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Message;
@@ -154,6 +155,18 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+        // 判断分支
+        $form = $instance->form;
+        $formId = $instance->form_id;
+        $condition = null;
+        if ($form->change_type == 224) {
+            // todo 拼value
+            $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
+            $value = $this->getValuesForCondition($formControlId, $num);
+            $condition = $this->getCondition($formId, $value);
+        }
+
+
         $array = [];
         foreach (Change::where('form_instance_number', $num)->orderBy('change_at', 'asc')->cursor() as $item) {
             $array[] = [
@@ -170,42 +183,39 @@ class ApprovalFlowController extends Controller
             ];
         }
 
-        $now = Execute::where('form_instance_number', $num)->first();
-        if ($now->flow_type_id == 232)
-            return $this->response->array(['data' => $array]);
-        else if ($now->flow_type_id == 231) {
-            $person = $now->person;
-            // todo 把主管换成人
-            if ($now->current_handler_type == 246) {
-                $header = $this->departmentHeaderToUser($num);
-                if ($header)
-                    $person = $header;
+        try {
+
+
+            $now = Execute::where('form_instance_number', $num)->first();
+            if ($now->flow_type_id == 232)
+                return $this->response->array(['data' => $array]);
+            else if ($now->flow_type_id == 231) {
+                $person = $now->person;
+                // todo 把主管换成人
+                if ($now->current_handler_type == 246) {
+                    $header = $this->departmentHeaderToUser($num, $formId, $condition);
+                    if ($header)
+                        $person = $header;
+                }
+                $array[] = [
+                    'id' => hashid_encode($person->id),
+                    'name' => $person->name,
+                    'icon_url' => $person->icon_url,
+                    'change_state_obj' => [
+                        'changed_state' => $now->dictionary->name,
+                        'changed_icon' => $now->dictionary->icon,
+                    ],
+                    'approval_stage' => 'doing'
+                ];
             }
-            $array[] = [
-                'id' => hashid_encode($person->id),
-                'name' => $person->name,
-                'icon_url' => $person->icon_url,
-                'change_state_obj' => [
-                    'changed_state' => $now->dictionary->name,
-                    'changed_icon' => $now->dictionary->icon,
-                ],
-                'approval_stage' => 'doing'
-            ];
+        } catch (ApprovalVerifyException $exception) {
+
         }
 
         list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);
         if ($nextId == 0)
             return $this->response->array(['data' => $array]);
 
-        $form = $instance->form;
-        $formId = $instance->form_id;
-        $condition = null;
-        if ($form->change_type == 224) {
-            // todo 拼value
-            $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
-            $value = $this->getValuesForCondition($formControlId, $num);
-            $condition = $this->getCondition($formId, $value);
-        }
 
         if ($form->change_type == 223) {
             $nextChain = ChainFree::where('next_id', $nextId)->where('form_number', $num)->first();
@@ -594,6 +604,7 @@ class ApprovalFlowController extends Controller
      */
     private function getChainNext($instance, $preId, $close = false)
     {
+        // todo 在此处处理连续相同人审批
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
         if (!$form)
@@ -802,11 +813,22 @@ class ApprovalFlowController extends Controller
         return $result;
     }
 
-    private function departmentHeaderToUser($num)
+    private function departmentHeaderToUser($num, $formId, $condition)
     {
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [237, 241, 242, 243,])->count('form_instance_number');
+
         $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
-        $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
+
+        $currentChain = ChainFixed::where('form_id', $formId)->where('condition', $condition)->where('sort_number', $count)->first();
+        if ($currentChain->principal_level == 1)
+            $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
+        elseif ($currentChain->principal_level == 2) {
+            $departmentPid = Department::where('id', $departmentId)->value('department_pid');
+            $headerId = DepartmentPrincipal::where('department_id', $departmentPid)->value('user_id');
+        } else {
+            throw new ApprovalVerifyException('暂不应存在二级以上主管审批，请连续管理员');
+        }
 
         if ($headerId)
             return User::find($headerId);

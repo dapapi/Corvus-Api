@@ -17,7 +17,8 @@ class Execute extends Model
         'form_instance_number',
         'current_handler_id',
         'current_handler_type',
-        'flow_type_id'
+        'flow_type_id',
+        'principal_level'
     ];
 
     public function person()

@@ -8,7 +8,6 @@ namespace App\Http\Controllers;
  * Time: 下午2:14
  */
 use App\AffixType;
-use App\Events\AnnouncementMessageEvent;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Transformers\DepartmentTransformer;
@@ -21,7 +20,6 @@ use App\Models\DepartmentUser;
 use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
 use App\Repositories\AffixRepository;
-use App\TriggerPoint\AnnouncementTriggerPoint;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
 use App\Repositories\OperateLogRepository;
@@ -203,9 +201,6 @@ class AnnouncementController extends Controller
                     $arr['department_id'] = hashid_decode($value);
                     $data = AnnouncementScope::create($arr);
                 }
-                $authorization = $request->header()['authorization'][0];
-
-                event(new AnnouncementMessageEvent($star,AnnouncementTriggerPoint::CREATE,$authorization,$user,$payload['scope']));
             }catch (\Exception $e) {
                 DB::rollBack();
                 Log::error($e);
@@ -218,7 +213,7 @@ class AnnouncementController extends Controller
         return $this->response->item($star, new AnnouncementTransformer());
 
     }
-    public function remove(Request $request,Announcement $announcement)
+    public function remove(Announcement $announcement)
     {
         DB::beginTransaction();
         try {
@@ -238,10 +233,6 @@ class AnnouncementController extends Controller
             event(new OperateLogEvent([
                 $operate,
             ]));
-            //发消息
-            $authorization = $request->header()['authorization'][0];
-            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::DELETE,$authorization,$user));
-
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -394,9 +385,6 @@ class AnnouncementController extends Controller
             }
             // 操作日志
             event(new OperateLogEvent($arrayOperateLog));
-            //发消息
-            $authorization = $request->header()['authorization'][0];
-            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::UPDATE,$authorization,$user,$payload['scope']));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

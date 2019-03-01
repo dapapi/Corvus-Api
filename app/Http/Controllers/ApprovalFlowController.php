@@ -210,7 +210,7 @@ class ApprovalFlowController extends Controller
             return $this->response->errorBadRequest($exception->getMessage());
         }
 
-        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id);
+        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id, $now->principal_level);
         if ($nextId == 0)
             return $this->response->array(['data' => $array]);
 
@@ -639,7 +639,7 @@ class ApprovalFlowController extends Controller
      * @return array [int $nextId, int $type]
      * @throws Exception
      */
-    private function getChainNext($instance, $preId, $close = false)
+    private function getChainNext($instance, $preId, $close = false, $level = null)
     {
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
@@ -657,7 +657,7 @@ class ApprovalFlowController extends Controller
         $now = Execute::where('form_instance_number', $num)->where('flow_type_id', 231)->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程
-            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count + $now)->first();
+            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count + $now)->where('principal_level', $level)->first();
         } else if ($changeType == 223) {
             // 自由流程
             $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->where('sort_number', $count + $now)->first();

@@ -27,6 +27,7 @@ class TestController extends Controller
         $token = $user->createToken('web api')->accessToken;
 
         return $this->response->array(['token_type' => 'Bearer', 'access_token' => $token]);
+        
     }
 
     public function testArray()

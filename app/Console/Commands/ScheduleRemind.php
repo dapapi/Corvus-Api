@@ -64,12 +64,16 @@ class ScheduleRemind extends Command
      */
     public function handle()
     {
-//        Log::info("日程提醒检测开始");
-        $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
-        if (!$res){
-//            echo "登录失败";
-            Log::error("日程到期提醒,登录失败...");
-            return;
+        try{
+            $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
+            if (!$res){
+                echo "登录失败";
+                Log::error("直客到期检测登录失败...");
+                return;
+            }
+        }catch (\Exception $e){
+            Log::error("定时任务。。。登录异常");
+            Log::error($e);
         }
 //        Log::info("系统用户登录成功");
         $body = $this->httpRepository->jar->getBody();

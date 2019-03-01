@@ -201,10 +201,13 @@ class ReportFormController extends Controller
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());//结束时间
         $sign_contract_status = $request->get('sign_contract_status',null);//签约状态
         $department = $request->get('department',null);//组别
-        $target_star = $request->get('target_star',null);//目标艺人
-        $target_star = $target_star == null ? null :hashid_decode($target_star);
+//        $target_star = $request->get('target_star',null);//目标艺人
+//        $target_star = $target_star == null ? null :hashid_decode($target_star);
+        $trail_type = $request->get("trail_type",null);
+        $project_type = $request->get("project_type",null);
+
         $department = $department == null ? null : hashid_decode($department);
-        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star);
+        return (new ReportFormRepository())->bloggerReport($start_time,$end_time,$sign_contract_status,$department,$trail_type,$project_type);
     }
     public function bloggerExport(Request $request)
     {

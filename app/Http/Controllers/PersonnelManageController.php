@@ -736,7 +736,7 @@ class PersonnelManageController extends Controller
         $entry_status = isset($payload['entry_status']) ? $payload['entry_status'] : 1;
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $positions = User::orderBy('updated_at','desc')
+        $positions = User::orderBy('created_at','desc')
             ->where(function($query) use($request,$payload){
                 $query->where('entry_status',$payload['entry_status']);
             })->paginate($pageSize);

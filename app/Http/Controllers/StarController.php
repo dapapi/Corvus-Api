@@ -846,7 +846,8 @@ class StarController extends Controller
         });
 
 
-        $stars->select('stars.id','stars.name','stars.source','stars.created_at','stars.updated_at','stars.sign_contract_status',DB::raw("max(operate_logs.updated_at) as up_time"))
+        $stars->select('stars.id','stars.name','stars.source','stars.created_at','stars.birthday','stars.created_at','stars.updated_at','stars.sign_contract_status',DB::raw("max(operate_logs.updated_at) as up_time"))
+
             ->where($array);
 //            ->searchData();
         $stars = $stars->orderBy('up_time','desc')->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);

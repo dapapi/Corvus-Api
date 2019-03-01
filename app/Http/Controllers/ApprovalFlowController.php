@@ -184,8 +184,6 @@ class ApprovalFlowController extends Controller
         }
 
         try {
-
-
             $now = Execute::where('form_instance_number', $num)->first();
             if ($now->flow_type_id == 232)
                 return $this->response->array(['data' => $array]);
@@ -209,10 +207,10 @@ class ApprovalFlowController extends Controller
                 ];
             }
         } catch (ApprovalVerifyException $exception) {
-
+            return $this->response->errorBadRequest($exception->getMessage());
         }
 
-        list($nextId, $type) = $this->getChainNext($instance, $now->current_handler_id);
+        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id);
         if ($nextId == 0)
             return $this->response->array(['data' => $array]);
 
@@ -225,7 +223,7 @@ class ApprovalFlowController extends Controller
                 ->orderBy('sort_number')
                 ->get();
         } else {
-            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->first();
+            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->where('sort_number', count($array))->first();
             $chains = ChainFixed::where('form_id', $formId)
                 ->where('condition_id', $condition)
                 ->where('next_id', '!=', 0)
@@ -264,6 +262,17 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+        // 判断分支
+        $form = $instance->form;
+        $formId = $instance->form_id;
+        $condition = null;
+        if ($form->change_type == 224) {
+            // todo 拼value
+            $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
+            $value = $this->getValuesForCondition($formControlId, $num);
+            $condition = $this->getCondition($formId, $value);
+        }
+
         $comment = $request->get('comment', null);
 
         $user = Auth::guard('api')->user();
@@ -275,8 +284,9 @@ class ApprovalFlowController extends Controller
         try {
             $currentHandlerId = $this->verifyHandler($num, $userId);
             //获取下一个审批人及审批人类型
-            list($nextId, $type) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+            list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
 
+            // todo 在此处处理连续相同人审批
             $this->storeRecord($num, $userId, $now, 239, $comment);
 
             if ($nextId)
@@ -305,57 +315,75 @@ class ApprovalFlowController extends Controller
         }
         DB::commit();
 
+        DB::beginTransaction();
+        try {
+            if ($type == 246) {
+                $header = $this->departmentHeaderToUser($num, $formId, $condition);
+                if ($userId == $header->id) {
+                    list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+                    $this->storeRecord($num, $userId, $now, 239, $comment);
+                }
+            } elseif ($nextId == $userId) {
+                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+                $this->storeRecord($num, $userId, $now, 239, $comment);
+            }
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+        }
+        DB::commit();
+
         $authorization = $request->header()['authorization'][0];
-        $excute = Execute::where("form_instance_number",$instance->form_instance_number)->first();
-        if($excute->flow_type_id == 232){//审批通过
+        $excute = Execute::where("form_instance_number", $instance->form_instance_number)->first();
+        if ($excute->flow_type_id == 232) {//审批通过
 
             $num = $instance->form_instance_number;
             $contract = Contract::where('form_instance_number', $num)->first();
-            if ($contract){//如果是合同
-                $star_arr = explode(",",$contract->stars);
+            if ($contract) {//如果是合同
+                $star_arr = explode(",", $contract->stars);
                 $created_at = $contract->created_at;
-                $meta = ["created"=>$created_at];
+                $meta = ["created" => $created_at];
                 if (in_array($instance->form_id, [5, 7])) {//签约
-                    if ($contract->star_type == "bloggers"){
-                        event( new BloggerMessageEvent($star_arr,BloggerTriggerPoint::SIGNING,$authorization,$user,$meta));
+                    if ($contract->star_type == "bloggers") {
+                        event(new BloggerMessageEvent($star_arr, BloggerTriggerPoint::SIGNING, $authorization, $user, $meta));
                     }
-                    if ($contract->star_type == "stars"){
-                        event( new StarMessageEvent($star_arr,StarTriggerPoint::SIGNING,$authorization,$user,$meta));
+                    if ($contract->star_type == "stars") {
+                        event(new StarMessageEvent($star_arr, StarTriggerPoint::SIGNING, $authorization, $user, $meta));
                     }
 
 
                 }
                 if (in_array($instance->form_id, [6, 8])) {//解约
-                    if ($contract->star_type == "bloggers"){
-                        event( new BloggerMessageEvent($star_arr,StarTriggerPoint::RESCISSION,$authorization,$user,$meta));
+                    if ($contract->star_type == "bloggers") {
+                        event(new BloggerMessageEvent($star_arr, StarTriggerPoint::RESCISSION, $authorization, $user, $meta));
                     }
-                    if ($contract->star_type == "stars"){
-                        event(new StarMessageEvent( $star_arr,BloggerTriggerPoint::RESCISSION,$authorization,$user,$meta));
+                    if ($contract->star_type == "stars") {
+                        event(new StarMessageEvent($star_arr, BloggerTriggerPoint::RESCISSION, $authorization, $user, $meta));
                     }
                 }
             }
             //如果是项目
-            if ($instance->business_type == "contracts"){
+            if ($instance->business_type == "contracts") {
                 //项目审批通过向,并且客户是直客，向papi商务组发送，直客成单消息
-                $client = Client::join('contracts','clients.id','contracts.client_id')
-                    ->where('contracts.form_instance_number',$instance->form_instance_number)
-                    ->where('grade',Client::GRADE_NORMAL)//直客
+                $client = Client::join('contracts', 'clients.id', 'contracts.client_id')
+                    ->where('contracts.form_instance_number', $instance->form_instance_number)
+                    ->where('grade', Client::GRADE_NORMAL)//直客
                     ->first();
-                if($client){
+                if ($client) {
                     //直客成单保护期增加180天
                     $client->protected_client_time = Carbon::now()->addDay("180")->toDateTimeString();
                     $client->save();
-                    $meta=['contracts'=>$instance];
-                    event(new ClientMessageEvent($client,ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM,$authorization,$user,$meta));
+                    $meta = ['contracts' => $instance];
+                    event(new ClientMessageEvent($client, ClientTriggerPoint::GRADE_NORMAL_ORDER_FORM, $authorization, $user, $meta));
                 }
             }
 
-            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::AGREE,$authorization,$user));
+            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::AGREE, $authorization, $user));
             //项目合同审批同意向M组发消息
-            event(new ApprovalMessageEvent($instance,ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE,$authorization,$user));
-        }else{
+            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE, $authorization, $user));
+        } else {
             //向下一个审批人发消息
-            event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::WAIT_ME,$authorization,$user,$nextId));
+            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $user, $nextId));
         }
 
         return $this->response->created();
@@ -402,7 +430,7 @@ class ApprovalFlowController extends Controller
 
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event( new ApprovalMessageEvent($instance,ApprovalTriggerPoint::REFUSE,$authorization,$user));
+        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::REFUSE, $authorization, $user));
 
         return $this->response->created();
     }
@@ -452,7 +480,7 @@ class ApprovalFlowController extends Controller
         DB::commit();
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::TRANSFER,$authorization,$user,$nextId));
+        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::TRANSFER, $authorization, $user, $nextId));
 
         return $this->response->created();
     }
@@ -464,7 +492,7 @@ class ApprovalFlowController extends Controller
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
-        list($nextId, $type) = $this->getChainNext($instance, 0);
+        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, 0);
 
         $currentStatus = Execute::where('form_instance_number', $num)->first();
         if ($currentStatus->flow_type_id != 231 || $currentStatus->current_handler_id != $nextId) {
@@ -500,12 +528,14 @@ class ApprovalFlowController extends Controller
         DB::commit();
         return $this->response->created();
     }
+
     //消息提醒
-    public function remind(Request $request, $instance){
+    public function remind(Request $request, $instance)
+    {
         $user = Auth::guard('api')->user();
-        
+
         $authorization = $request->header()['authorization'][0];
-        event(new ApprovalMessageEvent( $instance,ApprovalTriggerPoint::REMIND,$authorization,$user));
+        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::REMIND, $authorization, $user));
     }
 
     public function discard(Request $request, $instance)
@@ -604,14 +634,14 @@ class ApprovalFlowController extends Controller
      */
     private function getChainNext($instance, $preId, $close = false)
     {
-        // todo 在此处处理连续相同人审批
         $form = ApprovalForm::where('form_id', $instance->form_id)->first();
 
+        $principalLevel = null;
         if (!$form)
             throw new Exception('form不存在');
 
         if ($close)
-            return [0, 245];
+            return [0, 245, $principalLevel];
 
         $formId = $form->form_id;
         $num = $instance->form_instance_number;
@@ -640,15 +670,16 @@ class ApprovalFlowController extends Controller
             return $this->getTransferNextChain($instance, $now);
         }
         if ($chain->next_id == 0)
-            return [0, 245];
+            return [0, 245, $principalLevel];
 
         $next = $chain->next;
 
         $type = $chain->approver_type;
+        $principalLevel = $chain->principal_level;
         if (is_null($type))
             $type = 245;
 
-        return [$next->id, $type];
+        return [$next->id, $type, $principalLevel];
     }
 
 
@@ -657,6 +688,7 @@ class ApprovalFlowController extends Controller
         $num = $instance->form_instance_number;
         $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [240, 241, 242, 243])->count('form_instance_number');
 
+        $principalLevel = null;
         $form = $instance->form;
         if ($form->change_type == 223) {
             $preId = ChainFree::where('form_number', $num)->where('sort_number', $count)->value('next_id');
@@ -669,20 +701,20 @@ class ApprovalFlowController extends Controller
             $preId = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->value('next_id');
         }
         if ($preId == 0 && $count > 1)
-            $arr = [0, 245];
+            $arr = [0, 245, $principalLevel];
         else {
             if ($form->change_type == 223) {
                 $chain = ChainFree::where('form_number', $num)->where('sort_number', $count + 1)->first();
                 $arr = [$chain->next_id, 245];
             } else if ($form->change_type == 222) {
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, $chain->approver_type];
+                $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];
             } else if ($form->change_type == 224) {
                 $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
                 $value = $this->getValuesForCondition($formControlIds, $num);
                 $conditionId = $this->getCondition($instance->form_id, $value);
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, $chain->approver_type];
+                $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];
             }
         }
 
@@ -815,12 +847,12 @@ class ApprovalFlowController extends Controller
 
     private function departmentHeaderToUser($num, $formId, $condition)
     {
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [237, 241, 242, 243,])->count('form_instance_number');
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count();
 
         $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
 
-        $currentChain = ChainFixed::where('form_id', $formId)->where('condition', $condition)->where('sort_number', $count)->first();
+        $currentChain = ChainFixed::where('form_id', $formId)->where('condition_id', $condition)->where('sort_number', $count)->first();
         if ($currentChain->principal_level == 1)
             $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
         elseif ($currentChain->principal_level == 2) {

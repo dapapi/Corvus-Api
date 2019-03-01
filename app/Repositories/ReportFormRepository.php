@@ -1176,7 +1176,7 @@ class ReportFormRepository
      * @param $end_time
      * @param $sign_contract_status
      */
-    public function bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star)
+    public function bloggerReport($start_time,$end_time,$sign_contract_status,$department,$trail_type,$project_type)
     {
         $arr[] = ['b.created_at','>=',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['b.created_at','<=',Carbon::parse($end_time)->toDateString()];
@@ -1184,8 +1184,14 @@ class ReportFormRepository
         if($department != null){
             $arr[] = ['d.id',$department];
         }
-        if($target_star != null){
-            $arr[] = ['s.id',$target_star];
+//        if($target_star != null){
+//            $arr[] = ['s.id',$target_star];
+//        }
+        if ($trail_type){
+            $arr[] = ['t.type',$trail_type];
+        }
+        if ($project_type){
+            $arr[] = ['p.type',$project_type];
         }
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
@@ -1205,6 +1211,49 @@ class ReportFormRepository
 //            $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
 //        dd($sql_with_bindings);
         }else{
+
+            $bloggers = Blogger::select('id','nickname')->get();
+
+            foreach($bloggers as $blogger){
+                //获取博主的线索数量
+                $trail_num = $blogger->trail()->where(function ($query)use($trail_type){
+                    if ($trail_type)
+                        $query->where('trails.type',$trail_type);
+                })->count();
+                $trail_fee = $blogger->trail()->where(function ($query)use($trail_type){
+                    if ($trail_type)
+                        $query->where('trails.type',$trail_type);
+                })->sum('trails.fee');
+                //获取博主项目数量
+                $project_num = $blogger->setTable('b')->from("bloggers as b")
+                ->leftJoin("trail_star as ts",function ($join){
+                    $join->on('ts.starable_id','=','b.id')
+                        ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
+                        ->where('ts.type',TrailStar::EXPECTATION);//目标
+                })->leftJoin('trails as t','t.id','=','ts.trail_id')
+                    ->leftJoin("projects as p",'p.trail_id','t.id')
+                    ->where(function ($query) use ($project_type){
+                        if ($project_type)
+                            $query->where('p.type',$project_type);
+                    })->where('p.id','!=',null)
+                    ->where('b.id',$blogger->id)
+                    ->count();
+                //获取合同金额
+                $contract_money = $blogger->setTable('b')->from("bloggers as b")
+                    ->join('contracts as co',function ($join){
+                        $join->on(DB::raw("FIND_IN_SET(b.id,stars)"))
+                            ->where('co.star_type','=','bloggers');
+                    })
+                    ->where('b.id',$blogger->id)
+                    ->sum('co.contract_money');
+
+                $blogger->trail_num = $trail_num;
+                $blogger->trail_fee = $trail_fee;
+                $blogger->project_num = $project_num;
+                $blogger->contract_money = $contract_money;
+            }
+            return $bloggers;
+
             //合同，预计订单收入，花费金额都没查呢
             $bloggers = (new Blogger())->setTable("b")->from("bloggers as b")
                 ->leftJoin("module_users as mu",function ($join){
@@ -1227,9 +1276,6 @@ class ReportFormRepository
                 ->leftJoin('projects as p','p.trail_id','=','t.id')
                 ->where($arr)
                 ->groupBy('b.id')
-//                       $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
-//        dd($sql_with_bindings);
-//
                 ->get([
                     'b.id','b.nickname','t.fee','sign_contract_status',
                     // 少了合同金额    花费金额

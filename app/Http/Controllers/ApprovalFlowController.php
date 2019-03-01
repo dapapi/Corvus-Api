@@ -219,7 +219,7 @@ class ApprovalFlowController extends Controller
             $nextChain = ChainFree::where('next_id', $nextId)->where('form_number', $num)->first();
             $chains = ChainFree::where('form_number', $num)
                 ->where('next_id', '!=', 0)
-                ->where('sort_number', '>=', $nextChain->sort_number)
+                ->where('sort_number', '>', $nextChain->sort_number)
                 ->orderBy('sort_number')
                 ->get();
         } else {

@@ -223,7 +223,7 @@ class ApprovalFlowController extends Controller
                 ->orderBy('sort_number')
                 ->get();
         } else {
-            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('condition_id', $condition)->where('sort_number', count($array))->first();
+            $nextChain = ChainFixed::where('next_id', $nextId)->where('form_id', $formId)->where('principal_level', $principalLevel)->where('condition_id', $condition)->first();
             $chains = ChainFixed::where('form_id', $formId)
                 ->where('condition_id', $condition)
                 ->where('next_id', '!=', 0)
@@ -286,13 +286,12 @@ class ApprovalFlowController extends Controller
             //获取下一个审批人及审批人类型
             list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
 
-            // todo 在此处处理连续相同人审批
-            $this->storeRecord($num, $userId, $now, 239, $comment);
+            $this->storeRecord($num, $userId, $now, 239, $comment, $type, $nextId);
 
             if ($nextId)
-                $this->createOrUpdateHandler($num, $nextId, $type);
+                $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel);
             else
-                $this->createOrUpdateHandler($num, $userId, $type, 232);
+                $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, 232);
 
             // 操作日志
             $operate = new OperateEntity([
@@ -321,11 +320,19 @@ class ApprovalFlowController extends Controller
                 $header = $this->departmentHeaderToUser($num, $formId, $condition);
                 if ($userId == $header->id) {
                     list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
-                    $this->storeRecord($num, $userId, $now, 239, $comment);
+                    $this->storeRecord($num, $userId, $now, 239, $comment, $type, $nextId);
+                    if ($nextId)
+                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel);
+                    else
+                        $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, 232);
                 }
             } elseif ($nextId == $userId) {
                 list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
-                $this->storeRecord($num, $userId, $now, 239, $comment);
+                $this->storeRecord($num, $userId, $now, 239, $comment, $type, $nextId);
+                if ($nextId)
+                    $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel);
+                else
+                    $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, 232);
             }
         } catch (Exception $exception) {
             DB::rollBack();
@@ -405,7 +412,7 @@ class ApprovalFlowController extends Controller
             $this->verifyHandler($num, $userId);
             $this->storeRecord($num, $userId, $now, 240, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 245, 233);
+            $this->createOrUpdateHandler($num, $userId, 245, null, 233);
 
             // 操作日志
             $operate = new OperateEntity([
@@ -507,7 +514,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 245, 234);
+            $this->createOrUpdateHandler($num, $userId, 245, null, 234);
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $instance,
@@ -558,7 +565,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 243, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 245, 235);
+            $this->createOrUpdateHandler($num, $userId, 245, null, 235);
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $instance,
@@ -737,7 +744,7 @@ class ApprovalFlowController extends Controller
 
     }
 
-    private function createOrUpdateHandler($num, $nextId, $type, $status = 231)
+    private function createOrUpdateHandler($num, $nextId, $type, $level = null, $status = 231)
     {
         try {
             $execute = Execute::where('form_instance_number', $num)->first();
@@ -745,6 +752,7 @@ class ApprovalFlowController extends Controller
                 $execute->update([
                     'current_handler_id' => $nextId,
                     'current_handler_type' => $type,
+                    'principal_level' => $level,
                     'flow_type_id' => $status,
                 ]);
             else
@@ -752,6 +760,7 @@ class ApprovalFlowController extends Controller
                     'form_instance_number' => $num,
                     'current_handler_id' => $nextId,
                     'current_handler_type' => $type,
+                    'principal_level' => $level,
                     'flow_type_id' => $status,
                 ]);
 
@@ -767,16 +776,27 @@ class ApprovalFlowController extends Controller
         }
     }
 
-    private function storeRecord($num, $userId, $dateTime, $status, $comment = null)
+    private function storeRecord($num, $userId, $dateTime, $status, $approverType = null, $roleId = null, $comment = null)
     {
         try {
-            $record = Change::create([
-                'form_instance_number' => $num,
-                'change_id' => $userId,
-                'change_at' => $dateTime,
-                'change_state' => $status,
-                'comment' => $comment
-            ]);
+            if ($approverType != 245)
+                $record = Change::create([
+                    'form_instance_number' => $num,
+                    'change_id' => $userId,
+                    'change_at' => $dateTime,
+                    'change_state' => $status,
+                    'approver_type' => $approverType,
+                    'role_id' => $roleId,
+                    'comment' => $comment
+                ]);
+            else
+                $record = Change::create([
+                    'form_instance_number' => $num,
+                    'change_id' => $userId,
+                    'change_at' => $dateTime,
+                    'change_state' => $status,
+                    'comment' => $comment
+                ]);
         } catch (Exception $exception) {
             throw $exception;
         }
@@ -847,7 +867,7 @@ class ApprovalFlowController extends Controller
 
     private function departmentHeaderToUser($num, $formId, $condition)
     {
-        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [241, 242, 243])->count();
+        $count = Change::where('form_instance_number', $num)->whereNotIn('change_state', [240, 241, 242, 243])->count();
 
         $creatorId = Change::where('form_instance_number', $num)->where('change_state', 237)->value('change_id');
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');

@@ -65,8 +65,8 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
                 ]);
                 $client->contacts()->create([
                     'name' => $row[4],
-                    'type' => $row[6] == '是' ? 2 : 1,
-                    'phone' => $row[5],
+                    'type' => $row[5] == '是' ? 2 : 1,
+                    'phone' => $row[6],
                     'position' => $row[7],
                 ]);
             }

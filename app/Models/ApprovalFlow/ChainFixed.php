@@ -15,7 +15,8 @@ class ChainFixed extends Model implements ChainInterface
         'form_id',
         'pre_id',
         'next_id',
-        'condition_id'
+        'condition_id',
+        'principal_level'
     ];
 
     public function next()

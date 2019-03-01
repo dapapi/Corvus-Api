@@ -37,11 +37,13 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
 
         try {
             foreach ($rows as $key => $row){
-                foreach ($rows as $key1 => $row2){
+                if(count($rows)>2) {
+                    foreach ($rows as $key1 => $row2) {
 
-                    if($key <> $key1){
-                        if($row[1] == $row2[1]){
-                            throw new Exception('excel中有重复数据，请处理后再进行上传');
+                        if ($key <> $key1) {
+                            if ($row[1] == $row2[1] && $row[1]!= null && $row2[1] != null) {
+                                throw new Exception('excel中有重复数据，请处理后再进行上传');
+                            }
                         }
                     }
                 }
@@ -63,8 +65,8 @@ class ClientsImport implements ToCollection, WithBatchInserts, WithChunkReading
                 ]);
                 $client->contacts()->create([
                     'name' => $row[4],
-                    'type' => $row[6] == '是' ? 2 : 1,
-                    'phone' => $row[5],
+                    'type' => $row[5] == '是' ? 2 : 1,
+                    'phone' => $row[6],
                     'position' => $row[7],
                 ]);
             }

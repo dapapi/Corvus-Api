@@ -14,6 +14,8 @@ class BloggerTransformer extends TransformerAbstract
 
     protected $availableIncludes = ['creator', 'tasks', 'affixes', 'producer', 'type','project', 'trails','publicity','operatelogs','relate_project_courses','calendar','schedule','contracts'];
 
+    protected $defaultIncludes = ['type'];
+
     private $isAll;
 
 

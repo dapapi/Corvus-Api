@@ -96,7 +96,7 @@ class ApprovalGeneralController extends Controller
         $payload = $request->all();
 
         $user = Auth::guard('api')->user();
-        $userId = 308;
+        $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
@@ -220,7 +220,6 @@ class ApprovalGeneralController extends Controller
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
-           // DB::connection()->enableQueryLog();
             //查询二级主管
             $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
 
@@ -268,9 +267,8 @@ left join department_user as du on du.`department_id`=dep.`department_id` where 
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
-            //dd(DB::getQueryLog());
-            dd($dataPrincipalLevel);
-            $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
+
+            $resArr = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
 
         } else {
             $resArr = $this->thenApproval($request,$payload);

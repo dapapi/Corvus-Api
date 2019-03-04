@@ -1326,7 +1326,8 @@ class ApprovalFormController extends Controller
                 'form_instance_number' => $num,
                 'current_handler_id' => $executeInfo->next_id,
                 'current_handler_type' => $executeInfo->approver_type ?? 245,
-                'flow_type_id' => DataDictionarie::FORM_STATE_DSP
+                'flow_type_id' => DataDictionarie::FORM_STATE_DSP,
+                'principal_level' => $executeInfo->principal_level
             ];
 
             Execute::create($executeArray);

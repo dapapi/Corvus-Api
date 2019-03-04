@@ -38,6 +38,7 @@ use App\Models\Blogger;
 use App\Models\Contract;
 use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
+use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\OperateEntity;
@@ -103,7 +104,7 @@ class ApprovalFormController extends Controller
                     'form_id' => $formId,
                     'form_instance_number' => $projectNumber,
                     'form_status' => DataDictionarie::FORM_STATE_DSP,
-                    'business_type' => project::PROJECT_TYPE
+                    'business_type' => project::PROJECT_TYPE,
                 ];
 
                 Business::create($array);
@@ -115,7 +116,7 @@ class ApprovalFormController extends Controller
                     'current_handler_id' => $executeInfo[0]['next_id'],
                     // todo 角色处理
                     'current_handler_type' => $executeInfo[0]['approver_type'],
-                    'flow_type_id' => DataDictionarie::FORM_STATE_DSP
+                    'flow_type_id' => DataDictionarie::FORM_STATE_DSP,
                 ];
 
                 Execute::create($executeArray);
@@ -1314,6 +1315,15 @@ class ApprovalFormController extends Controller
             $conditionId = null;
         }
 
+        $instance = Instance::where('form_instance_number', $num)->first();
+        $creatorId = $instance->apply_id;
+        $principal = DepartmentPrincipal::where('user_id', $creatorId)->first();
+        $flag = 0;
+        if (!is_null($principal)) {
+            $flag = 1;
+        }
+
+
         $executeInfo = ChainFixed::where('form_id', $formId)->where('condition_id', $conditionId)->orderBy('sort_number')->first();
         if (is_null($executeInfo))
             $executeInfo = ChainFree::where('form_number', $num)->orderBy('sort_number')->first();
@@ -1327,7 +1337,7 @@ class ApprovalFormController extends Controller
                 'current_handler_id' => $executeInfo->next_id,
                 'current_handler_type' => $executeInfo->approver_type ?? 245,
                 'flow_type_id' => DataDictionarie::FORM_STATE_DSP,
-                'principal_level' => $executeInfo->principal_level
+                'principal_level' => $executeInfo->principal_level + $flag,
             ];
 
             Execute::create($executeArray);

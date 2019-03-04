@@ -2,8 +2,11 @@
 
 namespace App\Http\Transformers;
 
+use App\Models\Calendar;
+use App\Models\Schedule;
 use App\Models\Star;
 use App\ModuleableType;
+use App\ModuleUserType;
 use App\TaskStatus;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
@@ -150,10 +153,27 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeSchedule(Star $star)
     {
-
-        $calendars = $star->calendar()->first();//查找艺人日历
+        $user = Auth::guard("api")->user();
+        //日历是公开的或者当前登录人在日历的参与人中或者是创建人
+        $calendars = $star->calendar()
+            ->join('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','calendars.id')
+                    ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
+            })
+            ->where('privacy',Calendar::OPEN)
+            ->orWhere('calendars.creator_id',$user->id)
+            ->orWhere('mu.user_id',$user->id)
+            ->first();//查找艺人日历
         if($calendars){//日历存在查找日程
-            $calendar = $calendars->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+            $calendar = $calendars->schedules()
+                ->join('module_users as mu',function ($join){
+                    $join->on('mu.moduleable_id','schdules.id')
+                        ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
+                })
+                ->where('schdules.privacy',Schedule::OPEN)
+                ->orWhere('schdules.creator_id')
+                ->orWhere('mu.user_id',$user->id)
+                ->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3);
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
             return null;

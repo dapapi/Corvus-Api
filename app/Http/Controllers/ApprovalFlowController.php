@@ -746,13 +746,21 @@ class ApprovalFlowController extends Controller
 
     private function createOrUpdateHandler($num, $nextId, $type, $level = null, $status = 231)
     {
+        $instance = Instance::where('form_instance_number', $num)->first();
+        $creatorId = $instance->apply_id;
+        $principal = DepartmentPrincipal::where('user_id', $creatorId)->first();
+        $flag = 0;
+        if (!is_null($principal)) {
+            $flag = 1;
+        }
+
         try {
             $execute = Execute::where('form_instance_number', $num)->first();
             if ($execute)
                 $execute->update([
                     'current_handler_id' => $nextId,
                     'current_handler_type' => $type,
-                    'principal_level' => $level,
+                    'principal_level' => $level + $flag,
                     'flow_type_id' => $status,
                 ]);
             else
@@ -760,7 +768,7 @@ class ApprovalFlowController extends Controller
                     'form_instance_number' => $num,
                     'current_handler_id' => $nextId,
                     'current_handler_type' => $type,
-                    'principal_level' => $level,
+                    'principal_level' => $level + $flag,
                     'flow_type_id' => $status,
                 ]);
 

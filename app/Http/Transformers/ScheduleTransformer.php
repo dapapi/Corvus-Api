@@ -3,6 +3,7 @@
 namespace App\Http\Transformers;
 
 use App\Models\Schedule;
+use function GuzzleHttp\Psr7\str;
 use League\Fractal\TransformerAbstract;
 
 class ScheduleTransformer extends TransformerAbstract
@@ -16,8 +17,8 @@ class ScheduleTransformer extends TransformerAbstract
             'title' => $schedule->title,
             'is_allday' => $schedule->is_allday,
             'privacy' => $schedule->privacy,
-            'start_at' => $schedule->start_at,
-            'end_at' => $schedule->end_at,
+            'start_at' => date('Y-m-d H:i',strtotime($schedule->start_at)),
+            'end_at' => date('Y-m-d H:i',strtotime($schedule->end_at)),
             'position' => $schedule->position,
             'repeat' => $schedule->repeat,
             'desc' => $schedule->desc,

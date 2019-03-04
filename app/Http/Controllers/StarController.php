@@ -822,7 +822,21 @@ class StarController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
+        $array = [];//查询条件
+        if ($request->has('name')) {//姓名
+            $array[] = ['stars.name', 'like', '%' . $payload['name'] . '%'];
+        }
+        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
+            $array[] = ['stars.sign_contract_status', $payload['sign_contract_status']];
+        }
+        if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
+            $array[] = ['stars.communication_status', $payload['communication_status']];
+        }
+        if ($request->has('source') && !empty($payload['source'])) {//艺人来源
+            $array[] = ['stars.source', $payload['source']];
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
+
 
         $all = $request->get('all', false);
         $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
@@ -831,9 +845,11 @@ class StarController extends Controller
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
-        $stars->select('stars.id','stars.name','stars.source','stars.created_at','stars.updated_at','stars.sign_contract_status',DB::raw("max(operate_logs.updated_at) as up_time"));
 
-        $stars = $stars->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
+        $stars->select('stars.id','stars.name','stars.source','stars.created_at','stars.birthday','stars.created_at','stars.updated_at','stars.sign_contract_status',DB::raw("max(operate_logs.updated_at) as up_time"))
+            ->where($array);
+//            ->searchData();
+        $stars = $stars->orderBy('up_time','desc')->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }

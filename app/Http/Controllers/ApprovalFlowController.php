@@ -873,11 +873,20 @@ class ApprovalFlowController extends Controller
         $departmentId = DepartmentUser::where('user_id', $creatorId)->value('department_id');
 
         $currentChain = ChainFixed::where('form_id', $formId)->where('condition_id', $condition)->where('sort_number', $count)->first();
-        if ($currentChain->principal_level == 1)
+
+        if ($currentChain->principal_level == 1) {
             $headerId = DepartmentPrincipal::where('department_id', $departmentId)->value('user_id');
-        elseif ($currentChain->principal_level == 2) {
+            if ($headerId == $creatorId) {
+                $departmentPid = Department::where('id', $departmentId)->value('department_pid');
+                $headerId = DepartmentPrincipal::where('department_id', $departmentPid)->value('user_id');
+            }
+        } elseif ($currentChain->principal_level == 2) {
             $departmentPid = Department::where('id', $departmentId)->value('department_pid');
             $headerId = DepartmentPrincipal::where('department_id', $departmentPid)->value('user_id');
+            if ($headerId == $creatorId) {
+                $departmentPid = Department::where('id', $departmentPid)->value('department_pid');
+                $headerId = DepartmentPrincipal::where('department_id', $departmentPid)->value('user_id');
+            }
         } else {
             throw new ApprovalVerifyException('暂不应存在二级以上主管审批，请连续管理员');
         }

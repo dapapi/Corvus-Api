@@ -452,8 +452,8 @@ class ReportFormRepository
             ->get();
 //        dd($trails->toArray());
 
-            $start_month = Carbon::parse(date("Y-m",strtotime($start_time)));
-            $end_moth = Carbon::parse(date("Y-m",strtotime($end_time)));
+            $start_month = Carbon::parse(date("Y-m-d",strtotime($start_time)));
+            $end_moth = Carbon::parse(date("Y-m-d",strtotime($end_time)));
             $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
 
             $list = [];
@@ -549,9 +549,9 @@ class ReportFormRepository
         $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($type != null){
-            $arr[] = ['d.id',$type];
+            $arr[] = ['t.type',$type];
         }
-        return (new Trail())->setTable("t")->from("trails as t")
+        $res = (new Trail())->setTable("t")->from("trails as t")
             ->leftJoin('industries as i',"i.id",'=','t.industry_id')
             ->where($arr)
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
@@ -560,6 +560,7 @@ class ReportFormRepository
                 DB::raw('count(t.id) as total'),
                 "i.name as industry_name"
             ]);
+        return $res;
     }
 
     /*********************************************项目报表*****************************************************/
@@ -759,8 +760,12 @@ class ReportFormRepository
             ->where(function ($query){
                 $query->where('s.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
                     ->orWhere('s.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);
-            })->where($arr)
-            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT]);
+            })->where($arr);
+//        dd($query->select('p.id')->groupBy('p.id')->get()->toArray());
+        //计算影,视商务,综艺类型项目数量
+        $count = $query->selectRaw('count(p.id)')
+            ->whereIn('t.type',[Project::TYPE_MOVIE,Project::TYPE_VARIETY,Project::TYPE_ENDORSEMENT])->groupBy('p.type')->get();
+//        dd($count->toArray());
 
         $result1 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_MOVIE)//电影

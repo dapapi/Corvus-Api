@@ -352,7 +352,7 @@ class ApprovalGeneralController extends Controller
     {
 
         $user = Auth::guard('api')->user();
-        $userId = 351;
+        $userId = $user->id;
         //查询个人
         $dataUser = DB::table('approval_flow_change as afc')//
         ->join('users as u', function ($join) {

@@ -62,7 +62,8 @@ class ReportFormController extends Controller
         $target_star = $request->get('target_star',null);
         $department = $department == null ? null : hashid_decode($department);
         $target_star = $target_star == null ? null :hashid_decode($target_star);
-        return (new ReportFormRepository())->newTrail($start_time,$end_time,$department,$target_star);
+        $client = $request->get('client','pc');//终端
+        return (new ReportFormRepository())->newTrail($start_time,$end_time,$department,$target_star,$client);
     }
     //销售线索占比
     public function perTrail(Request $request)

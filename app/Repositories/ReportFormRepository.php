@@ -417,7 +417,7 @@ class ReportFormRepository
      * @param null $target_star
      * @return array
      */
-    public function newTrail($start_time,$end_time,$department=null,$target_star=null)
+    public function newTrail($start_time,$end_time,$department=null,$target_star=null,$client='pc')
     {
         $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->addDay(1)->toDateString()];
@@ -444,44 +444,89 @@ class ReportFormRepository
             ->where($arr)
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->select(
-                DB::raw('sum(t.fee) as total_fee'),'t.type',
-                DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date"),
-                DB::raw('count(distinct t.id) as total')
-            )
-            ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
+                't.id','t.title','t.fee','t.type',
+//                DB::raw('sum(t.fee) as total_fee'),'t.type',
+                DB::raw("DATE_FORMAT(t.created_at,'%Y-%m') as date")
+//                DB::raw('count(t.id) as total')
+            )->orderBy('t.id')
+            ->groupBy('t.id')
+//            ->groupBy(DB::raw("type,DATE_FORMAT(t.created_at,'%Y-%m')"))
             ->get();
-//        dd($trails->toArray());
-
-            $start_month = Carbon::parse(date("Y-m-d",strtotime($start_time)));
-            $end_moth = Carbon::parse(date("Y-m-d",strtotime($end_time)));
-            $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
 
             $list = [];
-            for ($i = 0;$i <= $diff;$i++){//获取两个时间之间
-                $curr = $start_month->copy()->addMonth($i)->format('Y-m');
-                foreach ($trails as $trail){//循环线索
-                    if($trail->date == $curr){
-                        $list[$curr][] = $trail;
-                        $cloum = array_column($list[$curr],'type');
-                        $sum_key = array_search('sum',$cloum);
-                        if($sum_key === false){
-                            $list[$curr][] = [
-                                'total' => $trail->total,
-                                "type"  =>  "sum"
-                            ];
+            $total_fee = 0;
+            if ($client == 'mobile'){//移动端数据
+                foreach ($trails as $trail){
+                    $total_fee += $trail->fee;
+                    $date_key = array_search($trail->date,array_column($list,'date'));
+                    if ($date_key !== false){
+                        $type_key = array_search($trail->type,array_column($list[$date_key]['data'],'type'));
+                        if ($type_key !== false){
+                            $list[$date_key]['data'][$type_key]['total']   +=1;
+                            $list[$date_key]['data'][$type_key]['total_fee']   +=  $trail->fee;
                         }else{
-                            $list[$curr][$sum_key]['total'] +=  $trail->total;
+                            $list[$date_key]['data'][] = [
+                                'type'  => $trail->type,
+                                'total' =>  1,
+                                'total_fee' =>  $trail->fee
+                            ];
                         }
+
+                    }else{
+                        $list[] = [
+                            "date"  =>  $trail->date,
+                            "data"  => [
+                                [
+                                    'type'  => $trail->type,
+                                    'total' =>  1,
+                                    'total_fee' =>  $trail->fee
+                                ]
+                            ]
+                        ];
                     }
                 }
-                if(empty($list[$curr])){
-                    $list[$curr] = [];
+            }else{//pc端数据
+                foreach ($trails as $trail){
+                    $total_fee += $trail->fee;
+                    if (isset($list[$trail->date])){
+                        $type_key = array_search($trail->type,array_column($list[$trail->date],'type'));
+                        if ($type_key === false){
+                            $list[$trail->date][] = [
+                                'type'  =>  $trail->type,
+                                'total' =>  1,
+                                'total_fee' =>  $trail->fee,
+                            ];
+                        }else{
+                            $list[$trail->date][$type_key]['total'] += 1;
+                            $list[$trail->date][$type_key]['total_fee'] += $trail->fee;
+                        }
+                        $num_key = array_search('sum',array_column($list[$trail->date],'type'));
+                        if ($num_key === false){
+                            $list[$trail->date][] = [
+                                'total' =>   1,
+                                'type'  =>  'num'
+                            ];
+                        }else{
+                            $list[$trail->date][$num_key]['total'] += 1;
+                        }
+                    }else{
+                        $list[$trail->date][] = [
+                            'type'  =>  $trail->type,
+                            'total' =>  1,
+                            'total_fee' =>  $trail->fee,
+                        ];
+                        $list[$trail->date][] = [
+                            'total' =>   1,
+                            'type'  =>  'sum'
+                        ];
+                    }
                 }
             }
+
         return
             [
-                "sum"   =>  array_sum(array_column($trails->toArray(),'total')),
-                "total_fee" =>  array_sum(array_column($trails->toArray(),'total_fee')),
+                "sum"   =>  count($trails->toArray()),
+                "total_fee" =>  $total_fee,
                 "trails"   =>  $list
             ];
 

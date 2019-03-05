@@ -106,7 +106,7 @@ class Control extends Model
     {
         $property_value = $this->properties()->where('property_id', 503)->select('property_value')->first();
         if ($property_value)
-            return $property_value->property_value;
+            return 1;
         return null;
     }
 

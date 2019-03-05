@@ -102,6 +102,14 @@ class Control extends Model
         return 0;
     }
 
+    public function getIndefiniteShowAttribute()
+    {
+        $property_value = $this->properties()->where('property_id', 503)->select('property_value')->first();
+        if ($property_value)
+            return $property_value->property_value;
+        return null;
+    }
+
     public function enum()
     {
         return $this->hasMany(ControlEnums::class, 'form_control_id', 'form_control_id')->orderBy('sort_number')->select('enum_value');

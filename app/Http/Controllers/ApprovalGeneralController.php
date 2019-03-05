@@ -96,7 +96,7 @@ class ApprovalGeneralController extends Controller
         $payload = $request->all();
 
         $user = Auth::guard('api')->user();
-        $userId = 308;
+        $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;

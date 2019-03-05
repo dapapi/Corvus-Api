@@ -33,6 +33,9 @@ class FormControlTransformer extends TransformerAbstract
         if ($control->format)
             $arr['control_data_select_format'] = $control->format;
 
+        if ($control->indefinite_show)
+            $arr['indefinite_show'] = $control->indefinite_show;
+
         if (in_array($control->control_id, [82,84,85]))
             $arr['control_enums'] = $control->enum;
 

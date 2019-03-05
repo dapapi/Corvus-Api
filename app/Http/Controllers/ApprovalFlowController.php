@@ -751,6 +751,8 @@ class ApprovalFlowController extends Controller
             $instance = Project::where('project_number', $num)->first();
             if ($instance)
                 $creatorId = $instance->creator_id;
+            else
+                $creatorId = 0;
         } else {
             $creatorId = $instance->apply_id;
         }

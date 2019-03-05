@@ -175,19 +175,24 @@ class ScheduleController extends Controller
     public function all(Request $request)
     {
         $payload = $request->all();
-        if ($request->has('calendar_id')) {
-            $calendar_id = hashid_decode($payload['calendar_id']);
+        if ($request->has('calendars_id')) {
+            $calendars_id = [];
+            foreach ($payload['calendars_id'] as $calendar_id) {
+                $calendars_id[] = hashid_decode($payload['calendar_id']);
+            }
+
             $user = Auth::guard("api")->user();
 
             $calendars = Calendar::join('module_users as mu',function ($join){
                     $join->on('mu.moduleable_id','calendars.id')
                         ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
                 })
-                ->where('calendars.id',$calendar_id)
+                ->whereIn('calendars.id',$calendars_id)
                 ->where('privacy',Calendar::OPEN)
                 ->orWhere('calendars.creator_id',$user->id)
                 ->orWhere('mu.user_id',$user->id)
                 ->first();//查找艺人日历
+
             if($calendars) {//日历存在查找日程
                 $schedules = $calendars->schedules()
                     ->join('module_users as mu', function ($join) {

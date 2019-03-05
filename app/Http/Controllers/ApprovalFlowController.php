@@ -712,7 +712,7 @@ class ApprovalFlowController extends Controller
         else {
             if ($form->change_type == 223) {
                 $chain = ChainFree::where('form_number', $num)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, 245];
+                $arr = [$chain->next_id, 245, null];
             } else if ($form->change_type == 222) {
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count + 1)->first();
                 $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];

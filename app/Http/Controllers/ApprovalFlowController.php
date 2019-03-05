@@ -210,6 +210,7 @@ class ApprovalFlowController extends Controller
             return $this->response->errorBadRequest($exception->getMessage());
         }
 
+//        dd($this->getChainNext($instance, $now->current_handler_id, false, $now->principal_level));
         list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id, false, $now->principal_level);
         if ($nextId == 0)
             return $this->response->array(['data' => $array]);
@@ -712,7 +713,7 @@ class ApprovalFlowController extends Controller
         else {
             if ($form->change_type == 223) {
                 $chain = ChainFree::where('form_number', $num)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, 245];
+                $arr = [$chain->next_id, 245, null];
             } else if ($form->change_type == 222) {
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count + 1)->first();
                 $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];

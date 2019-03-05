@@ -712,7 +712,7 @@ class ApprovalFlowController extends Controller
         else {
             if ($form->change_type == 223) {
                 $chain = ChainFree::where('form_number', $num)->where('sort_number', $count + 1)->first();
-                $arr = [$chain->next_id, 245];
+                $arr = [$chain->next_id, 245, null];
             } else if ($form->change_type == 222) {
                 $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count + 1)->first();
                 $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];
@@ -747,7 +747,12 @@ class ApprovalFlowController extends Controller
     private function createOrUpdateHandler($num, $nextId, $type, $level = null, $status = 231)
     {
         $instance = Instance::where('form_instance_number', $num)->first();
-        $creatorId = $instance->apply_id;
+        if (is_null($instance)) {
+            $instance = Project::where('project_number', $num)->first();
+            $creatorId = $instance->creator_id;
+        } else {
+            $creatorId = $instance->apply_id;
+        }
         $principal = DepartmentPrincipal::where('user_id', $creatorId)->first();
         $flag = 0;
         if (!is_null($principal)) {

@@ -352,7 +352,7 @@ class ApprovalGeneralController extends Controller
     {
 
         $user = Auth::guard('api')->user();
-        $userId = $user->id;
+        $userId = 351;
         //查询个人
         $dataUser = DB::table('approval_flow_change as afc')//
         ->join('users as u', function ($join) {
@@ -383,7 +383,7 @@ class ApprovalGeneralController extends Controller
                     $query->where('afg.name',$payload['group_name']);
                 }
             })
-            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)->where('approver_type','!=',247)
+            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)->orwhere('afc.approver_type','!=',247)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
@@ -420,10 +420,9 @@ class ApprovalGeneralController extends Controller
                 }
             })
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)
-            ->where('approver_type',247)->where('role_users.user_id',$userId)
+            ->where('role_users.user_id',$userId)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
-
 
         $resArr = array_merge($dataUser, $dataUserInfo);
         return $resArr;

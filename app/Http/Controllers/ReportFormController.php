@@ -34,6 +34,10 @@ class ReportFormController extends Controller
         //默认分析7天
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+
+
+
+
         return (new ReportFormRepository())->salesFunnel($start_time,$end_time);
     }
     //销售线索报表

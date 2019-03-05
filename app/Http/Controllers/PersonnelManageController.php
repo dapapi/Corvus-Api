@@ -466,6 +466,8 @@ class PersonnelManageController extends Controller
             //
             if($position_id !=1){
                 $position = hashid_decode($payload['position_id']);
+            }else{
+                $position = 0;
             }
             $payload['position_id'] = $position;
             $user->update($payload);
@@ -734,7 +736,7 @@ class PersonnelManageController extends Controller
         $entry_status = isset($payload['entry_status']) ? $payload['entry_status'] : 1;
 
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $positions = User::orderBy('updated_at','desc')
+        $positions = User::orderBy('created_at','desc')
             ->where(function($query) use($request,$payload){
                 $query->where('entry_status',$payload['entry_status']);
             })->paginate($pageSize);

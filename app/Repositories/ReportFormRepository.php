@@ -452,8 +452,8 @@ class ReportFormRepository
             ->get();
 //        dd($trails->toArray());
 
-            $start_month = Carbon::parse(date("Y-m",strtotime($start_time)));
-            $end_moth = Carbon::parse(date("Y-m",strtotime($end_time)));
+            $start_month = Carbon::parse(date("Y-m-d",strtotime($start_time)));
+            $end_moth = Carbon::parse(date("Y-m-d",strtotime($end_time)));
             $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
 
             $list = [];
@@ -549,9 +549,9 @@ class ReportFormRepository
         $arr[] = ['t.created_at','>=',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['t.created_at','<=',Carbon::parse($end_time)->toDateString()];
         if($type != null){
-            $arr[] = ['d.id',$type];
+            $arr[] = ['t.type',$type];
         }
-        return (new Trail())->setTable("t")->from("trails as t")
+        $res = (new Trail())->setTable("t")->from("trails as t")
             ->leftJoin('industries as i',"i.id",'=','t.industry_id')
             ->where($arr)
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
@@ -560,6 +560,7 @@ class ReportFormRepository
                 DB::raw('count(t.id) as total'),
                 "i.name as industry_name"
             ]);
+        return $res;
     }
 
     /*********************************************项目报表*****************************************************/
@@ -759,8 +760,12 @@ class ReportFormRepository
             ->where(function ($query){
                 $query->where('s.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
                     ->orWhere('s.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);
-            })->where($arr)
-            ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT]);
+            })->where($arr);
+//        dd($query->select('p.id')->groupBy('p.id')->get()->toArray());
+        //计算影,视商务,综艺类型项目数量
+        $count = $query->selectRaw('count(p.id)')
+            ->whereIn('t.type',[Project::TYPE_MOVIE,Project::TYPE_VARIETY,Project::TYPE_ENDORSEMENT])->groupBy('p.type')->get();
+//        dd($count->toArray());
 
         $result1 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_MOVIE)//电影
@@ -1176,7 +1181,7 @@ class ReportFormRepository
      * @param $end_time
      * @param $sign_contract_status
      */
-    public function bloggerReport($start_time,$end_time,$sign_contract_status,$department,$target_star)
+    public function bloggerReport($start_time,$end_time,$sign_contract_status,$department,$trail_type,$project_type)
     {
         $arr[] = ['b.created_at','>=',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['b.created_at','<=',Carbon::parse($end_time)->toDateString()];
@@ -1184,8 +1189,14 @@ class ReportFormRepository
         if($department != null){
             $arr[] = ['d.id',$department];
         }
-        if($target_star != null){
-            $arr[] = ['s.id',$target_star];
+//        if($target_star != null){
+//            $arr[] = ['s.id',$target_star];
+//        }
+        if ($trail_type){
+            $arr[] = ['t.type',$trail_type];
+        }
+        if ($project_type){
+            $arr[] = ['p.type',$project_type];
         }
         //签约中
         if($sign_contract_status == SignContractStatus::SIGN_CONTRACTING){
@@ -1194,8 +1205,8 @@ class ReportFormRepository
                 ->leftJoin(DB::raw("({$sub_query->toSql()}) as op"),function ($join){
                     $join->on('op.logable_id','=','b.id')
                         ->where('op.logable_type','=',ModuleableType::BLOGGER)//可能有问题
-                     //   ->where('op.method','=',OperateEntity::UPDATED_AT);
-                    ->where('op.method','=',OperateLogMethod::FOLLOW_UP);
+                        //   ->where('op.method','=',OperateEntity::UPDATED_AT);
+                        ->where('op.method','=',OperateLogMethod::FOLLOW_UP);
                 })->leftJoin("blogger_types as bt","bt.id","b.type_id")
                 ->where($arr)
                 ->groupBy('b.id')
@@ -1204,41 +1215,42 @@ class ReportFormRepository
 //
 //            $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
 //        dd($sql_with_bindings);
-        }else{
-            //合同，预计订单收入，花费金额都没查呢
-            $bloggers = (new Blogger())->setTable("b")->from("bloggers as b")
-                ->leftJoin("module_users as mu",function ($join){
-                    $join->on('mu.moduleable_id','=','b.id')
-                        // 从 star 修改成  blogger    张
-                        ->where('mu.moduleable_type','=',ModuleableType::BLOGGER)//艺人
-                        // 从 star 修改成  blogger    张
-                        ->where('mu.type','=',ModuleUserType::PRODUCER);//制作人
-                })->leftJoin("department_user as du",'du.user_id','=','mu.user_id')
-                ->leftJoin('departments as d','d.id','=','du.department_id')
-                ->leftJoin("contracts as co",function ($join){
-                    $join->whereRaw("FIND_IN_SET(b.id,stars)")
-                        ->where('co.star_type','=','bloggers');
-                })
-                ->leftJoin("trail_star as ts",function ($join){
-                    $join->on('ts.starable_id','=','b.id')
-                        ->where('ts.starable_type','=',ModuleableType::BLOGGER)//艺人
-                        ->where('ts.type',TrailStar::EXPECTATION);//目标
-                })->leftJoin('trails as t','t.id','=','ts.trail_id')
-                ->leftJoin('projects as p','p.trail_id','=','t.id')
-                ->where($arr)
-                ->groupBy('b.id')
-//                       $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
-//        dd($sql_with_bindings);
-//
-                ->get([
-                    'b.id','b.nickname','t.fee','sign_contract_status',
-                    // 少了合同金额    花费金额
-                    DB::raw('sum(distinct t.fee) as total_fee'),
-                    DB::raw('sum(distinct co.contract_money) as total_contract_money'),
-                    DB::raw("count(ts.id) as trail_total"),
-                    DB::raw("count(p.id) as project_total"),
-                    DB::raw("GROUP_CONCAT(DISTINCT d.name) as department_name")
-                ]);
+        }else {
+
+            $bloggers = Blogger::select('id', 'nickname')->get();
+
+            foreach ($bloggers as $blogger) {
+                //获取博主的线索数量
+                $trail_num = $blogger->trail()->where(function ($query) use ($trail_type) {
+                    if ($trail_type)
+                        $query->where('trails.type', $trail_type);
+                })->count();
+                $trail_fee = $blogger->trail()->where(function ($query) use ($trail_type) {
+                    if ($trail_type)
+                        $query->where('trails.type', $trail_type);
+                })->sum('trails.fee');
+                //获取博主项目数量
+                $project_num = $blogger->setTable('b')->from("bloggers as b")
+                    ->leftJoin("trail_star as ts", function ($join) {
+                        $join->on('ts.starable_id', '=', 'b.id')
+                            ->where('ts.starable_type', '=', ModuleableType::BLOGGER)//艺人
+                            ->where('ts.type', TrailStar::EXPECTATION);//目标
+                    })->leftJoin('trails as t', 't.id', '=', 'ts.trail_id')
+                    ->leftJoin("projects as p", 'p.trail_id', 't.id')
+                    ->where(function ($query) use ($project_type) {
+                        if ($project_type)
+                            $query->where('p.type', $project_type);
+                    })->where('p.id', '!=', null)
+                    ->where('b.id', $blogger->id)
+                    ->count();
+                //获取合同金额
+                $contract_money = Contract::whereRaw("FIND_IN_SET($blogger->id,stars)")->sum('contract_money');
+
+                $blogger->trail_total = $trail_num;
+                $blogger->total_fee = $trail_fee;
+                $blogger->project_total = $project_num;
+                $blogger->total_contract_money = $contract_money;
+            }
         }
         return [
             "total" =>  count($bloggers),

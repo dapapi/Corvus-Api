@@ -56,86 +56,6 @@ class ScheduleController extends Controller
         $payload = $request->all();
         $user = Auth::guard("api")->user();
 
-//        if ($request->has('calendar_ids')) {
-//            foreach ($payload['calendar_ids'] as &$id) {
-//                $id = hashid_decode($id);
-//            }
-//            unset($id);
-//        }
-//        $schedules_list1 = [];
-//        if($request->has('material_ids')){
-//            //查当前登录用户在日程参与人但不在日历参与人的日程列表
-//            $sql = "SELECT cc.id,cc.participant_ids,ss.id as schedule_id,ss.participant_ids as schedule_participant_ids  from
-//                (
-//                  SELECT c.id,GROUP_CONCAT(mu.user_id) as participant_ids,c.deleted_at from calendars as c
-//                  LEFT JOIN module_users as mu on mu.moduleable_id = c.id and mu.moduleable_type = 'calendar'  GROUP BY c.id
-//                ) as cc
-//	            LEFT JOIN (
-//		          SELECT s.id,s.calendar_id,s.start_at,s.end_at,material_id,GROUP_CONCAT(mu2.user_id) as participant_ids,s.deleted_at from schedules as s
-//		          left join module_users as mu2 on mu2.moduleable_id = s.id and mu2.moduleable_type = 'schedule'  GROUP BY s.id
-//		        ) as ss on ss.calendar_id = cc.id
-//		         where (not FIND_IN_SET({$user->id},cc.participant_ids) or cc.participant_ids is null)
-//		         and FIND_IN_SET({$user->id},ss.participant_ids) and cc.deleted_at is null and ss.deleted_at is null";
-//            $where = " and ss.start_at > '".$payload['start_date']."' and ss.end_at < '".$payload['end_date']."'";
-//            if ($request->has('material_ids'))
-//                $where .= " and ss.material_id in (".implode($payload['material_ids'],",").")";
-//
-////        if ($request->has('calendar_ids'))  不应该限制日历
-////            $where .= " and ss.calendar_id in (".implode($payload['calendar_ids'],",").")";
-//            $sql .= $where;
-//            $schedules_list1 = array_column(DB::select($sql),'schedule_id');
-//        }
-//
-//
-//
-//
-//        $payload['start_date'] = $payload['start_date'].' 00:00:00';
-//        $payload['end_date'] = $payload['end_date'] . ' 23:59:59';
-//        $arr = [];
-//
-//        $schedules = Schedule::where(function ($query) use ($payload) {
-//            $query->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
-//        });
-//
-//        //->orWhere(function ($query) use ($payload) {
-//        //            $query->where('start_at', '<', $payload['start_date'])->where('end_at', '>', $payload['end_date']);
-//        //        })->orWhere(function ($query) use ($payload) {
-//        //            $query->where('end_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date']);
-//        //        })
-//        $schedules->where(function ($query) use ($request, $payload) {
-//            if ($request->has('material_ids'))
-//                $query->whereIn('material_id', $payload['material_ids']);
-//
-//            if ($request->has('calendar_ids'))
-//                $query->whereIn('calendar_id', $payload['calendar_ids']);
-//        });
-//
-//        //对查询进行限制
-//        //日程仅参与人可见
-//        $subquery = DB::table("schedules as s")->leftJoin('module_users as mu',function ($join){
-//            $join->on('mu.moduleable_id','s.id')
-//                ->where(DB::raw("mu.moduleable_type='".ModuleableType::SCHEDULE."'"));
-//        })->select('mu.user_id')->where(DB::raw("s.id=schedules.id"));
-//
-//         $schedules->where(function ($query)use ($user,$subquery){
-//             $query->where('privacy',Schedule::OPEN);
-//             $query->orWhere('creator_id',$user->id);
-//             $query->orWhere('privacy',Schedule::SECRET)->where(DB::raw("$user->id in ({$subquery->toSql()})"));
-//         })->mergeBindings($subquery);
-//
-////        dd($schedules->get()->toarray());
-//        $schedules_list2 = array_column($schedules->get()->toarray(),'id');
-//
-//        $schedules_list = array_unique(array_merge($schedules_list1,$schedules_list2));
-//        $schedules = Schedule::whereIn('id',$schedules_list)->get();
-//        return $this->response->collection($schedules, new ScheduleTransformer());
-
-        //1.查询日历下的日程
-        //1.1查询选取日历范围内的日程
-        //1.2查询仅参与人可见但是我是参与人的日程
-        //1.3查询仅参与人可见但是我是创建人的日程
-        //2.查询会议室下的日程
-        //2.1会议室先关的日程（不管是否参与人可见）
 
         /*--------------开始----------------------*/
         if ($request->has('calendar_ids')) {
@@ -254,21 +174,35 @@ class ScheduleController extends Controller
     public function all(Request $request)
     {
         $payload = $request->all();
-        if ($request->has('calendar_ids')) {
-            foreach ($payload['calendar_ids'] as &$id) {
-                $id = hashid_decode($id);
+        if ($request->has('calendars_id')) {
+            $calendars_id = [];
+            foreach ($payload['calendars_id'] as $calendar_id) {
+                $calendars_id[] = hashid_decode($payload['calendar_id']);
             }
-            unset($id);
 
+            $user = Auth::guard("api")->user();
 
-            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload) {
-                $query->where(function ($query) use ($payload) {
-                    $query->whereIn('calendar_id', $payload['calendar_ids']);
-                });
-            })
-                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-                ->get();
-            return $this->response->collection($schedules, new ScheduleTransformer());
+            $calendars = Calendar::join('module_users as mu',function ($join){
+                    $join->on('mu.moduleable_id','calendars.id')
+                        ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
+                })
+                ->whereIn('calendars.id',$calendars_id)
+                ->where('privacy',Calendar::OPEN)
+                ->orWhere('calendars.creator_id',$user->id)
+                ->orWhere('mu.user_id',$user->id)
+                ->first();//查找艺人日历
+
+            if($calendars) {//日历存在查找日程
+                $schedules = $calendars->schedules()
+                    ->join('module_users as mu', function ($join) {
+                        $join->on('mu.moduleable_id', 'schdules.id')
+                            ->whereRaw("mu.moduleable_type = '" . ModuleUserType::PARTICIPANT . "'");
+                    })
+                    ->where('schdules.privacy', Schedule::OPEN)
+                    ->orWhere('schdules.creator_id')
+                    ->orWhere('mu.user_id', $user->id);
+                    return $this->response->collection($schedules, new ScheduleTransformer());
+            }
         }
     }
 

@@ -1442,9 +1442,7 @@ class ApprovalFormController extends Controller
             $conditionId = null;
         }
 
-        $instance = Instance::where('form_instance_number', $num)->first();
-        $creatorId = $instance->apply_id;
-        $principal = DepartmentPrincipal::where('user_id', $creatorId)->first();
+        $principal = DepartmentPrincipal::where('user_id', $userId)->first();
         $flag = 0;
         if (!is_null($principal)) {
             $flag = 1;

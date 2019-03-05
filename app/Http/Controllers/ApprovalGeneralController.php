@@ -96,7 +96,7 @@ class ApprovalGeneralController extends Controller
         $payload = $request->all();
 
         $user = Auth::guard('api')->user();
-        $userId = $user->id;
+        $userId = 308;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
@@ -220,6 +220,7 @@ class ApprovalGeneralController extends Controller
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
+
             //查询二级主管
             $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
 
@@ -234,9 +235,13 @@ class ApprovalGeneralController extends Controller
                 })
                 ->join('department_principal as dp', function ($join) {
                     //$join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type', '=', 246);
-                    DB::raw("department_principal as `dp` on `dp`.`department_id` = (
-select department_pid from department_principal as dep 
-left join department_user as du on du.`department_id`=dep.`department_id` where du.user_id=afi.`apply_id`)");
+//                    DB::raw("department_principal as `dp` on `dp`.`department_id` = (
+//select department_pid from department_principal as dep
+//left join department_user as du on du.`department_id`=dep.`department_id` where du.user_id=afi.`apply_id`)");
+                    DB::raw("select dpl.`user_id` from department_user as dur 
+                        left join  departments as ds ON dur.`department_id`=ds.`id`
+                        left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
+                        where dur.`user_id`=afi.`apply_id`");
 
                 })
 
@@ -268,7 +273,21 @@ left join department_user as du on du.`department_id`=dep.`department_id` where 
                 ->orderBy('afi.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
-            $resArr = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
+            $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
+            $resArrInfo = json_decode(json_encode($resArrs), true);
+
+            if(empty($resArrInfo)){
+                $resArr = array();
+            }else{
+                $resArr = $this->array_unique_fb($resArrInfo);
+            }
+
+            $ctime_str = array();
+            foreach($resArr as $key=>$v){
+                $arr[$key]['ctime_str'] = strtotime($v['created_at']);
+                $ctime_str[] = $arr[$key]['ctime_str'];
+            }
+            array_multisort($ctime_str,SORT_DESC,$resArr);
 
         } else {
             $resArr = $this->thenApproval($request,$payload);
@@ -293,6 +312,39 @@ left join department_user as du on du.`department_id`=dep.`department_id` where 
 //            $value->id = hashid_encode($value->id);
 //        }
         return $arr;
+    }
+
+    function array_unique_fb($array2D)
+    {
+        foreach ($array2D as $k=>$v)
+        {
+            $v = join(",",$v);  //降维,也可以用implode,将一维数组转换为用逗号连接的字符串
+            $temp[$k] = $v;
+        }
+        $temp = array_unique($temp);    //去掉重复的字符串,也就是重复的一维数组
+        foreach ($temp as $k => $v)
+        {
+            $array=explode(",",$v);        //再将拆开的数组重新组装
+            $temp2[$k]["form_instance_number"] =$array[0];
+            $temp2[$k]["form_status"] =$array[1];
+            $temp2[$k]["form_instance_id"] =$array[2];
+            $temp2[$k]["form_id"] =$array[3];
+            $temp2[$k]["apply_id"] =$array[4];
+            $temp2[$k]["created_by"] =$array[5];
+            $temp2[$k]["created_at"] =$array[6];
+            $temp2[$k]["updated_by"] =$array[7];
+
+            $temp2[$k]["updated_at"] =$array[8];
+            $temp2[$k]["order_by"] =$array[9];
+            $temp2[$k]["group_name"] =$array[10];
+            $temp2[$k]["group_id"] =$array[11];
+            $temp2[$k]["name"] =$array[12];
+            $temp2[$k]["icon_url"] =$array[13];
+            $temp2[$k]["approval_status_name"] =$array[14];
+            $temp2[$k]["icon"] =$array[15];
+
+        }
+        return $temp2;
     }
 
     //获取已审批信息

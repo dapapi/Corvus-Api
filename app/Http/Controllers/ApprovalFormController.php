@@ -531,7 +531,7 @@ class ApprovalFormController extends Controller
 
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keywords')) {
-                    $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    $query->where('afb.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%');
                 }
                 if ($request->has('group_name')) {
                     $query->where('afg.name',$payload['group_name']);

@@ -458,17 +458,17 @@ class ApprovalFormController extends Controller
         $temp = array_unique($temp);    //去掉重复的字符串,也就是重复的一维数组
         foreach ($temp as $k => $v)
         {
-            $array=explode(",",$v);        //再将拆开的数组重新组装
-            $temp2[$k]["form_instance_number"] =$array[0];
-            $temp2[$k]["form_status"] =$array[1];
-            $temp2[$k]["title"] =$array[2];
-            $temp2[$k]["name"] =$array[3];
-            $temp2[$k]["created_at"] =$array[4];
-            $temp2[$k]["icon_url"] =$array[5];
-            $temp2[$k]["id"] =hashid_encode($array[6]);
-            $temp2[$k]["approval_status_name"] =$array[7];
-            $temp2[$k]["icon"] =$array[8];
-
+            $array=explode(",",$v);//再将拆开的数组重新组装
+            $temp2[$k]["id"] =hashid_encode($array[0]);;
+            $temp2[$k]["form_instance_number"] =$array[1];
+            $temp2[$k]["current_handler_type"] =$array[2];
+            $temp2[$k]["form_status"] =$array[3];
+            $temp2[$k]["title"] =$array[4];
+            $temp2[$k]["name"] =$array[5];
+            $temp2[$k]["icon_url"] =$array[6];
+            $temp2[$k]["created_at"] =$array[7];
+            $temp2[$k]["approval_status_name"] =$array[8];
+            $temp2[$k]["icon"] =$array[9];
         }
         return $temp2;
     }

@@ -174,6 +174,55 @@ class ApprovalContractController extends Controller
                 ->orderBy('ph.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at', 'ph.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
 
+
+
+            //查询二级主管
+            $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
+            ->join('approval_form_business as bu', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'bu.form_instance_number');
+            })
+                ->join('approval_flow_change as recode', function ($join) {
+                    $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
+                })
+                ->join('users as creator', function ($join) {
+                    $join->on('recode.change_id', '=', 'creator.id');
+                })
+                ->join('department_user as du', function ($join) {
+                    $join->on('creator.id', '=', 'du.user_id');
+                })
+                ->join('department_principal as dp', function ($join) {
+
+                    DB::raw("select dpl.`user_id` from department_user as dur 
+                        left join  departments as ds ON dur.`department_id`=ds.`id`
+                        left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
+                        where dur.`user_id`=afi.`apply_id`");
+                })
+
+                ->join('users as us', function ($join) {
+                    $join->on('recode.change_id', '=', 'us.id');
+                })
+                ->join('contracts as ph', function ($join) {
+                    $join->on('ph.form_instance_number', '=', 'bu.form_instance_number');
+                })
+                ->join("data_dictionaries as dds",function ($join){
+                    $join->on("dds.id",'=','afe.flow_type_id');
+                })
+                ->where(function ($query) use ($payload, $request) {
+                    if ($request->has('keywords')) {
+                        $query->where('ph.form_instance_number', 'LIKE', '%' . $payload['keywords'].'%')->orwhere('creator.name', 'LIKE', '%' . $payload['keywords'] . '%');
+                    }
+                })
+                ->where('dp.user_id', $userId)->where('afe.principal_level',2)
+                ->whereIn('afe.flow_type_id', $payload['status'])
+                ->orderBy('ph.created_at', 'desc')
+                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at', 'ph.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
+
+            $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
+
+            $resArrInfo = json_decode(json_encode($resArrs), true);
+
+
+
             $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
 
         } else {
@@ -239,7 +288,41 @@ class ApprovalContractController extends Controller
             ->groupBy('afb.form_instance_number')
             ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at', 'ph.id', 'afc.change_at','dds.icon','dds.name as approval_status_name')->get()->toArray();
 
-        return $dataUser;
+        //查询角色
+        //根据user_id 查询角色id
+
+        $dataUserInfo = DB::table('approval_flow_change as afc')
+            ->join('role_users', function ($join) {
+                $join->on('role_users.role_id', '=','afc.role_id');
+            })
+
+            ->join('contracts as ph', function ($join) {
+                $join->on('afc.form_instance_number', '=', 'ph.form_instance_number');
+            })
+            ->join('users as us', function ($join) {
+                $join->on('us.id', '=', 'ph.creator_id');
+            })
+            ->join('approval_form_business as afb', function ($join) {
+                $join->on('afb.form_instance_number', '=', 'afc.form_instance_number');
+            })
+            ->join("data_dictionaries as dds",function ($join){
+                $join->on("dds.id",'=','afb.form_status');
+            })
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                }
+                if ($request->has('group_name')) {
+                    $query->where('afg.name',$payload['group_name']);
+                }
+            })
+            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('role_users.user_id',$userId)
+            ->orderBy('afc.change_at', 'desc')
+            ->groupBy('afb.form_instance_number')
+            ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at', 'ph.id', 'afc.change_at','dds.icon','dds.name as approval_status_name')->get()->toArray();
+
+        $resArr = array_merge($dataUser, $dataUserInfo);
+        return $resArr;
     }
 
     public function myThenApproval(Request $request)

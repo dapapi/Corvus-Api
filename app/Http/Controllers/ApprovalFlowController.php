@@ -210,7 +210,6 @@ class ApprovalFlowController extends Controller
             return $this->response->errorBadRequest($exception->getMessage());
         }
 
-//        dd($this->getChainNext($instance, $now->current_handler_id, false, $now->principal_level));
         list($nextId, $type, $principalLevel) = $this->getChainNext($instance, $now->current_handler_id, false, $now->principal_level);
         if ($nextId == 0)
             return $this->response->array(['data' => $array]);

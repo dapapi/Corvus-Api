@@ -117,7 +117,8 @@ class ReportFormController extends Controller
         $target_star = $request->get('target_star',null);
         $target_star = $target_star == null ? null :hashid_decode($target_star);
         $department = $department == null ? null : hashid_decode($department);
-        return (new ReportFormRepository())->newProject($start_time,$end_time,$department,$target_star);
+        $client = $request->get("client",'pc');
+        return (new ReportFormRepository())->newProject($start_time,$end_time,$department,$target_star,$client);
     }
     //项目占比
     public function percentageOfProject(Request $request)
@@ -150,7 +151,8 @@ class ReportFormController extends Controller
     {
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        return (new ReportFormRepository())->clientAnalysis($start_time,$end_time);
+        $_client = $request->get('client','pc');
+        return (new ReportFormRepository())->clientAnalysis($start_time,$end_time,$_client);
     }
     public function starReport(Request $request)
     {

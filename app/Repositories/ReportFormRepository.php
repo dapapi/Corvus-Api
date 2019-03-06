@@ -701,7 +701,7 @@ class ReportFormRepository
      * @param null $target_star
      * @return mixed
      */
-    public function newProject($start_time,$end_time,$department=null,$target_star=null)
+    public function newProject($start_time,$end_time,$department=null,$target_star=null,$client='pc')
     {
         $arr[] = ['p.created_at','>=',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['p.created_at','<=',Carbon::parse($end_time)->toDateString()];
@@ -711,7 +711,7 @@ class ReportFormRepository
         if($target_star != null){
             $arr[] = ['s.id',$target_star];
         }
-        $peoject_list = (new Project())->setTable("p")->from("projects as p")
+        $project_list = (new Project())->setTable("p")->from("projects as p")
             ->leftJoin('users as u','u.id','=','p.principal_id')
             ->leftJoin('trails as t','t.id','=','p.trail_id')
             ->leftJoin('trail_star as ts',function ($join){
@@ -731,39 +731,66 @@ class ReportFormRepository
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->whereIn('p.type',[Project::TYPE_VARIETY,Project::TYPE_ENDORSEMENT,Project::TYPE_MOVIE])
             ->where($arr)
-            ->groupBy(DB::raw("p.type,DATE_FORMAT(p.created_at,'%Y-%m')"))
+            ->groupBy('p.id')
+//            ->groupBy(DB::raw("p.type,DATE_FORMAT(p.created_at,'%Y-%m')"))
             ->get([
-                DB::raw('count(distinct p.id) as total'),
+                'p.id',
                 DB::raw("DATE_FORMAT(p.created_at,'%Y-%m') as date"),
                 'p.type'
             ]);
-        $start_month = Carbon::parse($start_time);
-        $end_moth = Carbon::parse($end_time);
-        $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
+
         $list = [];
-        for ($i = 0;$i <= $diff;$i++){
-            $curr = $start_month->copy()->addMonth($i)->format('Y-m');
-            foreach ($peoject_list as $project){
-                if($project->date == $curr){
-                    $list[$curr][] = $project;
-                    $cloum = array_column($list[$curr],'type');
-                    $sum_key = array_search('sum',$cloum);
-                    if($sum_key === false){
-                        $list[$curr][] = [
-                            'total' => $project['total'],
-                            "type"  =>  "sum"
-                        ];
+        if ($client == "pc"){
+            foreach ($project_list as $project){
+                if (isset($list[$project->date])){
+                    $type_key = array_search($project->type,array_column($list[$project->date],'type'));
+                    if ($type_key !== false){
+                        $list[$project->date][$type_key]['total'] += 1;
                     }else{
-                        $list[$curr][$sum_key]['total'] +=  $project['total'];
+                        $list[$project->date][] = [
+                            'date'  =>  $project->date,
+                            'total' =>  1,
+                            'type'  =>  $project->type,
+                        ];
                     }
+                }else{
+                    $list[$project->date][] =
+                        [
+                            'date'  =>  $project->date,
+                            'total' =>  1,
+                            'type'  =>  $project->type,
+                        ];
                 }
             }
-            if(empty($list[$curr])){
-                $list[$curr] = [];
+        }else{
+            foreach ($project_list as $project){
+                $date_key = array_search($project->date,array_column($list,'date'));
+                if ($date_key !== false){
+                    $type_key = array_search($project->type,array_column($list[$date_key]['data'],'type'));
+                    if ($type_key !== false){
+                        $list[$date_key]['data'][$type_key]['total'] += 1;
+                    }else{
+                        $list[$date_key]['data'][] = [
+                            "type"  =>  $project->type,
+                            "total" =>  1
+                        ];
+                    }
+                }else{
+                    $list[] = [
+                        "date"  =>  $project->date,
+                        'data'  =>  [
+                            [
+                                "type"  =>  $project->type,
+                                "total" =>  1,
+                            ],
+                        ],
+                    ];
+                }
+
             }
         }
         return [
-            "sum"   => array_sum(array_column($peoject_list->toArray(),'total')),
+            "sum"   => count($project_list->toArray()),
             "data"  =>  $list
         ];
     }
@@ -801,65 +828,137 @@ class ReportFormRepository
             ->leftJoin('users as u','u.id','=','mu.user_id')
             ->leftJoin('department_user as du','du.user_id','=','u.id')
             ->leftJoin('departments as d','d.id','=','du.department_id')
-            ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id')
+//            ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id')
             ->where(function ($query){
                 $query->where('s.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
                     ->orWhere('s.sign_contract_status',SignContractStatus::ALREADY_TERMINATE_AGREEMENT);
-            })->where($arr);
-//        dd($query->select('p.id')->groupBy('p.id')->get()->toArray());
-        //计算影,视商务,综艺类型项目数量
-        $count = $query->selectRaw('count(p.id)')
-            ->whereIn('t.type',[Project::TYPE_MOVIE,Project::TYPE_VARIETY,Project::TYPE_ENDORSEMENT])->groupBy('p.type')->get();
-//        dd($count->toArray());
+            })->where($arr)->groupBy('p.id');
+//        dd($query->select('p.id','t.industry_id')->get()->toArray());
+        //影视线项目量
+//        $query1 = clone $query;
+//        $movie_count = $query1->where('p.type',Project::TYPE_MOVIE)->count();
+//        //综艺线项目量
+//        $query2 = clone $query;
+//        $varicty_count = $query2->where('p.type',Project::TYPE_VARIETY)->count();
+//        //商务项目数量
+//        $query3 = clone $query;
+//        $endorsement_count = $query3->where('p.type',Project::TYPE_ENDORSEMENT)->count();
+//        //计算线索总数量
+//        $sum = $movie_count + $varicty_count + $endorsement_count;
+        //获取商务类别项目各个行业的数量
+        $query4 = clone $query;
+        $project_endorsement = $query4->join('industries as i','t.industry_id','=','i.id')
+            ->select('p.id','i.id as industry_id','p.title','i.name as industry_name')->where('p.type',Project::TYPE_ENDORSEMENT)->get();
+        $endorsement_count = count($project_endorsement->toArray());
 
-        $result1 = $query->where(function ($query){
-            $query->where('p.type',Project::TYPE_MOVIE)//电影
-            ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
-        })->where('tfv.field_id',7)//影视类型
-        ->select(
-            DB::raw('DISTINCT p.id as project_id'),
-            DB::raw('count(DISTINCT p.id) as p_total'),
-            DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
-            'p.type','tfv.value'
-        )
-            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+        $endorsement_list = [];
+        //循环所有商业项目，计算各行业所占比例
+        foreach ($project_endorsement as $project){
+            $industry_id_key = array_search($project->industry_id,array_column($endorsement_list,'industry_id'));
+            if ($industry_id_key !== false){
+                $endorsement_list[$industry_id_key]['num']  +=  1;
+            }else{
+                $endorsement_list[] = [
+                    'industry_name' =>  $project->industry_name,
+                    'num'   =>   1,
+                    'industry_id'   =>  $project->industry_id,
+                ];
+            }
 
-        $result2 = $query->where(function ($query){
-            $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
-        })->where('tfv.field_id',40)//电影商务
-        ->select(
-            DB::raw('DISTINCT p.id as project_id'),
-            DB::raw('count(DISTINCT p.id) as p_total'),
-            DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
-            'p.type','tfv.value'
-        )
-            ->groupBy(DB::raw('p.type,tfv.value'))->get();
-        $result = array_merge($result1->toArray(),$result2->toArray());
-        $list = [];
-        $sum = array_sum(array_column($result,'p_total'));
-        foreach ($result as $value) {
-            unset($value['project_id']);
-            $type_key = array_search($value['type'], array_column($list, 'type'));
-            if ($type_key >= 0 && $type_key !== false) {
-                $value['per_p_total'] = floor(($value['p_total'] / $sum) * 10000) / 10000;
-                $list[$type_key]['type_total'] += $value['p_total'];
-                $list[$type_key]['value'][] = $value;
-                $list[$type_key]['per_type_total'] += $sum == 0 ? 0 : floor(($value['p_total'] / $sum) * 10000) / 10000;
-
-            } else {
-                $value['per_p_total'] = floor(($value['p_total'] / $sum) * 10000) / 10000;
-                $list[] = [
-                    'type_total' => $value['p_total'],
-                    'per_type_total' => $sum == 0 ? 0 : floor(($value['p_total'] / $sum) * 10000) / 10000,
-                    'type' => $value['type'],
-                    'type_name' => $value['type_name'],
-                    'value' => [$value]
-
+        }
+        //获取影视项目
+        $query5 = clone $query;
+        $project_move = $query5->select('p.id','tfv.field_id','tfv.value')
+            ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id')
+            ->where('p.type',Project::TYPE_MOVIE)
+            ->where('tfv.field_id',7)->get();
+        $movie_count = count($project_move->toArray());
+        $movie_list = [];
+        //循环影视项目，计算各行业所占比例
+        foreach ($project_move as $project){
+            $industry_key = array_search($project->value,array_column($movie_list,'industry_name'));
+            if ($industry_key !== false){
+                $movie_list[$industry_key]['num'] += 1;
+            }else{
+                $movie_list[] = [
+                    'industry_name' =>  $project->value,
+                    'num'   => 1,
                 ];
             }
         }
-
-        return $list;
+        //综艺项目
+        $query6 = clone $query;
+        $project_varicty = $query6->select('p.id','tfv.field_id','tfv.value')
+            ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id')
+            ->where('p.type',Project::TYPE_VARIETY)
+            ->where('tfv.field_id',31)->get();
+        $varicty_count = count($project_varicty->toArray());
+        $varicty_list = [];
+        //循环影视项目，计算各行业所占比例
+        foreach ($project_varicty as $project){
+            $industry_key = array_search($project->value,array_column($varicty_list,'industry_name'));
+            if ($industry_key !== false){
+                $varicty_list[$industry_key]['num'] += 1;
+            }else{
+                $varicty_list[] = [
+                    'industry_name' =>  $project->value,
+                    'num'   => 1,
+                ];
+            }
+        }
+        $sum = $movie_count + $varicty_count + $endorsement_count;
+        $res = [
+                "sum"   =>  $sum,"movie_count"  =>$movie_count,"movie_list" =>$movie_list,
+                "endorsement_count"=>$endorsement_count,"endorsement_list"=>$endorsement_list,"varicty_count"=>$varicty_count,"varicty_list"=>$varicty_list];
+        return $res;
+//        $result1 = $query->where(function ($query){
+//            $query->where('p.type',Project::TYPE_MOVIE)//电影
+//            ->orWhere('p.type',Project::TYPE_VARIETY);//综艺
+//        })->where('tfv.field_id',31)//影视类型
+//        ->select(
+//            DB::raw('DISTINCT p.id as project_id'),
+//            DB::raw('count(DISTINCT p.id) as p_total'),
+//            DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
+//            'p.type','tfv.value'
+//        )
+//            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+//
+//        $result2 = $query->where(function ($query){
+//            $query->where('p.type',Project::TYPE_ENDORSEMENT);//商务代言
+//        })->where('tfv.field_id',40)//电影商务
+//        ->select(
+//            DB::raw('DISTINCT p.id as project_id'),
+//            DB::raw('count(DISTINCT p.id) as p_total'),
+//            DB::raw("case p.type when 1 then '影视项目' when 2 then '综艺项目' when 3 then '商业代言' else '数据错误' end type_name"),
+//            'p.type','tfv.value'
+//        )
+//            ->groupBy(DB::raw('p.type,tfv.value'))->get();
+//        $result = array_merge($result1->toArray(),$result2->toArray());
+//        $list = [];
+//        $sum = array_sum(array_column($result,'p_total'));
+//        foreach ($result as $value) {
+//            unset($value['project_id']);
+//            $type_key = array_search($value['type'], array_column($list, 'type'));
+//            if ($type_key >= 0 && $type_key !== false) {
+//                $value['per_p_total'] = floor(($value['p_total'] / $sum) * 10000) / 10000;
+//                $list[$type_key]['type_total'] += $value['p_total'];
+//                $list[$type_key]['value'][] = $value;
+//                $list[$type_key]['per_type_total'] += $sum == 0 ? 0 : floor(($value['p_total'] / $sum) * 10000) / 10000;
+//
+//            } else {
+//                $value['per_p_total'] = floor(($value['p_total'] / $sum) * 10000) / 10000;
+//                $list[] = [
+//                    'type_total' => $value['p_total'],
+//                    'per_type_total' => $sum == 0 ? 0 : floor(($value['p_total'] / $sum) * 10000) / 10000,
+//                    'type' => $value['type'],
+//                    'type_name' => $value['type_name'],
+//                    'value' => [$value]
+//
+//                ];
+//            }
+//        }
+//
+//        return $list;
 
     }
     //客户报表
@@ -890,7 +989,7 @@ class ReportFormRepository
         ];
     }
     //客户分析
-    public function clientAnalysis($start_time,$end_time)
+    public function clientAnalysis($start_time,$end_time,$_client='pc')
     {
         $arr[] = ['created_at','>=',Carbon::parse($start_time)->toDateString()];
         $arr[]  =   ['created_at','<=',Carbon::parse($end_time)->toDateString()];
@@ -902,32 +1001,53 @@ class ReportFormRepository
                 'type',
                 DB::raw("DATE_FORMAT(created_at,'%Y-%m') as date")
             ]);
-        $start_month = Carbon::parse($start_time);
-        $end_moth = Carbon::parse($end_time);
-        $diff = $end_moth->diffInMonths($start_month);//计算两个时间相差几个月
         $list = [];
-        for ($i = 0;$i <= $diff;$i++){
-            $curr = $start_month->copy()->addMonth($i)->format('Y-m');
+        if ($_client == "pc"){
             foreach ($clients as $client){
-                if($client->date == $curr){
-                    $list[$curr][] = $client;
-                    $cloum = array_column($list[$curr],'type');
-                    $sum_key = array_search('sum',$cloum);
-                    if($sum_key === false){
-                        $list[$curr][] = [
-                            'total' => $client['total'],
-                            "type"  =>  "sum"
-                        ];
-                    }else{
-                        $list[$curr][$sum_key]['total'] +=  $client['total'];
-                    }
-
+                $list[$client->date][] = [
+                    'total' =>  $client->total,
+                    'type'  =>  $client->type,
+                    'date'  =>  $client->date
+                ];
+                $sum_key = array_search('sum',array_column($list[$client->date],'type'));
+                if ($sum_key !== false){
+                    $list[$client->date][$sum_key]['total'] += $client->total;
+                }else{
+                    $list[$client->date][] = [
+                        'total'   =>  $client->total,
+                        'type'    =>  'sum'
+                    ];
                 }
             }
-            if(empty($list[$curr])){
-                $list[$curr] = [];
+        }else{
+            foreach ($clients as $client){
+
+                $date_key = array_search($client->date,array_column($list,'date'));
+                if ($date_key !== false){
+                    $type_key = array_search($client->type,array_column($list[$date_key]['data'],'type'));
+                    if ($type_key !== false){
+                        $list[$date_key]['data'][$type_key]['total']   += $client->total;
+                    }else{
+                        $list[$date_key]['data'][] = [
+                                    'total' =>  $client->total,
+                                    'type'  =>  $client->type
+                                ];
+                    }
+                }else{
+                    $list[] = [
+                        'date'  =>  $client->date,
+                        'data'  => [
+                            [
+                                'total' =>  $client->total,
+                                'type'  =>  $client->type
+                            ]
+                        ]
+                    ];
+                }
             }
         }
+
+
 
         return [
             'total' =>  array_sum(array_column($clients->toArray(),'total')),
@@ -1067,14 +1187,11 @@ class ReportFormRepository
             ->leftJoin('departments as d','d.id','=','du.department_id')
             ->leftJoin('projects as p','p.trail_id','=','t.id')
             ->leftJoin('template_field_values as tfv','tfv.project_id','=','p.id')
-            ->groupBy('t.type','t.industry_id')
+//            ->groupBy('t.type','t.industry_id')
+                ->groupBy('s.id')
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->where($arr);
-
-//            ->whereRaw('t.id is not null')
-
-//            ->select(DB::raw('DISTINCT t.id,count(DISTINCT t.id) as total,t.type,t.industry_id'))
-//            ->get();
+        dd($query->select('s.id','s.name')->get()->toArray());
 
         $result1 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_MOVIE)//电影

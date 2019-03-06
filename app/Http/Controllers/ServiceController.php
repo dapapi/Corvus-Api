@@ -88,7 +88,6 @@ class ServiceController extends Controller
             Log::error($exception->getMessage());
             return $this->response->errorBadRequest('发送短信失败');
         }
-
         #保存验证码
         $requestToken->sms_code = $randomString;
         $requestToken->telephone = $telephone;
@@ -100,7 +99,7 @@ class ServiceController extends Controller
             return $this->response->errorInternal('缓存短信验证码失败');
         }
 
-        return $this->response->accepted('', '发送成功');
+        return $this->response->accepted('', ["message"=>'发送成功']);
     }
 
     public function getQiniuToken()

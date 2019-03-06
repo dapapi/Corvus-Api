@@ -854,14 +854,14 @@ class ReportFormRepository
         $endorsement_list = [];
         //循环所有商业项目，计算各行业所占比例
         foreach ($project_endorsement as $project){
-            $industry_id_key = array_search($project->industry_id,array_column($endorsement_list,'industry_id'));
-            if ($industry_id_key !== false){
-                $endorsement_list[$industry_id_key]['num']  +=  1;
+            $industry_key = array_search($project->industry_name,array_column($endorsement_list,'industry_name'));
+            if ($industry_key !== false){
+                $endorsement_list[$industry_key]['num']  +=  1;
             }else{
                 $endorsement_list[] = [
                     'industry_name' =>  $project->industry_name,
                     'num'   =>   1,
-                    'industry_id'   =>  $project->industry_id,
+//                    'industry_id'   =>  $project->industry_id,
                 ];
             }
 
@@ -907,9 +907,12 @@ class ReportFormRepository
             }
         }
         $sum = $movie_count + $varicty_count + $endorsement_count;
-        $res = [
-                "sum"   =>  $sum,"movie_count"  =>$movie_count,"movie_list" =>$movie_list,
-                "endorsement_count"=>$endorsement_count,"endorsement_list"=>$endorsement_list,"varicty_count"=>$varicty_count,"varicty_list"=>$varicty_list];
+        $res = ["sum"=>$sum,"type_cat"=>[
+                                ["count"  =>$movie_count,"list" =>$movie_list,'type'=>"影视"],
+                                ["count"=>$endorsement_count,"list"=>$endorsement_list,'type'=>"商业"],
+                                ["count"=>$varicty_count,"list"=>$varicty_list,"type"=>"综艺"]
+                            ]
+        ];
         return $res;
 //        $result1 = $query->where(function ($query){
 //            $query->where('p.type',Project::TYPE_MOVIE)//电影

@@ -792,7 +792,7 @@ class ApprovalFlowController extends Controller
         }
     }
 
-    private function storeRecord($num, $userId, $dateTime, $status, $approverType = null, $roleId = null, $comment = null)
+    private function storeRecord($num, $userId, $dateTime, $status, $comment = null, $approverType = null, $roleId = null)
     {
         try {
             if ($approverType != 245)

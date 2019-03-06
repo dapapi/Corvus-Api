@@ -282,11 +282,11 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $currentHandlerId = $this->verifyHandler($num, $userId);
+            list($currentHandlerId, $currentHandlerType) = $this->verifyHandler($num, $userId);
             //获取下一个审批人及审批人类型
             list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
 
-            $this->storeRecord($num, $userId, $now, 239, $comment, $type, $nextId);
+            $this->storeRecord($num, $userId, $now, 239, $comment, $currentHandlerId, $currentHandlerType);
 
             if ($nextId)
                 $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel);
@@ -409,8 +409,8 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->verifyHandler($num, $userId);
-            $this->storeRecord($num, $userId, $now, 240, $comment);
+            list($currentHandlerId, $currentHandlerType) = $this->verifyHandler($num, $userId);
+            $this->storeRecord($num, $userId, $now, 240, $comment, $currentHandlerId, $currentHandlerType);
 
             $this->createOrUpdateHandler($num, $userId, 245, null, 233);
 
@@ -461,8 +461,8 @@ class ApprovalFlowController extends Controller
 
         DB::beginTransaction();
         try {
-            $this->verifyHandler($num, $userId);
-            $this->storeRecord($num, $userId, $now, 241, $comment);
+            list($currentHandlerId, $currentHandlerType) = $this->verifyHandler($num, $userId);
+            $this->storeRecord($num, $userId, $now, 241, $comment, $currentHandlerId, $currentHandlerType);
 
             $this->createOrUpdateHandler($num, $nextId, 245);
             // 操作日志
@@ -792,7 +792,7 @@ class ApprovalFlowController extends Controller
         }
     }
 
-    private function storeRecord($num, $userId, $dateTime, $status, $comment = null, $approverType = null, $roleId = null)
+    private function storeRecord($num, $userId, $dateTime, $status, $comment = null, $roleId = null, $approverType = null)
     {
         try {
             if ($approverType != 245)
@@ -801,8 +801,8 @@ class ApprovalFlowController extends Controller
                     'change_id' => $userId,
                     'change_at' => $dateTime,
                     'change_state' => $status,
-                    'approver_type' => $approverType,
                     'role_id' => $roleId,
+                    'approver_type' => $approverType,
                     'comment' => $comment
                 ]);
             else
@@ -834,7 +834,7 @@ class ApprovalFlowController extends Controller
                 throw new ApprovalVerifyException('当前用户没权限进行该操作');
         }
 
-        return $now->current_handler_id;
+        return [$now->current_handler_id, $now->current_handler_type];
     }
 
     private function getValuesForCondition($formControlIds, $num, $value = null)

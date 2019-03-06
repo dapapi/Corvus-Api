@@ -271,7 +271,7 @@ class ApprovalFormController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
-        $userId = $user->id;
+        $userId = 8;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
@@ -326,7 +326,7 @@ class ApprovalFormController extends Controller
                 })
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 245)->where('u.id', $userId)
                 ->orderBy('ph.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at', 'ph.id','dds.name as approval_status_name','dds.icon')->get()->toArray();
+                ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
             //部门负责人
             $dataPrincipal = DB::table('approval_flow_execute as afe')//
@@ -359,7 +359,7 @@ class ApprovalFormController extends Controller
                 ->where('dp.user_id', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name', 'ph.created_at','creator.icon_url', 'ph.id','dds.name as approval_status_name','dds.icon')->get()->toArray();
+                ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
 
             //查询二级主管
@@ -401,7 +401,7 @@ class ApprovalFormController extends Controller
                 ->where('dp.user_id', $userId)->where('afe.principal_level',2)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name', 'ph.created_at','creator.icon_url', 'ph.id','dds.name as approval_status_name','dds.icon')->get()->toArray();
+                ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
             $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
 

@@ -310,11 +310,9 @@ class ApprovalContractController extends Controller
             })
             ->where(function ($query) use ($payload, $request) {
                 if ($request->has('keywords')) {
-                    $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                    $query->where('ph.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%');
                 }
-                if ($request->has('group_name')) {
-                    $query->where('afg.name',$payload['group_name']);
-                }
+
             })
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('role_users.user_id',$userId)
             ->orderBy('afc.change_at', 'desc')

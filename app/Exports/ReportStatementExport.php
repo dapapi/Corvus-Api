@@ -36,66 +36,66 @@ class ReportStatementExport implements  FromView
         );
     }
 
-    /**
-     * @return \Illuminate\Support\Collection
-     */
-    public function query()
-    {
-
-
-     $report =  Report::query();
-
-     return $report;
-
-
-
-    }
-    /**
-     * @param Blogger $blogger
-     * @return array
-     */
-    public function map($report): array
-    {
-        $request = $this->request;
-        //默认分析7天
-        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
-        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        $data =  (new ReportFormRepository())->CommercialFunnelReportFrom($start_time,$end_time);
-
-
-            return [
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                ''
-            ];
-
-
-
-    }
-
-
-    public function headings(): array
-    {
-
-
-                return [
-                    '',
-                    '',
-                    '接触数量',
-                    '数量占比',
-                    '接触同比增量',
-                    '达成数量',
-                    '达成环比增量',
-                    '达成同比增量',
-                    '客户转化率'
-
-
-                ];
-        }
+//    /**
+//     * @return \Illuminate\Support\Collection
+//     */
+//    public function query()
+//    {
+//
+//
+//     $report =  Report::query();
+//
+//     return $report;
+//
+//
+//
+//    }
+//    /**
+//     * @param Blogger $blogger
+//     * @return array
+//     */
+//    public function map($report): array
+//    {
+//        $request = $this->request;
+//        //默认分析7天
+//        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+//        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+//        $data =  (new ReportFormRepository())->CommercialFunnelReportFrom($start_time,$end_time);
+//
+//
+//            return [
+//                '',
+//                '',
+//                '',
+//                '',
+//                '',
+//                '',
+//                '',
+//                ''
+//            ];
+//
+//
+//
+//    }
+//
+//
+//    public function headings(): array
+//    {
+//
+//
+//                return [
+//                    '',
+//                    '',
+//                    '接触数量',
+//                    '数量占比',
+//                    '接触同比增量',
+//                    '达成数量',
+//                    '达成环比增量',
+//                    '达成同比增量',
+//                    '客户转化率'
+//
+//
+//                ];
+//        }
 
 }

@@ -122,7 +122,21 @@ class UserController extends Controller
         }catch (Exception $exception){
             $power['trail'] = "false";
         }
-        $user->power = $power;
+        $user->power = $power;//当前登录用户对6个模块的权限
+        //我的项目数
+        $my_project_number = 32;
+        //我的任务数
+        $my_task_number = 23;
+        //我的审批数
+        $my_approval_number = 30;
+        //待完成任务数
+        $my_wait_task_number = 50;
+        $user->my_number = [
+            'my_project_number' =>  $my_project_number,
+            'my_task_number'    =>  $my_task_number,
+            'my_approval_number'    =>  $my_approval_number,
+            'my_wait_task_number'   =>  $my_wait_task_number
+        ];
         return $this->response->item($user, new UserTransformer());
     }
     public function show(User $user)

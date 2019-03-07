@@ -146,6 +146,7 @@ class BloggerController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $blogger->power = "false";
         return $this->response->item($blogger, new BloggerTransformer());
     }
     public function recycleBin(Request $request)

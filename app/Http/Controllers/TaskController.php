@@ -346,6 +346,7 @@ class TaskController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $task->power = "true";
         return $this->response()->item($task, new TaskTransformer());
     }
 

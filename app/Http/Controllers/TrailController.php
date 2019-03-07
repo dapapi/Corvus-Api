@@ -837,6 +837,7 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $trail->power = "true";
         return $this->response->item($trail, new TrailTransformer());
     }
 

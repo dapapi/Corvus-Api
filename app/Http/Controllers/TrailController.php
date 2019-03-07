@@ -58,8 +58,11 @@ class TrailController extends Controller
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']))
-                $query->where('progress_status', $payload['status']);
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
+                $query->where('type', $payload['status']);
+            else if($request->has('status') && $payload['status'] == '3,4'){
+                $query->whereIn('type', [3,4]);
+            }
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -81,7 +84,7 @@ class TrailController extends Controller
             })->groupBy('trails.id')
             ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
@@ -822,7 +825,7 @@ class TrailController extends Controller
         $this->response->item($trail, new TrailTransformer());
     }
 
-    public function detail(Request $request, Trail $trail)
+    public function detail(Request $request, Trail $trail,ScopeRepository $repository)
     {
         $trail = $trail->searchData()->find($trail->id);
 
@@ -837,6 +840,16 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("/stars/{id}",'put',$role_list,$trail);
+            $trail->power = "true";
+        }catch (Exception $exception){
+            $trail->power = "false";
+        }
         return $this->response->item($trail, new TrailTransformer());
     }
 
@@ -951,7 +964,7 @@ class TrailController extends Controller
             })->groupBy('trails.id')
             ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
@@ -1032,7 +1045,7 @@ class TrailController extends Controller
 
         })->groupBy('trails.id')->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //               $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);

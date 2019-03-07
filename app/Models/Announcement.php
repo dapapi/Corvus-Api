@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Announcement extends Model
 {
     use SoftDeletes;
+    use OperateLogTrait;
     protected $table =  'announcement';
     protected $fillable = [
         'title', // 标题

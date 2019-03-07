@@ -80,15 +80,11 @@ class ScheduleRemind extends Command
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
         $now = Carbon::now();
-        echo $now->toDateTimeString();
-        //日程提醒
+        //查询开始时间大于当前时间的日程
         $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select('remind','id','title','creator_id','start_at')->get();
         foreach ($schdules->toArray() as $schdule){
-//            echo $schdule['title'];
             $remid_time = Carbon::createFromTimeString($schdule['start_at']);
-            echo $schdule['title'].": ".$remid_time->diffInMinutes($now)."\n";
             $flag = false; //是否发消息标志
-            echo $schdule['remind'];
             switch ($schdule['remind']){
                 case Schedule::REMIND_CURR://日程发生时
                     if ($remid_time->diffInMinutes($now) == 0){
@@ -131,6 +127,8 @@ class ScheduleRemind extends Command
                     }
                     break;
             }
+            Log::info($flag);
+            dump($flag);
             if($flag){
                 $user = User::find(config("app.schdule_user_id"));
                 //发消息

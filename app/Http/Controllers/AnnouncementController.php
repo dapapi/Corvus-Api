@@ -19,6 +19,7 @@ use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
+use App\Models\OperateLog;
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
@@ -159,7 +160,17 @@ class AnnouncementController extends Controller
     public function show(Request $request,Announcement $announcement)
     {
 
-
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $announcement,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $this->response->item($announcement, new AnnouncementTransformer());
 
     }
@@ -405,5 +416,63 @@ class AnnouncementController extends Controller
        // dd($this->response->item($department, new DepartmentTransformer()));
 
         return $department;
+    }
+    public function editReadflag(Request $request, Announcement $announcement)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array = [];
+        $arrayOperateLog = [];
+        if ($request->has('readflag')) {
+
+            $array['readflag'] = $payload['readflag'];
+            if ($array['readflag'] != empty($announcement->look)? 0 :1) {
+
+            } else {
+                unset($array['readflag']);
+            }
+        }
+        DB::beginTransaction();
+        try {
+            if($array['readflag'] ==  0){
+                $announcement->look->update(['status' => 2]);
+                $operate = new OperateEntity([
+                    'obj' => $announcement,
+                    'title' => '已读状态',
+                    'start' => 1,
+                    'end' => $array['readflag'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+            if($array['readflag'] ==  1){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $announcement,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::LOOK,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+            // 操作日志
+          //  event(new OperateLogEvent($arrayOperateLog));
+        } catch (Exception $e) {
+//            dd($e);
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
+
+        return $this->response->accepted();
+
+
+
     }
 }

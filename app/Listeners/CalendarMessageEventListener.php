@@ -64,7 +64,7 @@ class CalendarMessageEventListener
      */
     public function sendMessageWhenCreateSchedule()
     {
-        $subheading = $title = $this->user->name."邀请你参与了任务";
+        $subheading = $title = $this->user->name."邀请你参与了日程";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
 
         $this->sendMessage($title,$subheading,$send_to);

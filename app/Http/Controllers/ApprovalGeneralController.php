@@ -424,8 +424,48 @@ class ApprovalGeneralController extends Controller
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
-        $resArr = array_merge($dataUser, $dataUserInfo);
+        $resArrs = array_merge($dataUser, $dataUserInfo);
+        $resArrInfo = json_decode(json_encode($resArrs), true);
+
+        if(empty($resArrInfo)){
+            $resArr = array();
+        }else{
+            $resArr = $this->array_unique_tl($resArrInfo);
+        }
         return $resArr;
+    }
+
+    function array_unique_tl($array2D)
+    {
+        foreach ($array2D as $k=>$v)
+        {
+            $v = join(",",$v);  //降维,也可以用implode,将一维数组转换为用逗号连接的字符串
+            $temp[$k] = $v;
+        }
+        $temp = array_unique($temp);    //去掉重复的字符串,也就是重复的一维数组
+        foreach ($temp as $k => $v)
+        {
+            $array=explode(",",$v);        //再将拆开的数组重新组装
+            $temp2[$k]["form_instance_id"] =$array[0];
+            $temp2[$k]["form_id"] =$array[1];
+            $temp2[$k]["form_instance_number"] =$array[2];
+            $temp2[$k]["apply_id"] =$array[3];
+            $temp2[$k]["form_status"] =$array[4];
+            $temp2[$k]["created_by"] =$array[5];
+            $temp2[$k]["created_at"] =$array[6];
+            $temp2[$k]["updated_by"] =$array[7];
+
+            $temp2[$k]["updated_at"] =$array[8];
+            $temp2[$k]["order_by"] =$array[9];
+            $temp2[$k]["name"] =$array[10];
+            $temp2[$k]["icon_url"] =$array[11];
+            $temp2[$k]["group_name"] =$array[12];
+            $temp2[$k]["group_id"] =$array[13];
+            $temp2[$k]["approval_status_name"] =$array[14];
+            $temp2[$k]["icon"] =$array[15];
+
+        }
+        return $temp2;
     }
 
 

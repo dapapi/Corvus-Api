@@ -687,6 +687,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
         //经济合同
         $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');
+        //合同归档
+        $api->get('/approval_instances/{contract}/archive', 'App\Http\Controllers\ApprovalContractController@archive');
 
         //项目详情合同列表
         $api->get('/approvals_contract/projectList','App\Http\Controllers\ApprovalContractController@projectList');

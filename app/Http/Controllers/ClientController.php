@@ -19,6 +19,7 @@ use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\Repositories\FilterReportRepository;
+use App\Repositories\ScopeRepository;
 use App\TriggerPoint\ClientTriggerPoint;
 use App\User;
 use Carbon\Carbon;
@@ -186,7 +187,7 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request, Client $client)
+    public function detail(Request $request, Client $client,ScopeRepository $repository)
     {
         $client = $client->searchData()->find($client->id);
         if($client == null){
@@ -203,7 +204,16 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $client->power = "false";
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("/stars/{id}",'put',$role_list,$client);
+            $client->power = "true";
+        }catch (Exception $exception){
+            $client->power = "false";
+        }
         return $this->response->item($client, new ClientTransformer());
     }
 

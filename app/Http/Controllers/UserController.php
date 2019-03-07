@@ -117,7 +117,7 @@ class UserController extends Controller
 
         //获取对线索新增权限
         $res = $this->response->item($user, new UserTransformer());
-        return $res->addMeta(["power" => $power]);
+        return $res->addMeta('power',$power);
     }
     public function show(User $user)
     {

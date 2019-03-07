@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Contract\ContractArchiveRequest;
 use App\Http\Transformers\ContractApprovalTransformer;
 use App\Http\Transformers\ContractTransformer;
 use App\Models\ApprovalForm\Business;
+use App\Models\Contract;
+use App\Models\ContractArchive;
 use App\Models\DataDictionarie;
 use App\Models\RoleUser;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class ApprovalContractController extends Controller
@@ -747,4 +752,41 @@ class ApprovalContractController extends Controller
         return $arr;
     }
 
+    public function archive(ContractArchiveRequest $request, $instance)
+    {
+        $payload = $request->all();
+        $comment = null;
+        if ($request->has('comment'))
+            $comment = $payload['comment'];
+
+        $files = $payload['files'];
+        $data = [];
+        foreach ($files as $file) {
+            array_push($data, [
+                'archive' => $file['fileUrl'],
+                'file_name' => $file['fileName'],
+                'size' => $file['fileSize'],
+            ]);
+        }
+
+        $user = Auth::guard('api')->user();
+
+        DB::beginTransaction();
+        try {
+            ContractArchive::create($data);
+            $instance->contract()->upadte([
+                'status' => Contract::STATUS_ARCHIVED,
+                'comment' => $comment,
+                'updater_id' => $user->id,
+                'updater_name' => $user->name,
+            ]);
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('创建归档失败');
+        }
+        DB::commit();
+
+        return $this->response->accepted(null, '归档成功');
+    }
 }

@@ -28,10 +28,10 @@ trait OperateLogTrait
     }
     public function getLookAttribute()
     {
-        $look = $this->operateLogs()->where('method', OperateLogMethod::LOOK)->orderBy('created_at', 'desc')->first();
+        $look = $this->operateLogs()->where('method', OperateLogMethod::LOOK)->where('status',1)->orderBy('created_at', 'desc')->first();
 
         if ($look)
-            return $look->content;
+            return $look;
         else
             return null;
     }

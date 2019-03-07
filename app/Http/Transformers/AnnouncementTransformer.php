@@ -25,7 +25,7 @@ class AnnouncementTransformer extends TransformerAbstract
            // 'scope' => $announcement->scope,   //公告范围
             'classify' => hashid_encode($announcement->classify),  //分类  1 规则制度   2 内部公告
             'desc' => $announcement->desc, //输入内容
-            'readflag' => empty($announcement->look)? $announcement->readflag :1, //默认 0  未读  1 读
+            'readflag' => empty($announcement->look)? 0 :1, //默认 0  未读  1 读
             'is_accessory' => $announcement->is_accessory, //是否选择附件  默认  0   无附件    1 有附件
             'accessory' => $announcement->accessory, //附件
             'accessory_name'=> $announcement->accessory_name,

@@ -48,6 +48,7 @@ use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
+use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
 use App\User;
 use Exception;
@@ -776,10 +777,20 @@ class ProjectController extends Controller
         return $this->response->accepted();
     }
 
-    public function detail(Request $request, $project)
+    public function detail(Request $request, $project,ScopeRepository $repository)
     {
         $type = $project->type;
-        $project->power = "true";
+        //登录用户对艺人编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("/stars/{id}",'put',$role_list,$project);
+            $project->power = "true";
+        }catch (Exception $exception){
+            $project->power = "false";
+        }
+
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;

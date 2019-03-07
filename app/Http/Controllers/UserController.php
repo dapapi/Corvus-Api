@@ -8,6 +8,8 @@ use App\Http\Requests\BindTelephoneRequest;
 use App\Http\Transformers\UserTransformer;
 use App\Models\Department;
 use App\Models\RequestVerityToken;
+use App\Models\RoleUser;
+use App\Repositories\ScopeRepository;
 use App\Repositories\UserRepository;
 use App\User;
 use Carbon\Carbon;
@@ -67,11 +69,55 @@ class UserController extends Controller
         return  $arr;
     }
 
-    public function my(Request $request)
+    public function my(Request $request,ScopeRepository $repository)
     {
         $user = Auth::guard('api')->user();
+        $power = [];
+        //获取当前用户所有角色
+        $role_ids = RoleUser::where('user_id',$user->id)->pluck('role_id')->all();
+        //获取对艺人新增权限
+        try{
+            $repository->checkPower("stars",'post',$role_ids,null);
+            $power['star'] = "true";
+        }catch (Exception $exception){
+            $power['star'] = "false";
+        }
 
-        return $this->response->item($user, new UserTransformer());
+        //获取对项目新增权限
+        try{
+            $repository->checkPower("projects",'post',$role_ids,null);
+            $power['project'] = "true";
+        }catch (Exception $exception){
+            $power['project'] = "false";
+        }
+
+        //获取对博主新增权限
+        try{
+            $repository->checkPower("bloggers",'post',$role_ids,null);
+            $power['blogger'] = "true";
+        }catch (Exception $exception){
+            $power['blogger'] = "false";
+        }
+
+        //获取对任务新增权限
+        try{
+            $repository->checkPower("tasks",'post',$role_ids,null);
+            $power['task'] = "true";
+        }catch (Exception $exception){
+            $power['task'] = "false";
+        }
+
+        //获取对客户新增权限
+        try{
+            $repository->checkPower("clients",'post',$role_ids,null);
+            $power['client'] = "true";
+        }catch (Exception $exception){
+            $power['client'] = "false";
+        }
+
+        //获取对线索新增权限
+        $res = $this->response->item($user, new UserTransformer());
+        return $res->addMeta(["power" => $power]);
     }
     public function show(User $user)
     {

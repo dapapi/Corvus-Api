@@ -27,81 +27,72 @@ class ReportFormController extends Controller
     //商务报表报表导出
     public function reportExport(Request $request)
     {
-        //$file = '当前商务报表报表导出' . date('YmdHis', time()) . '.xlsx';
-      //  return Excel::download(new ReportStatementExport($request), 'invoices.xlsx');
-      //  return (new ReportStatementExport($request))->download($file);
-        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
-        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        $dataArray = (new ReportFormRepository())->CommercialFunnelReportFrom($start_time,$end_time);
-        $filename = '当前商务报表报表导出' . date('YmdHis', time()) ;
-      //  $filename = iconv('UTF-8',"GB2312//IGNORE",$filename);
-        $filename = 444;
-        header("Content-type:application/octet-stream");
-        header("Accept-Ranges:bytes");
-        header("Content-type:application/vnd.ms-excel");
-        header('Content-type: xls/csv');
-        header("Content-Disposition:attachment;filename=aa.xls");
-        header("Pragma: no-cache");
-        header("Expires: 0");
-        header("Access-Control-Allow-Origin:*");
-//        header('Content-Type: application/octet-stream');
-//        header("Content-type: application/vnd.ms-excel; charset=gbk");
-        Header("Access-Control-Allow-Credentials:true");
-//        header('Cache-Control: max-age=0');
-//        header("Content-Disposition: attachment; filename=".$filename.".xls");
-
-
-        $data = '';
-        $data .= "<table border='1'>";
-        $data .= "<tr><td colspan='1'>     </td><td colspan='1'>       </td><td colspan='1'>接触数量 </td><td colspan='1'>数量占比</td><td colspan='1'>接触环比增量</td><td colspan='1'>接触同比增量</td><td colspan='1'>达成数量</td>
-         <td colspan='1'>达成环比增量 </td><td colspan='1'>达成同比增量 </td><td colspan='1'>客户转化率 </td></tr>";
-        $data .= "<tr><td colspan='1'>     </td><td colspan='1'>       </td><td colspan='1'>".$dataArray['sum']."</td><td colspan='1'>".$dataArray['ratio_sum']*100..'%'."</td><td colspan='1'>".$dataArray['ring_ratio_increment_sum']."</td><td colspan='1'>".$dataArray['annual_ratio_increment_sum']."</td>
-         <td colspan='1'>".$dataArray['confirm_annual_increment_sum']."</td><td colspan='1'>".$dataArray['confirm_ratio_increment_sum']." </td><td colspan='1'>".$dataArray['confirm_sum']." </td><td colspan='1'>".$dataArray['customer_conversion_rate_sum']*100..'%' ." </td></tr>";
-        $data .= "</table>";
-        $data .= "<br>";
-        foreach($dataArray['data']['industry_data'] as $key => $val)
-        {
-
-            $key = $key==0?'品类':'';
-            $data .= "<table border='1'>";
-            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
-         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";      $data .= "</table>";
-            $data .= "<br>";
-        }
-        foreach($dataArray['data']['cooperation_data'] as $key => $val)
-        {
-            $key = $key==0?'合作':'';
-            $data .= "<table border='1'>";
-            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
-         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";
-            $data .= "</table>";
-            $data .= "<br>";
-        }
-        foreach($dataArray['data']['resource_type_data'] as $key => $val)
-        {
-            $key = $key==0?'线索来源':'';
-            $data .= "<table border='1'>";
-            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
-         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";     $data .= "</table>";
-            $data .= "<br>";
-        }
-        foreach($dataArray['data']['priority_data'] as $key => $val)
-        {
-            $key = $key==0?'优先级':'';
-            $data .= "<table border='1'>";
-            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
-         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";     $data .= "</table>";
-            $data .= "<br>";
-        }
-        $data.='</table>';
-    //    dd($data);
-//        if (EC_CHARSET != 'gbk')
+        $file = '当前商务报表报表导出' . date('YmdHis', time()) . '.xlsx';
+        return Excel::download(new ReportStatementExport($request), $file);
+           // 原生导出  成 xls
+//        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+//        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+//        $dataArray = (new ReportFormRepository())->CommercialFunnelReportFrom($start_time,$end_time);
+//        $dataTime = date('YmdHis', time());
+//        $filename = '当前商务报表报表导出' . $dataTime;
+//
+//        header("Content-Type: application/vnd.ms-excel;charset=utf-8");
+//        header("Accept-Ranges:bytes");
+//        header("Content-type:application/vnd.ms-excel");
+//
+//        header("Content-type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+//        $filename = rawurlencode($filename);
+//        header("Content-Disposition:attachment;filename =$dataTime.xlsx;filename*=utf-8''$filename.xls");
+//        header("Cache-Control: public");
+//        header("Expires: 0");
+//        header("Access-Control-Allow-Origin:*");
+//        Header("Access-Control-Allow-Credentials:true");
+//
+//        $data = '';
+//        $data .= "<table border='1'>";
+//        $data .= "<tr><td colspan='1'>     </td><td colspan='1'>       </td><td colspan='1'>接触数量 </td><td colspan='1'>数量占比</td><td colspan='1'>接触环比增量</td><td colspan='1'>接触同比增量</td><td colspan='1'>达成数量</td>
+//         <td colspan='1'>达成环比增量 </td><td colspan='1'>达成同比增量 </td><td colspan='1'>客户转化率 </td></tr>";
+//        $data .= "<tr><td colspan='1'>     </td><td colspan='1'>       </td><td colspan='1'>".$dataArray['sum']."</td><td colspan='1'>".$dataArray['ratio_sum']*100..'%'."</td><td colspan='1'>".$dataArray['ring_ratio_increment_sum']."</td><td colspan='1'>".$dataArray['annual_ratio_increment_sum']."</td>
+//         <td colspan='1'>".$dataArray['confirm_annual_increment_sum']."</td><td colspan='1'>".$dataArray['confirm_ratio_increment_sum']." </td><td colspan='1'>".$dataArray['confirm_sum']." </td><td colspan='1'>".$dataArray['customer_conversion_rate_sum']*100..'%' ." </td></tr>";
+//        $data .= "</table>";
+//        $data .= "<br>";
+//        foreach($dataArray['data']['industry_data'] as $key => $val)
 //        {
-//            echo yzy_iconv(EC_CHARSET, 'gbk', $data) . "\t";
+//
+//            $key = $key==0?'品类':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";      $data .= "</table>";
+//            $data .= "<br>";
 //        }
-//        else {
-        echo $data . "\t";
-        //  }
+//        foreach($dataArray['data']['cooperation_data'] as $key => $val)
+//        {
+//            $key = $key==0?'合作':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";
+//            $data .= "</table>";
+//            $data .= "<br>";
+//        }
+//        foreach($dataArray['data']['resource_type_data'] as $key => $val)
+//        {
+//            $key = $key==0?'线索来源':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";     $data .= "</table>";
+//            $data .= "<br>";
+//        }
+//        foreach($dataArray['data']['priority_data'] as $key => $val)
+//        {
+//            $key = $key==0?'优先级':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";     $data .= "</table>";
+//            $data .= "<br>";
+//        }
+//        $data.='</table>';
+//
+//        echo $data . "\t";
     }
     //商业漏斗分析报表---销售漏斗
     public function salesFunnel(CommercialFunnelRequest $request){

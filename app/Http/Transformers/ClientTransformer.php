@@ -39,6 +39,7 @@ class ClientTransformer extends TransformerAbstract
                 'last_follow_up_at' => $client->last_follow_up_at,
                 'last_updated_user' => $client->last_updated_user,
                 'last_updated_at' => $client->last_updated_at,
+                'power' =>  $client->power,//对客户编辑权限
             ];
         } else {
             $array = [

@@ -105,6 +105,7 @@ class StarController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $star->power = "true";
         return $this->response->item($star, new StarTransformer());
     }
 

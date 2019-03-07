@@ -779,6 +779,7 @@ class ProjectController extends Controller
     public function detail(Request $request, $project)
     {
         $type = $project->type;
+        $project->power = "true";
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;

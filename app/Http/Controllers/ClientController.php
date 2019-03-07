@@ -203,6 +203,7 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $client->power = "false";
         return $this->response->item($client, new ClientTransformer());
     }
 

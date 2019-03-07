@@ -84,6 +84,7 @@ class ProjectTransformer extends TransformerAbstract
                 'last_follow_up_at' => $project->last_follow_up_at,
                 'last_updated_user' => $project->last_updated_user,
                 'last_updated_at' => $project->last_updated_at,
+                'power' =>  $project->power,
 
             ];
 

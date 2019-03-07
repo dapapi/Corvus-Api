@@ -1211,6 +1211,7 @@ class ApprovalFormController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('新建审批失败');
         }
+        DB::commit();
         //向知会人发消息
         $authorization = $request->header()['authorization'][0];
         $curr_user = Auth::guard('api')->user();
@@ -1246,7 +1247,6 @@ class ApprovalFormController extends Controller
             Log::error($e);
             DB::rollBack();
         }
-        DB::commit();
 
         return $this->response->created();
     }

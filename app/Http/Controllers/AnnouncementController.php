@@ -159,7 +159,17 @@ class AnnouncementController extends Controller
     public function show(Request $request,Announcement $announcement)
     {
 
-
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $announcement,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $this->response->item($announcement, new AnnouncementTransformer());
 
     }

@@ -84,7 +84,6 @@ class ClientProtected extends Command
         foreach ($clients as $client){
             $protected_client_time = Carbon::createFromTimeString($client->protected_client_time);
             if ($protected_client_time->diffInMinutes($now) == 5*24*60){
-//                Log::info("发送消息");
                 $user = User::find(config("app.schdule_user_id"));
                 //发消息
                 event(new ClientMessageEvent($client,ClientTriggerPoint::NORMAL_PROTECTED_EXPIRE,$authorization,$user));

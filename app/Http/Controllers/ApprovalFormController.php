@@ -1211,10 +1211,11 @@ class ApprovalFormController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('新建审批失败');
         }
+        DB::commit();
         //向知会人发消息
         $authorization = $request->header()['authorization'][0];
         $curr_user = Auth::guard('api')->user();
-//        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $curr_user));
+        event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $curr_user));
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $curr_user));
         // 发送消息
         DB::beginTransaction();
@@ -1246,7 +1247,6 @@ class ApprovalFormController extends Controller
             Log::error($e);
             DB::rollBack();
         }
-        DB::commit();
 
         return $this->response->created();
     }

@@ -7,10 +7,13 @@ use App\Exceptions\UserBadRequestException;
 use App\Http\Requests\BindTelephoneRequest;
 use App\Http\Transformers\UserTransformer;
 use App\Models\Department;
+use App\Models\Project;
 use App\Models\RequestVerityToken;
 use App\Models\RoleUser;
+use App\Models\Task;
 use App\Repositories\ScopeRepository;
 use App\Repositories\UserRepository;
+use App\TaskStatus;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -122,15 +125,15 @@ class UserController extends Controller
         }catch (Exception $exception){
             $power['trail'] = "false";
         }
-        $user->power = $power;//当前登录用户对6个模块的权限
-        //我的项目数
-        $my_project_number = 32;
+        $user->power = $power;
+        //我负责的项目数
+        $my_project_number = Project::where('principal_id',$user->id)->count();
         //我的任务数
-        $my_task_number = 23;
+        $my_task_number = Task::where('principal_id',$user->id)->count();
         //我的审批数
         $my_approval_number = 30;
         //待完成任务数
-        $my_wait_task_number = 50;
+        $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
         $user->my_number = [
             'my_project_number' =>  $my_project_number,
             'my_task_number'    =>  $my_task_number,

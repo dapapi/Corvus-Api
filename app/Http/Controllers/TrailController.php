@@ -825,7 +825,7 @@ class TrailController extends Controller
         $this->response->item($trail, new TrailTransformer());
     }
 
-    public function detail(Request $request, Trail $trail)
+    public function detail(Request $request, Trail $trail,ScopeRepository $repository)
     {
         $trail = $trail->searchData()->find($trail->id);
 
@@ -840,7 +840,16 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $trail->power = "true";
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("/stars/{id}",'put',$role_list,$trail);
+            $trail->power = "true";
+        }catch (Exception $exception){
+            $trail->power = "false";
+        }
         return $this->response->item($trail, new TrailTransformer());
     }
 

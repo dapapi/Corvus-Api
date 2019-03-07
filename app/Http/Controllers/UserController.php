@@ -116,8 +116,14 @@ class UserController extends Controller
         }
 
         //获取对线索新增权限
-        $res = $this->response->item($user, new UserTransformer());
-        return $res->addMeta('power',$power);
+        try{
+            $repository->checkPower("trails",'post',$role_ids,null);
+            $power['trail'] = "true";
+        }catch (Exception $exception){
+            $power['trail'] = "false";
+        }
+        $user->power = $power;
+        return $this->response->item($user, new UserTransformer());
     }
     public function show(User $user)
     {

@@ -27,6 +27,8 @@ class Contract extends Model
         'type',
         'stars',
         'star_type',
+        'status',
+        'comment',
         'updater_id',
         'updater_name',
     ];
@@ -66,5 +68,10 @@ class Contract extends Model
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');
+    }
+
+    public function archives()
+    {
+        return $this->hasMany(ContractArchive::class);
     }
 }

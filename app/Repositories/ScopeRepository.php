@@ -273,11 +273,11 @@ class ScopeRepository
                         if($model != null){
 
                             if(!$this->checkDataViewPower($model)){//检查用户对数据权限
-                                throw new NoRoleException("你没有查看{$resource->name}的权限");
+                                throw new NoRoleException("你没有{$resource->name}的权限");
                             }
                         }
                     }else{
-                        throw new NoRoleException("你没有查看{$resource->name}的权限！");
+                        throw new NoRoleException("你没有{$resource->name}的权限！");
                     }
 
                 }

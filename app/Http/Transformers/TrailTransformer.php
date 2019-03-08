@@ -26,11 +26,6 @@ class TrailTransformer extends TransformerAbstract
     private $project;
     private $user;
 
-//    public function __construct($isAll = true,$setprivacy = true)
-//    {
-//        $this->isAll = $isAll;
-//        $this->setprivacy = $setprivacy;
-//    }
 
     public function __construct($isAll = true, $project = null, $user = null)
     {
@@ -98,88 +93,6 @@ class TrailTransformer extends TransformerAbstract
             }
           }
 
-//            if($this->setprivacy){
-//                $array = [
-//                    'id' => hashid_encode($trail->id),
-//                    'title' => $trail->title,
-//                    'brand' => $trail->brand,
-//                    'industry_id' => is_null($trail->industry) ? null : hashid_encode($trail->industry->id),
-//                    'industry' => is_null($trail->industry) ? null : $trail->industry->name,
-//                    'resource_type' => $trail->resource_type,
-//                    'resource' => $trail->resource,
-//                    'type' => $trail->type,
-//                    'fee' => $trail->fee,
-//                    'priority' => $trail->priority,
-//                    'status' => $trail->status,
-//                    'progress_status' => $trail->progress_status,
-//                    'cooperation_type' => $trail->cooperation_type,
-//                    'desc' => $trail->desc,
-//                    'lock_status' => $trail->lock_status,
-//                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-//                    'lock_user' => $trail->lock_user,
-//                    'lock_at' => $trail->lock_at,
-//                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-//
-//                    'pool_type'=>$trail->pool_type,
-//                    'take_type'=>$trail->take_type,
-//                    // 日志内容
-//                    'last_follow_up_at' => $trail->last_follow_up_at,
-//                    'last_updated_user' => $trail->last_updated_user,
-//                    'last_updated_at' => $trail->last_updated_at,
-//                    'refused_at' => $trail->refused_at,
-//                    'refused_user' => $trail->refused_user,
-//                    'created_at' => $trail->created_at->toDatetimeString(),//时间去掉秒
-//                    'creator' => $trail->creator->name,
-//                ];
-//            }else{
-//                $array = [
-//                    'id' => hashid_encode($trail->id),
-//                    'title' => $trail->title,
-//                    'brand' => $trail->brand,
-//                    'industry_id' => hashid_encode($trail->industry->id),
-//                    'industry' => $trail->industry->name,
-//                    'resource_type' => $trail->resource_type,
-//                    'resource' => $trail->resource,
-//                    'type' => $trail->type,
-//                    'fee' => 'privacy',
-//                    //
-//
-//                    'priority' => $trail->priority,
-//                    'status' => $trail->status,
-//                    'progress_status' => $trail->progress_status,
-//                    'cooperation_type' => $trail->cooperation_type,
-//                    'desc' => $trail->desc,
-//                    'lock_status' => $trail->lock_status,
-//                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-//                    'lock_user' => $trail->lock_user,
-//                    'lock_at' => $trail->lock_at,
-//                    // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-//                    'pool_type'=>$trail->pool_type,
-//                    'take_type'=>$trail->take_type,
-//
-//                    // 日志内容
-//                    'last_follow_up_at' => $trail->last_follow_up_at,
-//                    'last_updated_user' => $trail->last_updated_user,
-//                    'last_updated_at' => $trail->last_updated_at,
-//                    'refused_at' => $trail->refused_at,
-//                    'refused_user' => $trail->refused_user,
-//                    'created_at' => $trail->created_at->formatLocalized('%Y-%m-%d %H:%I'),//时间去掉秒
-//                    'creator' => $trail->creator->name,
-//                ];
-//            }
-//            if(array_key_exists("fee", $array)){
-//                if($trail->lock_status){
-//                $user = Auth::guard('api')->user();
-//                $department_id = Department::where('name', '商业管理部')->first();
-//                if($department_id){
-//                $department_ids = Department::where('department_pid', $department_id->id)->get(['id']);
-//                $user_ids = DepartmentUser::wherein('department_id',$department_ids)->where('user_id',$user->id)->get(['user_id'])->toArray();
-//                if(!$user_ids){
-//                   unset($array['fee']);
-//                }
-//                }
-//              }
-//            }
         } else {
             $array = [
                 'id' => hashid_encode($trail->id),
@@ -235,7 +148,7 @@ class TrailTransformer extends TransformerAbstract
     {
         $client = $trail->client;
         if (!$client)
-            return null;
+            return $this->null();
 
         return $this->item($client, new ClientTransformer());
     }
@@ -244,7 +157,7 @@ class TrailTransformer extends TransformerAbstract
     {
         $contact = $trail->contact;
         if (!$contact)
-            return null;
+            return $this->null();
 
         return $this->item($contact, new ContactTransformer());
     }

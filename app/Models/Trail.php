@@ -98,11 +98,9 @@ class Trail extends Model
     public function scopeSearchData($query)
     {
         $user = Auth::guard("api")->user();
-        $extra = '';
         $userid = $user->id;
         $department_id =  $this::WORLDWIDE;
-        if($department_id) {
-            $department_ids = Department::where('department_pid', $this::WORLDWIDE)->get(['id']);
+            $department_ids = Department::where('department_pid', $department_id)->get(['id']);
             $is_papi = DepartmentUser::whereIn('department_id', $department_ids)->where('user_id',$userid)->get(['user_id'])->toArray();
             if($is_papi){
                 $user_list = DepartmentUser::whereIn('department_id', $department_ids)->get(['user_id'])->toArray();
@@ -114,15 +112,14 @@ class Trail extends Model
                 $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
                 $array['op'] =  'or';
                 $rules = $array;
-                $extras =(new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
-                $extra = $extras->get()->toArray();
+                $extras  = (new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');
+              //  dd($extras->get()->toArray());
+            }else{
+                $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
+                return (new SearchDataScope())->getCondition($query,$rules,$userid);
             }
-        }else{
             $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
-            return (new SearchDataScope())->getCondition($query,$rules,$userid);
-        }
-        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
-        return $this->orCondition($query,$rules);
+            return $this->orCondition($query,$rules);
 
     }
     public function orCondition($query,$rules)

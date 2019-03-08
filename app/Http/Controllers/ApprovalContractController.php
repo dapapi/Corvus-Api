@@ -755,6 +755,9 @@ class ApprovalContractController extends Controller
     public function archive(ContractArchiveRequest $request, Contract $contract)
     {
         $payload = $request->all();
+        if ($contract->status)
+            return $this->response->errorBadRequest('已经归档,不可重复归档');
+
         $comment = null;
         if ($request->has('comment'))
             $comment = $payload['comment'];
@@ -776,7 +779,7 @@ class ApprovalContractController extends Controller
 
         DB::beginTransaction();
         try {
-            ContractArchive::create($data);
+            $result = ContractArchive::insert($data);
             $contract->update([
                 'status' => Contract::STATUS_ARCHIVED,
                 'comment' => $comment,

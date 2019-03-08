@@ -752,7 +752,7 @@ class ApprovalContractController extends Controller
         return $arr;
     }
 
-    public function archive(ContractArchiveRequest $request, $instance)
+    public function archive(ContractArchiveRequest $request, Contract $contract)
     {
         $payload = $request->all();
         $comment = null;
@@ -763,6 +763,9 @@ class ApprovalContractController extends Controller
         $data = [];
         foreach ($files as $file) {
             array_push($data, [
+                'contract_id' => $contract->id,
+                'contract_number' => $contract->contract_number,
+                'form_instance_number' => $contract->form_instance_number,
                 'archive' => $file['fileUrl'],
                 'file_name' => $file['fileName'],
                 'size' => $file['fileSize'],
@@ -774,7 +777,7 @@ class ApprovalContractController extends Controller
         DB::beginTransaction();
         try {
             ContractArchive::create($data);
-            $instance->contract()->upadte([
+            $contract->update([
                 'status' => Contract::STATUS_ARCHIVED,
                 'comment' => $comment,
                 'updater_id' => $user->id,

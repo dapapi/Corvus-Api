@@ -24,8 +24,9 @@ class EditClientRequest extends FormRequest
      */
     public function rules()
     {
+        $company = request()->get('company',null);
         return [
-            'company' => 'nullable|unique:clients,company',
+            'company' => 'nullable|unique:clients,company,'.$company,
             'grade' => 'nullable|numeric',
             'type' => 'nullable|numeric',
             'province' => 'nullable',

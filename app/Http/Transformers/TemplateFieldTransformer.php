@@ -22,7 +22,7 @@ class TemplateFieldTransformer extends TransformerAbstract
             'key' => $field->key,
             'field_type' => $field->field_type,
         ];
-        if ($field->field_type == TemplateField::RADIO || $field->field_type == TemplateField::SELECT) {
+        if (in_array($field->field_type, [TemplateField::CHECKBOX, TemplateField::RADIO, TemplateField::SELECT])) {
             $array['content'] = explode('|', $field->content);
         }
 

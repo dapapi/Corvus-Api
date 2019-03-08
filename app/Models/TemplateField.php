@@ -27,6 +27,7 @@ class TemplateField extends Model
     const TIME_INTERVAL = 8; // 时间区间
     const DEPARTMENT = 10; // 选组织架构中的组
     const NUM = 11; // 纯数值
+    const CHECKBOX = 12;
 
     public function values()
     {

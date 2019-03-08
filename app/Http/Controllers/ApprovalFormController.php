@@ -763,6 +763,7 @@ class ApprovalFormController extends Controller
         return $this->response->item($approval, new ApprovalFormTransformer($num));
     }
 
+    // todo 增加归档详情内容
     private function getInstance($instance)
     {
         $num = $instance->form_instance_number;

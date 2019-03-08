@@ -800,6 +800,9 @@ class ApprovalFormController extends Controller
         if ($form->group_id == 2) {
             $contract = Contract::where('form_instance_number', $num)->first();
             $result->addMeta('contract', $contract->contract_number);
+            if ($contract->status) {
+
+            }
         }
 
         // todo 明细单列

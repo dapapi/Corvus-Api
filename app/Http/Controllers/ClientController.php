@@ -134,7 +134,7 @@ class ClientController extends Controller
             unset($payload['_url']);
 
         $columns = DB::getDoctrineSchemaManager()->listTableDetails('clients');
-        if ($request->has('principal_id'))
+        if ($request->has('principal_id') && !empty($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         try {

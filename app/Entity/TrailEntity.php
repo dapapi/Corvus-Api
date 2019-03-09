@@ -313,8 +313,11 @@ class TrailEntity
    public function get_resource()
    {
        if ($this->resource_type == 4 || $this->resource_type == 5){
-           $user = User::find($this->resource);
-           return $user == null ? null : $user->name;
+           if (!empty($this->resource)){
+               $user = User::find($this->resource);
+               return $user == null ? null : $user->name;
+           }
+           return null;
        }
        return $this->resource;
    }

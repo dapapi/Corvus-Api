@@ -42,10 +42,8 @@ class ModuleUserController extends Controller
         $payload = $request->all();
         if (!$request->has('person_ids') && !$request->has('del_person_ids'))
             return $this->response->noContent();
-
         $participantIds = $request->get('person_ids', []);//参与人或宣传人ID数组
         $participantDeleteIds = $request->get('del_person_ids', []);//参与人或宣传人删除ID数组
-
         DB::beginTransaction();
         try {
             $result = $this->moduleUserRepository->addModuleUser($participantIds, $participantDeleteIds, $model, $type);

@@ -126,7 +126,9 @@ class ModuleUserRepository
             $particalendarsIds[$key] = hashid_decode($value);
         }
 
-        $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->whereIn('user_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
+        $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])
+            ->where('moduleable_id', $array['moduleable_id'])->whereIn('user_id', $particalendarsIds)
+            ->where('type', $type)->get(['id'])->toArray();
         foreach ($participantDeleteIds as $key => &$participantDeleteId) {
             try {
                  $moduleUser = ModuleUser::where($participantDeleteId)->first();
@@ -147,7 +149,9 @@ class ModuleUserRepository
 
                 $participantUser = User::findOrFail($participantId);
                 $array['user_id'] = $participantUser->id;
-                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])->where('moduleable_id', $array['moduleable_id'])->where('user_id', $participantUser->id)->where('type', $type)->first();
+                $moduleUser = ModuleUser::where('moduleable_type', $array['moduleable_type'])
+                    ->where('moduleable_id', $array['moduleable_id'])
+                    ->where('user_id', $participantUser->id)->where('type', $type)->first();
                 if (!$moduleUser) {//不存在则添加
                     ModuleUser::create($array);
                 } else {//存在则从列表中删除

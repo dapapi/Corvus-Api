@@ -351,7 +351,7 @@ class TaskController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("/stars/{id}",'put',$role_list,$task);
+            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
             $task->power = "true";
         }catch (Exception $exception){
             $task->power = "false";

@@ -842,7 +842,7 @@ class TrailController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("/stars/{id}",'put',$role_list,$trail);
+            $repository->checkPower("trails/{id}",'put',$role_list,$trail);
             $trail->power = "true";
         }catch (Exception $exception){
             $trail->power = "false";

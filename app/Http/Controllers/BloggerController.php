@@ -152,7 +152,7 @@ class BloggerController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("/stars/{id}",'put',$role_list,$blogger);
+            $res = $repository->checkPower("bloggers/{id}",'put',$role_list,$blogger);
             $blogger->power = "true";
         }catch (Exception $exception){
             $blogger->power = "false";

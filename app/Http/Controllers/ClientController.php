@@ -209,7 +209,7 @@ class ClientController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("/stars/{id}",'put',$role_list,$client);
+            $repository->checkPower("clients/{id}",'put',$role_list,$client);
             $client->power = "true";
         }catch (Exception $exception){
             $client->power = "false";

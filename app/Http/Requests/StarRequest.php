@@ -79,4 +79,8 @@ class StarRequest extends FormRequest
             'affix.*.type' => ['required', Rule::in([AffixType::DEFAULT, AffixType::STAT_BULLETIN, AffixType::MONOLOGUE_VIDEO,AffixType::STAR_PLAN,AffixType::INTRODUCE_ONESELF,AffixType::OTHER])],
         ];
     }
+//    public function messages()
+//    {
+//        return [];
+//    }
 }

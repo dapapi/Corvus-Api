@@ -209,6 +209,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+        //分配制作人
+        $api->post('/bloggers/{blogger}/produser', 'App\Http\Controllers\ModuleUserController@addModuleUserProducer');
 
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //分配经纪人

@@ -204,6 +204,19 @@ class ModuleUserController extends Controller
     {
         return $this->add($request, $model, ModuleUserType::BROKER);
     }
+    /**
+     * 分配制作人
+     *
+     * @param ModuleUserRequest $request
+     * @param Task $task
+     * @param Project $project
+     * @param Star $star
+     * @return \Dingo\Api\Http\Response|void
+     */
+    public function addModuleUserProducer(ModuleUserRequest $request, $model)
+    {
+        return $this->add($request, $model, ModuleUserType::PRODUCER);
+    }
 
     public function remove(ModuleUserRequest $request, $model)
     {

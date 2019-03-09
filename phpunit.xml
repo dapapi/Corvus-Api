@@ -30,4 +30,10 @@
         <env name="QUEUE_DRIVER" value="sync"/>
         <env name="MAIL_DRIVER" value="array"/>
     </php>
+    <php>
+        <var name="DB_DSN" value="mysql:host=localhost;dbname=corvus"/>
+        <var name="DB_USER" value="root"></var>
+        <var name="DB_PASSWD" value="password"></var>
+        <var name="DB_DBNAME" value="curvus"></var>
+    </php>
 </phpunit>

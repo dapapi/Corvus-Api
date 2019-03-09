@@ -16,6 +16,7 @@ class StarProjectTransformer extends TransformerAbstract
             "company"  => $this->getCompanyName($project),
             "created_at"    =>  $project->created_at->toDateTimeString(),
             "contract_sharing_ratio"    =>  $project->contract_sharing_ratio,
+            "icon_url"  =>  $project->icon_url,
         ];
     }
     private function getPrincipalName($project)

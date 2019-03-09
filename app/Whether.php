@@ -12,7 +12,7 @@ abstract class Whether
 {
     const NO = 0;//否
     const YES = 1;//是
-    const NO_2 = 2;//否 为了适应前端在艺人里加了 2表示否
+    const NO2 = 2;//否 为了适应前端在艺人里加了 2表示否
 
 
     /**

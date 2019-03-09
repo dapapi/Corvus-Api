@@ -112,6 +112,9 @@ class ModuleUserRepository
         }else if($model instanceof Blogger && $model->id){
             $array['moduleable_type'] = ModuleableType::BLOGGER;
             $array['moduleable_id'] = $model->id;
+        }else if($model instanceof Star && $model->id){
+            $array['moduleable_type'] = ModuleableType::STAR;
+            $array['moduleable_id'] = $model->id;
         }
 
 

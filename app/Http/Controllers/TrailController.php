@@ -682,13 +682,16 @@ class TrailController extends Controller
 //                    }else{
 //                        $title = "关联目标艺人";
 //                    }
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => "关联目标艺人",
-                        'start' => $start,
-                        'end' => trim($end,","),
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
+                    if (!empty($start) || !empty($end)){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => "关联目标艺人",
+                            'start' => $start,
+                            'end' => trim($end,","),
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                    }
+
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
                     Log::error($e);

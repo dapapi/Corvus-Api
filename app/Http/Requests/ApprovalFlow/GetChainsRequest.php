@@ -30,6 +30,7 @@ class GetChainsRequest extends FormRequest
                 'nullable',
                 Rule::in([
                     222,
+                    223,
                     224,
                 ])
             ],

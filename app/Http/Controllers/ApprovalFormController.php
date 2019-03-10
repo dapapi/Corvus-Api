@@ -1070,6 +1070,7 @@ class ApprovalFormController extends Controller
             $groups = ApprovalGroup::where('id', $form_group_id)->orderBy('sort_number')->get();
         }else{
             $except_form_group_id = array_merge($default_except,[$except_form_group_id]);
+            $except_form_group_id = array_filter($except_form_group_id);
             $groups = ApprovalGroup::whereNotIn('id', $except_form_group_id)->orderBy('sort_number')->get();
         }
         return $this->response->collection($groups, new ApprovalGroupTransformer());

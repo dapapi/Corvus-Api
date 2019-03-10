@@ -25,17 +25,16 @@ class GeneralFormsRequest extends FormRequest
     public function rules()
     {
         return [
-
-            'form_group_id' =>  'array',
-            'except_form_group_id'  =>  'array'
+            'form_group_id' =>  'numeric',
+            'except_form_group_id'  =>  'numeric'
         ];
     }
 
     public function messages()
     {
         return [
-            "form_group_id.array"   =>  '参数错误',
-            'except_form_group_id.array'    =>  '参数错误'
+            "form_group_id.numeric"   =>  '参数错误',
+            'except_form_group_id.numeric'    =>  '参数错误'
         ];
     }
 }

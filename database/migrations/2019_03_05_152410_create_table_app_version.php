@@ -19,7 +19,7 @@ class CreateTableAppVersion extends Migration
             $table->float("version_code")->comment("版本号(内部)");
             $table->string("update_log")->nullable()->comment('版本描述');
             $table->integer("update_install")->comment("是否强制更新 1:强制 2:否");
-            $table->integer("download_url")->comment("下载地址");
+            $table->string("download_url")->comment("下载地址");
         });
     }
 

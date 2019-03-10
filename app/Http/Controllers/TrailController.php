@@ -939,7 +939,8 @@ class TrailController extends Controller
         }
         DB::commit();
 
-        return $this->response->accepted(null, '线索已拒绝');
+//        return $this->response->accepted(null, '线索已拒绝');
+        return $this->response->accepted();
     }
 
     public function filter(FilterTrailRequest $request)

@@ -333,7 +333,7 @@ class TaskController extends Controller
         return $request;
     }
 
-    public function show(Task $task)
+    public function show(Task $task,ScopeRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -346,7 +346,16 @@ class TaskController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $task->power = "true";
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $task->power = "true";
+        }catch (Exception $exception){
+            $task->power = "false";
+        }
         return $this->response()->item($task, new TaskTransformer());
     }
 

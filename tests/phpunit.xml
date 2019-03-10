@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpunit>
     <php>
-        <var name="DB_DSN" value="mysql:host=localhost;dbname=curvus"/>
+        <var name="DB_DSN" value="mysql:host=localhost;dbname=corvus"/>
         <var name="DB_USER" value="root"></var>
-        <var name="DB_PASSWD" value=""></var>
+        <var name="DB_PASSWD" value="password"></var>
         <var name="DB_DBNAME" value="curvus"></var>
     </php>
 </phpunit>

@@ -72,7 +72,8 @@ class ScheduleController extends Controller
             })->whereRaw("s.id=schedules.id")
                 ->select('mu.user_id');
 //->whereRaw("s.id=schedules.id")
-            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery) {
+            $schedules = Schedule::select('schedules.*')
+                ->where(function ($query) use ($payload, $user, $subquery) {
                 $query->where(function ($query) use ($payload) {
                     $query->where('privacy', Schedule::OPEN);
                     $query->whereIn('calendar_id', $payload['calendar_ids']);
@@ -85,7 +86,7 @@ class ScheduleController extends Controller
                 });
             })->mergeBindings($subquery)
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-                ->get();
+                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
         if ($request->has('material_ids')) {
@@ -99,8 +100,10 @@ class ScheduleController extends Controller
 
             $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
                 ->leftJoin('calendars as c', 'c.id', 'schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
+                ->leftJoin('users','users.id','schedules.creator_id')
                 ->whereRaw('c.deleted_at is null')
-                ->whereIn('material_id', $payload['material_ids'])->get();
+                ->whereIn('material_id', $payload['material_ids'])
+                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','users.icon_url')->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 
@@ -151,7 +154,8 @@ class ScheduleController extends Controller
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
         })->whereRaw("s.id=schedules.id")->select('mu.user_id');
 
-        $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery, $calendars,$data) {
+        $schedules = Schedule::select('schedules.*')
+            ->where(function ($query) use ($payload, $user, $subquery, $calendars,$data) {
 
             $query->where(function ($query) use ($payload) {
                 if ($payload['calendar_ids']) {
@@ -167,7 +171,7 @@ class ScheduleController extends Controller
 
         })->mergeBindings($subquery)
             ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-            ->get();
+            ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 
@@ -177,9 +181,8 @@ class ScheduleController extends Controller
         if ($request->has('calendars_id')) {
             $calendars_id = [];
             foreach ($payload['calendars_id'] as $calendar_id) {
-                $calendars_id[] = hashid_decode($payload['calendar_id']);
+                $calendars_id[] = hashid_decode($calendar_id);
             }
-
             $user = Auth::guard("api")->user();
 
             $calendars = Calendar::join('module_users as mu',function ($join){
@@ -191,7 +194,6 @@ class ScheduleController extends Controller
                 ->orWhere('calendars.creator_id',$user->id)
                 ->orWhere('mu.user_id',$user->id)
                 ->first();//查找艺人日历
-
             if($calendars) {//日历存在查找日程
                 $schedules = $calendars->schedules()
                     ->join('module_users as mu', function ($join) {
@@ -200,7 +202,8 @@ class ScheduleController extends Controller
                     })
                     ->where('schdules.privacy', Schedule::OPEN)
                     ->orWhere('schdules.creator_id')
-                    ->orWhere('mu.user_id', $user->id);
+                    ->orWhere('mu.user_id', $user->id)
+                    ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id','schedules.creator_id')->get();
                     return $this->response->collection($schedules, new ScheduleTransformer());
             }
         }

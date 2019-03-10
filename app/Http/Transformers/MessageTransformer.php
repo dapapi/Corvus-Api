@@ -14,7 +14,7 @@ class MessageTransformer extends TransformerAbstract
             'module'    =>  $message->module,
             'title' =>  $message->title,
             'state' =>  $message->state,
-            'module_data_id'    =>$message->module_data_id == null ? null : hashid_encode($message->module_data_id),
+            'module_data_id'    =>$message->module_data_id,
             'body'  =>  $message->data()->select('title','value')->get(),
             'created_at'    =>  Carbon::createFromTimeString($message->created_at)->toDateTimeString()
         ];

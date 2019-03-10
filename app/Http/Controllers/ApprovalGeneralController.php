@@ -234,7 +234,7 @@ class ApprovalGeneralController extends Controller
                 ->where('dp.user_id', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
+                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','creator.name','creator.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
             //查询二级主管
             $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
@@ -623,7 +623,7 @@ class ApprovalGeneralController extends Controller
                 ->where('dp.user_id', $userId)
                 ->whereIn('afi.form_status', $payload['status'])
                 ->orderBy('afi.created_at', 'desc')
-                ->select('afi.form_instance_number','dds.name as approval_status_name','dds.icon', 'afe.notice_type', 'afi.form_status', 'creator.name', 'afg.name as group_name', 'afg.id as group_id','us.icon_url')->get()->toArray();
+                ->select('afi.form_instance_number','dds.name as approval_status_name','dds.icon', 'afe.notice_type', 'afi.form_status', 'creator.name', 'afg.name as group_name', 'afg.id as group_id','creator.icon_url')->get()->toArray();
 
 
             $resArr = array_merge($dataPrincipal, $dataUser, $dataRole);
@@ -694,7 +694,6 @@ class ApprovalGeneralController extends Controller
             ->where('afi.form_status', '!=', 231)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.form_instance_number', 'dds.name as approval_status_name','dds.icon','afi.form_status', 'us.name', 'afi.created_at', 'afg.name as group_name', 'afg.id as group_id','us.icon_url')->get()->toArray();
-
         return $dataUser;
     }
 

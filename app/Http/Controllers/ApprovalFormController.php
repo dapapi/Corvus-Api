@@ -1064,12 +1064,12 @@ class ApprovalFormController extends Controller
     public function getGeneralForms(GeneralFormsRequest $request)
     {
         $default_except = [1,2];
-        $form_group_id = $request->get('form_group_id',[]);
-        $except_form_group_id = $request->get('except_form_group_id',[]);
+        $form_group_id = $request->get('form_group_id',null);
+        $except_form_group_id = $request->get('except_form_group_id',null);
         if ($form_group_id != null){
-            $groups = ApprovalGroup::whereIn('id', $form_group_id)->orderBy('sort_number')->get();
+            $groups = ApprovalGroup::where('id', $form_group_id)->orderBy('sort_number')->get();
         }else{
-            $except_form_group_id = array_merge($default_except,$except_form_group_id);
+            $except_form_group_id = array_merge($default_except,[$except_form_group_id]);
             $groups = ApprovalGroup::whereNotIn('id', $except_form_group_id)->orderBy('sort_number')->get();
         }
         return $this->response->collection($groups, new ApprovalGroupTransformer());

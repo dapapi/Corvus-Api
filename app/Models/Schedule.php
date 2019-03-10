@@ -46,6 +46,7 @@ class Schedule extends Model
         'type',
         'status',
         'desc',
+        'remind'
     ];
 
     public function creator()

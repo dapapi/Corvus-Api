@@ -354,7 +354,6 @@ class ScheduleController extends Controller
     public function store(StoreScheduleRequest $request)
     {
         $payload = $request->all();
-
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
         if(!$request->has('repeat') || $payload['repeat'] == null)
@@ -444,7 +443,6 @@ class ScheduleController extends Controller
         }
         DB::commit();
         //向参与人发送消息
-
 
 
         return $this->response->item($schedule, new ScheduleTransformer());

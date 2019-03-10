@@ -105,7 +105,7 @@ class Trails extends Command
             ->select('trails.id','trails.created_at','trails.type','trails.title','trails.principal_id','afb.form_status')->get();
         $receive = ['receive'=>1];
         foreach ($trails as $value) {
-            Log::info("检测线索【".$value->title."】");
+//            Log::info("检测线索【".$value->title."】");
             //查询跟进时间
             $fllow_update_at = DB::table("operate_logs")
                 ->where('logable_id', $value->id)
@@ -115,15 +115,15 @@ class Trails extends Command
                 ->value("created_at");
             //最后跟进时间
             $last_update_at = null;
-            Log::info($fllow_update_at);
+//            Log::info($fllow_update_at);
 
             if ($fllow_update_at) {
                 $last_update_at = Carbon::createFromTimeString($fllow_update_at);
             } else {
                 $last_update_at = Carbon::createFromTimeString($value->created_at);
             }
-            Log::info($last_update_at);
-            Log::info($now->diffInMinutes($last_update_at));
+//            Log::info($last_update_at);
+//            Log::info($now->diffInMinutes($last_update_at));
 
             //进入公海池前一天提醒
             if ($now->diffInMinutes($last_update_at) >= 14 * 24 * 60) { #进入公海池前一天提醒

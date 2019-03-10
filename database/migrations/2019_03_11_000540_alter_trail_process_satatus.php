@@ -14,7 +14,7 @@ class AlterTrailProcessSatatus extends Migration
     public function up()
     {
         Schema::table('trails', function (Blueprint $table) {
-            $table->string('progress_status')->default(1)->comment('线索状态')->change();
+            $table->integer('progress_status')->default(1)->comment('线索状态')->change();
         });
     }
 

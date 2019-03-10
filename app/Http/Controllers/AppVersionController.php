@@ -17,6 +17,7 @@ class AppVersionController extends Controller
         if ($app_version && $version < $app_version->version_code){
             return $this->response->item($app_version,new AppVsersionTransfromer());
         }
+        return $this->response->noContent();
     }
 
     public function addAppVersion(Request $request)

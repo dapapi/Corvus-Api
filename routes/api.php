@@ -757,6 +757,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
 
+
         //app版本相关接口
         //获取app版本
         $api->get('/appversion', 'App\Http\Controllers\AppVersionController@getNewAppVersion');
@@ -764,5 +765,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/appversion', 'App\Http\Controllers\AppVersionController@addAppVersion');
         //更新版本信息
         $api->put('/appversion/{appversion}', 'App\Http\Controllers\AppVersionController@updateAppVersion');
+
     });
 });

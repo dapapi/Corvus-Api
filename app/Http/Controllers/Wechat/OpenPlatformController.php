@@ -160,16 +160,21 @@ class OpenPlatformController extends Controller
         # 获取UserWechatInfo
         $userWechatInfo = null;
         if (isset($body->unionid)) {
+            Log::info("存在union_id");
             $userWechatInfo = UserWechatInfo::where('union_id', $body->unionid)->first();
+            Log::info("userWechatInfo");
             Log::info($userWechatInfo);
         } else if ($openId) {
+            Log::info("存在open_id");
             $userWechatOpenId = UserWechatOpenId::where('open_id', $body->openid)
                 ->where('app_id', $appId)
                 ->where('type', UserWechatOpenId::TYPE_OPEN)
                 ->first();
+            Log::info("userWechatOpenId");
             Log::info($userWechatOpenId);
             if ($userWechatOpenId) {
                 $userWechatInfo = $userWechatOpenId->userWechatInfo;
+                Log::info("userWechatInfo");
                 Log::info($userWechatInfo);
             }
         } else {

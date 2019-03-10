@@ -141,17 +141,13 @@ class OpenPlatformController extends Controller
         if (!$code) {
             return $this->response->errorForbidden();
         }
-        Log::info("请求参数:");
-        Log::info($request->all());
         $appId = env('WECHAT_APP_APPID');
 
         # 获取AccessToken
         $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' . env('WECHAT_APP_APPID') . '&secret=' . env('WECHAT_APP_SECRET') . '&code=' . $code . '&grant_type=authorization_code';
         $client = new Client();
         $response = $client->request('get', $url);
-        Log::info("status:".$response->getStatusCode());
-        Log::info("响应body:");
-        Log::info($response->getBody());
+
         if ($response->getStatusCode() != 200) {
             return $this->response->errorForbidden();
         }
@@ -160,29 +156,20 @@ class OpenPlatformController extends Controller
         # 获取UserWechatInfo
         $userWechatInfo = null;
         if (isset($body->unionid)) {
-            Log::info("存在union_id");
             $userWechatInfo = UserWechatInfo::where('union_id', $body->unionid)->first();
-            Log::info("userWechatInfo");
-            Log::info($userWechatInfo);
         } else if ($openId) {
-            Log::info("存在open_id");
             $userWechatOpenId = UserWechatOpenId::where('open_id', $body->openid)
                 ->where('app_id', $appId)
                 ->where('type', UserWechatOpenId::TYPE_OPEN)
                 ->first();
-            Log::info("userWechatOpenId");
-            Log::info($userWechatOpenId);
             if ($userWechatOpenId) {
                 $userWechatInfo = $userWechatOpenId->userWechatInfo;
-                Log::info("userWechatInfo");
-                Log::info($userWechatInfo);
             }
         } else {
             return $this->response->errorForbidden();
         }
 
         if (!$userWechatInfo) {
-            Log::info("用户未绑定");
             # 创建UserWechatInfo
             // 获取用户信息
             $accessToken = $body->access_token;
@@ -227,7 +214,6 @@ class OpenPlatformController extends Controller
         # 获取User信息
         $user = $userWechatInfo->user;
         if (!$user) {
-            Log::info("用户第一次绑定");
             # 第一次来，需要绑定手机号
             $now = Carbon::now();
 
@@ -243,11 +229,9 @@ class OpenPlatformController extends Controller
                     'expired_in' => env('REGIST_TOKEN_EXPIRED_IN')
                 ]);
             }
-            Log::info(['bind_token'=> $token->token]);
             return $this->response->array(['bind_token'=> $token->token]);
         }
         $accessToken = $user->createToken('wechat app login')->accessToken;
-        Log::info(['access_token' => $accessToken]);
         //不是第一次，已经绑定过用户，直接登录
         return $this->response->array(['access_token' => $accessToken]);
     }

@@ -31,13 +31,10 @@ class AppVersionController extends Controller
         AppVersion::create($app_version);
     }
 
-    public function updateAppVersion(Request $request)
+    public function updateAppVersion(Request $request,AppVersion $appversion)
     {
         $all = $request->all();
-        $id = $all['id'];
-        unset($all['id']);
-        $appversion = AppVersion::where('id',$id)->first();
-        $appversion->save($appversion);
+        $appversion->save($all);
         $this->response->item($appversion,new AppVersion());
     }
 }

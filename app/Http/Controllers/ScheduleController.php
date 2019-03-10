@@ -73,7 +73,6 @@ class ScheduleController extends Controller
                 ->select('mu.user_id');
 //->whereRaw("s.id=schedules.id")
             $schedules = Schedule::select('schedules.*')
-                ->leftJoin('users','users.id','schedules.creator_id')
                 ->where(function ($query) use ($payload, $user, $subquery) {
                 $query->where(function ($query) use ($payload) {
                     $query->where('privacy', Schedule::OPEN);
@@ -87,7 +86,7 @@ class ScheduleController extends Controller
                 });
             })->mergeBindings($subquery)
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','users.icon_url')->get();
+                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
         if ($request->has('material_ids')) {
@@ -156,7 +155,6 @@ class ScheduleController extends Controller
         })->whereRaw("s.id=schedules.id")->select('mu.user_id');
 
         $schedules = Schedule::select('schedules.*')
-            ->leftJoin('users','users.id','schedules.creator_id')
             ->where(function ($query) use ($payload, $user, $subquery, $calendars,$data) {
 
             $query->where(function ($query) use ($payload) {
@@ -173,7 +171,7 @@ class ScheduleController extends Controller
 
         })->mergeBindings($subquery)
             ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-            ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','users.icon_url')->get();
+            ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 
@@ -202,11 +200,10 @@ class ScheduleController extends Controller
                         $join->on('mu.moduleable_id', 'schdules.id')
                             ->whereRaw("mu.moduleable_type = '" . ModuleUserType::PARTICIPANT . "'");
                     })
-                    ->leftJoin('users','users.id','schedules.creator_id')
                     ->where('schdules.privacy', Schedule::OPEN)
                     ->orWhere('schdules.creator_id')
                     ->orWhere('mu.user_id', $user->id)
-                    ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','users.icon_url')->get();
+                    ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id','schedules.creator_id')->get();
                     return $this->response->collection($schedules, new ScheduleTransformer());
             }
         }

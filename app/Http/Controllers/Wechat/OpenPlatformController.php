@@ -241,8 +241,8 @@ class OpenPlatformController extends Controller
             Log::info(['bind_token'=> $token->token]);
             return $this->response->array(['bind_token'=> $token->token]);
         }
-        Log::info(['access_token' => $accessToken]);
         $accessToken = $user->createToken('wechat app login')->accessToken;
+        Log::info(['access_token' => $accessToken]);
         //不是第一次，已经绑定过用户，直接登录
         return $this->response->array(['access_token' => $accessToken]);
     }

@@ -13,11 +13,14 @@ class AppVersionController extends Controller
     {
         $version = $request->get("version");
         $pt = $request->get('pt');
-        $app_version = AppVersion::where('pt',$pt)->orderBy('id','desc')->first('version_code');
+        $app_version = AppVersion::where('pt',$pt)->orderBy('id','desc')->first();
         if ($app_version && $version < $app_version->version_code){
             return $this->response->item($app_version,new AppVsersionTransfromer());
+        }else{
+            return [
+                "data"  =>  null
+            ];
         }
-        return $this->response->noContent();
     }
 
     public function addAppVersion(Request $request)

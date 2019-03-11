@@ -168,13 +168,17 @@ class StarTransformer extends TransformerAbstract
         if($calendars){//日历存在查找日程
             $calendar = $calendars->schedules()
                 ->join('module_users as mu',function ($join){
-                    $join->on('mu.moduleable_id','schdules.id')
-                        ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
+
+                    $join->on('mu.moduleable_id','schedules.id')
+                        ->whereRaw("mu.moduleable_type = '".ModuleableType::CALENDAR."'");
                 })
-                ->where('schdules.privacy',Schedule::OPEN)
-                ->orWhere('schdules.creator_id')
+                ->where('schedules.privacy',Schedule::OPEN)
+                ->orWhere('schedules.creator_id')
                 ->orWhere('mu.user_id',$user->id)
-                ->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3);
+                ->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+//            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
+//        dd($sql_with_bindings);
+
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
             return null;

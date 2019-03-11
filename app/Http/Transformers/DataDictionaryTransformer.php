@@ -14,8 +14,9 @@ class DataDictionaryTransformer extends TransformerAbstract
                 'id' =>$dataDictionary->val,
                 'name' => $dataDictionary->name,
             ];
-
-        $arr['enum_value'] = $dataDictionary->name;
+        else {
+            $arr['enum_value'] = $dataDictionary->name;
+        }
 
         return $arr;
     }

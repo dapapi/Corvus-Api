@@ -111,7 +111,7 @@ class StarController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $res = $repository->checkPower("/stars/{id}",'put',$role_list,$star);
+            $res = $repository->checkPower("stars/{id}",'put',$role_list,$star);
             $star->power = "true";
         }catch (Exception $exception){
             $star->power = "false";

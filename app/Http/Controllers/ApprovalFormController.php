@@ -9,10 +9,12 @@ use App\Helper\Generator;
 use App\Http\Requests\Approval\GetContractFormRequest;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
+use App\Http\Requests\GeneralFormsRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
 use App\Http\Transformers\ApprovalGroupTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
 use App\Http\Transformers\ApprovalParticipantTransformer;
+use App\Http\Transformers\ContractArchiveTransformer;
 use App\Http\Transformers\ControlTransformer;
 use App\Http\Transformers\ProjectHistoriesTransformer;
 use App\Http\Transformers\ProjectTransformer;
@@ -763,6 +765,7 @@ class ApprovalFormController extends Controller
         return $this->response->item($approval, new ApprovalFormTransformer($num));
     }
 
+    // todo 增加归档详情内容
     private function getInstance($instance)
     {
         $num = $instance->form_instance_number;
@@ -799,6 +802,13 @@ class ApprovalFormController extends Controller
         if ($form->group_id == 2) {
             $contract = Contract::where('form_instance_number', $num)->first();
             $result->addMeta('contract', $contract->contract_number);
+            if ($contract->status) {
+                $archives = new Fractal\Resource\Collection($contract->archives, new ContractArchiveTransformer());
+                $result->addMeta('contract_archive', [
+                    'comment' => $contract->comment,
+                    'archives' => $manager->createData($archives)->toArray()
+                ]);
+            }
         }
 
         // todo 明细单列
@@ -1060,10 +1070,18 @@ class ApprovalFormController extends Controller
         return $this->response->collection($forms, new ApprovalFormTransformer());
     }
 
-    public function getGeneralForms(Request $request)
+    public function getGeneralForms(GeneralFormsRequest $request)
     {
-        //除了1项目立项审批和2合同审批
-        $groups = ApprovalGroup::whereNotIn('id', [1, 2])->orderBy('sort_number')->get();
+        $default_except = [1,2];
+        $form_group_id = $request->get('form_group_id',null);
+        $except_form_group_id = $request->get('except_form_group_id',null);
+        if ($form_group_id != null){
+            $groups = ApprovalGroup::where('id', $form_group_id)->orderBy('sort_number')->get();
+        }else{
+            $except_form_group_id = array_merge($default_except,[$except_form_group_id]);
+            $except_form_group_id = array_filter($except_form_group_id);
+            $groups = ApprovalGroup::whereNotIn('id', $except_form_group_id)->orderBy('sort_number')->get();
+        }
         return $this->response->collection($groups, new ApprovalGroupTransformer());
     }
 

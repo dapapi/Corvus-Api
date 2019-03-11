@@ -36,6 +36,7 @@ class ClientController extends Controller
     // todo 加日志
     public function index(Request $request)
     {
+        $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $clients = Client::searchData()
             ->leftJoin('operate_logs',function($join){
@@ -43,6 +44,22 @@ class ClientController extends Controller
                     ->where('logable_type',ModuleableType::CLIENT)
                     ->where('operate_logs.method','4');
 
+            })
+            ->where(function ($query) use ($request, $payload) {
+                if ($request->has('keyword'))
+                    $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
+                if ($request->has('grade'))
+                    $query->where('grade', $payload['grade']);
+                if ($request->has('principal_ids') && count($payload['principal_ids'])) {
+                    foreach ($payload['principal_ids'] as &$id) {
+                        $id = hashid_decode((int)$id);
+                    }
+                    unset($id);
+                    $query->whereIn('principal_id', $payload['principal_ids']);
+                }
+                if ($request->has('type')){
+                    $query->where('type',$payload['type']);
+                }
             })
             ->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
@@ -134,7 +151,7 @@ class ClientController extends Controller
             unset($payload['_url']);
 
         $columns = DB::getDoctrineSchemaManager()->listTableDetails('clients');
-        if ($request->has('principal_id'))
+        if ($request->has('principal_id') && !empty($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         try {
@@ -209,7 +226,7 @@ class ClientController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("/stars/{id}",'put',$role_list,$client);
+            $repository->checkPower("clients/{id}",'put',$role_list,$client);
             $client->power = "true";
         }catch (Exception $exception){
             $client->power = "false";

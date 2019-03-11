@@ -785,7 +785,7 @@ class ProjectController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("/stars/{id}",'put',$role_list,$project);
+            $repository->checkPower("projects/{id}",'put',$role_list,$project);
             $project->power = "true";
         }catch (Exception $exception){
             $project->power = "false";

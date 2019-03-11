@@ -55,16 +55,16 @@ class ProjectRepository
         $sql = str_replace("?","%s",$builder->toSql());
         $sql = sprintf($sql,...$bingings);
 
-
         $query = Project::from(DB::raw("({$sql}) as projects"))->
         leftJoin("contracts as c",'projects.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
-            })->searchData()
+            })
+            ->leftJoin('users','users.id','projects.principal_id')
             ->where('afe.flow_type_id',232)
             ->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
-            ->select("projects.id","projects.title","projects.created_at","projects.principal_id","c.contract_sharing_ratio");
+            ->select("projects.id","projects.title","projects.created_at","projects.principal_id","c.contract_sharing_ratio","users.icon_url");
         return $query->paginate($pageSize);
 
 

@@ -192,7 +192,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         //stars
-        $api->get('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
+        $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -209,6 +209,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+        //分配制作人
+        $api->post('/bloggers/{blogger}/produser', 'App\Http\Controllers\ModuleUserController@addModuleUserProducer');
 
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //分配经纪人
@@ -220,7 +222,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //导入 导出
         //->middleware('export')
-        $api->get('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
+        $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
@@ -281,7 +283,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}/contacts/{contact}', 'App\Http\Controllers\ContactController@detail');
 
         // client
-        $api->get('/clients/export', 'App\Http\Controllers\ClientController@export')->middleware('export');
+        $api->post('/clients/export', 'App\Http\Controllers\ClientController@export')->middleware('export');
         $api->post('/clients/import', 'App\Http\Controllers\ClientController@import');
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
@@ -347,7 +349,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // $api->get('launch/issues', 'App\Http\Controllers\launchController@index_issues');
 
         // trail
-        $api->get('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('export');
+        $api->post('/trails/export', 'App\Http\Controllers\TrailController@export')->middleware('export');
         $api->post('/trails/import', 'App\Http\Controllers\TrailController@import');
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
@@ -397,7 +399,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/projects/all', 'App\Http\Controllers\ProjectController@all');
         $api->get('/projects', 'App\Http\Controllers\ProjectController@index');
-        $api->get('/projects/export', 'App\Http\Controllers\ProjectController@export')->middleware('export');
+        $api->post('/projects/export', 'App\Http\Controllers\ProjectController@export')->middleware('export');
         $api->get('/projects/my_all', 'App\Http\Controllers\ProjectController@myAll');
         $api->get('/projects/my', 'App\Http\Controllers\ProjectController@my');
         $api->get('/projects/relate_client', 'App\Http\Controllers\ProjectController@getClient');
@@ -511,13 +513,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //商务报表
         $api->get("/reportfrom/commercialfunnel", "App\Http\Controllers\ReportFormController@CommercialFunnelReportFrom");
         //商务报表导出
-        $api->get("/reportfrom/commercialfunnel/export", "App\Http\Controllers\ReportFormController@reportExport")->middleware('export');
+        $api->post("/reportfrom/commercialfunnel/export", "App\Http\Controllers\ReportFormController@reportExport")->middleware('export');
         //销售漏斗
         $api->get("/reportfrom/salesFunnel","App\Http\Controllers\ReportFormController@salesFunnel");
         //销售线索报表--线索报表
         $api->get("/reportfrom/trail","App\Http\Controllers\ReportFormController@trailReportFrom");
         //销售线索报表导出
-        $api->get("/reportfrom/trail/export", "App\Http\Controllers\ReportFormController@trailExport")->middleware('export');
+        $api->post("/reportfrom/trail/export", "App\Http\Controllers\ReportFormController@trailExport")->middleware('export');
         //销售线索报表--线索新增
         $api->get("/reportfrom/newtrail","App\Http\Controllers\ReportFormController@newTrail");
         //销售线索报表--线索占比perTrail
@@ -528,7 +530,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //项目报表
         $api->get("/reportfrom/projectreport", "App\Http\Controllers\ReportFormController@projectReport");
         //项目报表报表
-        $api->get("/reportfrom/projectreport/export", "App\Http\Controllers\ReportFormController@projectExport")->middleware('export');
+        $api->post("/reportfrom/projectreport/export", "App\Http\Controllers\ReportFormController@projectExport")->middleware('export');
         //项目新增
         $api->get("/reportfrom/newproject", "App\Http\Controllers\ReportFormController@newProject");
         //项目占比
@@ -536,7 +538,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //客户报表
         $api->get("/reportfrom/clientreport", "App\Http\Controllers\ReportFormController@clientReport");
         //客户报表导出
-        $api->get("/reportfrom/clientreport/export", "App\Http\Controllers\ReportFormController@clientExport")->middleware('export');
+        $api->post("/reportfrom/clientreport/export", "App\Http\Controllers\ReportFormController@clientExport")->middleware('export');
 
         //客户分析
         $api->get("/reportfrom/clientanalysis", "App\Http\Controllers\ReportFormController@clientAnalysis");
@@ -544,7 +546,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //艺人报表
         $api->get("/reportfrom/starreport", "App\Http\Controllers\ReportFormController@starReport");
         //博主报表导出
-        $api->get("/reportfrom/starreport/export", "App\Http\Controllers\ReportFormController@starExport")->middleware('export');
+        $api->post("/reportfrom/starreport/export", "App\Http\Controllers\ReportFormController@starExport")->middleware('export');
         //艺人线索分析
         $api->get("/reportfrom/startrailanalysis", "App\Http\Controllers\ReportFormController@starTrailAnalysis");
         //艺人项目分析
@@ -552,7 +554,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //博主报表
         $api->get("/reportfrom/bloggerreport", "App\Http\Controllers\ReportFormController@bloggerReport");
         //博主报表导出
-        $api->get("/reportfrom/bloggerreport/export", "App\Http\Controllers\ReportFormController@bloggerExport")->middleware('export');
+        $api->post("/reportfrom/bloggerreport/export", "App\Http\Controllers\ReportFormController@bloggerExport")->middleware('export');
         //博主线索分析
 //        $api->get("/reportfrom/bloggertrailanalysis", "App\Http\Controllers\ReportFormController@bloggerTrailAnalysis");
 //        博主项目分析
@@ -688,6 +690,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
         //经济合同
         $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');
+        //合同归档
+        $api->post('/approval_instances/{contract}/archive', 'App\Http\Controllers\ApprovalContractController@archive');
 
         //项目详情合同列表
         $api->get('/approvals_contract/projectList','App\Http\Controllers\ApprovalContractController@projectList');
@@ -752,5 +756,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/image', 'App\Http\Controllers\PersonnelManageController@uploadImage');
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
+
+
+        //app版本相关接口
+        //获取app版本
+        $api->get('/appversion', 'App\Http\Controllers\AppVersionController@getNewAppVersion');
+        //新建版本信息
+        $api->post('/appversion', 'App\Http\Controllers\AppVersionController@addAppVersion');
+        //更新版本信息
+        $api->put('/appversion/{appversion}', 'App\Http\Controllers\AppVersionController@updateAppVersion');
+
     });
 });

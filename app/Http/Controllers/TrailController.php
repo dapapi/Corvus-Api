@@ -682,13 +682,16 @@ class TrailController extends Controller
 //                    }else{
 //                        $title = "关联目标艺人";
 //                    }
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => "关联目标艺人",
-                        'start' => $start,
-                        'end' => trim($end,","),
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
+                    if (!empty($start) || !empty($end)){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => "关联目标艺人",
+                            'start' => $start,
+                            'end' => trim($end,","),
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                    }
+
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
                     Log::error($e);
@@ -752,14 +755,17 @@ class TrailController extends Controller
 //                    }else{
 //                        $title = "关联推荐艺人";
 //                    }
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => "关联推荐艺人",
-                        'start' => $start,
-                        'end' => trim($end,","),
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateName;
+                    if (!empty($start) || !empty($end)){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => "关联推荐艺人",
+                            'start' => $start,
+                            'end' => trim($end,","),
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+                    }
+
 
 
                 }catch (\Exception $e){
@@ -845,7 +851,7 @@ class TrailController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("/stars/{id}",'put',$role_list,$trail);
+            $repository->checkPower("trails/{id}",'put',$role_list,$trail);
             $trail->power = "true";
         }catch (Exception $exception){
             $trail->power = "false";
@@ -933,7 +939,8 @@ class TrailController extends Controller
         }
         DB::commit();
 
-        return $this->response->accepted(null, '线索已拒绝');
+//        return $this->response->accepted(null, '线索已拒绝');
+        return $this->response->accepted();
     }
 
     public function filter(FilterTrailRequest $request)

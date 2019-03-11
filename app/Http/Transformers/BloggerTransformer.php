@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Http\Transformers;
-use App\ModuleableType;
 use App\PrivacyType;
 use App\TaskStatus;
+use App\Models\Schedule;
+use App\ModuleableType;
 use App\Models\Blogger;
 use League\Fractal\TransformerAbstract;
 use App\Models\PrivacyUser;
@@ -213,10 +214,19 @@ class BloggerTransformer extends TransformerAbstract
     }
     public function includeSchedule(Blogger $blogger)
     {
-
+        $user = Auth::guard("api")->user();
         $calendars = $blogger->calendars()->first();
         if($calendars){
-            $calendar = $calendars->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+            $calendar = $calendars->schedules() ->join('module_users as mu',function ($join){
+                $join->on('mu.moduleable_id','schedules.id')
+                    ->whereRaw("mu.moduleable_type = '".ModuleableType::CALENDAR."'");
+            })
+                ->where('schedules.privacy',Schedule::OPEN)
+                ->orWhere('schedules.creator_id')
+                ->orWhere('mu.user_id',$user->id)->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)
+                ->get();
+//            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
+//        dd($sql_with_bindings);
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
             return null;

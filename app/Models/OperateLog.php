@@ -54,7 +54,7 @@ class OperateLog extends Model
         if ($power){
             return $this->attributes['content'];
         }
-        return $this->attributes['title']."xxxxxxxxxxxxxxxx";
+        return "修改了".$this->attributes['title'];
     }
 
 }

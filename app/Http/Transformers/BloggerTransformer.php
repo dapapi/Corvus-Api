@@ -92,6 +92,7 @@ class BloggerTransformer extends TransformerAbstract
             'last_updated_user' => $blogger->last_updated_user,
             'last_updated_at' => $blogger->last_updated_at,
             'updated_at' => $blogger->updated_at->toDateTimeString(),
+            'power' =>  $blogger->power,//对博主是否有编辑权限
         ];
 
         if(!$setprivacy1 && $blogger ->creator_id != $user->id){

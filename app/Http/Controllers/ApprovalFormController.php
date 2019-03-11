@@ -9,6 +9,7 @@ use App\Helper\Generator;
 use App\Http\Requests\Approval\GetContractFormRequest;
 use App\Http\Requests\Approval\GetFormIdsRequest;
 use App\Http\Requests\Approval\InstanceStoreRequest;
+use App\Http\Requests\GeneralFormsRequest;
 use App\Http\Transformers\ApprovalFormTransformer;
 use App\Http\Transformers\ApprovalGroupTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
@@ -272,7 +273,7 @@ class ApprovalFormController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
-        $userId = 8;
+        $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
@@ -1069,10 +1070,18 @@ class ApprovalFormController extends Controller
         return $this->response->collection($forms, new ApprovalFormTransformer());
     }
 
-    public function getGeneralForms(Request $request)
+    public function getGeneralForms(GeneralFormsRequest $request)
     {
-        //除了1项目立项审批和2合同审批
-        $groups = ApprovalGroup::whereNotIn('id', [1, 2])->orderBy('sort_number')->get();
+        $default_except = [1,2];
+        $form_group_id = $request->get('form_group_id',null);
+        $except_form_group_id = $request->get('except_form_group_id',null);
+        if ($form_group_id != null){
+            $groups = ApprovalGroup::where('id', $form_group_id)->orderBy('sort_number')->get();
+        }else{
+            $except_form_group_id = array_merge($default_except,[$except_form_group_id]);
+            $except_form_group_id = array_filter($except_form_group_id);
+            $groups = ApprovalGroup::whereNotIn('id', $except_form_group_id)->orderBy('sort_number')->get();
+        }
         return $this->response->collection($groups, new ApprovalGroupTransformer());
     }
 
@@ -1220,6 +1229,7 @@ class ApprovalFormController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('新建审批失败');
         }
+        DB::commit();
         //向知会人发消息
         $authorization = $request->header()['authorization'][0];
         $curr_user = Auth::guard('api')->user();
@@ -1255,7 +1265,6 @@ class ApprovalFormController extends Controller
             Log::error($e);
             DB::rollBack();
         }
-        DB::commit();
 
         return $this->response->created();
     }

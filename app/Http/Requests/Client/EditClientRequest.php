@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Client;
 
 
+use App\Models\Client;
 use Dingo\Api\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 
 class EditClientRequest extends FormRequest
 {
@@ -24,8 +26,10 @@ class EditClientRequest extends FormRequest
      */
     public function rules()
     {
+        $company = request()->get('company',null);
+        $id = Client::where('company',$company)->value('id');
         return [
-            'company' => 'nullable|unique:clients,company',
+            'company' => 'nullable|unique:clients,company,'.$id,
             'grade' => 'nullable|numeric',
             'type' => 'nullable|numeric',
             'province' => 'nullable',

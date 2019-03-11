@@ -7,8 +7,13 @@ use App\Exceptions\UserBadRequestException;
 use App\Http\Requests\BindTelephoneRequest;
 use App\Http\Transformers\UserTransformer;
 use App\Models\Department;
+use App\Models\Project;
 use App\Models\RequestVerityToken;
+use App\Models\RoleUser;
+use App\Models\Task;
+use App\Repositories\ScopeRepository;
 use App\Repositories\UserRepository;
+use App\TaskStatus;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -67,10 +72,74 @@ class UserController extends Controller
         return  $arr;
     }
 
-    public function my(Request $request)
+    public function my(Request $request,ScopeRepository $repository)
     {
         $user = Auth::guard('api')->user();
+        $power = [];
+        //获取当前用户所有角色
+        $role_ids = RoleUser::where('user_id',$user->id)->pluck('role_id')->all();
+        //获取对艺人新增权限
+        try{
+            $repository->checkPower("stars",'post',$role_ids,null);
+            $power['star'] = "true";
+        }catch (Exception $exception){
+            $power['star'] = "false";
+        }
 
+        //获取对项目新增权限
+        try{
+            $repository->checkPower("projects",'post',$role_ids,null);
+            $power['project'] = "true";
+        }catch (Exception $exception){
+            $power['project'] = "false";
+        }
+
+        //获取对博主新增权限
+        try{
+            $repository->checkPower("bloggers",'post',$role_ids,null);
+            $power['blogger'] = "true";
+        }catch (Exception $exception){
+            $power['blogger'] = "false";
+        }
+
+        //获取对任务新增权限
+        try{
+            $repository->checkPower("tasks",'post',$role_ids,null);
+            $power['task'] = "true";
+        }catch (Exception $exception){
+            $power['task'] = "false";
+        }
+
+        //获取对客户新增权限
+        try{
+            $repository->checkPower("clients",'post',$role_ids,null);
+            $power['client'] = "true";
+        }catch (Exception $exception){
+            $power['client'] = "false";
+        }
+
+        //获取对线索新增权限
+        try{
+            $repository->checkPower("trails",'post',$role_ids,null);
+            $power['trail'] = "true";
+        }catch (Exception $exception){
+            $power['trail'] = "false";
+        }
+        $user->power = $power;
+        //我负责的项目数
+        $my_project_number = Project::where('principal_id',$user->id)->count();
+        //我的任务数
+        $my_task_number = Task::where('principal_id',$user->id)->count();
+        //我的审批数
+        $my_approval_number = 30;
+        //待完成任务数
+        $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
+        $user->my_number = [
+            'my_project_number' =>  $my_project_number,
+            'my_task_number'    =>  $my_task_number,
+            'my_approval_number'    =>  $my_approval_number,
+            'my_wait_task_number'   =>  $my_wait_task_number
+        ];
         return $this->response->item($user, new UserTransformer());
     }
     public function show(User $user)

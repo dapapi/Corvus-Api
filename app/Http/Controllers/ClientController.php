@@ -19,6 +19,7 @@ use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\Repositories\FilterReportRepository;
+use App\Repositories\ScopeRepository;
 use App\TriggerPoint\ClientTriggerPoint;
 use App\User;
 use Carbon\Carbon;
@@ -35,6 +36,7 @@ class ClientController extends Controller
     // todo 加日志
     public function index(Request $request)
     {
+        $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $clients = Client::searchData()
             ->leftJoin('operate_logs',function($join){
@@ -42,6 +44,22 @@ class ClientController extends Controller
                     ->where('logable_type',ModuleableType::CLIENT)
                     ->where('operate_logs.method','4');
 
+            })
+            ->where(function ($query) use ($request, $payload) {
+                if ($request->has('keyword'))
+                    $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
+                if ($request->has('grade'))
+                    $query->where('grade', $payload['grade']);
+                if ($request->has('principal_ids') && count($payload['principal_ids'])) {
+                    foreach ($payload['principal_ids'] as &$id) {
+                        $id = hashid_decode((int)$id);
+                    }
+                    unset($id);
+                    $query->whereIn('principal_id', $payload['principal_ids']);
+                }
+                if ($request->has('type')){
+                    $query->where('type',$payload['type']);
+                }
             })
             ->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
@@ -133,7 +151,7 @@ class ClientController extends Controller
             unset($payload['_url']);
 
         $columns = DB::getDoctrineSchemaManager()->listTableDetails('clients');
-        if ($request->has('principal_id'))
+        if ($request->has('principal_id') && !empty($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         try {
@@ -186,7 +204,7 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request, Client $client)
+    public function detail(Request $request, Client $client,ScopeRepository $repository)
     {
         $client = $client->searchData()->find($client->id);
         if($client == null){
@@ -203,6 +221,16 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("clients/{id}",'put',$role_list,$client);
+            $client->power = "true";
+        }catch (Exception $exception){
+            $client->power = "false";
+        }
         return $this->response->item($client, new ClientTransformer());
     }
 

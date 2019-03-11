@@ -227,6 +227,7 @@ class BloggerTransformer extends TransformerAbstract
                 ->get();
 //            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
 //        dd($sql_with_bindings);
+
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
             return null;

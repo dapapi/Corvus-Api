@@ -209,6 +209,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+        //分配制作人
+        $api->post('/bloggers/{blogger}/produser', 'App\Http\Controllers\ModuleUserController@addModuleUserProducer');
 
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
         //分配经纪人
@@ -754,5 +756,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/image', 'App\Http\Controllers\PersonnelManageController@uploadImage');
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
+
+        //app版本相关接口
+        //获取app版本
+        $api->get('/appversion', 'App\Http\Controllers\AppVersionController@getNewAppVersion');
+        //新建版本信息
+        $api->post('/appversion', 'App\Http\Controllers\AppVersionController@addAppVersion');
+        //更新版本信息
+        $api->put('/appversion/{appversion}', 'App\Http\Controllers\AppVersionController@updateAppVersion');
     });
 });

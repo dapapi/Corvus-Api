@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Repositories\ScopeRepository;
+use App\Scopes\SearchDataScope;
 use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Contract extends Model
 {
@@ -24,11 +27,15 @@ class Contract extends Model
         'type',
         'stars',
         'star_type',
+        'status',
+        'comment',
         'updater_id',
         'updater_name',
     ];
     use OperateLogTrait;
 
+    const STATUS_UNARCHIVED = 0;
+    const STATUS_ARCHIVED = 1;
 
     public function scopeSearchData($query)
     {
@@ -61,5 +68,10 @@ class Contract extends Model
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');
+    }
+
+    public function archives()
+    {
+        return $this->hasMany(ContractArchive::class);
     }
 }

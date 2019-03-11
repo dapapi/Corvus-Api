@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UpdateNumberAttendances extends Migration
+class AlterTrailProcessSatatus extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class UpdateNumberAttendances extends Migration
      */
     public function up()
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->string('number')->change();
+        Schema::table('trails', function (Blueprint $table) {
+            $table->integer('progress_status')->default(1)->comment('线索状态')->change();
         });
     }
 
@@ -25,7 +25,7 @@ class UpdateNumberAttendances extends Migration
      */
     public function down()
     {
-        Schema::table('attendances', function (Blueprint $table) {
+        Schema::table('trails', function (Blueprint $table) {
             //
         });
     }

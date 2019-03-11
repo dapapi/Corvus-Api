@@ -688,14 +688,19 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*合同管理*/
         //项目合同
         $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
+
         //经济合同
         $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');
+
         //合同归档
         $api->post('/approval_instances/{contract}/archive', 'App\Http\Controllers\ApprovalContractController@archive');
 
+
+        //经济合同 自定义筛选
+        $api->post('/approvals_contract/filter','App\Http\Controllers\ApprovalContractController@getFilter');
+
         //项目详情合同列表
         $api->get('/approvals_contract/projectList','App\Http\Controllers\ApprovalContractController@projectList');
-
 
         /*一般审批列表*/
         //我申请列表

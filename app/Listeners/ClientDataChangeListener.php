@@ -50,6 +50,7 @@ class ClientDataChangeListener
                     'start' => $old_client->$fun(),
                     'end' => $new_client->$fun(),
                     'method' => OperateLogMethod::UPDATE,
+                    'field_name' =>  $key
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
             }

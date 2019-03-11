@@ -13,6 +13,5 @@ class PassportCreateTokenTest
 {
     public function personalAccessClient(){
         $client = Passport::personalAccessClient();
-        dd($client);
     }
 }

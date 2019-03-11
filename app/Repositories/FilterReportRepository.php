@@ -88,8 +88,6 @@ class FilterReportRepository
           }
       }
 
-
-
       return $query;
     }
 

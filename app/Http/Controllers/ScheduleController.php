@@ -179,15 +179,14 @@ class ScheduleController extends Controller
     {
         $payload = $request->all();
         if ($request->has('calendars_id')) {
-            $calendars_id = [];
+           $calendars_id = [];
             foreach ($payload['calendars_id'] as $calendar_id) {
                 $calendars_id[] = hashid_decode($calendar_id);
             }
             $user = Auth::guard("api")->user();
-
             $calendars = Calendar::join('module_users as mu',function ($join){
                     $join->on('mu.moduleable_id','calendars.id')
-                        ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
+                        ->whereRaw("mu.type = '".ModuleUserType::PARTICIPANT."'");
                 })
                 ->whereIn('calendars.id',$calendars_id)
                 ->where('privacy',Calendar::OPEN)
@@ -197,13 +196,18 @@ class ScheduleController extends Controller
             if($calendars) {//日历存在查找日程
                 $schedules = $calendars->schedules()
                     ->join('module_users as mu', function ($join) {
-                        $join->on('mu.moduleable_id', 'schdules.id')
-                            ->whereRaw("mu.moduleable_type = '" . ModuleUserType::PARTICIPANT . "'");
+                        $join->on('mu.moduleable_id', 'schedules.id')
+                         ->whereRaw("mu.type = '" . ModuleUserType::PARTICIPANT . "'");
                     })
-                    ->where('schdules.privacy', Schedule::OPEN)
-                    ->orWhere('schdules.creator_id')
+                    ->where('schedules.privacy', Schedule::OPEN)
+                    ->orWhere('schedules.creator_id')
                     ->orWhere('mu.user_id', $user->id)
-                    ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id','schedules.creator_id')->get();
+                   ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
+                  'schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id',
+                  'schedules.creator_id')
+                    ->get();
+//                $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
+//               dd($sql_with_bindings);
                     return $this->response->collection($schedules, new ScheduleTransformer());
             }
         }

@@ -513,7 +513,11 @@ class ProjectController extends Controller
         $arrayOperateLog = [];
         $old_project = clone $project;
         $trail = $project->trail;
-        $old_trail = clone $trail;
+
+        if(!empty($trail))
+        {
+            $old_trail = clone $trail;
+        }
         DB::beginTransaction();
         try {
             if ($request->has('principal_id')) {//负责人
@@ -542,7 +546,6 @@ class ProjectController extends Controller
                 }
 
             }
-
             if (!$request->has('type') || $payload['type'] == '')
                 $payload['type'] = $project->type;
 
@@ -585,7 +588,6 @@ class ProjectController extends Controller
                     $arrayOperateLog[] = $operateName;
                 }
             }
-
 
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
@@ -653,8 +655,6 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
-
-
                     if ($key == 'lock') {
 //                        $trail->lock_status = $val;
 
@@ -679,7 +679,6 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
-
 
                     if ($key == 'expectations') {
                         $repository = new TrailStarRepository();
@@ -734,11 +733,14 @@ class ProjectController extends Controller
                 $trail->update($payload['trail']);
 
             }
+
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
 
+            if(!empty($trail))
+            {
             event(new TrailDataChangeEvent($old_trail,$trail));//更新线索操作日志
-
+            }
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();

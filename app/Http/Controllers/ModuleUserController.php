@@ -44,7 +44,6 @@ class ModuleUserController extends Controller
             return $this->response->noContent();
         $participantIds = $request->get('person_ids', []);//参与人或宣传人ID数组
         $participantDeleteIds = $request->get('del_person_ids', []);//参与人或宣传人删除ID数组
-        DB::beginTransaction();
         try {
             $result = $this->moduleUserRepository->addModuleUser($participantIds, $participantDeleteIds, $model, $type);
             $participantIds = $result[0];

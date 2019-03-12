@@ -290,7 +290,7 @@ class TrailController extends Controller
                 $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
                 $data = [];
                 $data[] = [
-                    "title" => '线索名臣', //通知消息中的消息内容标题
+                    "title" => '线索名称', //通知消息中的消息内容标题
                     'value' => $trail->title,  //通知消息内容对应的值
                 ];
                 $data[] = [

@@ -33,7 +33,7 @@ class ClientStoreRequest extends FormRequest
             'industry_id' => 'required|numeric',
             'size' => 'nullable',
             'contact.name' => 'required',
-            'contact.phone' => ['required', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
+            'contact.phone' => ['nullable', 'digits:11', 'regex:/^1[34578]\d{9}$/'],
             'contact.position' => 'required',
             'keyman' => 'nullable',
             'desc' => 'nullable',

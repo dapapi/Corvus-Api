@@ -60,7 +60,8 @@ class ProjectRepository
         leftJoin("contracts as c",'projects.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
-            })->searchData()
+            })
+            ->leftJoin('users','users.id','projects.principal_id')
             ->where('afe.flow_type_id',232)
             ->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)

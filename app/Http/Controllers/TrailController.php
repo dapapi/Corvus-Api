@@ -57,7 +57,7 @@ class TrailController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+                $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
                 $query->where('type', $payload['status']);
             else if($request->has('status') && $payload['status'] == '3,4'){
@@ -82,7 +82,7 @@ class TrailController extends Controller
                     ->where('logable_type',ModuleableType::TRAIL)
                     ->where('operate_logs.method','4');
             })->groupBy('trails.id')
-            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
                 'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);

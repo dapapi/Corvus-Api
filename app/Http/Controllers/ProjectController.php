@@ -79,7 +79,7 @@ class ProjectController extends Controller
         $project_type = $request->get('project_type',null);
         $query =  Project::where(function ($query) use ($request, $payload,$user,$project_type) {
             if ($request->has('keyword'))
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+                $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
 
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);

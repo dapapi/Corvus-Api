@@ -56,6 +56,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/pool/filter', 'App\Http\Controllers\SeasPoolController@getFilter');
         $api->get('/contract/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+        $api->get('/project/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
+
 
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
@@ -679,6 +681,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*合同管理*/
         //项目合同
         $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
+        $api->get('/approvals_contract/projectFilter','App\Http\Controllers\ApprovalContractController@getProjectFilter');
 
         //经济合同
         $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');

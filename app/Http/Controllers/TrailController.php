@@ -165,11 +165,20 @@ class TrailController extends Controller
             }
 
             if (!array_key_exists('id', $payload['contact'])) {
-                $contact = Contact::create([
-                    'client_id' => $client->id,
-                    'name' => $payload['contact']['name'],
-                    'phone' => $payload['contact']['phone'],
-                ]);
+                    $dataArray = [];
+                    $dataArray['client_id'] = $client->id;
+                    $dataArray['name'] = $payload['contact']['name'];
+                if($request->has("contact.phone")){
+                    $dataArray['phone'] = $payload['contact']['phone'];
+                }
+                if($request->has("contact.wechat")){
+                    $dataArray['wechat'] = $payload['contact']['wechat'];
+                }
+                if($request->has("contact.other_contact_ways")){
+                    $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                }
+                    $contact = Contact::create($dataArray);
+
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $client,
@@ -290,7 +299,7 @@ class TrailController extends Controller
                 $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
                 $data = [];
                 $data[] = [
-                    "title" => '线索名臣', //通知消息中的消息内容标题
+                    "title" => '线索名称', //通知消息中的消息内容标题
                     'value' => $trail->title,  //通知消息内容对应的值
                 ];
                 $data[] = [

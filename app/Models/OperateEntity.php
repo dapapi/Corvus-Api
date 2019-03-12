@@ -14,7 +14,7 @@ class OperateEntity extends Model
         'end',
         'method',
         'field_name',
-        'title',
+        'field_title',
     ];
 
 }

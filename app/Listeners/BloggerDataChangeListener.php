@@ -51,6 +51,7 @@ class BloggerDataChangeListener
                     'start' => $old_blogger->$func(),
                     'end' => $new_blogger->$func(),
                     'method' => OperateLogMethod::UPDATE,
+                    'field_name' =>  $key
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
             }

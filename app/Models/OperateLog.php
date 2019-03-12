@@ -18,7 +18,7 @@ class OperateLog extends Model
         'status',
         'level',
         'field_name',
-        'title',
+        'field_title',
     ];
 
 
@@ -54,7 +54,7 @@ class OperateLog extends Model
         if ($power){
             return $this->attributes['content'];
         }
-        return "修改了".$this->attributes['title'];
+        return "修改了".$this->attributes['field_title'];
     }
 
 }

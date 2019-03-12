@@ -94,7 +94,6 @@ class ClientController extends Controller
 
         DB::beginTransaction();
         try {
-
             $client = Client::create($payload);
             // 操作日志
             $operate = new OperateEntity([
@@ -109,13 +108,23 @@ class ClientController extends Controller
             ]));
 
             if ($request->has('contact')) {
-                $contact = Contact::create([
-                    'name' => $payload['contact']['name'],
-                    'phone' => $payload['contact']['phone'],
-                    'position' => $payload['contact']['position'],
-                    'client_id' => $client->id,
-                    'type' => $payload['contact']['type']
-                ]);
+
+                $dataArray = [];
+                $dataArray['client_id'] = $client->id;
+                $dataArray['name'] = $payload['contact']['name'];
+                $dataArray['position'] = $payload['contact']['position'];
+                $dataArray['client_id'] = $client->id;
+                $dataArray['type'] = $payload['contact']['type'];
+                if($request->has("contact.phone")){
+                    $dataArray['phone'] = $payload['contact']['phone'];
+                }
+                if($request->has("contact.wechat")){
+                    $dataArray['wechat'] = $payload['contact']['wechat'];
+                }
+                if($request->has("contact.other_contact_ways")){
+                    $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                }
+                $contact = Contact::create($dataArray);
                 $operate = new OperateEntity([
                     'obj' => $client,
                     'title' => '该用户',

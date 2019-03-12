@@ -48,11 +48,20 @@ class ContactController extends Controller
     public function store(StoreContactRequest $request, Client $client)
     {
         $payload = $request->all();
-
-        $payload['client_id'] = $client->id;
-
+        $dataArray = [];
+        $dataArray['client_id'] = $client->id;
+        $dataArray['name'] = $payload['name'];
+        if($request->has("phone")){
+            $dataArray['phone'] = $payload['phone'];
+        }
+        if($request->has("wechat")){
+            $dataArray['wechat'] = $payload['wechat'];
+        }
+        if($request->has("other_contact_ways")){
+            $dataArray['other_contact_ways'] = $payload['other_contact_ways'];
+        }
         try {
-            $contact = Contact::create($payload);
+            $contact = Contact::create($dataArray);
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $client,

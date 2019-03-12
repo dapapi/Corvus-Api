@@ -61,6 +61,9 @@ use Illuminate\Support\Facades\URL;
 use League\Fractal;
 use League\Fractal\Manager;
 use League\Fractal\Serializer\DataArraySerializer;
+use App\Models\FilterJoin;
+use App\Http\Requests\Filter\FilterRequest;
+use App\Repositories\FilterReportRepository;
 
 
 class ApprovalFormController extends Controller
@@ -1578,5 +1581,47 @@ class ApprovalFormController extends Controller
 
         return $array;
 
+    }
+
+    public function getFilter(FilterRequest $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', config('app.status'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
+        $joinSql = FilterJoin::where('table_name', 'project')->first()->join_sql;
+        $query = Contract::selectRaw('DISTINCT(ps.id) as ids')->from(DB::raw($joinSql));
+        $contracts = $query->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        });
+
+        $array = [];//查询条件
+        if ($request->has('name'))
+            $array[] = ['afb.form_instance_number',$payload['number']];
+        if ($request->has('keywords'))
+            $array[] = ['ps.title','like','%'.$payload['keywords'].'%'];
+        if ($request->has('type'))
+            $array[] = ['afb.form_id',$payload['type']];
+
+        $projectsInfo = $contracts->where($array)->orderBy('cs.created_at', 'desc')
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
+
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($projectsInfo, $start, $pageSize);
+
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
+
+        $arr = array();
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
+        ];
+
+        return $arr;
     }
 }

@@ -15,6 +15,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\FilterJoin;
+use App\Http\Requests\Filter\FilterRequest;
+use App\Repositories\FilterReportRepository;
+
 
 
 class ApprovalContractController extends Controller
@@ -565,6 +569,7 @@ class ApprovalContractController extends Controller
         $payload['type'] = isset($payload['type']) ? $payload['type'] : '';
 
 //        $data = DB::table('approval_form_business as afb')//
+
         $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
                 $join->on('af.form_id', '=', 'afb.form_id');
@@ -661,7 +666,7 @@ class ApprovalContractController extends Controller
             $data->Where('afb.form_id', $payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name','us.icon_url', 'cs.created_at', 'afb.form_status','dd.icon','dd.name', 'cs.star_type', 'cs.stars')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name','us.icon_url', 'cs.created_at', 'afb.form_status','dd.icon','dd.name as approval_status_name', 'cs.star_type', 'cs.stars')->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($res, $start, $pageSize);
@@ -752,6 +757,7 @@ class ApprovalContractController extends Controller
         return $arr;
     }
 
+
     public function archive(ContractArchiveRequest $request, Contract $contract)
     {
         $payload = $request->all();
@@ -795,4 +801,37 @@ class ApprovalContractController extends Controller
 
         return $this->response->accepted(null, '归档成功');
     }
+
+
+    /**
+     * 暂时不用列表了，逻辑要换
+     * @param FilterRequest $request
+     * @return \Dingo\Api\Http\Response
+     */
+    public function getFilter(FilterRequest $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', config('app.status'));
+        $joinSql = FilterJoin::where('table_name', 'Contracts')->first()->join_sql;
+        $query = Contract::selectRaw('DISTINCT(cs.id) as ids')->from(DB::raw($joinSql));
+        $bloggers = $query->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        });
+
+        $array = [];//查询条件
+        if ($request->has('name'))
+            $array[] = ['afb.form_instance_number',$payload['number']];
+        if ($request->has('keywords'))
+            $array[] = ['cs.title','like','%'.$payload['keywords'].'%'];
+        if ($request->has('type'))
+            $array[] = ['afb.form_id',$payload['type']];
+        // sign_contract_status   签约状态
+        $bloggers = $bloggers->where($array)->groupBy('cs.id')
+         ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
+        return $bloggers;
+
+
+    }
+
 }

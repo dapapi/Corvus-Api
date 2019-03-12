@@ -56,6 +56,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/pool/filter', 'App\Http\Controllers\SeasPoolController@getFilter');
+        $api->get('/contract/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
 
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');

@@ -627,6 +627,7 @@ class ApprovalContractController extends Controller
         $payload['talent'] = isset($payload['talent']) ? $payload['talent'] : '';
 
 //        $data = DB::table('approval_form_business as afb')
+
         $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
                 $join->on('af.form_id', '=', 'afb.form_id');
@@ -813,9 +814,10 @@ class ApprovalContractController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
         $joinSql = FilterJoin::where('table_name', 'Contracts')->first()->join_sql;
         $query = Contract::selectRaw('DISTINCT(cs.id) as ids')->from(DB::raw($joinSql));
-        $bloggers = $query->where(function ($query) use ($payload) {
+        $contracts = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
@@ -827,9 +829,27 @@ class ApprovalContractController extends Controller
         if ($request->has('type'))
             $array[] = ['afb.form_id',$payload['type']];
         // sign_contract_status   签约状态
-        $bloggers = $bloggers->where($array)->groupBy('cs.id')
+        $contractsInfo = $contracts->where($array)->groupBy('cs.id')
          ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
-        return $bloggers;
+
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($contractsInfo, $start, $pageSize);
+
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
+
+        $arr = array();
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
+        ];
+
+
+        return $arr;
 
 
     }

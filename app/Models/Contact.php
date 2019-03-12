@@ -14,6 +14,8 @@ class Contact extends Model
     protected $fillable = [
         'name',
         'phone',
+        'wechat',
+        'other_contact_ways',
         'position',
         'client_id',
         'type',

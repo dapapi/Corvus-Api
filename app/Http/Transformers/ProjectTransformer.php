@@ -161,7 +161,7 @@ class ProjectTransformer extends TransformerAbstract
     {
         $principal = $project->principal;
         if (!$principal)
-            return null;
+            return $this->null();
 
         return $this->item($principal, new UserTransformer());
     }
@@ -170,7 +170,7 @@ class ProjectTransformer extends TransformerAbstract
     {
         $creator = $project->creator;
         if (!$creator)
-            return null;
+            return $this->null();
 
         return $this->item($creator, new UserTransformer());
     }
@@ -178,7 +178,8 @@ class ProjectTransformer extends TransformerAbstract
     public function includeFields(Project $project)
     {
         $fields = $project->fields;
-
+        if (!$fields)
+            return $this->null();
         return $this->collection($fields, new FieldValueTransformer());
     }
 
@@ -213,18 +214,23 @@ class ProjectTransformer extends TransformerAbstract
     public function includeParticipants(Project $project)
     {
         $participants = $project->participants;
-
+        if (!$participants)
+            return $this->null();
         return $this->collection($participants, new UserTransformer());
     }
 
     public function includeRelateTasks(Project $project)
     {
         $tasks = $project->relateTasks;
+        if (!$tasks)
+            return $this->null();
         return $this->collection($tasks, new TaskTransformer());
     }
     public function includeRelateProjects(Project $project)
     {
         $projects = $project->relateProjects;
+        if (!$projects)
+            return $this->null();
         return $this->collection($projects, new ProjectTransformer());
     }
     public function includeRelateProjectCourses(Project $project)
@@ -257,6 +263,8 @@ class ProjectTransformer extends TransformerAbstract
         $tasks = $project->tasks()->stopAsc()
             ->where('status',TaskStatus::NORMAL)
             ->limit(3)->get();
+        if (!$tasks)
+            return $this->null();
         return $this->collection($tasks, new TaskTransformer());
     }
 }

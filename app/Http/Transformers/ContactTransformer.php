@@ -21,6 +21,8 @@ class ContactTransformer extends TransformerAbstract
                 'id' => hashid_encode($contact->id),
                 'name' => $contact->name,
                 'phone' => $contact->phone,
+                'wechat' => $contact->wechat,
+                'other_contact_ways' => $contact->other_contact_ways,
                 'position' => $contact->position,
                 'type' => $contact->type,
                 'status' => $contact->status,

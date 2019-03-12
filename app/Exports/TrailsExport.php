@@ -50,9 +50,9 @@ class TrailsExport implements FromQuery, WithMapping, WithHeadings
                     ->where('logable_type',ModuleableType::TRAIL)
                     ->where('operate_logs.method','4');
             })->groupBy('trails.id')
-            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")]);
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")]);
 
                }
 

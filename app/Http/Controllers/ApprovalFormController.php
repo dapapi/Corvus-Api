@@ -14,6 +14,7 @@ use App\Http\Transformers\ApprovalFormTransformer;
 use App\Http\Transformers\ApprovalGroupTransformer;
 use App\Http\Transformers\ApprovalInstanceTransformer;
 use App\Http\Transformers\ApprovalParticipantTransformer;
+use App\Http\Transformers\ContractArchiveTransformer;
 use App\Http\Transformers\ControlTransformer;
 use App\Http\Transformers\ProjectHistoriesTransformer;
 use App\Http\Transformers\ProjectTransformer;
@@ -764,6 +765,7 @@ class ApprovalFormController extends Controller
         return $this->response->item($approval, new ApprovalFormTransformer($num));
     }
 
+    // todo 增加归档详情内容
     private function getInstance($instance)
     {
         $num = $instance->form_instance_number;
@@ -800,6 +802,13 @@ class ApprovalFormController extends Controller
         if ($form->group_id == 2) {
             $contract = Contract::where('form_instance_number', $num)->first();
             $result->addMeta('contract', $contract->contract_number);
+            if ($contract->status) {
+                $archives = new Fractal\Resource\Collection($contract->archives, new ContractArchiveTransformer());
+                $result->addMeta('contract_archive', [
+                    'comment' => $contract->comment,
+                    'archives' => $manager->createData($archives)->toArray()
+                ]);
+            }
         }
 
         // todo 明细单列

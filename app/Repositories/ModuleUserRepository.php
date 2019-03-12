@@ -126,7 +126,6 @@ class ModuleUserRepository
 
             $particalendarsIds[$key] = hashid_decode($value);
         }
-
         $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])
             ->where('moduleable_id', $array['moduleable_id'])->whereIn('user_id', $particalendarsIds)
             ->where('type', $type)->get(['id'])->toArray();

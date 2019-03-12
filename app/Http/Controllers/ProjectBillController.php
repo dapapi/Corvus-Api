@@ -253,7 +253,7 @@ class ProjectBillController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
-            return $this->response->errorInternal('创建失败');
+            return $this->response->errorInternal('修改失败');
         }
         DB::commit();
 

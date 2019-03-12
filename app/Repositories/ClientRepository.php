@@ -14,7 +14,7 @@ class ClientRepository
      */
     public function clientCustomSiftBuilder()
     {
-        return Client::leftJoin('contacts',' contacts.client_id', '=', 'clients.id')
+        return Client::leftJoin('contacts','contacts.client_id', '=', 'clients.id')
             ->leftJoin('operate_logs',function ($join){
                 $join->on('operate_logs.logable_id', '=', 'clients.id')
                     ->whereRaw('logable_type = "client"');

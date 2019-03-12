@@ -86,9 +86,10 @@ class ScopeRepository
         //查询本部门 20
         }elseif($dataDictionarieId == 20){
             $arrayUserid = array();
-            $departmentIdArr = DepartmentUser::where('user_id',$userId)->get()->toArray();
-            $departmentId = $departmentIdArr[0]['department_id'];
-
+            $departmentId = DepartmentUser::where('user_id',$userId)->value('department_id');
+            if (!$departmentId){
+                return null;
+            }
             $departmentUserArr = DepartmentUser::where('department_id',$departmentId)->get()->toArray();
             foreach ($departmentUserArr as $key=>$value){
                 $arrayUserid[] = $value['user_id'];//查看本部门下的所有人的
@@ -98,17 +99,23 @@ class ScopeRepository
         }elseif($dataDictionarieId == 21){
             //根据userid 查部门及一下部门
             $arrayUserid = array();
-            $departmentIdArr = DepartmentUser::where('user_id',$userId)->get()->toArray();
+            $departmentId = DepartmentUser::where('user_id',$userId)->value('department_id');
+            if ($departmentId){
+                $result = $this->getSubdivision($departmentId);
+                $arrayUserid = array_keys($result);//查看下属部门
+            }else{
+                return null;
+            }
 
-            $departmentId = $departmentIdArr[0]['department_id'];
-            $result = $this->getSubdivision($departmentId);
-            $arrayUserid = array_keys($result);//查看下属部门
         }elseif($dataDictionarieId == 22){//全部
             $arrayUserid = [];
             return $arrayUserid;
         }elseif($dataDictionarieId == 417){//本部门及同级部门
             //获取本部门id
-            $departmentId = DepartmentUser::where('user_id',$userId)->first()->department_id;
+            $departmentId = DepartmentUser::where('user_id',$userId)->value('department_id');
+            if (!$departmentId){
+                return null;
+            }
             $arrayUserid = $this->getMyDepartmentAndSameLevelDepartmentUserList($departmentId);
         }else{
             return null;

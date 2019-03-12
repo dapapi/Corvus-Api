@@ -537,6 +537,19 @@ class ScheduleController extends Controller
         try {
             $schedule->update($payload);
 
+            if ($old_schedule->title != $schedule->title){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "日程标题",
+                    'start' => $old_schedule->title,
+                    'end' => $schedule->title,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
             if ($old_schedule->start_at != $schedule->start_at || $old_schedule->end_at != $schedule->end_at){
                 // 操作日志
                 $operate = new OperateEntity([

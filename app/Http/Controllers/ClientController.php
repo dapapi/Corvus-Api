@@ -18,6 +18,7 @@ use App\Models\Contact;
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\Repositories\ClientRepository;
 use App\Repositories\FilterReportRepository;
 use App\Repositories\ScopeRepository;
 use App\TriggerPoint\ClientTriggerPoint;
@@ -305,7 +306,7 @@ class ClientController extends Controller
      * @param FilterRequest $request
      * @return \Dingo\Api\Http\Response
      */
-    public function getFilter(FilterRequest $request)
+    public function getFilter(FilterRequest $request,ClientRepository $repository)
     {
         $payload = $request->all();
         $array = [];
@@ -324,15 +325,16 @@ class ClientController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $all = $request->get('all', false);
-        $joinSql = FilterJoin::where('table_name', 'clients')->first()->join_sql;
-        $query = Client::from(DB::raw($joinSql));
+//        $joinSql = FilterJoin::where('table_name', 'clients')->first()->join_sql;
+//        $query = Client::from(DB::raw($joinSql));
+        $query = $repository->clientCustomSiftBuilder();
         $clients = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
         $clients = $clients->where($array)
 
-            ->select('clients.id','clients.company','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
+            ->select('clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
 
         return $this->response->paginator($clients, new ClientTransformer(!$all));

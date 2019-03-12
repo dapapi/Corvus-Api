@@ -168,7 +168,6 @@ class UserTransformer extends TransformerAbstract
     {
 
         $schedules= $user->userSchedules;
-
         return $this->collection($schedules, new ScheduleTransformer());
     }
     public function includeEducation(User $user)

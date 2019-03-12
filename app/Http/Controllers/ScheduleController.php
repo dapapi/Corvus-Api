@@ -550,12 +550,14 @@ class ScheduleController extends Controller
                     $operate
                 ]));
             }
-            if ($old_schedule->start_at != $schedule->start_at || $old_schedule->end_at != $schedule->end_at){
+            $old_start_at = date('Y-m-d H:i:s',strtotime($schedule->start_at));
+            $old_end_at =  date('Y-m-d H:i:s',strtotime($schedule->end_at));
+            if ($old_start_at->start_at != $schedule->start_at || $old_end_at->end_at != $schedule->end_at){
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $schedule,
                     'title' => "日程时间",
-                    'start' => $old_schedule->start_at."-".$old_schedule->end_at,
+                    'start' => $old_start_at."-".$old_end_at,
                     'end' => $schedule->start_at."-".$schedule->end_at,
                     'method' => OperateLogMethod::UPDATE,
                 ]);

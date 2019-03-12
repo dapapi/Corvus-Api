@@ -251,7 +251,7 @@ class ClientController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData() ->leftJoin('operate_logs',function($join){
+        })->searchData()->leftJoin('operate_logs',function($join){
             $join->on('clients.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::CLIENT)
                 ->where('operate_logs.method','4');
@@ -330,9 +330,11 @@ class ClientController extends Controller
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
-        $stars = $clients->where($array)
+        $clients = $clients->where($array)
+
+            ->select('clients.id','clients.company','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
 
-        return $this->response->paginator($stars, new ClientTransformer(!$all));
+        return $this->response->paginator($clients, new ClientTransformer(!$all));
     }
 }

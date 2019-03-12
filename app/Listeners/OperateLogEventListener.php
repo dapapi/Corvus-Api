@@ -415,7 +415,7 @@ class OperateLogEventListener
                 'level' => $level,
                 'status' => 1,
                 'field_name'    =>$field_name,
-                'title' =>  $title
+                'field_title' =>  $title
             ]);
 
         }

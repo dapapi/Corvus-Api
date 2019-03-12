@@ -156,15 +156,7 @@ class StarTransformer extends TransformerAbstract
     {
         $user = Auth::guard("api")->user();
         //日历是公开的或者当前登录人在日历的参与人中或者是创建人
-        $calendars = $star->calendar()
-            ->join('module_users as mu',function ($join){
-                $join->on('mu.moduleable_id','calendars.id')
-                    ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
-            })
-            ->where('privacy',Calendar::OPEN)
-            ->orWhere('calendars.creator_id',$user->id)
-            ->orWhere('mu.user_id',$user->id)
-            ->first();//查找艺人日历
+        $calendars = $star->calendar()->first();//查找艺人日历
         if($calendars){//日历存在查找日程
             $calendar = $calendars->schedules()
                 ->join('module_users as mu',function ($join){
@@ -177,7 +169,7 @@ class StarTransformer extends TransformerAbstract
                 ->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3);
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
-            return null;
+            return $this->null();
         }
     }
 }

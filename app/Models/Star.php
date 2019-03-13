@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\Repositories\PrivacyUserRepository;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\TaskStatus;
@@ -20,7 +21,6 @@ class Star extends Model
     use SoftDeletes;
     use OperateLogTrait;
     private  $model_dic_id = DataDictionarie::STAR;//数据字典中模块id
-
     protected $fillable = [
         'name',//姓名
         'desc',//描述
@@ -56,6 +56,7 @@ class Star extends Model
         'artist_scout_name',//星探
         'star_location',//地区
     ];
+
 
 //隐藏字段
 //'contract_type',//合同类型
@@ -142,4 +143,56 @@ class Star extends Model
     {
 
     }
+
+    /**
+     * 设置艺人风险点字段，隐私字段，没查看艺人风险点权限不允许修改
+     * 数据的创建人和分配了隐私权限的人可以修改
+     * @author lile
+     * @date 2019-03-13 10:36
+     */
+    public function setStarRiskPointAttribute($star_risk_point)
+    {
+        //新增不受限制，编辑需要判断是否有权限修改才能修改
+        $id = $this->getAttribute("id");
+        $creator_id = $this->getAttribute('creator_id');
+        if ($id){//如果id不是空则是编辑
+            $user = Auth::guard('api')->user();
+            if ($user->id == $creator_id){
+                return $star_risk_point;
+            }
+            $id = $this->attributes['id'];//记录修改数据的id
+            $table = ModuleableType::STAR;//记录修改数据的表
+            $field_name = "star_risk_point";//记录修改数据的字段
+            $repository = new PrivacyUserRepository();
+            $power = $repository->has_power($table,$field_name,$id,$user->id);
+            if ($power){
+                return $star_risk_point;
+            }
+            return $this->getOriginal($field_name);//没有权限修改则返回原始值
+        }
+    }
+    /**
+     * 获取艺人风险点，没权限的人不能查看
+     * 数据的创建人和分配了隐私权限的人可以查看
+     * @author lile
+     * @date 2019-03-13 10:36
+     */
+    public function getStarRiskPointAttribute($star_risk_point)
+    {
+        $user = Auth::guard('api')->user();
+        $creator_id = $this->getAttribute('creator_id');
+//        if ($user->id == $creator_id){
+//            return $star_risk_point;
+//        }
+        $id = $this->attributes['id'];//记录修改数据的id
+        $table = ModuleableType::STAR;//记录修改数据的表
+        $field_name = "star_risk_point";//记录修改数据的字段
+        $repository = new PrivacyUserRepository();
+        $power = $repository->has_power($table,$field_name,$id,$user->id);
+        if ($power){//有权限返回原始值
+            return $star_risk_point;
+        }
+        return "xxxxx";//没权限返回xxxx
+    }
+
 }

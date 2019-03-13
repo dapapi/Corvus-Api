@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Star;
 use App\Models\StarReport;
 use App\Models\Task;
+use App\ModuleUserType;
 use App\TaskStatus;
 use Carbon\Carbon;
 use function foo\func;
@@ -104,4 +105,5 @@ class StarReportRepository
           'task'    =>  $tasks,
         ];
     }
+
 }

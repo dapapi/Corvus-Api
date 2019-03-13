@@ -43,7 +43,6 @@ class UserTransformer extends TransformerAbstract
             'name' => $user->name,
             'current_address' => $user->current_address,
             'status' => $user->status,
-            'department' => $user->department,
             'position' => $user->position ? $user->position : new \stdClass(),//空返回标准对象
             'hire_shape' => $user->hire_shape,
             'entry_time' => $user->entry_time,//时间去掉秒,

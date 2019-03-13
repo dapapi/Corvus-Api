@@ -66,6 +66,7 @@ use App\Http\Requests\Filter\FilterRequest;
 use App\Repositories\FilterReportRepository;
 
 
+
 class ApprovalFormController extends Controller
 {
     protected $generator;
@@ -1602,7 +1603,7 @@ class ApprovalFormController extends Controller
         if ($request->has('type'))
             $array[] = ['afb.form_id',$payload['type']];
 
-        $projectsInfo = $contracts->where($array)->orderBy('cs.created_at', 'desc')
+        $projectsInfo = $contracts->searchData()->where($array)->orderBy('cs.created_at', 'desc')
             ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数

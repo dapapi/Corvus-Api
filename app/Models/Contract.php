@@ -5,6 +5,10 @@ namespace App\Models;
 use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
+use App\Repositories\ScopeRepository;
+use App\Scopes\SearchDataScope;
+
 
 class Contract extends Model
 {
@@ -34,13 +38,15 @@ class Contract extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
+
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
-        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
-            select u.id from contracts as c 
-            left join approval_form_participants as afps on afps.nptice_id = c.creator_id and 
-  
-             left join users as u on u.id = afps.user_id where c.id = contracts.id
+
+        return  (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
+            select usr.id from contracts as c 
+            left join approval_form_participants as afps on afps.notice_id = c.creator_id
+             left join users as usr on usr.id = afps.notice_id  where usr.id = c.creator_id
         )");
+
     }
 
 

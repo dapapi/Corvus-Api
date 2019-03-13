@@ -1365,9 +1365,12 @@ class ProjectController extends Controller
     {
 
         try {
-
-
-            $projectReturnedMoney->delete();
+            $id = ProjectReturnedMoney::where('p_id',$projectReturnedMoney->id)->get(['id'])->toArray();
+            if($id){
+                ProjectReturnedMoney::whereIn('id',$id)->delete();
+            }else{
+                $projectReturnedMoney->delete();
+            }
         } catch (Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('删除失败');

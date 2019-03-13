@@ -72,6 +72,7 @@ class StarTransformer extends TransformerAbstract
             'last_updated_user' => $star->last_updated_user,
             'last_updated_at'   =>  $star->last_updated_at,
             'last_follow_up_at' => $star->last_follow_up_at,
+            'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
 
         ];
@@ -163,7 +164,6 @@ class StarTransformer extends TransformerAbstract
                 ->join('module_users as mu',function ($join){
 
                     $join->on('mu.moduleable_id','schedules.id')
-
                         ->whereRaw("mu.moduleable_type = '".ModuleableType::CALENDAR."'");
                 })
                 ->where('schedules.privacy',Schedule::OPEN)

@@ -499,7 +499,7 @@ class ApprovalFlowController extends Controller
         $user = Auth::guard('api')->user();
         $userId = $user->id;
 
-        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, 0);
+        list($nextId, $type, $principalLevel) = $this->getChainNext($instance, 0, false);
 
         $currentStatus = Execute::where('form_instance_number', $num)->first();
         if ($currentStatus->flow_type_id != 231 || $currentStatus->current_handler_id != $nextId) {
@@ -657,17 +657,25 @@ class ApprovalFlowController extends Controller
         $now = Execute::where('form_instance_number', $num)->where('flow_type_id', 231)->count('form_instance_number');
         if ($changeType == 222) {
             // 固定流程
-            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count + $now)->where('principal_level', $level + 1)->first();
+            $chain = ChainFixed::where('form_id', $formId)->where('pre_id', $preId)->where('sort_number', $count + $now)
+                ->where(function ($query) use ($level) {
+                    $query->whereNull('principal_level')->orWhere('principal_level', $level + 1);
+                })
+                ->first();
         } else if ($changeType == 223) {
             // 自由流程
             $chain = ChainFree::where('form_number', $num)->where('pre_id', $preId)->where('sort_number', $count + $now)->first();
         } else if ($changeType == 224) {
-
             // 分支流程
             $formControlIds = Condition::where('form_id', $formId)->value('form_control_id');
             $value = $this->getValuesForCondition($formControlIds, $num);
             $conditionId = $this->getCondition($instance->form_id, $value);
-            $chain = ChainFixed::where('form_id', $formId)->where('sort_number', $count + $now)->where('pre_id', $preId)->where('principal_level', $level + 1)->where('condition_id', $conditionId)->first();
+            $chain = ChainFixed::where('form_id', $formId)->where('sort_number', $count + $now)->where('pre_id', $preId)
+                ->where(function ($query) use ($level) {
+                    $query->whereNull('principal_level')->orWhere('principal_level', $level + 1);
+                })
+                ->where('condition_id', $conditionId)
+                ->first();
         } else {
             throw new Exception('审批流转不存在');
         }

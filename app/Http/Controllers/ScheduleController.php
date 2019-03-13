@@ -552,7 +552,7 @@ class ScheduleController extends Controller
             }
             $old_start_at = date('Y-m-d H:i:s',strtotime($schedule->start_at));
             $old_end_at =  date('Y-m-d H:i:s',strtotime($schedule->end_at));
-            if ($old_start_at->start_at != $schedule->start_at || $old_end_at->end_at != $schedule->end_at){
+            if ($old_start_at != $schedule->start_at || $old_end_at != $schedule->end_at){
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $schedule,
@@ -643,6 +643,7 @@ class ScheduleController extends Controller
             $this->hasauxiliary($request, $payload, $schedule, '', $user);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('更新日程失败');

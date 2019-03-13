@@ -327,7 +327,7 @@ class PrivacyUserRepository
         if ($user_ids->count() == 0){//没有针对$table表$data_id 的$field字段的数据权限管理，则表示可以查看日志
             return true;
         }else{
-            if($user_ids.contains($userid)){ //如果$userid在有权限用户范围内则可以查看日志
+            if($user_ids->contains($userid)){ //如果$userid在有权限用户范围内则可以查看日志
                 return true;
             }else{
                 return false;

@@ -72,6 +72,7 @@ class StarTransformer extends TransformerAbstract
             'last_updated_user' => $star->last_updated_user,
             'last_updated_at'   =>  $star->last_updated_at,
             'last_follow_up_at' => $star->last_follow_up_at,
+            'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
 
         ];

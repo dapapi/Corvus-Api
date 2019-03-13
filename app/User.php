@@ -184,11 +184,12 @@ class User extends Authenticatable
     }
     public function userTasks()
     {
-        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->withTrashed();
+        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->withTrashed();
+       // return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->withTrashed();
     }
     public function userSchedules()
     {
-        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id');
+        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->orderBy('start_at', 'asc');
     }
 
     public function participantTasks()

@@ -219,7 +219,7 @@ class BloggerTransformer extends TransformerAbstract
         if($calendars){
             $calendar = $calendars->schedules() ->join('module_users as mu',function ($join){
                 $join->on('mu.moduleable_id','schedules.id')
-                    ->whereRaw("mu.moduleable_type = '".ModuleableType::CALENDAR."'");
+                    ->whereRaw("mu.moduleable_type = '".ModuleableType::SCHEDULE."'");
             })
                 ->where('schedules.privacy',Schedule::OPEN)
                 ->orWhere('schedules.creator_id')

@@ -189,7 +189,7 @@ class User extends Authenticatable
     }
     public function userSchedules()
     {
-        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->orderBy('start_at', 'asc');
+        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->orderBy('start_at', 'asc');
     }
 
     public function participantTasks()

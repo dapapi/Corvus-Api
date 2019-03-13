@@ -10,7 +10,9 @@ use App\Models\Contract;
 use App\Models\ContractArchive;
 use App\Models\DataDictionarie;
 use App\Models\RoleUser;
+
 use Exception;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -184,7 +186,7 @@ class ApprovalContractController extends Controller
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at', 'ph.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
 
 
-
+            DB::connection()->enableQueryLog();
             //查询二级主管
             $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
             ->join('approval_form_business as bu', function ($join) {
@@ -201,10 +203,11 @@ class ApprovalContractController extends Controller
                 })
                 ->join('department_principal as dp', function ($join) {
 
-                    DB::raw("select dpl.`user_id` from department_user as dur 
+
+                    $join->on('dp.user_id', '=', 'creator.id')->where('dp.user_id',".DB::raw(\"select dpl.`user_id` from department_user as dur
                         left join  departments as ds ON dur.`department_id`=ds.`id`
                         left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
-                        where dur.`user_id`=afi.`apply_id`");
+                        where dur.`user_id`=afi.`apply_id`\").");
                 })
 
                 ->join('users as us', function ($join) {
@@ -225,6 +228,8 @@ class ApprovalContractController extends Controller
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at', 'ph.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
+            //$dataPrincipalLevel
+
 
             $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
 
@@ -829,9 +834,10 @@ class ApprovalContractController extends Controller
         if ($request->has('type'))
             $array[] = ['afb.form_id',$payload['type']];
         // sign_contract_status   签约状态
-        $contractsInfo = $contracts->where($array)->groupBy('cs.id')
+        $contractsInfo = $contracts->searchData()->where($array)->groupBy('cs.id')
          ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
-
+//        $sql_with_bindings = str_replace_array('?', $contractsInfo->getBindings(), $contractsInfo->toSql());
+//        dd($sql_with_bindings);
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($contractsInfo, $start, $pageSize);
 

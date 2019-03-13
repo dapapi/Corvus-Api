@@ -68,6 +68,7 @@ use App\Http\Requests\Filter\FilterRequest;
 use App\Repositories\FilterReportRepository;
 
 
+
 class ApprovalFormController extends Controller
 {
     protected $generator;
@@ -275,7 +276,6 @@ class ApprovalFormController extends Controller
 
         $payload = $request->all();
         $user = Auth::guard('api')->user();
-
         $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
 
@@ -383,10 +383,10 @@ class ApprovalFormController extends Controller
                 })
                 ->join('department_principal as dp', function ($join) {
 
-                    DB::raw("select dpl.`user_id` from department_user as dur 
+                    $join->on('dp.user_id', '=', 'creator.id')->where('dp.user_id',".DB::raw(\"select dpl.`user_id` from department_user as dur
                         left join  departments as ds ON dur.`department_id`=ds.`id`
                         left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
-                        where dur.`user_id`=afi.`apply_id`");
+                        where dur.`user_id`=afi.`apply_id`\").");
                 })
 
                 ->join('project_histories as ph', function ($join) {
@@ -407,7 +407,7 @@ class ApprovalFormController extends Controller
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
                 ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
-
+            
             $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
 
             $resArrInfo = json_decode(json_encode($resArrs), true);
@@ -1619,7 +1619,7 @@ class ApprovalFormController extends Controller
         if ($request->has('type'))
             $array[] = ['afb.form_id',$payload['type']];
 
-        $projectsInfo = $contracts->where($array)->orderBy('cs.created_at', 'desc')
+        $projectsInfo = $contracts->searchData()->where($array)->orderBy('cs.created_at', 'desc')
             ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数

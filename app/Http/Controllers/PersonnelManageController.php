@@ -514,8 +514,10 @@ class PersonnelManageController extends Controller
                 $departmentInfo->update($payload);
             }
              $userArr = [
-                'work_email' => $payload['work_email'],
-                'hire_shape' => $payload['hire_shape']
+                 'work_email' => $payload['work_email'],
+                 'hire_shape' => $payload['hire_shape'],
+                 'cadastral_address' => $payload['cadastral_address'],
+                 'current_address' => $payload['current_address'],
              ];
             $user->update($userArr);
 

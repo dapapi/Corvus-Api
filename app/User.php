@@ -81,6 +81,7 @@ class User extends Authenticatable
         'work_email',
         'disable',
         'position_id',
+        'real_name',
 
     ];
 

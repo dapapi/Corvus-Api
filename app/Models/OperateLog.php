@@ -43,12 +43,17 @@ class OperateLog extends Model
      * @author 李乐
      * @date 2019-03-11 14:56
      */
-    public function getContentAttribute()
+    public function getContentAttribute($content)
     {
         $user = Auth::guard('api')->user();
         $id = $this->attributes['logable_id'];//记录修改数据的id
         $table = $this->attributes['logable_type'];//记录修改数据的表
         $field_name = $this->attributes['field_name'];//记录修改数据的字段
+        //判断是不是隐私字段
+        $privacy_fields = DataDictionarie::getPrivacyFieldList();
+        if (!in_array($field_name,$privacy_fields)){
+            return $content;
+        }
         $repository = new PrivacyUserRepository();
         $power = $repository->has_power($table,$field_name,$id,$user->id);
         if ($power){

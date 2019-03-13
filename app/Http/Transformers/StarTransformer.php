@@ -31,6 +31,7 @@ class StarTransformer extends TransformerAbstract
         if ($sub_str == "#" || $sub_str == null){
             $star->avatar = "https://res-crm.papitube.com/image/artist-no-avatar.png";
         }
+
         $array = [
             'id' => hashid_encode($star->id),
             'name' => $star->name,
@@ -53,8 +54,10 @@ class StarTransformer extends TransformerAbstract
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,
-            'created_at' => $star->created_at->toDatetimeString(),
-            'updated_at' => $star->updated_at->toDatetimeString(),
+//            'created_at' => $star->created_at->toDatetimeString(),
+            'created_at' => $star->created_at,
+//            'updated_at' => $star->updated_at->toDatetimeString(),
+            'updated_at' => $star->updated_at,
             'deleted_at' => $star->deleted_at,
 
             'platform'  =>  $star->platform,
@@ -70,8 +73,12 @@ class StarTransformer extends TransformerAbstract
             'star_location' =>  $star->star_location,
             // 日志内容
             'last_updated_user' => $star->last_updated_user,
+//            'last_updated_user' => $star->getLastUpdatedUserAttribute(),
             'last_updated_at'   =>  $star->last_updated_at,
-            'last_follow_up_at' => $star->last_follow_up_at,
+//            'last_updated_at'   =>  $star->getLastUpdatedAtAttribute(),
+            'last_updated_at'   =>  $star->last_updated_at,
+//            'last_follow_up_at' => $star->getLastFollowUpAtAttribute(),
+            'last_follow_up_at' =>  $star->last_follow_up_at,
             'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
 

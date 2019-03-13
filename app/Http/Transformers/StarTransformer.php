@@ -72,6 +72,7 @@ class StarTransformer extends TransformerAbstract
             'last_updated_user' => $star->last_updated_user,
             'last_updated_at'   =>  $star->last_updated_at,
             'last_follow_up_at' => $star->last_follow_up_at,
+            'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
 
         ];
@@ -156,13 +157,14 @@ class StarTransformer extends TransformerAbstract
     {
         $user = Auth::guard("api")->user();
         //日历是公开的或者当前登录人在日历的参与人中或者是创建人
-        $calendars = $star->calendar()->first();//查找艺人日历
+        $calendars = $star->calendar()
+            ->first();//查找艺人日历
         if($calendars){//日历存在查找日程
             $calendar = $calendars->schedules()
                 ->join('module_users as mu',function ($join){
 
                     $join->on('mu.moduleable_id','schedules.id')
-                        ->whereRaw("mu.moduleable_type = '".ModuleableType::CALENDAR."'");
+                        ->whereRaw("mu.moduleable_type = '".ModuleableType::SCHEDULE."'");
                 })
                 ->where('schedules.privacy',Schedule::OPEN)
                 ->orWhere('schedules.creator_id')
@@ -173,7 +175,7 @@ class StarTransformer extends TransformerAbstract
 
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
-            return $this->null();
+            return null;
         }
     }
 }

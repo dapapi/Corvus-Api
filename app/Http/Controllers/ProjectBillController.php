@@ -216,7 +216,6 @@ class ProjectBillController extends Controller
 
         }
         $is_exist = ProjectBillsResource::where(['resourceable_id' => $array['resourceable_id'], 'resourceable_title' => $array['resourceable_title'], 'resourceable_type' => $array['resourceable_type']])->first();
-
         if (!isset($is_exist)) {
             return $this->response->errorNotFound('请先添加结算单');
         }
@@ -224,7 +223,6 @@ class ProjectBillController extends Controller
         try {
             $data = $array['star'];
             unset($array['star']);
-
             $bill = ProjectBillsResource::where('id', $is_exist->id)->update($array);
 
             if ($data) {
@@ -234,8 +232,15 @@ class ProjectBillController extends Controller
                     $dateid['moduleable_id'] = $is_exist->id;
                     $date['money'] = $payload['star'][$key]['money'];
                     $date['moduleable_title'] = $payload['star'][$key]['moduleable_title'];
-
-                    ProjectBillsResourceUser::updateOrCreate($dateid, $date);
+                   // ProjectBillsResourceUser::updateOrCreate($dateid, $date);
+                    $is_star  = ProjectBillsResourceUser::where('moduleable_id',$dateid)->where('moduleable_title',$date['moduleable_title'])->first();
+                    if($is_star){
+                        $date['moduleable_id'] = $is_exist->id;
+                            ProjectBillsResourceUser::where('id',$is_star->id)->update($date);
+                    }else{
+                        $date['moduleable_id'] = $is_exist->id;
+                        ProjectBillsResourceUser::create( $date);
+                    }
                 }
             }
 //
@@ -253,7 +258,7 @@ class ProjectBillController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
-            return $this->response->errorInternal('创建失败');
+            return $this->response->errorInternal('修改失败');
         }
         DB::commit();
 

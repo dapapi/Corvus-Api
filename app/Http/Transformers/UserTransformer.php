@@ -43,7 +43,6 @@ class UserTransformer extends TransformerAbstract
             'name' => $user->name,
             'current_address' => $user->current_address,
             'status' => $user->status,
-            'department' => $user->department,
             'position' => $user->position ? $user->position : new \stdClass(),//空返回标准对象
             'hire_shape' => $user->hire_shape,
             'entry_time' => $user->entry_time,//时间去掉秒,
@@ -65,9 +64,12 @@ class UserTransformer extends TransformerAbstract
             'work_email' => $user->work_email,//'工作邮箱',
             'disable' => $user->disable,
             'entry_status' => $user->entry_status,
+            'real_name' => $user->real_name,
+            'current_address' => $user->current_address,
             'organization_id'   =>  $user->department()->first() == null ? 0 : $user->department()->first()->company_id,
             'power' =>  $user->power,
             'my_number' =>  $user->my_number,
+
 
         ];
 
@@ -165,7 +167,6 @@ class UserTransformer extends TransformerAbstract
     {
 
         $schedules= $user->userSchedules;
-
         return $this->collection($schedules, new ScheduleTransformer());
     }
     public function includeEducation(User $user)

@@ -103,7 +103,8 @@ class ScheduleController extends Controller
                 ->leftJoin('users','users.id','schedules.creator_id')
                 ->whereRaw('c.deleted_at is null')
                 ->whereIn('material_id', $payload['material_ids'])
-                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','users.icon_url')->get();
+                ->get();
+               // ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','users.icon_url')->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 

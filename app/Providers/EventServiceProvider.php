@@ -39,7 +39,7 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\ClientMessageEvent'   =>  [//监听博主签约解约
             'App\Listeners\ClientMessageEventListener',
         ],
-        'App\Events\TrailMessageEvent'   =>  [//监听博主签约解约
+        'App\Events\TrailMessageEvent'   =>  [//监听线索签约解约
             'App\Listeners\TrailMessageEventListener',
         ],
         'App\Events\AnnouncementMessageEvent'   =>  [//监听博主签约解约

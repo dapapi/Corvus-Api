@@ -200,6 +200,7 @@ class OperateLogEventListener
             $title = $operate->title;
             $start = $operate->start;
             $end = $operate->end;
+            $field_name = $operate->field_name;
             $level = 0;
             $content = null;
             switch ($operate->method) {
@@ -405,7 +406,6 @@ class OperateLogEventListener
 
             }
 
-
             OperateLog::create([
                 'user_id' => $user->id,
                 'logable_id' => $id,
@@ -414,6 +414,8 @@ class OperateLogEventListener
                 'method' => $operate->method,
                 'level' => $level,
                 'status' => 1,
+                'field_name'    =>$field_name,
+                'field_title' =>  $title
             ]);
 
         }

@@ -183,40 +183,13 @@ class ScheduleController extends Controller
             foreach ($payload['calendar_ids'] as $calendar_id) {
                 $calendars_id[] = hashid_decode($calendar_id);
             }
-            $user = Auth::guard("api")->user();
-            $calendars = Calendar::join('module_users as mu',function ($join){
-                    $join->on('mu.moduleable_id','calendars.id')
-                        ->whereRaw("mu.type = '".ModuleUserType::PARTICIPANT."'");
-                })
-                ->whereIn('calendars.id',$calendars_id)
-                ->where('privacy',Calendar::OPEN)
-                ->orWhere('calendars.creator_id',$user->id)
-                ->orWhere('mu.user_id',$user->id)
-                ->first();//查找艺人日历
-            if($calendars) {//日历存在查找日程
-//                $schedules = $calendars->schedules()
-//                    ->join('module_users as mu', function ($join) {
-//                        $join->on('mu.moduleable_id', 'schedules.id')
-//                         ->whereRaw("mu.type = '" . ModuleUserType::PARTICIPANT . "'");
-//                    })
-//                    ->where('schedules.privacy', Schedule::OPEN)
-//                    ->orWhere('schedules.creator_id')
-//                    ->orWhere('mu.user_id', $user->id);
-                $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload,$calendars,$user) {
-//                    $query->where(function ($query) use ($payload,$calendars,$user) {
-//                        $query->where('calendar_id', $calendars->id);
-//                    });
-//                    $query->join('module_users as mu', function ($join) {
-//                        $join->on('mu.moduleable_id', 'schedules.id')
-//                         ->whereRaw("mu.type = '" . ModuleUserType::PARTICIPANT . "'");
-//                    })
-                    $query->where('schedules.privacy', Schedule::OPEN)
-                    ->orWhere('schedules.creator_id')
-                    ->where('calendar_id', $calendars->id);
-                   // ->orWhere('mu.user_id', $user->id);
-                })
-                    ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-                    ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
+            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload,$calendars_id) {
+                $query->where(function ($query) use ($payload,$calendars_id) {
+                    $query->whereIn('calendar_id', $calendars_id);
+                });
+            })
+                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
                   'schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id',
                   'schedules.creator_id')
                     ->get();
@@ -224,7 +197,7 @@ class ScheduleController extends Controller
 //               dd($sql_with_bindings);
                     return $this->response->collection($schedules, new ScheduleTransformer());
             }
-        }
+
     }
 
 
@@ -564,12 +537,27 @@ class ScheduleController extends Controller
         try {
             $schedule->update($payload);
 
-            if ($old_schedule->start_at != $schedule->start_at || $old_schedule->end_at != $schedule->end_at){
+            if ($old_schedule->title != $schedule->title){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "日程标题",
+                    'start' => $old_schedule->title,
+                    'end' => $schedule->title,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            $old_start_at = date('Y-m-d H:i:s',strtotime($schedule->start_at));
+            $old_end_at =  date('Y-m-d H:i:s',strtotime($schedule->end_at));
+            if ($old_start_at->start_at != $schedule->start_at || $old_end_at->end_at != $schedule->end_at){
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $schedule,
                     'title' => "日程时间",
-                    'start' => $old_schedule->start_at."-".$old_schedule->end_at,
+                    'start' => $old_start_at."-".$old_end_at,
                     'end' => $schedule->start_at."-".$schedule->end_at,
                     'method' => OperateLogMethod::UPDATE,
                 ]);

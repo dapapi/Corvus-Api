@@ -27,6 +27,7 @@ use App\Repositories\AffixRepository;
 use App\Repositories\FilterReportRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\StarReportRepository;
+use App\Repositories\StarRepository;
 use App\SignContractStatus;
 use App\StarSource;
 use App\User;
@@ -830,7 +831,7 @@ class StarController extends Controller
      * @param FilterRequest $request
      * @return \Dingo\Api\Http\Response
      */
-    public function getFilter(FilterRequest $request)
+    public function getFilter(FilterRequest $request,StarRepository $repository)
     {
         $payload = $request->all();
         $array = [];//查询条件
@@ -850,8 +851,9 @@ class StarController extends Controller
 
 
         $all = $request->get('all', false);
-        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
-        $query = Star::from(DB::raw($joinSql))->select("stars.*");
+//        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
+//        $query = Star::from(DB::raw($joinSql))->select("stars.*");
+        $query =    $repository->starCustomSiftBuilder();
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });

@@ -94,7 +94,7 @@ class StarController extends Controller
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
-    public function show(Star $star,ScopeRepository $repository)
+    public function show(Star $star)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -107,16 +107,6 @@ class StarController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        //登录用户对艺人编辑权限验证
-        try{
-            $user = Auth::guard("api")->user();
-            //获取用户角色
-            $role_list = $user->roles()->pluck('id')->all();
-            $res = $repository->checkPower("stars/{id}",'put',$role_list,$star);
-            $star->power = "true";
-        }catch (Exception $exception){
-            $star->power = "false";
-        }
         return $this->response->item($star, new StarTransformer());
     }
 
@@ -654,6 +644,10 @@ class StarController extends Controller
 //                $arrayOperateLog[] = $operateStarLocation;
             }
         }
+        if ($request->has("star_risk_point"))
+        {
+            $array['star_risk_point'] = $payload['star_risk_point'];
+        }
         DB::beginTransaction();
         try {
             if ($request->has('affix') && count($request->get('affix'))) {
@@ -678,7 +672,6 @@ class StarController extends Controller
             }
 //            if (count($array) == 0)
 //                return $this->response->noContent();
-
             if (count($array) != 0)
                 $star->update($array);
             // 操作日志

@@ -38,7 +38,6 @@ trait OperateLogTrait
     public function getLastUpdatedUserAttribute()
     {
         $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('created_at', 'desc')->first();
-
         if ($lastFollowUp)
             return $lastFollowUp->user->name;
         else
@@ -48,7 +47,6 @@ trait OperateLogTrait
     public function getLastUpdatedAtAttribute()
     {
         $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('created_at', 'desc')->first();
-
         if ($lastFollowUp)
             return $lastFollowUp->created_at->toDateTimeString();
         else

@@ -6,9 +6,11 @@ use App\ModuleUserType;
 use App\Helper\Common;
 
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class DataDictionarie extends Model
 {
@@ -50,6 +52,7 @@ class DataDictionarie extends Model
     const MESSAGE = 14;//消息
     //。。。。
 
+
     //销售线索来源类型
     const RESOURCE_TYPE = 37;
     //优先级
@@ -57,7 +60,8 @@ class DataDictionarie extends Model
     //合作类型
     const COOPERATION_TYPE = 28;
 
-
+    //隐私字段
+    const PRIVACY_FIELD = 520;//所有隐私字段父id
     public function dataDictionaries()
     {
         return $this->hasMany(DataDictionarie::class, 'parent_id', 'id');
@@ -110,4 +114,17 @@ class DataDictionarie extends Model
         }
         return $res->name;
     }
+    //获取所有隐私字段
+    public static function getPrivacyFieldList()
+    {
+        $privacy_field = Cache::get("privacy_field");
+        if ($privacy_field){
+            return $privacy_field;
+        }
+        $privacy_field = self::where('parent_id',self::PRIVACY_FIELD)->pluck('val')->toArray();
+        $now = Carbon::now();
+        Cache::put("privacy_field",$privacy_field,$now->addMinute(1)); //缓存一分后失效
+        return $privacy_field;
+    }
+
 }

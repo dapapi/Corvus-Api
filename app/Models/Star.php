@@ -9,6 +9,7 @@ use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
+use App\Traits\PrivacyFieldTrait;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -20,11 +21,13 @@ class Star extends Model
 {
     use SoftDeletes;
     use OperateLogTrait;
+    use PrivacyFieldTrait;
     private  $model_dic_id = DataDictionarie::STAR;//数据字典中模块id
     protected $fillable = [
         'name',//姓名
         'desc',//描述
         'broker_id',//经纪人ID
+        'principal_id',//负责人
         'avatar',//头像
         'gender',//性别
         'birthday',//生日
@@ -55,6 +58,7 @@ class Star extends Model
         'qita_fans_num',//其他平台粉丝数
         'artist_scout_name',//星探
         'star_location',//地区
+        'star_risk_point',//艺人风险点
     ];
 
 
@@ -145,54 +149,48 @@ class Star extends Model
     }
 
     /**
-     * 设置艺人风险点字段，隐私字段，没查看艺人风险点权限不允许修改
-     * 数据的创建人和分配了隐私权限的人可以修改
+     * 艺人隐私字段
+     * @param string $key
+     * @return mixed|string
      * @author lile
-     * @date 2019-03-13 10:36
+     * @date 2019-03-13 18:57
      */
-    public function setStarRiskPointAttribute($star_risk_point)
+    public function getAttribute($key)
     {
-        //新增不受限制，编辑需要判断是否有权限修改才能修改
-        $id = $this->getAttribute("id");
-        $creator_id = $this->getAttribute('creator_id');
-        if ($id){//如果id不是空则是编辑
-            $user = Auth::guard('api')->user();
-            if ($user->id == $creator_id){
-                return $star_risk_point;
-            }
-            $id = $this->attributes['id'];//记录修改数据的id
-            $table = ModuleableType::STAR;//记录修改数据的表
-            $field_name = "star_risk_point";//记录修改数据的字段
-            $repository = new PrivacyUserRepository();
-            $power = $repository->has_power($table,$field_name,$id,$user->id);
-            if ($power){
-                return $star_risk_point;
-            }
-            return $this->getOriginal($field_name);//没有权限修改则返回原始值
-        }
+        return $this->getPrivacyField(ModuleableType::STAR,$key);
     }
     /**
-     * 获取艺人风险点，没权限的人不能查看
-     * 数据的创建人和分配了隐私权限的人可以查看
+     * 艺人隐私字段
+     * @param string $key
+     * @return mixed|string
      * @author lile
-     * @date 2019-03-13 10:36
+     * @date 2019-03-13 18:57
      */
-    public function getStarRiskPointAttribute($star_risk_point)
+    public function setAttribute($key, $value)
     {
-        $user = Auth::guard('api')->user();
-        $creator_id = $this->getAttribute('creator_id');
-//        if ($user->id == $creator_id){
-//            return $star_risk_point;
-//        }
-        $id = $this->attributes['id'];//记录修改数据的id
-        $table = ModuleableType::STAR;//记录修改数据的表
-        $field_name = "star_risk_point";//记录修改数据的字段
-        $repository = new PrivacyUserRepository();
-        $power = $repository->has_power($table,$field_name,$id,$user->id);
-        if ($power){//有权限返回原始值
-            return $star_risk_point;
+        return $this->setPrivacyField(ModuleableType::STAR,$key,$value);
+    }
+
+
+    /**
+     * 判断用户是否有编辑权限
+     * @return string
+     * @author lile
+     * @date 2019-03-13 18:58
+     */
+    public function getPowerAttribute()
+    {
+        //登录用户对艺人编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository = new ScopeRepository();
+            $repository->checkPower("stars/{id}",'put',$role_list,$this);
+            return "true";
+        }catch (Exception $exception){
+            return "false";
         }
-        return "xxxxx";//没权限返回xxxx
     }
 
 }

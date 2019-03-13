@@ -45,12 +45,13 @@ class DataDictionaryController extends Controller
         DB::beginTransaction();
         try{
             DataDictionarie::create($payload);
+            DB::commit();
             return $this->response->noContent();
         }catch (\Exception $e){
             DB::rollBack();
             return $this->response->errorInternal("数据字典添加失败");
         }
-        DB::commit();
+
     }
 
     /**

@@ -34,6 +34,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
     $api->get('/platforms', 'App\Http\Controllers\PlatformController@index');
 
     $api->get('/download', 'App\Http\Controllers\ExcelController@download');
+    //获取app版本
+    $api->get('/appversion', 'App\Http\Controllers\AppVersionController@getNewAppVersion');
     $api->group(['middleware' => ['auth:api', 'bindings','checkpower']], function ($api) {
 
         // user
@@ -768,8 +770,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         //app版本相关接口
-        //获取app版本
-        $api->get('/appversion', 'App\Http\Controllers\AppVersionController@getNewAppVersion');
         //新建版本信息
         $api->post('/appversion', 'App\Http\Controllers\AppVersionController@addAppVersion');
         //更新版本信息

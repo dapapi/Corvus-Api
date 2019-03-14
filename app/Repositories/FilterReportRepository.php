@@ -36,10 +36,9 @@ class FilterReportRepository
               unset($payload['conditions'][$k]);
           }
 
-
           if ($field){
               switch ($v['operator']) {
-                  case 'LIKE':
+                  case 'like':
                       $value = '%' . $v['value'] . '%';
                       $query->whereRaw("$field $operator ?", [$value]);
                       //    $array[]  = [$field,'like','%'.$value.'%'];

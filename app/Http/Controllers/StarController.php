@@ -118,6 +118,7 @@ class StarController extends Controller
         }catch (Exception $exception){
             $star->setAttribute('power',"false");
         }
+        //艺人隐私字段
         return $this->response->item($star, new StarTransformer());
     }
 

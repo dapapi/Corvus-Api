@@ -97,7 +97,7 @@ class StarTransformer extends TransformerAbstract
 
     public function includeCreator(Star $star)
     {
-        $user = $star->creator;
+        $user = $star->creator()->first();
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());

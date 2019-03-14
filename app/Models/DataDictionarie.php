@@ -127,4 +127,14 @@ class DataDictionarie extends Model
         return $privacy_field;
     }
 
+    /**
+     * 获取某个表的所有隐私字段
+     * @author lile
+     * @date 2019-03-14 17:38
+     */
+    public function getPrivacyFieldByTable($table)
+    {
+        self::where('parent_id',self::PRIVACY_FIELD)->where('')->pluck('val');
+    }
+
 }

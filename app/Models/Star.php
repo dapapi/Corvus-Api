@@ -155,10 +155,10 @@ class Star extends Model
      * @author lile
      * @date 2019-03-13 18:57
      */
-    public function getAttribute($key)
-    {
-        return $this->getPrivacyField(ModuleableType::STAR,$key);
-    }
+//    public function getAttribute($key)
+//    {
+//        return $this->getPrivacyField(ModuleableType::STAR,$key);
+//    }
     /**
      * 艺人隐私字段
      * @param string $key

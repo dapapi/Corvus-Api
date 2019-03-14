@@ -63,7 +63,7 @@ class ClientController extends Controller
                 }
             })
             ->groupBy('clients.id')
-            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','clents.type','grade','province','city','district',
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','clients.type','grade','province','city','district',
                 'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
                 DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);

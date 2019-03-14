@@ -81,7 +81,6 @@ class ScheduleRemind extends Command
         $authorization = "Bearer ".$access_token;
         $now = Carbon::now();
         //查询开始时间大于当前时间的日程
-
         $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select(['remind','id','title','creator_id','start_at'])->get();
         foreach ($schdules->toArray() as $schdule){
             $remid_time = Carbon::createFromTimeString($schdule['start_at']);
@@ -136,7 +135,13 @@ class ScheduleRemind extends Command
                 //发消息
                 $schdule_obj = Schedule::find($schdule['id']);
                 Log::info("发送日程提醒".$schdule_obj->title);
-                event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
+                try{
+                    event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
+                    Log::info("日程提醒消息发送成功");
+                }catch (\Exception $exception){
+                    Log::error("日程提醒消息发送失败");
+                    Log::error($exception);
+                }
             }
         }
 //        Log::info("日程提醒检测结束");

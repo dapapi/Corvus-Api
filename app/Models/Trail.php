@@ -108,8 +108,8 @@ class Trail extends Model
                foreach ($user_list as $val){
                    $user_id[] = $val['user_id'];
                }
-                $array['rules'][] =  ['field' => 'creator_id','op' => 'in','value' => $user_id];
-                $array['rules'][] =  ['field' => 'principal_id','op' => 'in','value' => $user_id];
+                $array['rules'][] =  ['field' => 'trails.creator_id','op' => 'in','value' => $user_id];
+                $array['rules'][] =  ['field' => 'trails.principal_id','op' => 'in','value' => $user_id];
                 $array['op'] =  'or';
                 $rules = $array;
                 $extras  = (new SearchDataScope())->getCondition($query,$rules,$userid)->where('lock_status','1');

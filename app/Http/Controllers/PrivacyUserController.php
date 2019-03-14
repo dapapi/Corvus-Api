@@ -36,6 +36,10 @@ class privacyUserController extends Controller
             $array['moduleable_id'] = hashid_decode($payload['blogger_id']);
             $array['moduleable_type'] = ModuleableType::BLOGGER;
         }
+        if($request->has('star_id')){
+            $array['moduleable_id'] = hashid_decode($payload['star_id']);
+            $array['moduleable_type'] = ModuleableType::STAR;
+        }
         $privacyuser = $this->privacyUserRepository->getPrivacy($array,$request,$payload);
         foreach ($privacyuser as $key => $val){
 
@@ -63,6 +67,13 @@ class privacyUserController extends Controller
         }else if($model instanceof Project && $model->id){
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::PROJECT;
+            $thisnull = $this->privacyUserRepository->is_creator($array,$model);
+            if(!$thisnull) {
+                return $this->response->errorForbidden("你不能修改");
+            }
+        }else if($model instanceof Star && $model->id){
+            $array['moduleable_id'] = $model->id;
+            $array['moduleable_type'] = ModuleableType::Star;
             $thisnull = $this->privacyUserRepository->is_creator($array,$model);
             if(!$thisnull) {
                 return $this->response->errorForbidden("你不能修改");
@@ -110,6 +121,13 @@ class privacyUserController extends Controller
             $thisnull = $this->privacyUserRepository->is_creator($array,$model);
             if(!$thisnull) {
                return $this->response->errorForbidden("你不能添加");
+            }
+        }else if($model instanceof Star && $model->id){
+            $array['moduleable_id'] = $model->id;
+            $array['moduleable_type'] = ModuleableType::Star;
+            $thisnull = $this->privacyUserRepository->is_creator($array,$model);
+            if(!$thisnull) {
+                return $this->response->errorForbidden("你不能添加");
             }
         }
         DB::beginTransaction();

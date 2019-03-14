@@ -18,6 +18,6 @@ class ClientRepository
             ->leftJoin('operate_logs',function ($join){
                 $join->on('operate_logs.logable_id', '=', 'clients.id')
                     ->whereRaw('logable_type = "client"');
-            });
+            })->leftJoin('department_user','department_user.user_id','clients.principal_id');
     }
 }

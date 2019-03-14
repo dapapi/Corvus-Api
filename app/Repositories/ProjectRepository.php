@@ -54,7 +54,6 @@ class ProjectRepository
         $bingings = $builder->getBindings();
         $sql = str_replace("?","%s",$builder->toSql());
         $sql = sprintf($sql,...$bingings);
-
         $query = Project::from(DB::raw("({$sql}) as projects"))->
         leftJoin("contracts as c",'projects.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
@@ -66,7 +65,5 @@ class ProjectRepository
             ->where("star_type",$star_type)
             ->select("projects.id","projects.title","projects.created_at","projects.principal_id","c.contract_sharing_ratio","users.icon_url");
         return $query->paginate($pageSize);
-
-
     }
 }

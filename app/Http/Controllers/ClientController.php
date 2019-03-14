@@ -63,7 +63,7 @@ class ClientController extends Controller
                 }
             })
             ->groupBy('clients.id')
-            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','clients.type','grade','province','city','district',
                 'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
                 DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
@@ -340,12 +340,12 @@ class ClientController extends Controller
         $clients = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-
+        DB::connection()->enableQueryLog();
         $clients = $clients->where($array)
 
             ->select('clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
-
+//        dd(DB::getQueryLog());
         return $this->response->paginator($clients, new ClientTransformer(!$all));
     }
 }

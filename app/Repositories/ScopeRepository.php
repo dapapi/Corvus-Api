@@ -44,7 +44,6 @@ class ScopeRepository
      */
     public function getUserIds($userId,$operation,$method,bool $arr=false)
     {
-
         //获取用户角色列表
         $roleIdList = RoleUser::where('user_id', $userId)->get()->toArray();
         if(count($roleIdList) == 0){//用户没有角色
@@ -66,7 +65,6 @@ class ScopeRepository
         foreach ($roleIdList as $value){
             $arrRoleId[] = $value['role_id'];
         }
-
 
         //根据roleid数组查找所有对应的模块权限，取最大值,用户和角色是一对多的
         $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$arrRoleId)->where('resource_id',$resourceId)->get()->toArray();

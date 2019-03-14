@@ -4,9 +4,11 @@ namespace App\Repositories;
 use App\Models\ModuleUser;
 use App\PrivacyType;
 
+use Carbon\Carbon;
 use Doctrine\Common\Collections\Collection;
 use Illuminate\Http\Request;
 use App\ModuleableType;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Models\PrivacyUser;
 use Exception;
@@ -318,21 +320,25 @@ class PrivacyUserRepository
      * @author 李乐
      * @date 2019-03-11 14:55
      */
-    public function has_power($table,$field,$data_id,$userid)
+    public static function has_power($table,$field,$data_id,$userid)
     {
-        $user_ids = PrivacyUser::where('moduleable_id',$data_id)
-            ->where('moduleable_field',$field)
-            ->where('moduleable_type',$table)
-            ->pluck('user_id');
-        if ($user_ids->count() == 0){//没有针对$table表$data_id 的$field字段的数据权限管理，则表示可以查看日志
+        $user_ids = Cache::get($table."_".$field."_".$data_id);
+        if ($user_ids){
+            return $user_ids;
+        }else{
+            $user_ids = PrivacyUser::where('moduleable_id',$data_id)
+                ->where('moduleable_field',$field)
+                ->where('moduleable_type',$table)
+                ->pluck('user_id');
+        }
+        $now = Carbon::now();
+        Cache::put($table."_".$field."_".$data_id,$now->addMinute(1));
+        if($user_ids->contains($userid)){ //如果$userid在有权限用户范围内则可以查看日志
             return true;
         }else{
-            if($user_ids->contains($userid)){ //如果$userid在有权限用户范围内则可以查看日志
-                return true;
-            }else{
-                return false;
-            }
+            return false;
         }
+
     }
 
 }

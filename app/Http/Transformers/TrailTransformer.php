@@ -76,7 +76,7 @@ class TrailTransformer extends TransformerAbstract
             ];
            if( $this->project != NULL &&   $this->user != NULL){
 
-            if($this->project->creator_id != $this->user->id)
+            if($this->project->creator_id != $this->user->id && $this->project->principal_id != $this->user->id)
             {
                 foreach ($array as $key => $value)
                 {

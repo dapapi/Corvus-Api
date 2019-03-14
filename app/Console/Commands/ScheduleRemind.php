@@ -129,8 +129,10 @@ class ScheduleRemind extends Command
                     }
                     break;
             }
+
             Log::info($flag ? "发消息" : "不发消息");
 //            dump($flag);
+
             if($flag){
                 $user = User::find(config("app.schdule_user_id"));
                 //发消息

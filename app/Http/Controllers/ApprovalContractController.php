@@ -827,7 +827,7 @@ class ApprovalContractController extends Controller
         });
 
         $array = [];//查询条件
-        if ($request->has('name'))
+        if ($request->has('number'))
             $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
         if ($request->has('keywords'))
             $array[] = ['cs.title','like','%'.$payload['keywords'].'%'];

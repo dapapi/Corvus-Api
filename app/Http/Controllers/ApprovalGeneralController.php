@@ -236,60 +236,65 @@ class ApprovalGeneralController extends Controller
                 ->orderBy('afi.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','creator.name','creator.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
-            //查询二级主管
-            $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
 
-            ->join('approval_flow_change as recode', function ($join) {
-                $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
-            })
-                ->join('users as creator', function ($join) {
-                    $join->on('recode.change_id', '=', 'creator.id');
-                })
-                ->join('department_user as du', function ($join) {
-                    $join->on('creator.id', '=', 'du.user_id');
-                })
-                ->join('department_principal as dp', function ($join) {
-                    //$join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type', '=', 246);
-//                    DB::raw("department_principal as `dp` on `dp`.`department_id` = (
-//select department_pid from department_principal as dep
-//left join department_user as du on du.`department_id`=dep.`department_id` where du.user_id=afi.`apply_id`)");
-                    DB::raw("select dpl.`user_id` from department_user as dur 
-                        left join  departments as ds ON dur.`department_id`=ds.`id`
-                        left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
-                        where dur.`user_id`=afi.`apply_id`");
 
-                })
 
-                ->join('approval_form_instances as afi', function ($join) {
-                    $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
-                })
-                ->join('approval_forms as af', function ($join) {
-                    $join->on('af.form_id', '=', 'afi.form_id');
-                })
-                ->join('approval_form_groups as afg', function ($join) {
-                    $join->on('afg.id', '=', 'af.group_id');
-                })
-                ->join('users as us', function ($join) {
-                    $join->on('afi.apply_id', '=', 'us.id');
-                })
-                ->join("data_dictionaries as dds",function ($join){
-                    $join->on("dds.id",'=','afi.form_status');
-                })
-                ->where(function ($query) use ($payload, $request,$form_group_id) {
-                    if ($request->has('keywords')) {
-                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
-                    }
-                    if ($request->has('group_name')) {
-                        $query->where('afg.name',$payload['group_name']);
-                    }
-                    if ($form_group_id){
-                        $query->where('afi.form_id',$form_group_id);
-                    }
-                })
-                ->where('dp.user_id', $userId)->where('afe.principal_level',2)
-                ->whereIn('afe.flow_type_id', $payload['status'])
-                ->orderBy('afi.created_at', 'desc')
-                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
+
+
+
+//            //查询二级主管
+//            $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
+//
+//            ->join('approval_flow_change as recode', function ($join) {
+//                $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
+//            })
+//                ->join('users as creator', function ($join) {
+//                    $join->on('recode.change_id', '=', 'creator.id');
+//                })
+//                ->join('department_user as du', function ($join) {
+//                    $join->on('creator.id', '=', 'du.user_id');
+//                })
+//                ->join('department_principal as dp', function ($join) {
+//                    //$join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type', '=', 246);
+////                    DB::raw("department_principal as `dp` on `dp`.`department_id` = (
+////select department_pid from department_principal as dep
+////left join department_user as du on du.`department_id`=dep.`department_id` where du.user_id=afi.`apply_id`)");
+//                    DB::raw("select dpl.`user_id` from department_user as dur
+//                        left join  departments as ds ON dur.`department_id`=ds.`id`
+//                        left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
+//                        where dur.`user_id`=afi.`apply_id`");
+//
+//                })
+//
+//                ->join('approval_form_instances as afi', function ($join) {
+//                    $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
+//                })
+//                ->join('approval_forms as af', function ($join) {
+//                    $join->on('af.form_id', '=', 'afi.form_id');
+//                })
+//                ->join('approval_form_groups as afg', function ($join) {
+//                    $join->on('afg.id', '=', 'af.group_id');
+//                })
+//                ->join('users as us', function ($join) {
+//                    $join->on('afi.apply_id', '=', 'us.id');
+//                })
+//                ->join("data_dictionaries as dds",function ($join){
+//                    $join->on("dds.id",'=','afi.form_status');
+//                })
+//                ->where(function ($query) use ($payload, $request) {
+//                    if ($request->has('keywords')) {
+//                        $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+//                    }
+//                    if ($request->has('group_name')) {
+//                        $query->where('afg.name',$payload['group_name']);
+//                    }
+//                })
+//                ->where('dp.user_id', $userId)->where('afe.principal_level',2)
+//                ->whereIn('afe.flow_type_id', $payload['status'])
+//                ->orderBy('afi.created_at', 'desc')
+//                ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
+            $dataPrincipalLevel = $this->getPrincipalLevel($userId,$request,$payload);
+
 
             $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
             $resArrInfo = json_decode(json_encode($resArrs), true);
@@ -330,6 +335,101 @@ class ApprovalGeneralController extends Controller
 //            $value->id = hashid_encode($value->id);
 //        }
         return $arr;
+    }
+
+
+
+    function getPrincipalLevel($userId,$request,$payload){
+
+        $dataPrincipalLevel = DB::table('approval_flow_execute as afe')
+            ->join('project_histories as ph', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'ph.project_number');
+            })
+            ->where('afe.principal_level',2)
+            ->select('ph.creator_id')->get()->toArray();
+
+        $resArrInfo = json_decode(json_encode($dataPrincipalLevel), true);
+
+
+        if(!empty($resArrInfo)){
+
+            foreach ($resArrInfo as $value){
+                $creator_id = $value['creator_id'];
+                $info[] = DB::select("select dpl.`user_id` as user_ids,dur.user_id as creator_ids  from department_user as dur
+                            left join  departments as ds ON dur.`department_id`=ds.`id`
+                            left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
+                            where dur.`user_id`=$creator_id");
+
+            }
+            $arr = json_decode(json_encode($info), true);
+            if(!empty($arr)) {
+
+                foreach ($arr as $values) {
+                    foreach ($values as $val) {
+                        if ($val['user_ids'] == $userId) {
+                            $vale[] = $val;
+                        }else{
+                            $vale = array();
+                        }
+                    }
+                }
+                if(!empty($vale)){
+                    foreach ($vale as $item) {
+                        $arrIds[] = $item['creator_ids'];
+                    }
+                }else{
+                    $arrIds = array();
+                }
+
+            }
+        }
+
+        //查询二级主管
+        $dataPrincipals = DB::table('approval_flow_execute as afe')//
+
+        ->join('approval_flow_change as recode', function ($join) {
+            $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
+        })
+            ->join('users as creator', function ($join) {
+                $join->on('recode.change_id', '=', 'creator.id');
+            })
+            ->join('department_user as du', function ($join) {
+                $join->on('creator.id', '=', 'du.user_id');
+            })
+            ->join('department_principal as dp', function ($join) {
+
+
+            })
+
+            ->join('approval_form_instances as afi', function ($join) {
+                $join->on('afe.form_instance_number', '=', 'afi.form_instance_number');
+            })
+            ->join('approval_forms as af', function ($join) {
+                $join->on('af.form_id', '=', 'afi.form_id');
+            })
+            ->join('approval_form_groups as afg', function ($join) {
+                $join->on('afg.id', '=', 'af.group_id');
+            })
+            ->join('users as us', function ($join) {
+                $join->on('afi.apply_id', '=', 'us.id');
+            })
+            ->join("data_dictionaries as dds",function ($join){
+                $join->on("dds.id",'=','afi.form_status');
+            })
+            ->where(function ($query) use ($payload, $request) {
+                if ($request->has('keywords')) {
+                    $query->where('afi.form_instance_number', 'LIKE','%'.$payload['keywords'].'%')->orwhere('us.name','LIKE','%'.$payload['keywords'] . '%')->orwhere('afg.name','LIKE','%'.$payload['keywords'].'%');
+                }
+                if ($request->has('group_name')) {
+                    $query->where('afg.name',$payload['group_name']);
+                }
+            })
+            ->whereIn('afi.apply_id', $arrIds)->where('afe.principal_level',2)
+            ->whereIn('afe.flow_type_id', $payload['status'])
+            ->orderBy('afi.created_at', 'desc')
+            ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'afi.*', 'afg.name as group_name', 'afg.id as group_id','us.name','us.icon_url','dds.name as approval_status_name','dds.icon')->get()->toArray();
+        return $dataPrincipals;
+
     }
 
     function array_unique_fb($array2D)

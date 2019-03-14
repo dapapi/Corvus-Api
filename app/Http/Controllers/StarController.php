@@ -868,8 +868,9 @@ class StarController extends Controller
 
             ->where($array);
 //            ->searchData();
+//        DB::connection()->enableQueryLog();
         $stars = $stars->orderBy('up_time','desc')->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
-
+//        dd(DB::getQueryLog());
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }

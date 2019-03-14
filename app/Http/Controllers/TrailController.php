@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\ClientDataChangeEvent;
 use App\Events\OperateLogEvent;
 use App\Events\TrailDataChangeEvent;
+use App\Events\TrailMessageEvent;
 use App\Exports\TrailsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Trail\EditTrailRequest;
@@ -33,6 +34,7 @@ use App\Repositories\FilterReportRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
+use App\TriggerPoint\TrailTrigreePoint;
 use App\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -195,6 +197,11 @@ class TrailController extends Controller
             $payload['contact_id'] = $contact->id;
             $payload['client_id'] = $client->id;
 
+            $lock_user = $user->id;
+            $lock_at = now()->toDateTimeString();
+            $payload['lock_user'] = $lock_user;
+            $payload['lock_at'] = $lock_at;
+
             $trail = Trail::create($payload);
 
             if ($request->has('expectations') && is_array($payload['expectations'])) {
@@ -276,44 +283,14 @@ class TrailController extends Controller
         DB::commit();
         //发消息
         if($trail->lock_status == 1){
-            DB::beginTransaction();
-            try {
-                $user = Auth::guard('api')->user();
-
-
-                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间2个字段
-                $lock_user = $user->id;
-                $lock_at = now()->toDateTimeString();
-                $trail_id =$trail->id;
-                $data = array();
-                $data['lock_user'] = $lock_user;
-                $data['lock_at'] = $lock_at;
-                Trail::where('id',$trail_id)->update($data);
-                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-
-
-
-                $title = $trail->title." 锁价金额为".$payload['fee'].'元';  //通知消息的标题
-                $subheading = $trail->title." 锁价金额为".$payload['fee'].'元';
-                $module = Message::TRAILS;
-                $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
-                $data = [];
-                $data[] = [
-                    "title" => '线索名称', //通知消息中的消息内容标题
-                    'value' => $trail->title,  //通知消息内容对应的值
-                ];
-                $data[] = [
-                    'title' => '预计订单费用',
-                    'value' => $payload['fee'],
-                ];
-            $authorization = $request->header()['authorization'][0];
-            $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_to,$trail->id);
-                DB::commit();
-            } catch (Exception $e) {
-                Log::error($e);
-                DB::rollBack();
+            try{
+                $authorization = $request->header()['authorization'][0];
+                event(new TrailMessageEvent($trail,TrailTrigreePoint::LOCK_PRICE,$authorization,$user));
+            }catch (Exception $exception){
+                Log::error("销售线索锁价:[".$trail->title."]发送失败");
+                Log::error($exception);
             }
+
         }
         return $this->response->item($trail, new TrailTransformer());
     }
@@ -793,30 +770,14 @@ class TrailController extends Controller
         DB::commit();
         //发消息
         if($trail->lock_status == 1){
-            DB::beginTransaction();
-            try {
-
-                $title = $trail->title." 锁价金额为".$trail->fee.'元';  //通知消息的标题
-                $subheading = $trail->title." 锁价金额为".$trail->fee.'元';
-                $module = Message::TRAILS;
-                $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
-                $data = [];
-                $data[] = [
-                    "title" => $title, //通知消息中的消息内容标题
-                    'value' => $trail->title,  //通知消息内容对应的值
-                ];
-                $data[] = [
-                    'title' => '预计订单费用',
-                    'value' => $trail->fee,
-                ];
-            $authorization = $request->header()['authorization'][0];
-            $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_to,$trail->id);
-                DB::commit();
-            } catch (Exception $e) {
-                Log::error($e);
-                DB::rollBack();
+            try{
+                $authorization = $request->header()['authorization'][0];
+                event(new TrailMessageEvent($trail,TrailTrigreePoint::LOCK_PRICE,$authorization,$user));
+            }catch (Exception $exception){
+                Log::error("销售线索锁价:[".$trail->title."]发送失败");
+                Log::error($exception);
             }
+
         }
         return $this->response->accepted();
 

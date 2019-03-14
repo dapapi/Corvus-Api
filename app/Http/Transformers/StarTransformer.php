@@ -55,6 +55,7 @@ class StarTransformer extends TransformerAbstract
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,
+
             'created_at' => $star->created_at->toDatetimeString(),
 //            'created_at' => $star->created_at,
             'updated_at' => $star->updated_at->toDatetimeString(),
@@ -77,7 +78,7 @@ class StarTransformer extends TransformerAbstract
 //            'last_updated_user' => $star->getLastUpdatedUserAttribute(),
             'last_updated_at'   =>  $star->last_updated_at,
 //            'last_updated_at'   =>  $star->getLastUpdatedAtAttribute(),
-            'last_updated_at'   =>  $star->last_updated_at,
+//            'last_updated_at'   =>  $star->last_updated_at,
 //            'last_follow_up_at' => $star->getLastFollowUpAtAttribute(),
             'last_follow_up_at' =>  $star->last_follow_up_at,
             'star_risk_point'   =>  $star->star_risk_point,

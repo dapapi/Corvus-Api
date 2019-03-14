@@ -133,7 +133,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // 隐私设置
         $api->post('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
         $api->post('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
+        $api->post('/stars/{star}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
         $api->get('/privacyUsers', 'App\Http\Controllers\privacyUserController@detail');
+        $api->put('/stars/{star}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         $api->put('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         $api->put('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');

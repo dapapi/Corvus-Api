@@ -718,7 +718,7 @@ class ApprovalContractController extends Controller
             })
             ->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
-            })
+            })->searchData()
             ->where('cs.project_id', $projects)
             ->where('afb.form_status', 232)
             ->orderBy('cs.created_at', 'desc')
@@ -828,12 +828,11 @@ class ApprovalContractController extends Controller
 
         $array = [];//查询条件
         if ($request->has('name'))
-            $array[] = ['afb.form_instance_number',$payload['number']];
+            $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
         if ($request->has('keywords'))
             $array[] = ['cs.title','like','%'.$payload['keywords'].'%'];
         if ($request->has('type'))
             $array[] = ['afb.form_id',$payload['type']];
-        // sign_contract_status   签约状态
         $contractsInfo = $contracts->searchData()->where($array)->groupBy('cs.id')
          ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
 //        $sql_with_bindings = str_replace_array('?', $contractsInfo->getBindings(), $contractsInfo->toSql());

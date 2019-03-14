@@ -166,10 +166,10 @@ class Star extends Model
      * @author lile
      * @date 2019-03-13 18:57
      */
-    public function setAttribute($key, $value)
-    {
-        return $this->setPrivacyField(ModuleableType::STAR,$key,$value);
-    }
+//    public function setAttribute($key, $value)
+//    {
+//        return $this->setPrivacyField(ModuleableType::STAR,$key,$value);
+//    }
 
 
     /**

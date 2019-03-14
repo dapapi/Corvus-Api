@@ -38,6 +38,7 @@ class FilterReportRepository
 
           if ($field){
               switch ($v['operator']) {
+                  case 'LIKE':
                   case 'like':
                       $value = '%' . $v['value'] . '%';
                       $query->whereRaw("$field $operator ?", [$value]);

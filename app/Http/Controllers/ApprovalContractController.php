@@ -715,7 +715,7 @@ class ApprovalContractController extends Controller
             })
             ->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
-            })->searchData()
+            })
             ->where('cs.project_id', $projects)
             ->where('afb.form_status', 232)
             ->orderBy('cs.created_at', 'desc')

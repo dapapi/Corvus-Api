@@ -65,7 +65,7 @@ class TrailMessageEventListener
     {
         $subheading = $title = "您负责的{$this->trail->title}线索即将进入公海池";
         $message_content = '[{"title":"线索名称","value":"%s"},{"title":"最后跟进时间","value":"%s"}]';
-        $this->data = json_decode(sprintf(message_content,$this->trail->title,$this->trail->last_updated_at),true);
+        $this->data = json_decode(sprintf($message_content,$this->trail->title,$this->trail->last_updated_at),true);
         $send_to[] = $this->trail->principal_id;
         Log::info("线索【{$this->trail->title}】进入公海池向".implode(",",$send_to)."发送消息");
         $this->sendMessage($title,$subheading,$send_to);

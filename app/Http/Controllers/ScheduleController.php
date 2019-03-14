@@ -401,10 +401,15 @@ class ScheduleController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
+            try{
+                //向参与人发消息
+                $authorization = $request->header()['authorization'][0];
+                event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::CREATE_SCHEDULE,$authorization,$user));
+            }catch (\Exception $exception){
+                Log::error("新键日历消息发送失败");
+                Log::error($exception);
+            }
 
-            //向参与人发消息
-            $authorization = $request->header()['authorization'][0];
-            event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::CREATE_SCHEDULE,$authorization,$user));
 
             //获取日历对象的艺人
             $star_calendar = Calendar::where('id',$schedule->calendar_id)->select('starable_id','type')->first();
@@ -649,10 +654,16 @@ class ScheduleController extends Controller
             return $this->response->errorInternal('更新日程失败');
         }
         DB::commit();
-        //向参与人发消息
-        $authorization = $request->header()['authorization'][0];
-        $meta = ["old_schedule"=>$old_schedule];
-        event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::UPDATE_SCHEDULE,$authorization,$user,$meta));
+        try{
+            //向参与人发消息
+            $authorization = $request->header()['authorization'][0];
+            $meta = ["old_schedule"=>$old_schedule];
+            event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::UPDATE_SCHEDULE,$authorization,$user,$meta));
+        }catch (\Exception $exception){
+            Log::error("日历修改失败,日历:".$schedule->title);
+            Log::error($exception);
+        }
+
         return $this->response->accepted();
     }
 

@@ -6,6 +6,7 @@ use App\Models\Calendar;
 use App\Models\Schedule;
 use App\Models\Star;
 use App\ModuleableType;
+use App\PrivacyType;
 use App\ModuleUserType;
 use App\TaskStatus;
 use League\Fractal\TransformerAbstract;
@@ -31,7 +32,7 @@ class StarTransformer extends TransformerAbstract
         if ($sub_str == "#" || $sub_str == null){
             $star->avatar = "https://res-crm.papitube.com/image/artist-no-avatar.png";
         }
-
+        $user = Auth::guard('api')->user();
         $array = [
             'id' => hashid_encode($star->id),
             'name' => $star->name,
@@ -54,6 +55,7 @@ class StarTransformer extends TransformerAbstract
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,
+
             'created_at' => $star->created_at->toDatetimeString(),
 //            'created_at' => $star->created_at,
             'updated_at' => $star->updated_at->toDatetimeString(),
@@ -76,14 +78,28 @@ class StarTransformer extends TransformerAbstract
 //            'last_updated_user' => $star->getLastUpdatedUserAttribute(),
             'last_updated_at'   =>  $star->last_updated_at,
 //            'last_updated_at'   =>  $star->getLastUpdatedAtAttribute(),
-            'last_updated_at'   =>  $star->last_updated_at,
+//            'last_updated_at'   =>  $star->last_updated_at,
 //            'last_follow_up_at' => $star->getLastFollowUpAtAttribute(),
             'last_follow_up_at' =>  $star->last_follow_up_at,
             'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
 
         ];
-
+        if($star ->creator_id != $user->id)
+        {
+            foreach ($array as $key => $value)
+            {
+                $result = PrivacyType::isPrivacy(ModuleableType::STAR,$key);
+                if($result)
+                {
+                    $result = PrivacyType::excludePrivacy($user->id,$star->id,ModuleableType::STAR, $key);
+                    if(!$result)
+                    {
+                        $array[$key] = 'privacy';
+                    }
+                }
+            }
+        }
         $arraySimple = [
             'id' => hashid_encode($star->id),
             'flag'   =>  ModuleableType::STAR,

@@ -133,7 +133,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // 隐私设置
         $api->post('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
         $api->post('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
+        $api->post('/stars/{star}/privacyUser', 'App\Http\Controllers\privacyUserController@store');
         $api->get('/privacyUsers', 'App\Http\Controllers\privacyUserController@detail');
+        $api->put('/stars/{star}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         $api->put('/projects/{project}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         $api->put('/bloggers/{blogger}/privacyUser', 'App\Http\Controllers\privacyUserController@edit');
         //  $api->delete('/report/{report}/affixes/{report}', 'App\Http\Controllers\AffixController@remove');
@@ -701,7 +703,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //合同归档
         $api->post('/approval_instances/{contract}/archive', 'App\Http\Controllers\ApprovalContractController@archive');
 
-
         //经济合同 自定义筛选
         $api->post('/approvals_contract/filter','App\Http\Controllers\ApprovalContractController@getFilter');
 
@@ -768,12 +769,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
 
-
         //app版本相关接口
         //新建版本信息
         $api->post('/appversion', 'App\Http\Controllers\AppVersionController@addAppVersion');
         //更新版本信息
         $api->put('/appversion/{appversion}', 'App\Http\Controllers\AppVersionController@updateAppVersion');
-
     });
 });

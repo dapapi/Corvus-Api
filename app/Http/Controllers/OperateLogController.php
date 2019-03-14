@@ -70,7 +70,6 @@ class OperateLogController extends Controller
             $query = $business->operateLogs();
         }
         //TODO 其他模块
-
         switch ($status) {
             case 2://不包含跟进
                 $query->where('method', '!=', OperateLogMethod::FOLLOW_UP);
@@ -84,7 +83,7 @@ class OperateLogController extends Controller
         }
 
 //        $operateLogs = $query->createDesc()->paginate($pageSize);
-            $operateLogs = $query->createDesc()->get();
+        $operateLogs = $query->createDesc()->get();
 
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {

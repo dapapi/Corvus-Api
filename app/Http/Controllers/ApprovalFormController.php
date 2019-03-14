@@ -309,7 +309,7 @@ class ApprovalFormController extends Controller
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
                 ->orderBy('ph.created_at', 'desc')
                 ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
-            //->paginate($pageSize)->toArray();
+
             //查询个人
             $dataUser = DB::table('approval_flow_execute as afe')//
             ->join('users as u', function ($join) {
@@ -367,7 +367,7 @@ class ApprovalFormController extends Controller
                 ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
             $dataPrincipals = $this->getPrincipalLevel($userId,$request,$payload);
-
+           
             $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipals);
 
             $resArrInfo = json_decode(json_encode($resArrs), true);
@@ -491,7 +491,7 @@ class ApprovalFormController extends Controller
             ->whereIn('ph.creator_id', $arrIds)->where('afe.principal_level',2)
             ->whereIn('afe.flow_type_id', $payload['status'])
             ->orderBy('ph.created_at', 'desc')
-            ->select('ph.creator_id','ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->distinct()->get()->toArray();
+            ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->distinct()->get()->toArray();
 
         return $dataPrincipals;
     }

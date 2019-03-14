@@ -31,7 +31,9 @@ use App\Models\ReviewQuestion;
 use App\Models\ReviewQuestionItem;
 use App\Models\ReviewUser;
 use App\ModuleUserType;
+
 use App\Repositories\ScopeRepository;
+
 use App\ReviewItemAnswer;
 use App\Models\ReviewQuestionnaire;
 use App\Models\StarWeiboshuInfo;
@@ -132,6 +134,7 @@ class BloggerController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+
         //登录用户对博主编辑权限验证
         try{
             $user = Auth::guard("api")->user();

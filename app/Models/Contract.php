@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 
 
+
 class Contract extends Model
 {
     private $model_dic_id = DataDictionarie::CONTRACTS;//数据字典中模块id

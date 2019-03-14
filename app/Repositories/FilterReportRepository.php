@@ -85,6 +85,7 @@ class FilterReportRepository
               $relation_contidion = str_replace('{value}',$value,$relation_contidion);
               $query->whereRaw($relation_contidion);
           }
+
           if ($field && $relation_contidion){
               $query->whereRaw($relation_contidion);
           }

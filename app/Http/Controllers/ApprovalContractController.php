@@ -858,5 +858,4 @@ class ApprovalContractController extends Controller
     }
 
 
-
 }

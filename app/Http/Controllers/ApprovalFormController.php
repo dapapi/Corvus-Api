@@ -1645,7 +1645,7 @@ class ApprovalFormController extends Controller
 
         $array = [];//查询条件
         if ($request->has('number'))
-            $array[] = ['cs.contract_number',$payload['number']];
+            $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
         if ($request->has('keywords'))
             $array[] = ['trails.type','like','%'.$payload['type'].'%'];
         if ($request->has('type'))

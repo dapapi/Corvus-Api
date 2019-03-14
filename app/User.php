@@ -81,6 +81,7 @@ class User extends Authenticatable
         'work_email',
         'disable',
         'position_id',
+        'real_name',
 
     ];
 
@@ -183,11 +184,12 @@ class User extends Authenticatable
     }
     public function userTasks()
     {
-        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->withTrashed();
+        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->withTrashed();
+       // return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->withTrashed();
     }
     public function userSchedules()
     {
-        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id');
+        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->orderBy('start_at', 'asc');
     }
 
     public function participantTasks()

@@ -982,20 +982,22 @@ class TrailController extends Controller
         });
         $trails = $trail->where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']))
-                $query->where('progress_status', $payload['status']);
+                $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
                     $id = hashid_decode((int)$id);
                 }
                 unset($id);
-                $query->whereIn('principal_id', $payload['principal_ids']);
+                $query->whereIn('trails.principal_id', $payload['principal_ids']);
             }
             if($request->has('type') && $payload['type'])
-                $query->where('type',$payload['type']);
-
+                $query->where('trails.type',$payload['type']);
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
+                $query->where('trails.type', $payload['status']);
+            else if($request->has('status') && $payload['status'] == '3,4'){
+                $query->whereIn('trails.type', [3,4]);
+            }
         })
             ->searchData()->poolType()->groupBy('trails.id')
             ->get();

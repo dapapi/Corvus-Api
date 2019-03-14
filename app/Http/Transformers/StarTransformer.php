@@ -112,7 +112,7 @@ class StarTransformer extends TransformerAbstract
 
     public function includeCreator(Star $star)
     {
-        $user = $star->creator;
+        $user = $star->creator()->first();
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
@@ -149,8 +149,8 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeTrails(Star $star)
     {
-        $trails = $star->trails;
-        if (!$trails){
+        $trails = $star->trails()->get();
+        if ($trails->count() == 0){
             return $this->null();
         }
         return $this->collection($trails,new TrailTransformer());

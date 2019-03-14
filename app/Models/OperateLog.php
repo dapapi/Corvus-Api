@@ -51,12 +51,14 @@ class OperateLog extends Model
         $field_name = $this->attributes['field_name'];//记录修改数据的字段
         //判断是不是隐私字段
         $privacy_fields = DataDictionarie::getPrivacyFieldList();
-        if (!in_array($field_name,$privacy_fields)){
+        if (!in_array($table.".".$field_name,$privacy_fields)){
             return $content;
         }
         $repository = new PrivacyUserRepository();
         $power = $repository->has_power($table,$field_name,$id,$user->id);
-        if ($power){
+        //如果是数据创建人或者有权限才可以看
+        $creator = $this->user()->first();
+        if ($creator->id == $user->id || $power){
             return $this->attributes['content'];
         }
         return "修改了".$this->attributes['field_title'];

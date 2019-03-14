@@ -1492,12 +1492,14 @@ class ProjectController extends Controller
         if ($star->id){
             $star_type = "stars";
             $id = $star->id;
+            $name = $star->name;
         }else{
             $star_type = "bloggers";
             $id = $blogger->id;
+            $name = $star->nickname;
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $projects = ProjectRepository::getSignContractProjectBySatr($id,$star_type,$pageSize);
+        $projects = ProjectRepository::getSignContractProjectBySatr($id,$name,$star_type,$pageSize);
         return $this->response->paginator($projects,new StarProjectTransformer());
     }
 

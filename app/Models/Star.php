@@ -178,19 +178,19 @@ class Star extends Model
      * @author lile
      * @date 2019-03-13 18:58
      */
-    public function getPowerAttribute()
-    {
-        //登录用户对艺人编辑权限验证
-        try{
-            $user = Auth::guard("api")->user();
-            //获取用户角色
-            $role_list = $user->roles()->pluck('id')->all();
-            $repository = new ScopeRepository();
-            $repository->checkPower("stars/{id}",'put',$role_list,$this);
-            return "true";
-        }catch (Exception $exception){
-            return "false";
-        }
-    }
+//    public function getPowerAttribute()
+//    {
+//        //登录用户对艺人编辑权限验证
+//        try{
+//            $user = Auth::guard("api")->user();
+//            //获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $repository = new ScopeRepository();
+//            $repository->checkPower("stars/{id}",'put',$role_list,$this);
+//            return "true";
+//        }catch (Exception $exception){
+//            return "false";
+//        }
+//    }
 
 }

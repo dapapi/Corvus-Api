@@ -34,12 +34,25 @@ class PrivacyUserRepository
             $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
         }elseif ($array['moduleable_type'] == ModuleableType::BLOGGER){
             $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
+        }elseif ($array['moduleable_type'] == ModuleableType::STAR){
+            $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
         }
         return $isnot;
     }
     public function updatePrivacy($array,$request, $payload)
     {
+        if ($request->has('star_risk_point')) {
+            $p_id = $payload['star_risk_point'];
+            $array['moduleable_field'] = PrivacyType::STAR_RISK_POINT;
+            $array['is_privacy'] = PrivacyType::OTHER;
+            $this->addAll($p_id,$array);
 
+            //                $isnot = PrivacyUser::where($array)->first();
+            //                if(!$isnot){
+            //                    $privacyUser = PrivacyUser::create($array);
+            //                }
+
+        }
         if ($request->has('projected_expenditure')) {
                 $p_id = $payload['projected_expenditure'];
                 $array['moduleable_field'] = PrivacyType::PROJECT_EXPENDITURE;
@@ -141,7 +154,20 @@ class PrivacyUserRepository
     }
     public function addPrivacy($array,$request, $payload)
     {
-
+        if ($request->has('star_risk_point')) {
+            $star_risk_point = $payload['star_risk_point'];
+            unset($payload['star_risk_point']);
+            foreach ($star_risk_point as $key => &$value) {
+                $array['moduleable_field'] = PrivacyType::STAR_RISK_POINT;
+                $array['is_privacy'] = PrivacyType::OTHER;
+                $array['user_id'] = hashid_decode($value);
+//                $this->add($array);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
+            }
+        }
         if ($request->has('sign_contract_status')) {
             $sign_contract_status = $payload['sign_contract_status'];
             unset($payload['sign_contract_status']);

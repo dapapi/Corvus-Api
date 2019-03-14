@@ -6,6 +6,7 @@ use App\Models\Calendar;
 use App\Models\Schedule;
 use App\Models\Star;
 use App\ModuleableType;
+use App\PrivacyType;
 use App\ModuleUserType;
 use App\TaskStatus;
 use League\Fractal\TransformerAbstract;
@@ -31,7 +32,7 @@ class StarTransformer extends TransformerAbstract
         if ($sub_str == "#" || $sub_str == null){
             $star->avatar = "https://res-crm.papitube.com/image/artist-no-avatar.png";
         }
-
+        $user = Auth::guard('api')->user();
         $array = [
             'id' => hashid_encode($star->id),
             'name' => $star->name,
@@ -83,7 +84,21 @@ class StarTransformer extends TransformerAbstract
             'power' =>  $star->power,
 
         ];
-
+        if($star ->creator_id != $user->id)
+        {
+            foreach ($array as $key => $value)
+            {
+                $result = PrivacyType::isPrivacy(ModuleableType::STAR,$key);
+                if($result)
+                {
+                    $result = PrivacyType::excludePrivacy($user->id,$star->id,ModuleableType::STAR, $key);
+                    if(!$result)
+                    {
+                        $array[$key] = 'privacy';
+                    }
+                }
+            }
+        }
         $arraySimple = [
             'id' => hashid_encode($star->id),
             'flag'   =>  ModuleableType::STAR,

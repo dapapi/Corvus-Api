@@ -983,7 +983,7 @@ class TrailController extends Controller
         $trails = $trail->where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('principal_ids') && $payload['principal_ids']) {
+            if ($request->has('principal_ids') &&!is_null($payload['principal_ids']) && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
                     $id = hashid_decode((int)$id);

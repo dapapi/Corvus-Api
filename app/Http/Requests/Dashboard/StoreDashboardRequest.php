@@ -24,9 +24,9 @@ class StoreDashboardRequest extends FormRequest
     public function rules()
     {
         return [
-            'department_id' => 'request',
-            'name' => 'request',
-            'desc' => 'request',
+            'department_id' => 'required',
+            'name' => 'required',
+            'desc' => 'required',
         ];
     }
 }

@@ -706,14 +706,15 @@ class ApprovalContractController extends Controller
             $projects = hashid_decode($payload['project_id']);
         }
 
-        $data = DB::table('approval_form_business as afb')//
-        ->join('approval_forms as af', function ($join) {
-            $join->on('af.form_id', '=', 'afb.form_id');
-        })
+        $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
+            ->join('approval_forms as af', function ($join) {
+                $join->on('af.form_id', '=', 'afb.form_id');
+            })
             ->join('contracts as cs', function ($join) {
                 $join->on('afb.form_instance_number', '=', 'cs.form_instance_number');
-            })
-            ->join('projects as ps', function ($join) {
+            })->contractSearchData();
+
+        $data->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
             })
             ->where('cs.project_id', $projects)
@@ -781,12 +782,12 @@ class ApprovalContractController extends Controller
         $array = [];//查询条件
         if ($request->has('number'))
             $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
-        if ($request->has('keywords'))
-            $array[] = ['cs.title','like','%'.$payload['keywords'].'%'];
+        if ($request->has('keyword'))
+            $array[] = ['cs.title','like','%'.$payload['keyword'].'%'];
         if ($request->has('type'))
-            $array[] = ['afb.form_id',$payload['type']];
+            $array[] = ['cs.star_type',$payload['type']];
         $contractsInfo = $contracts->searchData()->where($array)->groupBy('cs.id')
-         ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
+         ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
 //        $sql_with_bindings = str_replace_array('?', $contractsInfo->getBindings(), $contractsInfo->toSql());
 //        dd($sql_with_bindings);
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数

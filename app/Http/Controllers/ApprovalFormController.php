@@ -1637,22 +1637,24 @@ class ApprovalFormController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
-        $joinSql = FilterJoin::where('table_name', 'project')->first()->join_sql;
+        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
         $query = Contract::selectRaw('DISTINCT(ps.id) as ids')->from(DB::raw($joinSql));
         $contracts = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-
+       
         $array = [];//查询条件
         if ($request->has('number'))
+
             $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
-        if ($request->has('keywords'))
-            $array[] = ['trails.type','like','%'.$payload['type'].'%'];
         if ($request->has('type'))
-            $array[] = ['cs.title',$payload['keywords']];
+            $array[] = ['trails.pool_type',$payload['type']];
+        if ($request->has('keyword'))
+
+            $array[] = ['cs.title','like','%'.$payload['keyword'].'%'];
 
         $projectsInfo = $contracts->searchData()->where($array)->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($projectsInfo, $start, $pageSize);

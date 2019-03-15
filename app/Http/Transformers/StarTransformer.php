@@ -195,7 +195,7 @@ class StarTransformer extends TransformerAbstract
                 ->where('schedules.privacy',Schedule::OPEN)
                 ->orWhere('schedules.creator_id')
                 ->orWhere('mu.user_id',$user->id)
-                ->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
 //            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
 //        dd($sql_with_bindings);
 

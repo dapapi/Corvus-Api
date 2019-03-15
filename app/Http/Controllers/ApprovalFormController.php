@@ -419,7 +419,7 @@ class ApprovalFormController extends Controller
         ->select('ph.creator_id')->get()->toArray();
 
         $resArrInfo = json_decode(json_encode($dataPrincipalLevel), true);
-
+        $arrIds = array();
         if(!empty($resArrInfo)){
 
             foreach ($resArrInfo as $value){
@@ -442,7 +442,7 @@ class ApprovalFormController extends Controller
                         }
                     }
                 }
-                $arrIds = array();
+
                 if(!empty($vale)){
                     foreach ($vale as $item) {
                         $arrIds[] = $item['creator_ids'];

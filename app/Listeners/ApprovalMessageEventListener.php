@@ -190,6 +190,7 @@ class ApprovalMessageEventListener
 //            $send_to = array_column($users,'user_id');
 //        }
         $send_to = $this->getNextApprovalUser();
+//        dd($send_to);
         $creator = User::find($this->creator_id);
         $creator_name = $creator == null ? null : $creator->name;
         $subheading = $title = $creator_name."的".$this->form_name."待您审批";
@@ -306,17 +307,16 @@ class ApprovalMessageEventListener
                 $department_id = $department_user->department_id;
                 //获取查找几级主管
                 $principal_level = $execute->principal_level;
-
                 //判断创建人是否是所在部门的主管,是部门主管查询部门的上级部门主管，不是查询创建人的主管
                 if ($department_principal->user_id != $creator_id){
                      $principal_level = $principal_level -1;//查询上级部门减少一级
                 }
                 //获取要接收消息的部门主管
                 for ($i=0;$i<$principal_level;$i++){
-                    $department_id = $this->getParentDepartment($department_id);
+                        $department_id = Department::where('id',$department_id)->value('department_pid');
                 }
                 //获取主管
-                $send_department_principal = DepartmentPrincipal::where('department_id',$department_user->department_id)->first();
+                $send_department_principal = DepartmentPrincipal::where('department_id',$department_id)->first();
                 $send_to[] = $send_department_principal == null ? $creator_id : $send_department_principal->user_id;
             }catch (\Exception $e){
                 Log::error($e);
@@ -332,7 +332,8 @@ class ApprovalMessageEventListener
     //获取部门的上级部门
     protected function getParentDepartment($department_id)
     {
-        return Department::where('$department_id',$department_id)->value('department_pid');
+        $department = Department::where('$department_id',$department_id)->first();
+        return $department->pid;
     }
 
 }

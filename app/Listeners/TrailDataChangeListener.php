@@ -51,6 +51,7 @@ class TrailDataChangeListener
                     'start' => $old_trail->$func(),
                     'end' => $new_trail->$func(),
                     'method' => OperateLogMethod::UPDATE,
+                    'field_name' =>  $key
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
             }

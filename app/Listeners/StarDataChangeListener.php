@@ -51,6 +51,7 @@ class StarDataChangeListener
                     'start' => $old_star->$func(),
                     'end' => $new_star->$func(),
                     'method' => OperateLogMethod::UPDATE,
+                    'field_name' =>  $key
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
             }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\ClientDataChangeEvent;
 use App\Events\OperateLogEvent;
 use App\Events\TrailDataChangeEvent;
+use App\Events\TrailMessageEvent;
 use App\Exports\TrailsExport;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Trail\EditTrailRequest;
@@ -33,6 +34,7 @@ use App\Repositories\FilterReportRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
+use App\TriggerPoint\TrailTrigreePoint;
 use App\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -57,9 +59,12 @@ class TrailController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $trails = Trail::where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']))
-                $query->where('progress_status', $payload['status']);
+                $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
+                $query->where('type', $payload['status']);
+            else if($request->has('status') && $payload['status'] == '3,4'){
+                $query->whereIn('type', [3,4]);
+            }
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -79,9 +84,9 @@ class TrailController extends Controller
                     ->where('logable_type',ModuleableType::TRAIL)
                     ->where('operate_logs.method','4');
             })->groupBy('trails.id')
-            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
@@ -162,11 +167,20 @@ class TrailController extends Controller
             }
 
             if (!array_key_exists('id', $payload['contact'])) {
-                $contact = Contact::create([
-                    'client_id' => $client->id,
-                    'name' => $payload['contact']['name'],
-                    'phone' => $payload['contact']['phone'],
-                ]);
+                    $dataArray = [];
+                    $dataArray['client_id'] = $client->id;
+                    $dataArray['name'] = $payload['contact']['name'];
+                if($request->has("contact.phone")){
+                    $dataArray['phone'] = $payload['contact']['phone'];
+                }
+                if($request->has("contact.wechat")){
+                    $dataArray['wechat'] = $payload['contact']['wechat'];
+                }
+                if($request->has("contact.other_contact_ways")){
+                    $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                }
+                    $contact = Contact::create($dataArray);
+
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $client,
@@ -182,6 +196,11 @@ class TrailController extends Controller
 
             $payload['contact_id'] = $contact->id;
             $payload['client_id'] = $client->id;
+
+            $lock_user = $user->id;
+            $lock_at = now()->toDateTimeString();
+            $payload['lock_user'] = $lock_user;
+            $payload['lock_at'] = $lock_at;
 
             $trail = Trail::create($payload);
 
@@ -264,44 +283,14 @@ class TrailController extends Controller
         DB::commit();
         //发消息
         if($trail->lock_status == 1){
-            DB::beginTransaction();
-            try {
-                $user = Auth::guard('api')->user();
-
-
-                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间2个字段
-                $lock_user = $user->id;
-                $lock_at = now()->toDateTimeString();
-                $trail_id =$trail->id;
-                $data = array();
-                $data['lock_user'] = $lock_user;
-                $data['lock_at'] = $lock_at;
-                Trail::where('id',$trail_id)->update($data);
-                // 张峪铭 2019-01-24 20:29  增加锁价人和锁价时间两个字段
-
-
-
-                $title = $trail->title." 锁价金额为".$payload['fee'].'元';  //通知消息的标题
-                $subheading = $trail->title." 锁价金额为".$payload['fee'].'元';
-                $module = Message::TRAILS;
-                $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
-                $data = [];
-                $data[] = [
-                    "title" => '线索名臣', //通知消息中的消息内容标题
-                    'value' => $trail->title,  //通知消息内容对应的值
-                ];
-                $data[] = [
-                    'title' => '预计订单费用',
-                    'value' => $payload['fee'],
-                ];
-            $authorization = $request->header()['authorization'][0];
-            $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_to,$trail->id);
-                DB::commit();
-            } catch (Exception $e) {
-                Log::error($e);
-                DB::rollBack();
+            try{
+                $authorization = $request->header()['authorization'][0];
+                event(new TrailMessageEvent($trail,TrailTrigreePoint::LOCK_PRICE,$authorization,$user));
+            }catch (Exception $exception){
+                Log::error("销售线索锁价:[".$trail->title."]发送失败");
+                Log::error($exception);
             }
+
         }
         return $this->response->item($trail, new TrailTransformer());
     }
@@ -679,13 +668,16 @@ class TrailController extends Controller
 //                    }else{
 //                        $title = "关联目标艺人";
 //                    }
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => "关联目标艺人",
-                        'start' => $start,
-                        'end' => trim($end,","),
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
+                    if (!empty($start) || !empty($end)){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => "关联目标艺人",
+                            'start' => $start,
+                            'end' => trim($end,","),
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                    }
+
                     $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
                     Log::error($e);
@@ -749,14 +741,17 @@ class TrailController extends Controller
 //                    }else{
 //                        $title = "关联推荐艺人";
 //                    }
-                    $operateName = new OperateEntity([
-                        'obj' => $trail,
-                        'title' => "关联推荐艺人",
-                        'start' => $start,
-                        'end' => trim($end,","),
-                        'method' => OperateLogMethod::UPDATE,
-                    ]);
-                    $arrayOperateLog[] = $operateName;
+                    if (!empty($start) || !empty($end)){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => "关联推荐艺人",
+                            'start' => $start,
+                            'end' => trim($end,","),
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+                    }
+
 
 
                 }catch (\Exception $e){
@@ -775,30 +770,14 @@ class TrailController extends Controller
         DB::commit();
         //发消息
         if($trail->lock_status == 1){
-            DB::beginTransaction();
-            try {
-
-                $title = $trail->title." 锁价金额为".$trail->fee.'元';  //通知消息的标题
-                $subheading = $trail->title." 锁价金额为".$trail->fee.'元';
-                $module = Message::TRAILS;
-                $link = URL::action("TrailController@detail", ["trail" => $trail->id]);
-                $data = [];
-                $data[] = [
-                    "title" => $title, //通知消息中的消息内容标题
-                    'value' => $trail->title,  //通知消息内容对应的值
-                ];
-                $data[] = [
-                    'title' => '预计订单费用',
-                    'value' => $trail->fee,
-                ];
-            $authorization = $request->header()['authorization'][0];
-            $send_to = $this->departmentRepository->getUsersByDepartmentId(Department::BUSINESS_DEPARTMENT);
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_to,$trail->id);
-                DB::commit();
-            } catch (Exception $e) {
-                Log::error($e);
-                DB::rollBack();
+            try{
+                $authorization = $request->header()['authorization'][0];
+                event(new TrailMessageEvent($trail,TrailTrigreePoint::LOCK_PRICE,$authorization,$user));
+            }catch (Exception $exception){
+                Log::error("销售线索锁价:[".$trail->title."]发送失败");
+                Log::error($exception);
             }
+
         }
         return $this->response->accepted();
 
@@ -822,7 +801,7 @@ class TrailController extends Controller
         $this->response->item($trail, new TrailTransformer());
     }
 
-    public function detail(Request $request, Trail $trail)
+    public function detail(Request $request, Trail $trail,ScopeRepository $repository)
     {
         $trail = $trail->searchData()->find($trail->id);
 
@@ -837,6 +816,16 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("trails/{id}",'put',$role_list,$trail);
+            $trail->power = "true";
+        }catch (Exception $exception){
+            $trail->power = "false";
+        }
         return $this->response->item($trail, new TrailTransformer());
     }
 
@@ -920,7 +909,8 @@ class TrailController extends Controller
         }
         DB::commit();
 
-        return $this->response->accepted(null, '线索已拒绝');
+//        return $this->response->accepted(null, '线索已拒绝');
+        return $this->response->accepted();
     }
 
     public function filter(FilterTrailRequest $request)
@@ -949,9 +939,9 @@ class TrailController extends Controller
                     ->where('logable_type',ModuleableType::TRAIL)
                     ->where('operate_logs.method','4');
             })->groupBy('trails.id')
-            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
@@ -992,20 +982,22 @@ class TrailController extends Controller
         });
         $trails = $trail->where(function ($query) use ($request, $payload) {
             if ($request->has('keyword') && $payload['keyword'])
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('status') && !is_null($payload['status']))
-                $query->where('progress_status', $payload['status']);
-            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('principal_ids') &&!is_null($payload['principal_ids']) && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
                     $id = hashid_decode((int)$id);
                 }
                 unset($id);
-                $query->whereIn('principal_id', $payload['principal_ids']);
+                $query->whereIn('trails.principal_id', $payload['principal_ids']);
             }
             if($request->has('type') && $payload['type'])
-                $query->where('type',$payload['type']);
-
+                $query->where('trails.type',$payload['type']);
+            if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
+                $query->where('trails.type', $payload['status']);
+            else if($request->has('status') && $payload['status'] == '3,4'){
+                $query->whereIn('trails.type', [3,4]);
+            }
         })
             ->searchData()->poolType()->groupBy('trails.id')
             ->get();
@@ -1030,9 +1022,9 @@ class TrailController extends Controller
                 }
             }
 
-        })->groupBy('trails.id')->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+        })->groupBy('trails.id')->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','pool_type','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //               $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);

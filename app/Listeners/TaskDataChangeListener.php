@@ -50,6 +50,7 @@ class TaskDataChangeListener
                     'start' => $old_task->$func(),
                     'end' => $new_task->$func(),
                     'method' => OperateLogMethod::UPDATE,
+                    'field_name' =>  $key
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
             }

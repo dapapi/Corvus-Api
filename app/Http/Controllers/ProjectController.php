@@ -48,6 +48,7 @@ use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
+use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
 use App\User;
 use Exception;
@@ -78,7 +79,7 @@ class ProjectController extends Controller
         $project_type = $request->get('project_type',null);
         $query =  Project::where(function ($query) use ($request, $payload,$user,$project_type) {
             if ($request->has('keyword'))
-                $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
+                $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
 
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
@@ -90,11 +91,11 @@ class ProjectController extends Controller
             }
 
             if ($request->has('project_type') && $project_type <> '3,4' ){
-                $query->where('type',$project_type);
+                $query->where('projects.type',$project_type);
 
             }
             if($request->has('project_type') && $project_type == '3,4'){
-                $query->whereIn('type',[$project_type]);
+                $query->whereIn('projects.type',[$project_type]);
             }
             if ($request->has('status'))#项目状态
                 $query->where('status', $payload['status']);
@@ -512,7 +513,11 @@ class ProjectController extends Controller
         $arrayOperateLog = [];
         $old_project = clone $project;
         $trail = $project->trail;
-        $old_trail = clone $trail;
+
+        if(!empty($trail))
+        {
+            $old_trail = clone $trail;
+        }
         DB::beginTransaction();
         try {
             if ($request->has('principal_id')) {//负责人
@@ -541,7 +546,6 @@ class ProjectController extends Controller
                 }
 
             }
-
             if (!$request->has('type') || $payload['type'] == '')
                 $payload['type'] = $project->type;
 
@@ -584,7 +588,6 @@ class ProjectController extends Controller
                     $arrayOperateLog[] = $operateName;
                 }
             }
-
 
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
@@ -652,8 +655,6 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
-
-
                     if ($key == 'lock') {
 //                        $trail->lock_status = $val;
 
@@ -678,7 +679,6 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
-
 
                     if ($key == 'expectations') {
                         $repository = new TrailStarRepository();
@@ -733,11 +733,14 @@ class ProjectController extends Controller
                 $trail->update($payload['trail']);
 
             }
+
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
 
+            if(!empty($trail))
+            {
             event(new TrailDataChangeEvent($old_trail,$trail));//更新线索操作日志
-
+            }
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -776,9 +779,20 @@ class ProjectController extends Controller
         return $this->response->accepted();
     }
 
-    public function detail(Request $request, $project)
+    public function detail(Request $request, $project,ScopeRepository $repository)
     {
         $type = $project->type;
+        //登录用户对艺人编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("projects/{id}",'put',$role_list,$project);
+            $project->power = "true";
+        }catch (Exception $exception){
+            $project->power = "false";
+        }
+
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;
@@ -1351,9 +1365,12 @@ class ProjectController extends Controller
     {
 
         try {
-
-
-            $projectReturnedMoney->delete();
+            $id = ProjectReturnedMoney::where('p_id',$projectReturnedMoney->id)->get(['id'])->toArray();
+            if($id){
+                ProjectReturnedMoney::whereIn('id',$id)->delete();
+            }else{
+                $projectReturnedMoney->delete();
+            }
         } catch (Exception $exception) {
             Log::error($exception);
             return $this->response->errorInternal('删除失败');
@@ -1475,12 +1492,14 @@ class ProjectController extends Controller
         if ($star->id){
             $star_type = "stars";
             $id = $star->id;
+            $name = $star->name;
         }else{
             $star_type = "bloggers";
             $id = $blogger->id;
+            $name = $star->nickname;
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $projects = ProjectRepository::getSignContractProjectBySatr($id,$star_type,$pageSize);
+        $projects = ProjectRepository::getSignContractProjectBySatr($id,$name,$star_type,$pageSize);
         return $this->response->paginator($projects,new StarProjectTransformer());
     }
 

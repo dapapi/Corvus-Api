@@ -34,7 +34,12 @@ class CalendarController extends Controller
     public function all(Request $request)
     {
         // todo 按权限筛选
+        $payload = $request->all();
         $user = Auth::guard("api")->user();
+        $array = [];//查询条件
+        if($request->has('title')){//姓名
+            $array[] = ['title','like','%'.$payload['title'].'%'];
+        }
         $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.*')->leftJoin('module_users as mu',function ($join){
             $join->on('moduleable_id','calendars.id')
                 ->where('moduleable_type',ModuleableType::CALENDAR);
@@ -42,7 +47,7 @@ class CalendarController extends Controller
             $query->where('calendars.creator_id',$user->id);//创建人
             $query->orWhere([['mu.user_id',$user->id],['calendars.privacy',Calendar::SECRET]]);//参与人
             $query->orwhere('calendars.privacy',Calendar::OPEN);
-        })->get();
+        })->where($array)->get();
 
         return $this->response->collection($calendars, new CalendarTransformer());
     }

@@ -1,5 +1,6 @@
 <?php
 namespace App\Entity;
+use App\BloggerLevel;
 use App\Gender;
 use App\Models\BloggerType;
 use App\Models\Platform;

@@ -13,6 +13,8 @@ class OperateEntity extends Model
         'start',
         'end',
         'method',
+        'field_name',
+        'field_title',
     ];
 
 }

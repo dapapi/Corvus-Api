@@ -124,6 +124,9 @@ class OfficialController extends Controller {
             //通过手机号查找用户
             $userRepo = new UserRepository();
             $user = $userRepo->findOrCreateFromPlatform($telephone, $userWechatInfo);
+            //绑定用户与微信
+            $userWechatInfo->user_id = $user->id;
+            $userWechatInfo->save();
         } catch (SystemInternalException $exception) {
             Log::error($exception->getMessage());
             return $this->response->errorInternal($exception->getMessage());

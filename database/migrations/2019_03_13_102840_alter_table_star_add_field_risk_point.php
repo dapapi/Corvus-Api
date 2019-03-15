@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UpdateNumberAttendances extends Migration
+class AlterTableStarAddFieldRiskPoint extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class UpdateNumberAttendances extends Migration
      */
     public function up()
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->string('number')->change();
+        Schema::table('stars', function (Blueprint $table) {
+            $table->string("star_risk_point")->nullable()->comment("艺人风险点，隐私字段");
         });
     }
 
@@ -25,7 +25,7 @@ class UpdateNumberAttendances extends Migration
      */
     public function down()
     {
-        Schema::table('attendances', function (Blueprint $table) {
+        Schema::table('stars', function (Blueprint $table) {
             //
         });
     }

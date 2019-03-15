@@ -4,8 +4,11 @@ namespace App\Repositories;
 use App\Models\ModuleUser;
 use App\PrivacyType;
 
+use Carbon\Carbon;
+use Doctrine\Common\Collections\Collection;
 use Illuminate\Http\Request;
 use App\ModuleableType;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Models\PrivacyUser;
 use Exception;
@@ -306,4 +309,36 @@ class PrivacyUserRepository
     //返回添加成功或者删除成功的参与人和宣传人
     return [$p_ids, $participantDeleteId];
     }
+
+    /**
+     *判断一个人对某张表的某条数据的某个字段是否有权限
+     * @param $table 表明
+     * @param $field    字段名
+     * @param $data_id   数据id
+     * @param $userid 用户id
+     * @return bool
+     * @author 李乐
+     * @date 2019-03-11 14:55
+     */
+    public static function has_power($table,$field,$data_id,$userid)
+    {
+        $user_ids = Cache::get($table."_".$field."_".$data_id);
+        if ($user_ids){
+            return $user_ids;
+        }else{
+            $user_ids = PrivacyUser::where('moduleable_id',$data_id)
+                ->where('moduleable_field',$field)
+                ->where('moduleable_type',$table)
+                ->pluck('user_id');
+        }
+        $now = Carbon::now();
+        Cache::put($table."_".$field."_".$data_id,$now->addMinute(1));
+        if($user_ids->contains($userid)){ //如果$userid在有权限用户范围内则可以查看日志
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+
 }

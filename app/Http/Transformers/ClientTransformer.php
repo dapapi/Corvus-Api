@@ -3,12 +3,14 @@
 namespace App\Http\Transformers;
 
 use App\Models\Client;
+use App\Models\Contract;
 use App\TaskStatus;
+use DemeterChain\C;
 use League\Fractal\TransformerAbstract;
 
 class ClientTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['principal', 'creator', 'tasks'];
+    protected $availableIncludes = ['principal', 'creator', 'tasks','contacts'];
 
     private  $isAll = true;
 
@@ -39,6 +41,7 @@ class ClientTransformer extends TransformerAbstract
                 'last_follow_up_at' => $client->last_follow_up_at,
                 'last_updated_user' => $client->last_updated_user,
                 'last_updated_at' => $client->last_updated_at,
+                'power' =>  $client->power,//对客户编辑权限
             ];
         } else {
             $array = [
@@ -70,6 +73,9 @@ class ClientTransformer extends TransformerAbstract
             return null;
 
         return $this->item($creator, new UserTransformer());
+    }
+    public function includeContacts(Client $client){
+        return $this->collection($client->contacts()->get(),new ContactTransformer());
     }
 
     public function includeTasks(Client $client)

@@ -72,7 +72,8 @@ class ScheduleController extends Controller
             })->whereRaw("s.id=schedules.id")
                 ->select('mu.user_id');
 //->whereRaw("s.id=schedules.id")
-            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery) {
+            $schedules = Schedule::select('schedules.*')
+                ->where(function ($query) use ($payload, $user, $subquery) {
                 $query->where(function ($query) use ($payload) {
                     $query->where('privacy', Schedule::OPEN);
                     $query->whereIn('calendar_id', $payload['calendar_ids']);
@@ -85,7 +86,7 @@ class ScheduleController extends Controller
                 });
             })->mergeBindings($subquery)
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-                ->get();
+                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
         if ($request->has('material_ids')) {
@@ -99,8 +100,11 @@ class ScheduleController extends Controller
 
             $schedules = Schedule::select('schedules.*')->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
                 ->leftJoin('calendars as c', 'c.id', 'schedules.calendar_id')//为了不查询出被删除的日历增加的连接查询
+                ->leftJoin('users','users.id','schedules.creator_id')
                 ->whereRaw('c.deleted_at is null')
-                ->whereIn('material_id', $payload['material_ids'])->get();
+                ->whereIn('material_id', $payload['material_ids'])
+                ->get();
+               // ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc','users.icon_url')->get();
             return $this->response->collection($schedules, new ScheduleTransformer());
         }
 
@@ -151,7 +155,8 @@ class ScheduleController extends Controller
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
         })->whereRaw("s.id=schedules.id")->select('mu.user_id');
 
-        $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload, $user, $subquery, $calendars,$data) {
+        $schedules = Schedule::select('schedules.*')
+            ->where(function ($query) use ($payload, $user, $subquery, $calendars,$data) {
 
             $query->where(function ($query) use ($payload) {
                 if ($payload['calendar_ids']) {
@@ -167,44 +172,35 @@ class ScheduleController extends Controller
 
         })->mergeBindings($subquery)
             ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
-            ->get();
+            ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 
     public function all(Request $request)
     {
         $payload = $request->all();
-        if ($request->has('calendars_id')) {
-            $calendars_id = [];
-            foreach ($payload['calendars_id'] as $calendar_id) {
-                $calendars_id[] = hashid_decode($payload['calendar_id']);
+        if ($request->has('calendar_ids')) {
+           $calendars_id = [];
+            foreach ($payload['calendar_ids'] as $calendar_id) {
+                $calendars_id[] = hashid_decode($calendar_id);
             }
-
-            $user = Auth::guard("api")->user();
-
-            $calendars = Calendar::join('module_users as mu',function ($join){
-                    $join->on('mu.moduleable_id','calendars.id')
-                        ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
-                })
-                ->whereIn('calendars.id',$calendars_id)
-                ->where('privacy',Calendar::OPEN)
-                ->orWhere('calendars.creator_id',$user->id)
-                ->orWhere('mu.user_id',$user->id)
-                ->first();//查找艺人日历
-
-            if($calendars) {//日历存在查找日程
-                $schedules = $calendars->schedules()
-                    ->join('module_users as mu', function ($join) {
-                        $join->on('mu.moduleable_id', 'schdules.id')
-                            ->whereRaw("mu.moduleable_type = '" . ModuleUserType::PARTICIPANT . "'");
-                    })
-                    ->where('schdules.privacy', Schedule::OPEN)
-                    ->orWhere('schdules.creator_id')
-                    ->orWhere('mu.user_id', $user->id);
+            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload,$calendars_id) {
+                $query->where(function ($query) use ($payload,$calendars_id) {
+                    $query->whereIn('calendar_id', $calendars_id);
+                });
+            })
+                ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+                ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
+                  'schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id',
+                  'schedules.creator_id')
+                    ->get();
+//                $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
+//               dd($sql_with_bindings);
                     return $this->response->collection($schedules, new ScheduleTransformer());
             }
-        }
+
     }
+
 
     public function hasauxiliary($request, $payload, $schedule, $module, $user)
     {
@@ -351,7 +347,6 @@ class ScheduleController extends Controller
     public function store(StoreScheduleRequest $request)
     {
         $payload = $request->all();
-
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
         if(!$request->has('repeat') || $payload['repeat'] == null)
@@ -406,10 +401,15 @@ class ScheduleController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
+            try{
+                //向参与人发消息
+                $authorization = $request->header()['authorization'][0];
+                event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::CREATE_SCHEDULE,$authorization,$user));
+            }catch (\Exception $exception){
+                Log::error("新键日历消息发送失败");
+                Log::error($exception);
+            }
 
-            //向参与人发消息
-            $authorization = $request->header()['authorization'][0];
-            event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::CREATE_SCHEDULE,$authorization,$user));
 
             //获取日历对象的艺人
             $star_calendar = Calendar::where('id',$schedule->calendar_id)->select('starable_id','type')->first();
@@ -441,7 +441,6 @@ class ScheduleController extends Controller
         }
         DB::commit();
         //向参与人发送消息
-
 
 
         return $this->response->item($schedule, new ScheduleTransformer());
@@ -544,12 +543,27 @@ class ScheduleController extends Controller
         try {
             $schedule->update($payload);
 
-            if ($old_schedule->start_at != $schedule->start_at || $old_schedule->end_at != $schedule->end_at){
+            if ($old_schedule->title != $schedule->title){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $schedule,
+                    'title' => "日程标题",
+                    'start' => $old_schedule->title,
+                    'end' => $schedule->title,
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate
+                ]));
+            }
+            $old_start_at = date('Y-m-d H:i:s',strtotime($schedule->start_at));
+            $old_end_at =  date('Y-m-d H:i:s',strtotime($schedule->end_at));
+            if ($old_start_at != $schedule->start_at || $old_end_at != $schedule->end_at){
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $schedule,
                     'title' => "日程时间",
-                    'start' => $old_schedule->start_at."-".$old_schedule->end_at,
+                    'start' => $old_start_at."-".$old_end_at,
                     'end' => $schedule->start_at."-".$schedule->end_at,
                     'method' => OperateLogMethod::UPDATE,
                 ]);
@@ -640,10 +654,16 @@ class ScheduleController extends Controller
             return $this->response->errorInternal('更新日程失败');
         }
         DB::commit();
-        //向参与人发消息
-        $authorization = $request->header()['authorization'][0];
-        $meta = ["old_schedule"=>$old_schedule];
-        event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::UPDATE_SCHEDULE,$authorization,$user,$meta));
+        try{
+            //向参与人发消息
+            $authorization = $request->header()['authorization'][0];
+            $meta = ["old_schedule"=>$old_schedule];
+            event( new CalendarMessageEvent($schedule,CalendarTriggerPoint::UPDATE_SCHEDULE,$authorization,$user,$meta));
+        }catch (\Exception $exception){
+            Log::error("日历修改失败,日历:".$schedule->title);
+            Log::error($exception);
+        }
+
         return $this->response->accepted();
     }
 

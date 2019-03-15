@@ -91,6 +91,10 @@ class CalendarMessageEventListener
         $schedule_arr = $this->schedule->toArray();
         foreach ($old_schedule_arr as $key => $value){
             if ($key == "start_at" || $key == "end_at" || $key == "material_id" || $key == "position"){
+                if ($key == "start_at" || $key == "end_at"){
+                    $value = date('Y-m-d H:i:s',strtotime($value));
+                    $schedule_arr[$key] = date('Y-m-d H:i:s',strtotime($schedule_arr[$key]));
+                }
                 if ($value != $schedule_arr[$key]){
                     $update_filed = "";
                     if ($key == "start_at")

@@ -9,6 +9,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Http\Transformers\DataDictionaryTransformer;
 use App\Models\DataDictionarie;
 use App\Models\DataDictionary;
 use App\Http\Transformers\DataValHsTransformer;
@@ -16,6 +17,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use League\Fractal;
+use League\Fractal\Manager;
+use League\Fractal\Serializer\DataArraySerializer;
 
 class DataDictionaryController extends Controller
 {
@@ -41,12 +45,13 @@ class DataDictionaryController extends Controller
         DB::beginTransaction();
         try{
             DataDictionarie::create($payload);
+            DB::commit();
             return $this->response->noContent();
         }catch (\Exception $e){
             DB::rollBack();
             return $this->response->errorInternal("数据字典添加失败");
         }
-        DB::commit();
+
     }
 
     /**
@@ -57,8 +62,11 @@ class DataDictionaryController extends Controller
      */
     public function company(Request $request, $pid)
     {
-        $collection = DataDictionary::where('parent_id', $pid)->selectRaw(DB::raw('`name` as enum_value'))->get();
-        return $this->response->array(['data' => $collection]);
+        $collection = DataDictionary::where('parent_id', $pid)->get();
+        $resource = new Fractal\Resource\Collection($collection, new DataDictionaryTransformer());
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+        return $this->response->array($manager->createData($resource)->toArray());
     }
 
 

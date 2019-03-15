@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UpdateApprovalFlowAttendances extends Migration
+class AlterOperateLogsChangeField extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class UpdateApprovalFlowAttendances extends Migration
      */
     public function up()
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->removeColumn("Approval_flow","approval_flow");
+        Schema::table('operate_logs', function (Blueprint $table) {
+            $table->removeColumn('title','field_title');
         });
     }
 
@@ -25,7 +25,7 @@ class UpdateApprovalFlowAttendances extends Migration
      */
     public function down()
     {
-        Schema::table('attendances', function (Blueprint $table) {
+        Schema::table('operate_logs', function (Blueprint $table) {
             //
         });
     }

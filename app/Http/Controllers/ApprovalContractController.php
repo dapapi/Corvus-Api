@@ -2,14 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Contract\ContractArchiveRequest;
 use App\Http\Transformers\ContractApprovalTransformer;
 use App\Http\Transformers\ContractTransformer;
 use App\Models\ApprovalForm\Business;
+use App\Models\Contract;
+use App\Models\ContractArchive;
 use App\Models\DataDictionarie;
 use App\Models\RoleUser;
+
+use Exception;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\FilterJoin;
+use App\Http\Requests\Filter\FilterRequest;
+use App\Repositories\FilterReportRepository;
+
 
 
 class ApprovalContractController extends Controller
@@ -175,7 +186,7 @@ class ApprovalContractController extends Controller
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at', 'ph.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
 
 
-
+            DB::connection()->enableQueryLog();
             //查询二级主管
             $dataPrincipalLevel = DB::table('approval_flow_execute as afe')//
             ->join('approval_form_business as bu', function ($join) {
@@ -192,10 +203,11 @@ class ApprovalContractController extends Controller
                 })
                 ->join('department_principal as dp', function ($join) {
 
-                    DB::raw("select dpl.`user_id` from department_user as dur 
+
+                    $join->on('dp.user_id', '=', 'creator.id')->where('dp.user_id',".DB::raw(\"select dpl.`user_id` from department_user as dur
                         left join  departments as ds ON dur.`department_id`=ds.`id`
                         left join  department_principal as dpl ON dpl.`department_id`=ds.`department_pid`
-                        where dur.`user_id`=afi.`apply_id`");
+                        where dur.`user_id`=afi.`apply_id`\").");
                 })
 
                 ->join('users as us', function ($join) {
@@ -216,6 +228,8 @@ class ApprovalContractController extends Controller
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
                 ->select('afe.form_instance_number', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at', 'ph.id','dds.icon','dds.name as approval_status_name')->get()->toArray();
+            //$dataPrincipalLevel
+
 
             $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipalLevel);
 
@@ -560,6 +574,7 @@ class ApprovalContractController extends Controller
         $payload['type'] = isset($payload['type']) ? $payload['type'] : '';
 
 //        $data = DB::table('approval_form_business as afb')//
+
         $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
                 $join->on('af.form_id', '=', 'afb.form_id');
@@ -582,7 +597,7 @@ class ApprovalContractController extends Controller
             $data->Where('afb.form_id', $payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'cs.creator_name as name','us.icon_url', 'cs.created_at', 'afb.form_status')->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($res, $start, $pageSize);
@@ -617,6 +632,7 @@ class ApprovalContractController extends Controller
         $payload['talent'] = isset($payload['talent']) ? $payload['talent'] : '';
 
 //        $data = DB::table('approval_form_business as afb')
+
         $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
             ->join('approval_forms as af', function ($join) {
                 $join->on('af.form_id', '=', 'afb.form_id');
@@ -656,7 +672,7 @@ class ApprovalContractController extends Controller
             $data->Where('afb.form_id', $payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name','us.icon_url', 'cs.created_at', 'afb.form_status','dd.icon','dd.name', 'cs.star_type', 'cs.stars')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name','us.icon_url', 'cs.created_at', 'afb.form_status','dd.icon','dd.name as approval_status_name', 'cs.star_type', 'cs.stars')->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($res, $start, $pageSize);
@@ -693,14 +709,15 @@ class ApprovalContractController extends Controller
             $projects = hashid_decode($payload['project_id']);
         }
 
-        $data = DB::table('approval_form_business as afb')//
-        ->join('approval_forms as af', function ($join) {
-            $join->on('af.form_id', '=', 'afb.form_id');
-        })
+        $data = (new Business())->setTable("afb")->from("approval_form_business as afb")
+            ->join('approval_forms as af', function ($join) {
+                $join->on('af.form_id', '=', 'afb.form_id');
+            })
             ->join('contracts as cs', function ($join) {
                 $join->on('afb.form_instance_number', '=', 'cs.form_instance_number');
-            })
-            ->join('projects as ps', function ($join) {
+            })->contractSearchData();
+
+        $res = $data->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
             })
             ->where('cs.project_id', $projects)
@@ -709,7 +726,7 @@ class ApprovalContractController extends Controller
             ->select('afb.form_instance_number', 'cs.contract_number', 'cs.title', 'af.name as form_name', 'cs.creator_name', DB::raw("DATE_FORMAT(cs.created_at,'%Y-%m-%d %h:%i') as created_at"), 'afb.form_status', 'cs.stars', 'cs.star_type', 'cs.contract_money', 'cs.type')->get()->toArray();
 
 
-        $dataInfo = json_decode(json_encode($data), true);
+        $dataInfo = json_decode(json_encode($res), true);
         $sum = 0;
         if (!empty($dataInfo)) {
             foreach ($dataInfo as &$value) {
@@ -743,6 +760,100 @@ class ApprovalContractController extends Controller
             'total_pages' => $totalPages == 0 ? 1 : $totalPages,
         ];
 
+
+        return $arr;
+    }
+
+
+    public function archive(ContractArchiveRequest $request, Contract $contract)
+    {
+        $payload = $request->all();
+        if ($contract->status)
+            return $this->response->errorBadRequest('已经归档,不可重复归档');
+
+        $comment = null;
+        if ($request->has('comment'))
+            $comment = $payload['comment'];
+
+        $files = $payload['files'];
+        $data = [];
+        foreach ($files as $file) {
+            array_push($data, [
+                'contract_id' => $contract->id,
+                'contract_number' => $contract->contract_number,
+                'form_instance_number' => $contract->form_instance_number,
+                'archive' => $file['fileUrl'],
+                'file_name' => $file['fileName'],
+                'size' => $file['fileSize'],
+            ]);
+        }
+
+        $user = Auth::guard('api')->user();
+
+        DB::beginTransaction();
+        try {
+            $result = ContractArchive::insert($data);
+            $contract->update([
+                'status' => Contract::STATUS_ARCHIVED,
+                'comment' => $comment,
+                'updater_id' => $user->id,
+                'updater_name' => $user->name,
+            ]);
+        } catch (Exception $exception) {
+            DB::rollBack();
+            Log::error($exception);
+            return $this->response->errorInternal('创建归档失败');
+        }
+        DB::commit();
+
+        return $this->response->accepted(null, '归档成功');
+    }
+
+
+    /**
+     * 暂时不用列表了，逻辑要换
+     * @param FilterRequest $request
+     * @return \Dingo\Api\Http\Response
+     */
+    public function getFilter(FilterRequest $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', config('app.status'));
+        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
+        $joinSql = FilterJoin::where('table_name', 'Contracts')->first()->join_sql;
+        $query = Contract::selectRaw('DISTINCT(cs.id) as ids')->from(DB::raw($joinSql));
+        $contracts = $query->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        });
+
+        $array = [];//查询条件
+        if ($request->has('number'))
+            $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
+        if ($request->has('keyword'))
+            $array[] = ['cs.title','like','%'.$payload['keyword'].'%'];
+        if ($request->has('type'))
+
+            $array[] = ['cs.star_type',$payload['type']];
+        $contractsInfo = $contracts->searchData()->where($array)->groupBy('cs.id')
+         ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'cs.creator_name as name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
+//        $sql_with_bindings = str_replace_array('?', $contractsInfo->getBindings(), $contractsInfo->toSql());
+//        dd($sql_with_bindings);
+        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
+        $article = array_slice($contractsInfo, $start, $pageSize);
+
+        $total = count($article);//总条数
+        $totalPages = ceil($total / $pageSize);
+
+        $arr = array();
+        $arr['data'] = $article;
+        $arr['meta']['pagination'] = [
+            'total' => $total,
+            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
+            'per_page' => $pageSize,
+            'current_page' => $payload['page'],
+            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
+        ];
 
         return $arr;
     }

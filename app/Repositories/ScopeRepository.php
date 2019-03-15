@@ -44,7 +44,6 @@ class ScopeRepository
      */
     public function getUserIds($userId,$operation,$method,bool $arr=false)
     {
-
         //获取用户角色列表
         $roleIdList = RoleUser::where('user_id', $userId)->get()->toArray();
         if(count($roleIdList) == 0){//用户没有角色
@@ -67,7 +66,6 @@ class ScopeRepository
             $arrRoleId[] = $value['role_id'];
         }
 
-
         //根据roleid数组查找所有对应的模块权限，取最大值,用户和角色是一对多的
         $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$arrRoleId)->where('resource_id',$resourceId)->get()->toArray();
 
@@ -86,9 +84,10 @@ class ScopeRepository
         //查询本部门 20
         }elseif($dataDictionarieId == 20){
             $arrayUserid = array();
-            $departmentIdArr = DepartmentUser::where('user_id',$userId)->get()->toArray();
-            $departmentId = $departmentIdArr[0]['department_id'];
-
+            $departmentId = DepartmentUser::where('user_id',$userId)->value('department_id');
+            if (!$departmentId){
+                return null;
+            }
             $departmentUserArr = DepartmentUser::where('department_id',$departmentId)->get()->toArray();
             foreach ($departmentUserArr as $key=>$value){
                 $arrayUserid[] = $value['user_id'];//查看本部门下的所有人的
@@ -98,17 +97,23 @@ class ScopeRepository
         }elseif($dataDictionarieId == 21){
             //根据userid 查部门及一下部门
             $arrayUserid = array();
-            $departmentIdArr = DepartmentUser::where('user_id',$userId)->get()->toArray();
+            $departmentId = DepartmentUser::where('user_id',$userId)->value('department_id');
+            if ($departmentId){
+                $result = $this->getSubdivision($departmentId);
+                $arrayUserid = array_keys($result);//查看下属部门
+            }else{
+                return null;
+            }
 
-            $departmentId = $departmentIdArr[0]['department_id'];
-            $result = $this->getSubdivision($departmentId);
-            $arrayUserid = array_keys($result);//查看下属部门
         }elseif($dataDictionarieId == 22){//全部
             $arrayUserid = [];
             return $arrayUserid;
         }elseif($dataDictionarieId == 417){//本部门及同级部门
             //获取本部门id
-            $departmentId = DepartmentUser::where('user_id',$userId)->first()->department_id;
+            $departmentId = DepartmentUser::where('user_id',$userId)->value('department_id');
+            if (!$departmentId){
+                return null;
+            }
             $arrayUserid = $this->getMyDepartmentAndSameLevelDepartmentUserList($departmentId);
         }else{
             return null;
@@ -273,11 +278,11 @@ class ScopeRepository
                         if($model != null){
 
                             if(!$this->checkDataViewPower($model)){//检查用户对数据权限
-                                throw new NoRoleException("你没有查看{$resource->name}的权限");
+                                throw new NoRoleException("你没有{$resource->name}的权限");
                             }
                         }
                     }else{
-                        throw new NoRoleException("你没有查看{$resource->name}的权限！");
+                        throw new NoRoleException("你没有{$resource->name}的权限！");
                     }
 
                 }

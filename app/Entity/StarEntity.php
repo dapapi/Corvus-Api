@@ -197,6 +197,11 @@ class StarEntity
      */
    public $star_location;
 
+    /**
+     * @desc 艺人风险点
+     */
+    public $star_risk_point;
+
    public function get_id()
    {
        return $this->id;
@@ -341,6 +346,10 @@ class StarEntity
    public function get_star_location()
    {
        return $this->star_location;
+   }
+   public function get_star_risk_point()
+   {
+       return $this->star_risk_point;
    }
 
 }

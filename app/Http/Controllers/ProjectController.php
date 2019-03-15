@@ -91,11 +91,11 @@ class ProjectController extends Controller
             }
 
             if ($request->has('project_type') && $project_type <> '3,4' ){
-                $query->where('type',$project_type);
+                $query->where('projects.type',$project_type);
 
             }
             if($request->has('project_type') && $project_type == '3,4'){
-                $query->whereIn('type',[$project_type]);
+                $query->whereIn('projects.type',[$project_type]);
             }
             if ($request->has('status'))#项目状态
                 $query->where('status', $payload['status']);

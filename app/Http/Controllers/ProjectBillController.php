@@ -223,7 +223,7 @@ class ProjectBillController extends Controller
         try {
             $data = $array['star'];
             unset($array['star']);
-            $bill = ProjectBillsResource::where('id', $is_exist->id)->update($array);
+            $bill = ProjectBillsResource::where('id', $is_exist->id)->first()->update($array);
 
             if ($data) {
                 foreach ($payload['star'] as $key => $value) {

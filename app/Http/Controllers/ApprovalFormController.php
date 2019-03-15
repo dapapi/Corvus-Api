@@ -442,6 +442,7 @@ class ApprovalFormController extends Controller
                         }
                     }
                 }
+                $arrIds = array();
                 if(!empty($vale)){
                     foreach ($vale as $item) {
                         $arrIds[] = $item['creator_ids'];

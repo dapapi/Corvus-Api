@@ -753,5 +753,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/image', 'App\Http\Controllers\PersonnelManageController@uploadImage');
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
+
+        // 仪表盘
+        $api->get('/dashboard', 'App\Http\Controllers\DashboardController@index');
+        $api->post('/dashboard', 'App\Http\Controllers\DashboardController@store');
+        $api->get('/dashboard/{dashboard}', 'App\Http\Controllers\DashboardController@detail');
     });
 });

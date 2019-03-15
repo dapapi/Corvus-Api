@@ -193,8 +193,12 @@ class StarTransformer extends TransformerAbstract
                         ->whereRaw("mu.moduleable_type = '".ModuleableType::SCHEDULE."'");
                 })
                 ->where('schedules.privacy',Schedule::OPEN)
-                ->orWhere('schedules.creator_id')
-                ->orWhere('mu.user_id',$user->id)
+                ->Orwhere(function ($query) use ($user){
+                    $query->where('schedules.privacy',Schedule::SECRET)
+                    ->orWhere('schedules.creator_id',$user->id)
+                        ->orWhere('mu.user_id',$user->id);
+                })->where('schedules.calendar_id',$calendars->id)
+
                 ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
 //            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
 //        dd($sql_with_bindings);

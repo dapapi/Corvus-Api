@@ -64,13 +64,12 @@ class ProjectRepository
             ->leftJoin("project_bills_resources_users as pbru",function ($join){
                 $join->on( 'pbr.id',"pbru.moduleable_id");
             })
-            ->where('afe.flow_type_id',232)
+          //  ->where('afe.flow_type_id',232)
             ->whereRaw("find_in_set({$id},c.stars)")
-            ->where("star_type",$star_type)
-            ->where("pbru.moduleable_title",$name)
-//
+            ->where("c.star_type",$star_type)
+           // ->where("pbru.moduleable_title",$name);
 //        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
-//                dd($sql_with_bindings);  ,"c.contract_sharing_ratio"
+//                dd($sql_with_bindings);
            ->select("projects.id","projects.title","projects.created_at","projects.principal_id","pbru.money as contract_sharing_ratio" ,"users.icon_url");
         return $query->paginate($pageSize);
     }

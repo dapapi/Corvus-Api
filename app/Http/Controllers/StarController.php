@@ -864,12 +864,13 @@ class StarController extends Controller
         });
 
 
-        $stars->select('stars.id','stars.name','stars.source','stars.created_at','stars.birthday','stars.created_at','stars.updated_at','stars.sign_contract_status',DB::raw("max(operate_logs.updated_at) as up_time"))
+        $stars->select('stars.id','stars.platform','stars.name','stars.source','stars.created_at','stars.birthday','stars.created_at','stars.updated_at','stars.sign_contract_status',"operate_logs.user_id")
 
             ->where($array);
 //            ->searchData();
 //        DB::connection()->enableQueryLog();
-        $stars = $stars->orderBy('up_time','desc')->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
+        $stars = $stars->orderBy('operate_logs.created_at','desc')->groupBy('stars.id')->paginate($pageSize);
+//        dd($stars->toArray());
 //        dd(DB::getQueryLog());
 
         return $this->response->paginator($stars, new StarTransformer(!$all));

@@ -350,7 +350,7 @@ class ApprovalGeneralController extends Controller
 
         $resArrInfo = json_decode(json_encode($dataPrincipalLevel), true);
 
-
+        $arrIds = array();
         if(!empty($resArrInfo)){
 
             foreach ($resArrInfo as $value){

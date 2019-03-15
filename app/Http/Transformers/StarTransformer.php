@@ -5,6 +5,7 @@ namespace App\Http\Transformers;
 use App\Models\Calendar;
 use App\Models\Schedule;
 use App\Models\Star;
+use App\Models\TaskResource;
 use App\ModuleableType;
 use App\PrivacyType;
 use App\ModuleUserType;
@@ -129,6 +130,8 @@ class StarTransformer extends TransformerAbstract
     {
         $tasks = $star->tasks()->stopAsc()
             ->where('status',TaskStatus::NORMAL)->searchData()
+            ->where('resourceable_id',$star->id)
+            ->where('resourceable_type','star')
             ->limit(3)->get();
         return $this->collection($tasks, new TaskTransformer());
     }

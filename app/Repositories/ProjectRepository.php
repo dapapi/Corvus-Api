@@ -46,7 +46,7 @@ class ProjectRepository
     /**
      * 获取艺人签约合同
      */
-    public static function getSignContractProjectBySatr($id,$star_type,$pageSize)
+    public static function getSignContractProjectBySatr($id,$name,$star_type,$pageSize)
     {
 
         //绑定权限参数
@@ -54,19 +54,24 @@ class ProjectRepository
         $bingings = $builder->getBindings();
         $sql = str_replace("?","%s",$builder->toSql());
         $sql = sprintf($sql,...$bingings);
-
         $query = Project::from(DB::raw("({$sql}) as projects"))->
         leftJoin("contracts as c",'projects.id',"c.project_id")
             ->leftJoin("approval_flow_execute as afe",function ($join){
                 $join->on("afe.form_instance_number","c.form_instance_number");
             })
             ->leftJoin('users','users.id','projects.principal_id')
+            ->leftJoin('project_bills_resources as pbr','projects.id',"pbr.resourceable_id")
+            ->leftJoin("project_bills_resources_users as pbru",function ($join){
+                $join->on( 'pbr.id',"pbru.moduleable_id");
+            })
             ->where('afe.flow_type_id',232)
             ->whereRaw("find_in_set({$id},c.stars)")
             ->where("star_type",$star_type)
-            ->select("projects.id","projects.title","projects.created_at","projects.principal_id","c.contract_sharing_ratio","users.icon_url");
+            ->where("pbru.moduleable_title",$name)
+//
+//        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
+//                dd($sql_with_bindings);  ,"c.contract_sharing_ratio"
+           ->select("projects.id","projects.title","projects.created_at","projects.principal_id","pbru.money as contract_sharing_ratio" ,"users.icon_url");
         return $query->paginate($pageSize);
-
-
     }
 }

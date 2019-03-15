@@ -94,7 +94,7 @@ class StarController extends Controller
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
-    public function show(Star $star,ScopeRepository $repository)
+    public function show(Star $star)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -112,11 +112,13 @@ class StarController extends Controller
             $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $res = $repository->checkPower("stars/{id}",'put',$role_list,$star);
-            $star->power = "true";
+            $repository = new ScopeRepository();
+            $repository->checkPower("stars/{id}",'put',$role_list,$this);
+            $star->setAttribute('power',"true");
         }catch (Exception $exception){
-            $star->power = "false";
+            $star->setAttribute('power',"false");
         }
+        //艺人隐私字段
         return $this->response->item($star, new StarTransformer());
     }
 
@@ -654,6 +656,10 @@ class StarController extends Controller
 //                $arrayOperateLog[] = $operateStarLocation;
             }
         }
+        if ($request->has("star_risk_point"))
+        {
+            $array['star_risk_point'] = $payload['star_risk_point'];
+        }
         DB::beginTransaction();
         try {
             if ($request->has('affix') && count($request->get('affix'))) {
@@ -678,7 +684,6 @@ class StarController extends Controller
             }
 //            if (count($array) == 0)
 //                return $this->response->noContent();
-
             if (count($array) != 0)
                 $star->update($array);
             // 操作日志
@@ -863,8 +868,9 @@ class StarController extends Controller
 
             ->where($array);
 //            ->searchData();
+//        DB::connection()->enableQueryLog();
         $stars = $stars->orderBy('up_time','desc')->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
-
+//        dd(DB::getQueryLog());
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }

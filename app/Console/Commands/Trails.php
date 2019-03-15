@@ -124,16 +124,20 @@ class Trails extends Command
             }
 //            Log::info($last_update_at);
 //            Log::info($now->diffInMinutes($last_update_at));
-
             //进入公海池前一天提醒
-            if ($now->diffInMinutes($last_update_at) >= 14 * 24 * 60) { #进入公海池前一天提醒
+            if ($now->diffInMinutes($last_update_at) >= 16 * 24 * 60) { #进入公海池前一天提醒
                 if ($value->receive !== 1) {
                     $num = DB::table('trails')->where('id', $value->id)->update($receive);
-//                    Log::info("发送线索即将进入公海池提醒,线索【" . $value->title."】将要进入公海池");
+                    Log::info("发送线索即将进入公海池提醒,线索【" . $value->title."】将要进入公海池");
                     //提醒
                     $user = User::find(config("app.schdule_user_id"));
                     $meta['created'] = $last_update_at->toDateTimeString();//跟进时间
-                    event(new TrailMessageEvent($value, TrailTrigreePoint::REMIND_TRAIL_TO_SEAS, $authorization, $user, $meta));
+                    try{
+                        event(new TrailMessageEvent($value, TrailTrigreePoint::REMIND_TRAIL_TO_SEAS, $authorization, $user, $meta));
+                    }catch (\Exception $exception){
+                        dump("消息发送失败");
+                        Log::error("线索【{$value->title}】进入公海池,消息发送失败");
+                    }
                 }
             }
 

@@ -597,7 +597,7 @@ class ApprovalContractController extends Controller
             $data->Where('afb.form_id', $payload['type']);
 
         $res = $data->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'cs.creator_name as name','us.icon_url', 'cs.created_at', 'afb.form_status')->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($res, $start, $pageSize);
@@ -717,7 +717,7 @@ class ApprovalContractController extends Controller
                 $join->on('afb.form_instance_number', '=', 'cs.form_instance_number');
             })->contractSearchData();
 
-        $data->join('projects as ps', function ($join) {
+        $res = $data->join('projects as ps', function ($join) {
                 $join->on('ps.id', '=', 'cs.project_id');
             })
             ->where('cs.project_id', $projects)
@@ -726,7 +726,7 @@ class ApprovalContractController extends Controller
             ->select('afb.form_instance_number', 'cs.contract_number', 'cs.title', 'af.name as form_name', 'cs.creator_name', DB::raw("DATE_FORMAT(cs.created_at,'%Y-%m-%d %h:%i') as created_at"), 'afb.form_status', 'cs.stars', 'cs.star_type', 'cs.contract_money', 'cs.type')->get()->toArray();
 
 
-        $dataInfo = json_decode(json_encode($data), true);
+        $dataInfo = json_decode(json_encode($res), true);
         $sum = 0;
         if (!empty($dataInfo)) {
             foreach ($dataInfo as &$value) {
@@ -833,9 +833,10 @@ class ApprovalContractController extends Controller
         if ($request->has('keyword'))
             $array[] = ['cs.title','like','%'.$payload['keyword'].'%'];
         if ($request->has('type'))
+
             $array[] = ['cs.star_type',$payload['type']];
         $contractsInfo = $contracts->searchData()->where($array)->groupBy('cs.id')
-         ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
+         ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'cs.creator_name as name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
 //        $sql_with_bindings = str_replace_array('?', $contractsInfo->getBindings(), $contractsInfo->toSql());
 //        dd($sql_with_bindings);
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数

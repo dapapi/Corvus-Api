@@ -1664,13 +1664,13 @@ class ApprovalFormController extends Controller
 
             $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
         if ($request->has('type'))
-            $array[] = ['trails.pool_type',$payload['type']];
+            $array[] = ['trails.type',$payload['type']];
         if ($request->has('keyword'))
 
             $array[] = ['cs.title','like','%'.$payload['keyword'].'%'];
 
         $projectsInfo = $contracts->searchData()->where($array)->orderBy('cs.created_at', 'desc')
-            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'us.name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
+            ->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'cs.creator_name as name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
 
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($projectsInfo, $start, $pageSize);

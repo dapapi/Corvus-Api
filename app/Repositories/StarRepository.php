@@ -20,7 +20,11 @@ class StarRepository
         $sub_sql = DB::table("operate_logs as ol")->select(['ol.id','ol.user_id','ol.method','logable_id',DB::raw('max(ol.created_at) as created_at')])
             ->where('ol.logable_type','star')
 
-            ->groupBy('ol.logable_id','ol.method');
+            ->groupBy('ol.logable_id','ol.method','ol.logable_type');
+
+//        $sub_sql = DB::table("operate_logs as ol2")
+//            ->select('ol2.id','ol2.created_at','ol2.logable_id','ol2.user_id','ol2.method')
+//            ->join(DB::raw("({$inner_sql->toSql()}) as ff"),'ff.id','ol2.id')->mergeBindings($inner_sql);
 
         return Star::leftJoin('module_users',function ($join){
             $join->on('module_users.moduleable_id', '=' ,'stars.id')

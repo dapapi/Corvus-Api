@@ -147,6 +147,7 @@ class OpenPlatformController extends Controller
         $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' . env('WECHAT_APP_APPID') . '&secret=' . env('WECHAT_APP_SECRET') . '&code=' . $code . '&grant_type=authorization_code';
         $client = new Client();
         $response = $client->request('get', $url);
+
         if ($response->getStatusCode() != 200) {
             return $this->response->errorForbidden();
         }
@@ -230,7 +231,6 @@ class OpenPlatformController extends Controller
             }
             return $this->response->array(['bind_token'=> $token->token]);
         }
-
         $accessToken = $user->createToken('wechat app login')->accessToken;
         //不是第一次，已经绑定过用户，直接登录
         return $this->response->array(['access_token' => $accessToken]);

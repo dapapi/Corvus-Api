@@ -701,7 +701,6 @@ class StarController extends Controller
 
     public function store(StarRequest $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 

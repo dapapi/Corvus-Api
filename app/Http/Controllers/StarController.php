@@ -701,7 +701,6 @@ class StarController extends Controller
 
     public function store(StarRequest $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
@@ -867,8 +866,8 @@ class StarController extends Controller
 
         $stars->select('stars.id','stars.platform','stars.name','stars.source','stars.created_at','stars.birthday','stars.created_at','stars.updated_at','stars.sign_contract_status',"operate_logs.user_id")
 
-            ->where($array);
-//            ->searchData();
+            ->where($array)
+            ->searchData();
 //        DB::connection()->enableQueryLog();
         $stars = $stars->orderBy('operate_logs.created_at','desc')->groupBy('stars.id')->paginate($pageSize);
 //        dd($stars->toArray());

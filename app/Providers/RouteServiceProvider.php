@@ -11,6 +11,7 @@ use App\Models\Blogger;
 use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
 use App\Models\Contract;
+use App\Models\Dashboard;
 use App\Models\DataDictionary;
 use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
@@ -528,6 +529,19 @@ class RouteServiceProvider extends ServiceProvider
         Route::bind('contract', function ($value) {
             try {
                 $entity = Contract::where('form_instance_number',$value)->first();
+                if ($entity == null){
+                    throw new Exception("合同不存在");
+                }
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('dashboard', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Dashboard::withTrashed()->findOrFail($id);
                 if ($entity == null){
                     throw new Exception("合同不存在");
                 }

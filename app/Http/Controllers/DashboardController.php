@@ -36,20 +36,13 @@ class DashboardController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
-        DB::beginTransaction();
+        $payload['includes'] = 'aims,tasks,projects,clients,stars';
         try {
             $dashboard = Dashboard::create($payload);
-            $dashboard->relate->create([
-                # 暂时写死,需要之后修改
-                'includes' => 'aims,tasks,projects,clients,stars'
-            ]);
         } catch (Exception $exception) {
             Log::error($exception);
-            DB::rollBack();
             return $this->response->errorInternal('创建失败');
         }
-        DB::commit();
-
         return $this->response->item($dashboard, new DashboardTransformer());
     }
 

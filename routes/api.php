@@ -755,8 +755,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
 
         // 仪表盘
-        $api->get('/dashboard', 'App\Http\Controllers\DashboardController@index');
-        $api->post('/dashboard', 'App\Http\Controllers\DashboardController@store');
-        $api->get('/dashboard/{dashboard}', 'App\Http\Controllers\DashboardController@detail');
+        $api->get('/dashboards', 'App\Http\Controllers\DashboardController@index');
+        $api->post('/dashboards', 'App\Http\Controllers\DashboardController@store');
+        $api->get('/dashboards/{dashboard}', 'App\Http\Controllers\DashboardController@detail');
     });
 });

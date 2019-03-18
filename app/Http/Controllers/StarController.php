@@ -78,8 +78,9 @@ class StarController extends Controller
         //根据条件查询
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
-        ->paginate($pageSize);
-        return $this->response->paginator($stars, new StarTransformer());
+        //->paginate($pageSize);
+        ->get();
+        return $this->response->collection($stars, new StarTransformer());
     }
 
     public function all(Request $request)

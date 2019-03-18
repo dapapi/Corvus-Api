@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use App\OperateLogMethod;
 use App\Traits\OperateLogTrait;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -29,7 +30,7 @@ class Announcement extends Model
 
     public function scopeCreateDesc($query)
     {
-       return $query->orderBy('stick','desc')->orderBy('created_at', 'desc');
+       return $query->orderBy('announcement.stick','desc')->orderBy('announcement.created_at', 'desc');
 //       return $query->orderByRaw('created_at,stick ASC');
 
     }

@@ -92,9 +92,10 @@ class TaskController extends Controller
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
-            if ($request->has('user'))
-                $query->whereIn('principal_id', $payload['user']);
-
+            if ($request->has('user')){
+                $userId = hashid_decode($payload['user']);
+                $query->where('principal_id', $userId);
+            }
             if ($request->has('department')){
                 $userIds = array();
                 $userIds = $this->getDepartmentUserIds($payload['department']);

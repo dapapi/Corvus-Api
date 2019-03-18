@@ -79,6 +79,7 @@ class StarController extends Controller
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
         ->paginate($pageSize);
+
         return $this->response->paginator($stars, new StarTransformer());
     }
 

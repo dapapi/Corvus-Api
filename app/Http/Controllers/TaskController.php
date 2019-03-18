@@ -92,10 +92,35 @@ class TaskController extends Controller
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
+            if ($request->has('user'))
+                $query->whereIn('user', $payload['user']);
+
+            if ($request->has('department')){
+                $userIds = array();
+                $userIds = $this->getDepartmentUserIds($payload['department']);
+                $query->whereIn('principal_id', $userIds);
+            }
 
         })->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
         return $this->response->paginator($tasks, new TaskTransformer());
     }
+
+    public function getDepartmentUserIds($departmentId){
+        $userIds = array();
+        $departmentId = hashid_decode($departmentId);
+        //查询部门id所有下级部门id
+        $res = DB::select("select id from departments where find_in_set(id, getChildList($departmentId))");
+        $resArr = json_decode(json_encode($res), true);
+        $ids = array_column($resArr, 'id');
+        //根据部门查询所有部门下userid
+        $departmentUserIds = DB::table('department_user')->select('user_id')->whereIn('department_id',$ids)->get()->toArray();
+        $departmentUserIdArr = json_decode(json_encode($departmentUserIds), true);
+        $userIds = array_column($departmentUserIdArr, 'user_id');
+        $uniqueUserIds = array_unique($userIds);
+
+        return $uniqueUserIds;
+    }
+
 
     public function tasksAll(Request $request,Task $task)
     {

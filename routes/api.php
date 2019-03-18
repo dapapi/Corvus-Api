@@ -749,5 +749,16 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/image', 'App\Http\Controllers\PersonnelManageController@uploadImage');
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
+
+        //任务获取项目相关资源不分页
+        $api->get("/project/related","App\Http\Controllers\ProjectController@getProjectRelated");
+        //任务获取艺人相关资源不分页
+        $api->get('/star/related','App\Http\Controllers\StarController@getStarRelated');
+        //任务获取客户相关资源不分页
+        $api->get('/client/related','App\Http\Controllers\ClientController@getClientRelated');
+        //任务获取销售线索相关资源不分页
+        $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
+
+
     });
 });

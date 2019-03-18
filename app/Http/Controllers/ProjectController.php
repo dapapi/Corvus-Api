@@ -130,6 +130,19 @@ class ProjectController extends Controller
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
+    public function getProjectRelated(Request $request){
+
+        $projects =  Project::searchData()->select('id','title')->get();
+        $data = array();
+        $data['data'] = $projects;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
+
+
+    }
+
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);

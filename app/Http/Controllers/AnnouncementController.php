@@ -20,6 +20,7 @@ use App\Models\DepartmentUser;
 use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
 use App\Models\OperateLog;
+use App\ModuleableType;
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
@@ -44,6 +45,7 @@ class AnnouncementController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $status = empty($payload['status'])?1:$payload['status'];
+        $readflag = empty($payload['readflag'])?2:$payload['readflag'];
         $userId = $user->id;
         $department = DepartmentUser::where('user_id',$userId)->get(['department_id'])->toarray();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -66,18 +68,28 @@ class AnnouncementController extends Controller
                 {
                     $ar[$key] = $value->announcement_id;
                 }
+                $query =   Announcement::whereIn('announcement.id',$ar)
+                      ->leftJoin('operate_logs',function($join){
+                          $join->on('announcement.id','operate_logs.logable_id')
+                              ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                              ->where('operate_logs.method',OperateLogMethod::LOOK);
+                      });
                 if($status == 1){
-                    $stars = Announcement::whereIn('id',$ar)->createDesc()->paginate($pageSize);
+                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')
+                    ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                            ,'announcement.updated_at')
+                        ->paginate($pageSize);
+//                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
                 }else{
-                    $stars = Announcement::whereIn('id',$ar)->where('creator_id',$userId)->createDesc()->paginate($pageSize);
+                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at','announcement.updated_at')->paginate($pageSize);
                 }
-
               }else{
                   $stars = null;
               }
         }
-
-
         return $this->response->paginator($stars, new AnnouncementTransformer());
     }
 //    public function generateTree($array,$pi){

@@ -93,6 +93,19 @@ class TrailController extends Controller
         return $this->response->paginator($trails, new TrailTransformer());
     }
 
+
+    public function getTrailRelated(Request $request)
+    {
+
+        $trails = Trail::searchData()->select('id', 'title')->get();
+        $data = array();
+        $data['data'] = $trails;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
+    }
+
     public function all(Request $request)
     {
         $type = $request->get('type', '1,2,3,4,5');

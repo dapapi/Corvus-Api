@@ -75,21 +75,21 @@ class AnnouncementController extends Controller
                               ->where('operate_logs.method',OperateLogMethod::LOOK);
                       });
                 if($status == 1){
-                    $stars = $query->where('operate_logs.status',$readflag)
-                    ->createDesc()->paginate($pageSize);
-//                $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
+                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')
+                    ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                            ,'announcement.updated_at')
+                        ->paginate($pageSize);
+//                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
-//
                 }else{
-                    $stars = $query->where('operate_logs.status',$readflag)->where('creator_id',$userId)->createDesc()->paginate($pageSize);
+                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at','announcement.updated_at')->paginate($pageSize);
                 }
-
               }else{
                   $stars = null;
               }
         }
-
-
         return $this->response->paginator($stars, new AnnouncementTransformer());
     }
 //    public function generateTree($array,$pi){

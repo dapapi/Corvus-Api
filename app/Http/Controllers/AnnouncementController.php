@@ -9,6 +9,7 @@ namespace App\Http\Controllers;
 use App\ModuleableType;
 
 use App\AffixType;
+use App\Events\AnnouncementMessageEvent;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Transformers\DepartmentTransformer;
@@ -23,6 +24,7 @@ use App\Models\AnnouncementScope;
 use App\Models\OperateLog;
 
 use App\Repositories\AffixRepository;
+use App\TriggerPoint\AnnouncementTriggerPoint;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
 use App\Repositories\OperateLogRepository;
@@ -84,8 +86,7 @@ class AnnouncementController extends Controller
 //                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
                 }else{
-                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
-                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at','announcement.updated_at')->paginate($pageSize);
+                    $stars = Announcement::where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
                 }
               }else{
                   $stars = null;
@@ -234,10 +235,20 @@ class AnnouncementController extends Controller
         }else{
             return $this->response->errorInternal('创建失败');
         }
+
+        //删除公告成功发送消息
+//        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($star,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+//        }catch (\Exception $exception){
+//            Log::error("修改公告消息发送失败[$star->title]");
+//            Log::error($exception);
+//        }
+
         return $this->response->item($star, new AnnouncementTransformer());
 
     }
-    public function remove(Announcement $announcement)
+    public function remove(Request $request,Announcement $announcement)
     {
         DB::beginTransaction();
         try {
@@ -263,6 +274,15 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('删除失败');
         }
         DB::commit();
+
+        //删除公告成功发送消息
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$announcement->title]");
+            Log::error($exception);
+        }
     }
     public function edit(AnnouncementUpdateRequest $request, Announcement $announcement)
     {
@@ -415,7 +435,14 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
-
+        //删除公告成功发送消息
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$announcement->title]");
+            Log::error($exception);
+        }
         return $this->response->accepted();
 
     }

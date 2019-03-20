@@ -6,6 +6,7 @@ use App\Events\AnnouncementMessageEvent;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\Project;
+use App\Repositories\AnnouncementRepository;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\AnnouncementTriggerPoint;
 use App\TriggerPoint\ApprovalTriggerPoint;
@@ -16,6 +17,7 @@ class AnnouncementMessageEventListener
 {
 
     private $messageRepository;//消息仓库
+    private $announcementRepository;
     private $instance;//公告model
     private $trigger_point;//触发点
     private $authorization;//token
@@ -34,9 +36,10 @@ class AnnouncementMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,AnnouncementRepository $announcementRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->announcementRepository = $announcementRepository;
     }
 
     /**
@@ -57,23 +60,38 @@ class AnnouncementMessageEventListener
                 $this->sendMessageWhenCreate();
                 break;
             case AnnouncementTriggerPoint::UPDATE:
-                $this->sendMessageWhenCreate();
+                $this->sendMessageWhenUpdate();
                 break;
             case AnnouncementTriggerPoint::DELETE:
-                $this->sendMessageWhenCreate();
+                $this->sendMessageWhenDelete();
                 break;
         }
     }
     public function sendMessageWhenCreate()
     {
         //获取所有要接受消息的用户
-        $this->deparments = explode(",",$this->instance->scope);
-        $send_to = DepartmentUser::whereIn('department_id', $this->deparments)->select('user_id')->get();
-        $send_to = array_column($send_to->toArray(),"user_id");
+//        $this->deparments = explode(",",$this->instance->scope);
+        $send_to = $this->announcementRepository->getAllUserThatCanSeeTheAnnouncement($this->instance);
+//        $send_to = DepartmentUser::whereIn('department_id', $this->deparments)->select('user_id')->get();
+//        $send_to = array_column($send_to,"user_id");
         $subheading = $title = $this->user->name."发布了新公告";
         $this->sendMessage($title,$subheading,$send_to);
 
     }
+
+    public function sendMessageWhenUpdate()
+    {
+        $send_to = $this->announcementRepository->getAllUserThatCanSeeTheAnnouncement($this->instance);
+        $subheading = $title = $this->user->name."更新了新公告";
+        $this->sendMessage($title,$subheading,$send_to);
+    }
+    public function sendMessageWhenDelete()
+    {
+        $send_to = $this->announcementRepository->getAllUserThatCanSeeTheAnnouncement($this->instance);
+        $subheading = $title = $this->user->name."删除了新公告";
+        $this->sendMessage($title,$subheading,$send_to);
+    }
+
     /**
      * @param $title
      * @param $subheading

@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Repositories;
+
+use App\Models\Announcement;
+use App\Models\AnnouncementScope;
+use App\Models\Department;
+use App\Models\DepartmentUser;
+
+class AnnouncementRepository
+{
+    /**
+     * @param Announcement $announcement
+     * @return mixed
+     * @author lile
+     * @date 2019-03-20 16:15
+     */
+    public function getAllUserThatCanSeeTheAnnouncement(Announcement $announcement)
+    {
+        //获取可以接受公告的部门
+        $departments = AnnouncementScope::where('announcement_id',$announcement->id)->select('department_id')->pluck('department_id')->toArray();
+        //获取可以获取公告的部门的子级你部门
+        $sub_departments = [];
+        $department = new Department();
+        foreach ($departments as $department_id){
+            $temp = $department->getSubidByPid($department_id);
+            foreach ($temp as $t)
+            {
+                array_push($sub_departments,$t->id);
+            }
+        }
+        $departments = array_merge($departments,$sub_departments);
+        //获取所有部门的用户
+        $users = DepartmentUser::whereIn('department_id',$departments)->pluck('user_id')->toArray();
+        return $users;
+    }
+}

@@ -84,8 +84,7 @@ class AnnouncementController extends Controller
 //                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
                 }else{
-                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
-                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at','announcement.updated_at')->paginate($pageSize);
+                    $stars = Announcement::where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
                 }
               }else{
                   $stars = null;

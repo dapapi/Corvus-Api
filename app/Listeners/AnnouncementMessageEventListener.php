@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\AnnouncementMessageEvent;
+use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\Project;
@@ -17,7 +18,11 @@ class AnnouncementMessageEventListener
 {
 
     private $messageRepository;//消息仓库
+<<<<<<< Updated upstream
     private $announcementRepository;
+=======
+    private $deparment;
+>>>>>>> Stashed changes
     private $instance;//公告model
     private $trigger_point;//触发点
     private $authorization;//token
@@ -36,10 +41,17 @@ class AnnouncementMessageEventListener
      *
      * @return void
      */
+<<<<<<< Updated upstream
     public function __construct(MessageRepository $messageRepository,AnnouncementRepository $announcementRepository)
     {
         $this->messageRepository = $messageRepository;
         $this->announcementRepository = $announcementRepository;
+=======
+    public function __construct(MessageRepository $messageRepository,Department $deparment)
+    {
+        $this->messageRepository = $messageRepository;
+        $this->deparment = $deparment;
+>>>>>>> Stashed changes
     }
 
     /**
@@ -106,5 +118,8 @@ class AnnouncementMessageEventListener
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::ANNOUNCENMENT, null, $this->data, $send_to,$this->instance->id);
     }
+
+
+
 
 }

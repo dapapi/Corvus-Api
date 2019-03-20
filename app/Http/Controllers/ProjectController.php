@@ -1465,38 +1465,71 @@ class ProjectController extends Controller
      */
     public function getFilter(FilterRequest $request)
     {
+        $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
+        //  $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
+        $joinSql = '`projects`';
+        $query = Project::selectRaw('DISTINCT(bloggers.id) as ids')->from(DB::raw($joinSql));
+        $projects = $query->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        });
 
         $all = $request->get('all', false);
 
-        $query = Project::query();
-        $conditions = $request->get('conditions');
-        foreach ($conditions as $condition) {
-            $field = $condition['field'];
-            $operator = $condition['operator'];
-            $type = $condition['type'];
-            if ($operator == 'LIKE') {
-                $value = '%' . $condition['value'] . '%';
-                $query->whereRaw("$field $operator ?", [$value]);
-            } else if ($operator == 'in') {
-                $value = $condition['value'];
-                if ($type >= 5)
-                    foreach ($value as &$v) {
-                        $v = hashid_decode($v);
-                    }
-                unset($v);
-                $query->whereIn($field, $value);
-            } else {
-                $value = $condition['value'];
-                $query->whereRaw("$field $operator ?", [$value]);
+        $user = Auth::guard('api')->user();
+        $project_type = $request->get('project_type',null);
+        $query =  $projects->where(function ($query) use ($request, $payload,$user,$project_type) {
+            if ($request->has('keyword'))
+                $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
+
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('projects.principal_id', $payload['principal_ids']);
             }
 
-        }
-        // 这句用来检查绑定的参数
-        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
+            if ($request->has('project_type') && $project_type <> '3,4' ){
+                $query->where('projects.type',$project_type);
 
-        $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
+            }
+            if($request->has('project_type') && $project_type == '3,4'){
+                $query->whereIn('projects.type',[$project_type]);
+            }
+            if ($request->has('status'))#项目状态
+                $query->where('projects.status', $payload['status']);
+        });
+        if ($request->has('my')){
+            switch ($payload['my']){
+                case 'my_principal'://我负责
+                    $query->where('projects.principal_id', $user->id);
+                    break;
+                case 'my_participant'://我参与
+                    $query->leftJoin("module_users as mu2",function ($join){
+                        $join->on("mu2.moduleable_id","projects.id")
+                            ->where('mu2.moduleable_type',ModuleableType::PROJECT);
+                    })->where('mu2.user_id',$user->id);
+                    break;
+                case 'my_create'://我创建
+                    $query->where('projects.creator_id', $user->id);
+                    break;
 
+            }
+        }$projects = $query->searchData()
+        ->leftJoin('operate_logs',function($join){
+            $join->on('projects.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::PROJECT)
+                ->where('operate_logs.method','4');
+        })->groupBy('projects.id')
+        ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','projects.creator_id','projects.project_number','projects.trail_id','projects.title','projects.type','projects.privacy','projects.status',
+            'projects.principal_id','projected_expenditure','projects.priority','projects.start_at','projects.end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
+//// 这句用来检查绑定的参数
+//        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
+////
+//        dd($sql_with_bindings);
+        ->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer(!$all));
     }
 

@@ -10,6 +10,21 @@ namespace App\Http\Controllers;
 
 use App\ModuleableType;
 
+use App\AffixType;
+use App\Http\Requests\AccessoryStoreRequest;
+use App\Http\Transformers\AnnouncementTransformer;
+use App\Http\Transformers\DepartmentTransformer;
+use App\Http\Requests\AnnouncementClassifyUpdateRequest;
+use App\Http\Transformers\AnnouncementClassifyTransformer;
+use App\Http\Requests\AnnouncementUpdateRequest;
+use App\Models\Announcement;
+use App\Models\Department;
+use App\Models\DepartmentUser;
+use App\Models\AnnouncementClassify;
+use App\Models\AnnouncementScope;
+use App\Models\OperateLog;
+use App\ModuleableType;
+>>>>>>> a3f08979bee364e16980eed5e8957e311fdcf25d
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;

@@ -326,7 +326,7 @@ class TaskController extends Controller
             default:
                 break;
         }
-        $tasks = $query->get();
+        $tasks = $query->paginate($pageSize);;
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }

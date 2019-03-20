@@ -818,14 +818,20 @@ class ProjectController extends Controller
         // 获取目标艺人 所在部门
         $expectations = $project->trail->bloggerExpectations;
         if (count($expectations) <= 0) {
-            $expectations = $project->trail->expectations->first()->broker->toArray();
-//                ->broker;
-            $department_name = [];
-            if(!$expectations)
+            $expectations = $project->trail->expectations->first();
+            if(!$expectations) {
                 return null;
-           foreach ($expectations as $key => $val){
-               $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-           }
+            }else{
+                $expectations = $expectations->broker->toArray();
+//                ->broker;
+                $department_name = [];
+                if(!$expectations)
+                    return null;
+                foreach ($expectations as $key => $val){
+                    $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+                }
+            }
+
         } else {
             $expectations = $expectations->first()->publicity->toArray();
             $department_name = [];

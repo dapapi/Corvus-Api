@@ -1,12 +1,13 @@
 <?php
 namespace App\Http\Controllers;
-
 /**
  * Created by PhpStorm.
  * User: wy
  * Date: 2018/11/19
  * Time: 下午2:14
  */
+use App\ModuleableType;
+
 use App\AffixType;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
@@ -20,7 +21,7 @@ use App\Models\DepartmentUser;
 use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
 use App\Models\OperateLog;
-use App\ModuleableType;
+
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;

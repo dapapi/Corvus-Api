@@ -54,7 +54,7 @@ class BloggersImport implements ToCollection, WithBatchInserts, WithChunkReading
                     continue ;
                 $title = Blogger::where('nickname',$row[0])->get();
                 if(count($title)>0){
-                    throw new Exception('系统中已存在销售线索数据，请处理后再进行上传');
+                    throw new Exception('系统中已存在此博主数据，请处理后再进行上传');
                 }
                Blogger::create([
                     'nickname' => $row[0],

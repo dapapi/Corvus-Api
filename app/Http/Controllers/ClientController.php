@@ -72,6 +72,18 @@ class ClientController extends Controller
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
+    public function getClientRelated(Request $request){
+
+        $clients = Client::searchData()->select('id','company')->get();
+
+        $data = array();
+        $data['data'] = $clients;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
+    }
+
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);

@@ -164,16 +164,6 @@ class MessageController extends Controller
 
     public function MobileGetMessage(Request $request)
     {
-//        $user = Auth::guard('api')->user();
-//        $message = DB::table("data_dictionaries as dd")
-//            ->leftJoin("messages as m", 'm.module', 'dd.id')
-//            ->leftJoin("message_datas as md", 'md.message_id', "m.id")
-//            ->leftJoin("message_states as ms", 'ms.message_id', 'm.id')
-//            ->where('parent_id', 206)
-//            ->where('ms.user_id', $user->id)
-//            ->select("dd.name as module_name","dd.icon", "m.id as message_id", "m.title as message_title", "m.link", "m.created_at", "md.title", "md.value", "ms.state")
-//            ->get()->toArray();
-//        return ["data" => $message];
         $module = $request->get('module',null);
         $state = $request->get('state',null);
         $user = Auth::guard('api')->user();

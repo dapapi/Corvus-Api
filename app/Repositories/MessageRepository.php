@@ -90,7 +90,7 @@ class MessageRepository
     public function getLastNewsByModule($module,$user_id)
     {
         return Message::where("messages.module",$module)->leftJoin("message_states as ms","ms.message_id","messages.id")
-            ->where("ms.user_id",$user_id)->select('messages.title','ms.state',"ms.created_at")->first();
+            ->where("ms.user_id",$user_id)->select('messages.title','ms.state',"ms.created_at")->orderBy('messages.created_at','desc')->first();
     }
     //获取用户消息
     public function getMessageList($module,$user_id,$state)

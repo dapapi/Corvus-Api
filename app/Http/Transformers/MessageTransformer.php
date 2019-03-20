@@ -11,6 +11,7 @@ class MessageTransformer extends TransformerAbstract
     public function transform(Message $message)
     {
         return [
+            'id'    =>  hashid_encode($message->id),
             'module'    =>  $message->module,
             'title' =>  $message->title,
             'state' =>  $message->state,

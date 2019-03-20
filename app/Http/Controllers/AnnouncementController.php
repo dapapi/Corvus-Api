@@ -237,7 +237,9 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('创建失败');
         }
 
+
         //公告创建成功发送消息
+
         try{
             $authorization = $request->header()['authorization'][0];
             event(new AnnouncementMessageEvent($star,AnnouncementTriggerPoint::CREATE,$authorization,$user));
@@ -438,7 +440,8 @@ class AnnouncementController extends Controller
         }
         DB::commit();
 
-        //删除公告成功发送消息
+        //修改公告成功发送消息
+
         try{
             $authorization = $request->header()['authorization'][0];
             event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));

@@ -236,14 +236,14 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('创建失败');
         }
 
-        //删除公告成功发送消息
-//        try{
+        //创建公告成功发送消息
+        try{
             $authorization = $request->header()['authorization'][0];
             event(new AnnouncementMessageEvent($star,AnnouncementTriggerPoint::CREATE,$authorization,$user));
-//        }catch (\Exception $exception){
-//            Log::error("修改公告消息发送失败[$star->title]");
-//            Log::error($exception);
-//        }
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$star->title]");
+            Log::error($exception);
+        }
 
         return $this->response->item($star, new AnnouncementTransformer());
 
@@ -435,7 +435,7 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
-        //删除公告成功发送消息
+        //修改公告成功发送消息
         try{
             $authorization = $request->header()['authorization'][0];
             event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));

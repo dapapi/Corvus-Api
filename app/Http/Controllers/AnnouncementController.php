@@ -1,12 +1,13 @@
 <?php
 namespace App\Http\Controllers;
-
 /**
  * Created by PhpStorm.
  * User: wy
  * Date: 2018/11/19
  * Time: 下午2:14
  */
+use App\ModuleableType;
+
 use App\AffixType;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
@@ -20,7 +21,7 @@ use App\Models\DepartmentUser;
 use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
 use App\Models\OperateLog;
-use App\ModuleableType;
+
 use App\Repositories\AffixRepository;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
@@ -83,8 +84,7 @@ class AnnouncementController extends Controller
 //                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
                 }else{
-                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
-                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at','announcement.updated_at')->paginate($pageSize);
+                    $stars = Announcement::where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
                 }
               }else{
                   $stars = null;

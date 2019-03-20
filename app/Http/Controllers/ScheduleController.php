@@ -123,7 +123,6 @@ class ScheduleController extends Controller
             }
             unset($id);
         }
-
         $calendars = Calendar::select(DB::raw('distinct calendars.id'), 'calendars.id')->leftJoin('module_users as mu', function ($join) {
             $join->on('moduleable_id', 'calendars.id')
                 ->where('moduleable_type', ModuleableType::CALENDAR);
@@ -132,20 +131,21 @@ class ScheduleController extends Controller
             $query->orWhere([['mu.user_id', $user->id], ['calendars.privacy', Calendar::SECRET]]);//参与人
             $query->orwhere('calendars.privacy', Calendar::OPEN);
         })->get();
-        $data = $calendars->toArray();
+        $data = $payload['calendar_ids'];
         if($request->has('calendar_ids')){
             $len = count($payload['calendar_ids']);
             for($i=0;$i<$len;$i++)
             {
                 foreach ($data as  $key => $value){
-
                     if($value['id'] == $payload['calendar_ids'][$i])
                     {
+
                         unset($data[$key]);
                     }
 
                 }
             }
+
           //  dd(array_diff($payload['calendar_ids'],$calendars->toArray()));
         }
         //日程仅参与人可见
@@ -172,7 +172,11 @@ class ScheduleController extends Controller
 
         })->mergeBindings($subquery)
             ->where('start_at', '>=', $payload['start_date'])->where('end_at', '<=', $payload['end_date'])
-            ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
+            ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy'
+                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
+//        dd($sql_with_bindings);
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 

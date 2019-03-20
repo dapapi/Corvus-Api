@@ -818,16 +818,22 @@ class ProjectController extends Controller
         // 获取目标艺人 所在部门
         $expectations = $project->trail->bloggerExpectations;
         if (count($expectations) <= 0) {
-            $expectations = $project->trail->expectations->first()->broker;
+            $expectations = $project->trail->expectations->first()->broker->toArray();
 //                ->broker;
+            $department_name = [];
             if(!$expectations)
                 return null;
-            $department_name = DepartmentUser::where('user_id',$expectations->first()->id)->first()->department['name'];
+           foreach ($expectations as $key => $val){
+               $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+           }
         } else {
-            $expectations = $expectations->first()->publicity;
+            $expectations = $expectations->first()->publicity->toArray();
+            $department_name = [];
             if(!$expectations)
                 return null;
-            $department_name = DepartmentUser::where('user_id',$expectations->first()->id)->first()->department['name'];
+            foreach ($expectations as $key => $val){
+                $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+            }
         }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
@@ -1422,13 +1428,12 @@ class ProjectController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         //  $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
         $joinSql = '`projects`';
-        $query = Project::selectRaw('DISTINCT(bloggers.id) as ids')->from(DB::raw($joinSql));
+        $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
 
         $all = $request->get('all', false);
-
         $user = Auth::guard('api')->user();
         $project_type = $request->get('project_type',null);
         $query =  $projects->where(function ($query) use ($request, $payload,$user,$project_type) {
@@ -1470,7 +1475,10 @@ class ProjectController extends Controller
                     break;
 
             }
-        }$projects = $query->searchData()
+        }
+        $projects = $query->searchData()->groupBy('projects.id')
+            ->get();
+        $projects = Project::whereIn('projects.id', $projects)
         ->leftJoin('operate_logs',function($join){
             $join->on('projects.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::PROJECT)

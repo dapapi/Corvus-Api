@@ -184,8 +184,8 @@ class User extends Authenticatable
     }
     public function userTasks()
     {
-        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->withTrashed();
-       // return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->withTrashed();
+        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->orWhere('tasks.principal_id',"$this->id")->where('tasks.start_at','<',now())->where('tasks.end_at','>',now());
+
     }
     public function userSchedules()
     {

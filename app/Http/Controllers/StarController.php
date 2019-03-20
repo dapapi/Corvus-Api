@@ -74,12 +74,24 @@ class StarController extends Controller
             ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
                 'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
                 'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
-                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])->get();
         //根据条件查询
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
-        ->paginate($pageSize);
-        return $this->response->paginator($stars, new StarTransformer());
+        //->paginate($pageSize);
+
+        return $this->response->collection($stars, new StarTransformer());
+    }
+
+    public function getStarRelated(Request $request){
+
+        $stars = Star::where('sign_contract_status',2)->searchData()->select('id','name')->get();
+        $data = array();
+        $data['data'] = $stars;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
     }
 
     public function all(Request $request)
@@ -701,7 +713,6 @@ class StarController extends Controller
 
     public function store(StarRequest $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 

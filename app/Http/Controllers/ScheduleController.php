@@ -171,7 +171,7 @@ class ScheduleController extends Controller
             })->whereNotIn('calendar_id', $data);
 
         })->mergeBindings($subquery)
-            ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
+            ->where('start_at', '>=', $payload['start_date'])->where('end_at', '<=', $payload['end_date'])
             ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy','schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')->get();
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
@@ -649,6 +649,7 @@ class ScheduleController extends Controller
             $this->hasauxiliary($request, $payload, $schedule, '', $user);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('更新日程失败');

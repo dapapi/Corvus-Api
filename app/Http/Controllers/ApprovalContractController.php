@@ -838,11 +838,11 @@ class ApprovalContractController extends Controller
         $contractsInfo = $contracts->searchData()->where($array)->groupBy('cs.id')
          ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'cs.creator_name as name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
 //        $sql_with_bindings = str_replace_array('?', $contractsInfo->getBindings(), $contractsInfo->toSql());
-//        dd($sql_with_bindings);
+
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($contractsInfo, $start, $pageSize);
 
-        $total = count($article);//总条数
+        $total = count($contractsInfo);//总条数
         $totalPages = ceil($total / $pageSize);
 
         $arr = array();

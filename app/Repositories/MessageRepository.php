@@ -107,7 +107,7 @@ class MessageRepository
             ->where($arr)
             ->where("ms.user_id",$user_id)
             ->orderBy('messages.created_at','desc')
-            ->select('messages.id','messages.created_at','messages.module','messages.title','ms.state',"messages.module_data_id");
+            ->select('messages.id','messages.subheading','messages.created_at','messages.module','messages.title','ms.state',"messages.module_data_id");
 
     }
 

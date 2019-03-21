@@ -191,6 +191,8 @@ class User extends Authenticatable
     }
     public function userSchedules()
     {
+     //   return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->orderBy('start_at', 'asc');
+
 //         $this_id = $this -> id;
 //        $sch =  self::select('select * from schedules inner join module_users on module_users.moduleable_id = schedules.id where module_users.user_id ='.$this_id.'
 //        and ( (privacy = '.Schedule::OPEN.' and creator_id = '.$this_id.' and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1) or (privacy= '.Schedule::SECRET.'

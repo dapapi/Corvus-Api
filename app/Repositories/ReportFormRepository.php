@@ -1194,7 +1194,7 @@ class ReportFormRepository
                 ->groupBy('s.id')
             ->whereIn('t.type',[Trail::TYPE_MOVIE,Trail::TYPE_VARIETY,Trail::TYPE_ENDORSEMENT])
             ->where($arr);
-        dd($query->select('s.id','s.name')->get()->toArray());
+
 
         $result1 = $query->where(function ($query){
             $query->where('p.type',Project::TYPE_MOVIE)//电影

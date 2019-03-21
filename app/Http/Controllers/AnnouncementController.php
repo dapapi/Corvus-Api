@@ -9,6 +9,7 @@ namespace App\Http\Controllers;
 use App\ModuleableType;
 
 use App\AffixType;
+use App\Events\AnnouncementMessageEvent;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Transformers\DepartmentTransformer;
@@ -23,6 +24,7 @@ use App\Models\AnnouncementScope;
 use App\Models\OperateLog;
 
 use App\Repositories\AffixRepository;
+use App\TriggerPoint\AnnouncementTriggerPoint;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
 use App\Repositories\OperateLogRepository;
@@ -233,10 +235,20 @@ class AnnouncementController extends Controller
         }else{
             return $this->response->errorInternal('创建失败');
         }
+
+        //创建公告成功发送消息
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($star,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$star->title]");
+            Log::error($exception);
+        }
+
         return $this->response->item($star, new AnnouncementTransformer());
 
     }
-    public function remove(Announcement $announcement)
+    public function remove(Request $request,Announcement $announcement)
     {
         DB::beginTransaction();
         try {
@@ -262,6 +274,15 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('删除失败');
         }
         DB::commit();
+
+        //删除公告成功发送消息
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$announcement->title]");
+            Log::error($exception);
+        }
     }
     public function edit(AnnouncementUpdateRequest $request, Announcement $announcement)
     {
@@ -414,7 +435,14 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
-
+        //修改公告成功发送消息
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$announcement->title]");
+            Log::error($exception);
+        }
         return $this->response->accepted();
 
     }

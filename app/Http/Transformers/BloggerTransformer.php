@@ -246,7 +246,8 @@ class BloggerTransformer extends TransformerAbstract
                 ->select('mu.user_id');
             $calendar = $calendars->schedules()
                 ->where(function ($query) use ($user, $subquery) {
-                    $query->where('privacy', Schedule::OPEN);
+                    $query->where('privacy', Schedule::OPEN)
+                    ->whereRaw("$user->id in ({$subquery->toSql()})");
                 })->orWhere(function ($query) use ($user, $subquery) {
                     $query->orWhere('creator_id', $user->id);
                     $query->orWhere(function ($query) use ($user, $subquery) {

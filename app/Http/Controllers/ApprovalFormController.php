@@ -1318,7 +1318,7 @@ class ApprovalFormController extends Controller
             DB::rollBack();
         }
 
-        return $this->response->created();
+        return $this->response->item($instance, new ApprovalInstanceTransformer());
     }
 
     /**

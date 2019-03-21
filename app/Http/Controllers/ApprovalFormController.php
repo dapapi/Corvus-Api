@@ -1257,7 +1257,7 @@ class ApprovalFormController extends Controller
         }
         DB::commit();
 
-        return $this->response->item($approval, new ApprovalInstanceTransformer());
+        return $this->response->item($instance, new ApprovalInstanceTransformer());
     }
 
     /**

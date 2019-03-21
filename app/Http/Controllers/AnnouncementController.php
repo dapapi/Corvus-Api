@@ -87,7 +87,11 @@ class AnnouncementController extends Controller
 //                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
                 }else{
-                    $stars = Announcement::where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
+                    $stars = Announcement::leftJoin('operate_logs',function($join){
+                        $join->on('announcement.id','operate_logs.logable_id')
+                            ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                            ->where('operate_logs.method',OperateLogMethod::LOOK);
+                    })->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
                 }
               }else{
                   $stars = null;
@@ -217,11 +221,13 @@ class AnnouncementController extends Controller
             DB::beginTransaction();
             try {
                 $star = Announcement::create($payload);
+
                 if ($request->has('affix')) {
                     foreach ($payload['affix'] as $affix) {
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
                     }
                 }
+
                 foreach($scope as $key => $value){
                     $arr['announcement_id'] = $star->id;
                     $arr['department_id'] = hashid_decode($value);

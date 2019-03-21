@@ -8,10 +8,12 @@ use App\Events\OperateLogEvent;
 use App\Events\StarDataChangeEvent;
 use App\Gender;
 use App\Exports\StarsExport;
+use App\Helper\Common;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\StarRequest;
 use App\Http\Requests\StarUpdateRequest;
+use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\StarAndBloggerTransfromer;
 use App\Http\Transformers\StarDeatilTransformer;
 use App\Http\Transformers\StarListTransformer;
@@ -19,10 +21,16 @@ use App\Http\Transformers\StarTransformer;
 use App\Models\Affix;
 use App\Models\Blogger;
 use App\Models\Department;
+<<<<<<< HEAD
+=======
+use App\Models\DepartmentUser;
+>>>>>>> 03d4041b... save for dashboard
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
+use App\Models\Project;
 use App\Models\Star;
 use App\Imports\StarsImport;
+use App\Models\Trail;
 use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
@@ -69,20 +77,24 @@ class StarController extends Controller
             $array[] = ['source', $payload['source']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $stars = Star::where($array)->searchData()->leftJoin('operate_logs',function($join){
-            $join->on('stars.id','operate_logs.logable_id')
-                ->where('logable_type',ModuleableType::STAR)
-                ->where('operate_logs.method','4');
+        $stars = Star::where($array)->searchData()->leftJoin('operate_logs', function ($join) {
+            $join->on('stars.id', 'operate_logs.logable_id')
+                ->where('logable_type', ModuleableType::STAR)
+                ->where('operate_logs.method', '4');
         })->groupBy('stars.id')
-            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
-                'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
-                'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
-                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])
-        //根据条件查询
+            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id', 'name', 'broker_id', 'avatar', 'gender', 'birthday', 'phone', 'wechat',
+                'email', 'source', 'communication_status', 'intention', 'intention_desc', 'sign_contract_other', 'sign_contract_other_name', 'sign_contract_at', 'sign_contract_status',
+                'terminate_agreement_at', 'creator_id', 'stars.status', 'type', 'stars.updated_at',
+                'platform', 'stars.created_at', DB::raw("max(operate_logs.updated_at) as up_time")])
+            //根据条件查询
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
+<<<<<<< HEAD
         ->paginate($pageSize);
 
+=======
+            ->paginate($pageSize);
+>>>>>>> 03d4041b... save for dashboard
         return $this->response->paginator($stars, new StarTransformer());
     }
 
@@ -685,11 +697,11 @@ class StarController extends Controller
                         $affixmodel = null;
                         //查找对应类型的附件是否存在
                         $affixmodel = Affix::where([
-                            ['type',$affix['type']],
-                            ['affixable_type',ModuleableType::STAR],
-                            ['affixable_id',$star->id]
+                            ['type', $affix['type']],
+                            ['affixable_type', ModuleableType::STAR],
+                            ['affixable_id', $star->id]
                         ])->first();
-                        if($affixmodel){//存在则删除
+                        if ($affixmodel) {//存在则删除
                             $affixmodel->delete();
                         }
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], $affix['type']);
@@ -704,7 +716,7 @@ class StarController extends Controller
                 $star->update($array);
             // 操作日志
 //            event(new OperateLogEvent($arrayOperateLog));
-            event(new StarDataChangeEvent($old_star,$star));//记录日志
+            event(new StarDataChangeEvent($old_star, $star));//记录日志
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
@@ -826,15 +838,22 @@ class StarController extends Controller
 //        $tasks = $star->tasks()->where('end_at','<',Carbon::now()->toDateString())->limit(5)->orderBy('created_at','desc')->get();
         return StarReportRepository::getFiveProjectAndTask($star->id);
     }
+
     //获取艺人和博主的列表
-    public function getStarAndBlogger(Request $request){
+    public function getStarAndBlogger(Request $request)
+    {
         $array = [];
         $payload = $request->all();
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
+<<<<<<< HEAD
         $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where('stars.id','>',0)->where($array);
         $stars = Blogger::select('nickname','id','sign_contract_status',
+=======
+        $first = Star::select('name', 'id', 'sign_contract_status', DB::raw('\'star\''))->searchData()->where($array);
+        $stars = Blogger::select('nickname', 'id', 'sign_contract_status',
+>>>>>>> 03d4041b... save for dashboard
             DB::raw('\'blogger\' as flag'))
             ->where($array)
             ->where('bloggers.id','>',0)
@@ -843,7 +862,11 @@ class StarController extends Controller
             ->get();
 
 
+<<<<<<< HEAD
         return $this->response->collection($stars,new StarAndBloggerTransfromer());
+=======
+        return $this->response->collection($stars, new StarAndBloggerTransfromer());
+>>>>>>> 03d4041b... save for dashboard
     }
 
     /**
@@ -877,11 +900,18 @@ class StarController extends Controller
         $query =    $repository->starCustomSiftBuilder();
 //        $query = StarRepository::getStarList();
         $stars = $query->where(function ($query) use ($payload) {
-            FilterReportRepository::getTableNameAndCondition($payload,$query);
+            FilterReportRepository::getTableNameAndCondition($payload, $query);
         });
 
 
+<<<<<<< HEAD
         $stars->select('stars.id','stars.platform','stars.name','stars.source','stars.created_at','stars.birthday','stars.created_at','stars.updated_at','stars.sign_contract_status',"operate_logs.user_id")
+=======
+        $stars->select('stars.id', 'stars.name', 'stars.source', 'stars.created_at', 'stars.birthday', 'stars.created_at', 'stars.updated_at', 'stars.sign_contract_status', DB::raw("max(operate_logs.updated_at) as up_time"))
+            ->where($array);
+//            ->searchData();
+        $stars = $stars->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
+>>>>>>> 03d4041b... save for dashboard
 
             ->where($array)
             ->searchData();
@@ -892,12 +922,13 @@ class StarController extends Controller
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }
+
     public function import(ExcelImportRequest $request)
     {
         DB::beginTransaction();
         try {
 
-            $clientName = $request->file('file') -> getClientOriginalName();
+            $clientName = $request->file('file')->getClientOriginalName();
             Excel::import(new StarsImport($clientName), $request->file('file'));
         } catch (Exception $exception) {
             Log::error($exception);
@@ -909,12 +940,14 @@ class StarController extends Controller
         DB::commit();
         return $this->response->created();
     }
+
     public function export(Request $request)
     {
         $file = '当前艺人导出' . date('YmdHis', time()) . '.xlsx';
         return (new StarsExport($request))->download($file);
     }
 
+<<<<<<< HEAD
     public function getStarList(Request $request)
     {
         $payload = $request->all();
@@ -1013,5 +1046,74 @@ class StarController extends Controller
         $user = Auth::guard("api")->user();
         $star->powers = $starRepository->getPower($user,$star);
         return $this->response()->item($star,new StarDeatilTransformer());
+=======
+    public function dashboard(Request $request, Department $department)
+    {
+        $days = $request->get('days', 7);
+        $departmentId = $department->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
+
+
+        $stars = Star::select('stars.id as id', DB::raw('GREATEST(stars.created_at, operate_logs.created_at) as t'), 'stars.name as title')
+//            ->join('module_users', function ($join) {
+//                $join->on('stars.id', '=', 'module_users.moduleable_id')
+//                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
+//            })
+//            ->where('module_users.type', '=', ModuleUserType::BROKER)
+//            ->whereIn('module_users.user_id', $userIds)
+            ->join('operate_logs', function ($join) {
+                $join->on('stars.id', '=', 'logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::STAR);
+            })->groupBy('stars.id')
+            ->orderBy('t', 'desc');
+//            ->groupBy('stars.id')
+//            ->take(5)->get();
+
+        $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+        dd($sql_with_bindings);
+        $result = $this->response->collection($stars, new DashboardModelTransformer());
+
+        $count = Star::join('module_users', function ($join) {
+                $join->on('stars.id', '=', 'module_users.moduleable_id')
+                ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
+            })
+            ->where('module_users.type', '=', ModuleUserType::BROKER)
+            ->whereIn('module_users.user_id', $userIds)->count('stars.id');
+
+        $timePoint = Carbon::today('PRC')->subDays($days);
+
+        $latestFollow = Star::join('module_users', function ($join) {
+                $join->on('stars.id', '=', 'module_users.moduleable_id')
+                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
+            })
+                ->where('module_users.type', '=', ModuleUserType::BROKER)
+                ->whereIn('module_users.user_id', $userIds)->join('operate_logs', function ($join) {
+            $join->on('stars.id', '=', 'operate_logs.logable_id')
+                ->where('operate_logs.logable_type', ModuleableType::STAR)
+                ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+        })->where('operate_logs.created_at', '>', $timePoint)->distinct('stars.id')->count('stars.id');
+
+        $starIdArr = Star::join('module_users', function ($join) {
+            $join->on('stars.id', '=', 'module_users.moduleable_id')
+                ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
+        })
+            ->where('module_users.type', '=', ModuleUserType::BROKER)
+            ->whereIn('module_users.user_id', $userIds)->pluck('stars.id');
+
+//        $withTrail = Trail::whereIn('star_id', $starIdArr)->where('created_at', '>', $days)->distinct('star_id')->count('star_id');
+//        $trailIdArr = Trail::whereIn('star_id', $starIdArr)->where('created_at', '>', $days)->pluck('id');
+//        $withProject = Project::whereIn('star_id', $trailIdArr)->where('created_at', '>', $days)->distinct('star_id')->count('star_id');
+
+        $starInfoArr = [
+            'total' => $count,
+            'latest_follow' => $latestFollow,
+//            'with_trail' => $withTrail,
+//            'with_project' => $withProject,
+        ];
+
+        $result->addMeta('count', $starInfoArr);
+        return $result;
+>>>>>>> 03d4041b... save for dashboard
     }
 }

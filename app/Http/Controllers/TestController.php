@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Helper\Common;
+<<<<<<< HEAD
 use App\Jobs\ProjectImplode;
+=======
+>>>>>>> 03d4041b... save for dashboard
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Task;
@@ -221,6 +224,12 @@ class TestController extends Controller
     public function task()
     {
 
+    }
+
+    public function department()
+    {
+        $arr = Common::getChildDepartment(149);
+        return $this->response->array($arr);
     }
 
 }

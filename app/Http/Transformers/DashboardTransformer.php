@@ -6,6 +6,7 @@ use App\Models\Dashboard;
 use App\Models\Task;
 use App\TaskStatus;
 use Carbon\Carbon;
+use League\Fractal\ParamBag;
 use League\Fractal\TransformerAbstract;
 
 class DashboardTransformer extends TransformerAbstract
@@ -17,6 +18,8 @@ class DashboardTransformer extends TransformerAbstract
         'client',
         'star'
     ];
+
+    private $validParams = ['days'];
 
     public function transform(Dashboard $dashboard)
     {
@@ -30,15 +33,30 @@ class DashboardTransformer extends TransformerAbstract
         return $arr;
     }
 
-    public function includeTask(Dashboard $dashboard)
+    # todo 改为列表,用新的transformer
+    public function includeTasks(Dashboard $dashboard, ParamBag $params)
     {
         $userIds = $dashboard->department->users()->pluck('user_id');
+
         $tasksBuilder = Task::whereIn('principal_id', $userIds);
+
+        $usedParams = array_keys(iterator_to_array($params));
+        if ($invalidParams = array_diff($usedParams, $this->validParams)) {
+            throw new \Exception(sprintf(
+                'Invalid param(s): "%s". Valid param(s): "%s"',
+                implode(',', $usedParams),
+                implode(',', $this->validParams)
+            ));
+        }
+
+        // Processing
+        $days = $params->get('days');
+
         $count = $tasksBuilder->count('id');
         $delayCount = $tasksBuilder->where('status', TaskStatus::DELAY)->count('id');
 
         # todo 时间可以参数输入
-        $timePoint = Carbon::today('PRC')->subDays(7);
+        $timePoint = Carbon::today('PRC')->subDays($days);
         $newTasks = $tasksBuilder->where('created_at', '>', $timePoint)->count('id');
 
         $taskInfoArr = [
@@ -48,9 +66,7 @@ class DashboardTransformer extends TransformerAbstract
         ];
 
         return $this->item($taskInfoArr, function($arr) {
-            return [
-                'test' => $arr['test'],
-            ];
+            return $arr;
         });
     }
 

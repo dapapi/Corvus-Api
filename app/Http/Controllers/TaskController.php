@@ -37,11 +37,15 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\ModuleUserRepository;
+<<<<<<< HEAD
 use App\Repositories\ScopeRepository;
 
 use App\ResourceType;
 use App\TaskPriorityStatus;
 
+=======
+use App\ResourceType;
+>>>>>>> 03d4041b... save for dashboard
 use App\TaskStatus;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
@@ -110,6 +114,7 @@ class TaskController extends Controller
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
+<<<<<<< HEAD
 
     public function indexAllDemo(Request $request)
     {
@@ -284,6 +289,9 @@ class TaskController extends Controller
 
 
     public function tasksAll(Request $request,Task $task)
+=======
+    public function tasksAll(Request $request, Task $task)
+>>>>>>> 03d4041b... save for dashboard
     {
         $payload = $request->all();
         $data = $task
@@ -524,10 +532,15 @@ class TaskController extends Controller
 
         $tasks = $query->searchData()->where('privacy', false)->paginate($pageSize);
         //获取任务完成数量
-        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
+        $complete_count = $query->where('privacy', false)->where('status', TaskStatus::COMPLETE)->count();
 
+<<<<<<< HEAD
         $request = $this->response->paginator($tasks, new ClientTaskTransformer());
         $request->addMeta("complete_count",$complete_count);
+=======
+        $request = $this->response->paginator($tasks, new TaskTransformer());
+        $request->addMeta("complete_count", $complete_count);
+>>>>>>> 03d4041b... save for dashboard
         return $request;
     }
 
@@ -1750,6 +1763,7 @@ class TaskController extends Controller
         //发消息
         $authorization = $request->header()['authorization'][0];
         event(new TaskMessageEvent($task, TaskTriggerPoint::CRATE_TASK, $authorization, $user));
+<<<<<<< HEAD
 
 //        DB::beginTransaction();
 //        try {
@@ -2032,6 +2046,8 @@ class TaskController extends Controller
         //发消息
 //        $authorization = $request->header()['authorization'][0];
 //        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+=======
+>>>>>>> 03d4041b... save for dashboard
 
 //        DB::beginTransaction();
 //        try {
@@ -2183,6 +2199,7 @@ class TaskController extends Controller
         $departmentArr = Common::getChildDepartment($departmentId);
         $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
 
+<<<<<<< HEAD
         $tasks = Task::select('tasks.id as id', DB::raw('GREATEST(tasks.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'tasks.title')
             ->whereIn('tasks.principal_id', $userIds)
             ->leftJoin('operate_logs', function ($join) {
@@ -2191,6 +2208,14 @@ class TaskController extends Controller
                     ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
             })->groupBy('tasks.id')
             ->orderBy('t', 'desc')
+=======
+        $tasks = Task::select('tasks.id as id', DB::raw('GREATEST(tasks.created_at, operate_logs.created_at) as t'), 'tasks.title')
+            ->whereIn('tasks.principal_id', $userIds)
+            ->leftjoin('operate_logs', function ($join) {
+                $join->on('tasks.id', '=', 'operate_logs.logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::TASK);
+            })->orderBy('t', 'desc')
+>>>>>>> 03d4041b... save for dashboard
             ->take(5)->get();
 
         $result = $this->response->collection($tasks, new DashboardModelTransformer());

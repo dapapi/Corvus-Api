@@ -27,6 +27,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 
@@ -184,12 +185,33 @@ class User extends Authenticatable
     }
     public function userTasks()
     {
-        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->orWhere('tasks.principal_id',"$this->id")->where('tasks.start_at','<',now())->where('tasks.end_at','>',now());
+
+        return $this->hasManyThrough(Task::class, ModuleUser::class, '', 'id','','moduleable_id')->orWhere('tasks.principal_id',"$this->id")->searchData()->where('tasks.start_at','<=',now())->where('tasks.end_at','>=',now());
 
     }
     public function userSchedules()
     {
-        return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->orderBy('start_at', 'asc');
+     //   return $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->where('start_at','<',now())->where('end_at','>',now())->orderBy('start_at', 'asc');
+
+//         $this_id = $this -> id;
+//        $sch =  self::select('select * from schedules inner join module_users on module_users.moduleable_id = schedules.id where module_users.user_id ='.$this_id.'
+//        and ( (privacy = '.Schedule::OPEN.' and creator_id = '.$this_id.' and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1) or (privacy= '.Schedule::SECRET.'
+//        and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1))  and schedules.start_at <=   '."'now()'".'and schedules.end_at >='."'now()'".'
+//        and schedules.deleted_at is null order by start_at asc');
+//dd($sch->get());
+//        return $sch;
+//        $a =  $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id');
+////            ->where(['privacy' => Schedule::OPEN
+////            ,'creator_id'=> $this->id,'module_users.moduleable_type'=> 'schedule','module_users.type' => 1])->orwhere(function($join){
+////            $join->where(['privacy'=> Schedule::SECRET,'module_users.moduleable_type'=> 'schedule','module_users.type' => 1]);
+////        })->where('schedules.start_at','<=',now())->where('schedules.end_at','>=',now())->orderBy('schedules.start_at', 'asc');
+//        $sql_with_bindings = str_replace_array('?', $a->getBindings(), $a->toSql());
+//        dd($sql_with_bindings);
+
+        return  $this->hasManyThrough(Schedule::class, ModuleUser::class, '', 'id','','moduleable_id')->where(['privacy' => Schedule::OPEN
+            ,'creator_id'=> $this->id,'module_users.moduleable_type'=> 'schedule','module_users.type' => 1])->where('schedules.start_at','<=',now())->where('schedules.end_at','>=',now())->orderBy('schedules.start_at', 'asc');
+//        $sql_with_bindings = str_replace_array('?', $a->getBindings(), $a->toSql());
+//        dd($sql_with_bindings);
 
     }
 

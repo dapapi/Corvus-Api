@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AlterOperateLogsAddField extends Migration
+class AlterClientsAddCuscode extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,9 @@ class AlterOperateLogsAddField extends Migration
      */
     public function up()
     {
-        //
+        Schema::table('clients', function (Blueprint $table) {
+            $table->string("cuscode")->comment('艺人编码')->nullable();
+        });
     }
 
     /**
@@ -23,6 +25,8 @@ class AlterOperateLogsAddField extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('clients', function (Blueprint $table) {
+            //
+        });
     }
 }

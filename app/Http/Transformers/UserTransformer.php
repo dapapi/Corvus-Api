@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\User;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
+use App\Models\Schedule;
 use App\Models\DepartmentPrincipal;
 
 
@@ -167,7 +168,12 @@ class UserTransformer extends TransformerAbstract
     {
 
         $schedules= $user->userSchedules;
-        return $this->collection($schedules, new ScheduleTransformer());
+        $this_id = $user -> id;
+        $sch =  DB::select('select * from schedules inner join module_users on module_users.moduleable_id = schedules.id where module_users.user_id ='.$this_id.'
+        and ( (privacy = '.Schedule::OPEN.' and creator_id = '.$this_id.' and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1) or (privacy= '.Schedule::SECRET.'
+        and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1))  and schedules.start_at <=   '."'now()'".'and schedules.end_at >='."'now()'".'
+        and schedules.deleted_at is null order by start_at asc');
+        return $this->collection($sch, new ScheduleTransformer());
     }
     public function includeEducation(User $user)
     {

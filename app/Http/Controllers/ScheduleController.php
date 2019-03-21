@@ -183,16 +183,36 @@ class ScheduleController extends Controller
     public function all(Request $request)
     {
         $payload = $request->all();
+        $user = Auth::guard("api")->user();
         if ($request->has('calendar_ids')) {
            $calendars_id = [];
             foreach ($payload['calendar_ids'] as $calendar_id) {
                 $calendars_id[] = hashid_decode($calendar_id);
             }
-            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload,$calendars_id) {
-                $query->where(function ($query) use ($payload,$calendars_id) {
+            //日程仅参与人可见
+            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+                $join->on('mu.moduleable_id', 's.id')
+                    ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                    ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+            })->whereRaw("s.id=schedules.id")->select('mu.user_id');
+            $schedules = Schedule::select('schedules.*')->where(function ($query) use ($payload,$subquery,$user,$calendars_id) {
+                $query->where(function ($query) use ($payload, $calendars_id) {
+                    $query->where('privacy', Schedule::OPEN);
                     $query->whereIn('calendar_id', $calendars_id);
+                })->Where(function ($query) use ($user, $subquery) {
+                    $query->Where('creator_id', $user->id);
+                    $query->Where(function ($query) use ($user, $subquery) {
+                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                    });
+                })->orwhere(function ($query) use ($payload, $calendars_id) {
+                    $query->where('privacy', Schedule::SECRET);
+                    $query->whereIn('calendar_id', $calendars_id);
+                })->Where(function ($query) use ($user, $subquery) {
+                    $query->Where(function ($query) use ($user, $subquery) {
+                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                    });
                 });
-            })
+                    })
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
                 ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
                   'schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id',

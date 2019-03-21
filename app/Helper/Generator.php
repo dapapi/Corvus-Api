@@ -27,4 +27,9 @@ class Generator
         return $key."-".date('Ymd')."-".$no;
     }
 
+    public function generatorCode($key)
+    {
+        $year = date('Y');
+
+    }
 }

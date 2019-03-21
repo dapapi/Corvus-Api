@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
+use App\Helper\Common;
 use App\Models\OperateEntity;
 use App\Models\Task;
 use App\OperateLogMethod;
@@ -88,6 +89,12 @@ class TestController extends Controller
             dd('ok');
         }
         dd('no');
+    }
+
+    public function department()
+    {
+        $arr = Common::getChildDepartment(149);
+        return $this->response->array($arr);
     }
 
 }

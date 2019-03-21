@@ -20,6 +20,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        # todo 当前所有下属部门都可以看
         $collection = Dashboard::get();
         return $this->response->collection($collection, new DashboardTransformer());
     }

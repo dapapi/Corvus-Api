@@ -186,20 +186,28 @@ class StarTransformer extends TransformerAbstract
         $calendars = $star->calendar()
             ->first();//查找艺人日历
         if($calendars){//日历存在查找日程
+            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+                $join->on('mu.moduleable_id', 's.id')
+                    ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                    ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+
+            })->whereRaw("s.id=schedules.id")
+                ->select('mu.user_id');
+
             $calendar = $calendars->schedules()
-                ->join('module_users as mu',function ($join){
+                ->where(function ($query) use ($user, $subquery) {
+                        $query->where('privacy', Schedule::OPEN);
+                    })->orWhere(function ($query) use ($user, $subquery) {
+                        $query->orWhere('creator_id', $user->id);
+                        $query->orWhere(function ($query) use ($user, $subquery) {
+                            $query->where('privacy', Schedule::SECRET);
+                            $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                        });
+                    })->mergeBindings($subquery)
 
-                    $join->on('mu.moduleable_id','schedules.id')
-                        ->whereRaw("mu.moduleable_type = '".ModuleableType::SCHEDULE."'");
-                })
-                ->where('schedules.privacy',Schedule::OPEN)
-                ->Orwhere(function ($query) use ($user){
-                    $query->where('schedules.privacy',Schedule::SECRET)
-                    ->orWhere('schedules.creator_id',$user->id)
-                        ->orWhere('mu.user_id',$user->id);
-                })->where('schedules.calendar_id',$calendars->id)
 
-                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')
+                ->limit(3)->get();
 //            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
 //        dd($sql_with_bindings);
 

@@ -2,20 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
-use App\Models\Department;
-use App\Models\DepartmentUser;
-use App\Repositories\FilterReportRepository;
 use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
+use App\Helper\Common;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\Project\AddRelateProjectRequest;
 use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -26,11 +24,12 @@ use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
 use App\Models\OperateEntity;
-use App\Models\PrivacyUser;
 use App\Models\Project;
 use App\Models\ProjectBill;
 use App\Models\ProjectHistorie;
@@ -47,12 +46,14 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\PrivacyType;
+use App\Repositories\FilterReportRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
 use App\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -1521,6 +1522,55 @@ class ProjectController extends Controller
 
         $file = '当前项目导出' . date('YmdHis', time()) . '.xlsx';
         return (new ProjectsExport($request))->download($file);
+    }
+
+
+    public function dashboard(Request $request, Department $department)
+    {
+        $days = $request->get('days', 7);
+        $departmentId = $department->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
+
+        $projects = Project::select('projects.id as id', DB::raw('GREATEST(projects.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'projects.title')
+            ->whereIn('projects.principal_id', $userIds)
+            ->leftjoin('operate_logs', function ($join) {
+                $join->on('projects.id', '=', 'operate_logs.logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::PROJECT)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('projects.id')
+            ->orderBy('t', 'desc')
+            ->take(5)->get();
+
+        $result = $this->response->collection($projects, new DashboardModelTransformer());
+
+
+        $count = Project::whereIn('principal_id', $userIds)->count('id');
+        $completeCount = Project::whereIn('principal_id', $userIds)->where('status', Project::STATUS_COMPLETE)->count('id');
+
+        $timePoint = Carbon::today('PRC')->subDays($days);
+
+        $signed = Project::whereIn('principal_id', $userIds)
+            ->join('contracts', function ($join) {
+                $join->on('contracts.project_id', '=', 'projects.id');
+            })
+            ->count();
+
+        $latestFollow = Project::whereIn('principal_id', $userIds)->join('operate_logs', function ($join) {
+            $join->on('projects.id', '=', 'operate_logs.logable_id')
+                ->where('operate_logs.logable_type', ModuleableType::PROJECT)
+                ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+        })->where('operate_logs.created_at', '>', $timePoint)->distinct('projects.id')->count('projects.id');
+
+        $projectInfoArr = [
+            'total' => $count,
+            'latest_follow' => $latestFollow,
+            'completed' => $completeCount,
+            'signed' => $signed,
+        ];
+
+        $result->addMeta('count', $projectInfoArr);
+        return $result;
     }
 }
 

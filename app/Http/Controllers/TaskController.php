@@ -1345,12 +1345,14 @@ class TaskController extends Controller
         $departmentArr = Common::getChildDepartment($departmentId);
         $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
 
-        $tasks = Task::select('tasks.id as id', DB::raw('GREATEST(tasks.created_at, operate_logs.created_at) as t'), 'tasks.title')
+        $tasks = Task::select('tasks.id as id', DB::raw('GREATEST(tasks.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'tasks.title')
             ->whereIn('tasks.principal_id', $userIds)
-            ->leftjoin('operate_logs', function ($join) {
+            ->leftJoin('operate_logs', function ($join) {
                 $join->on('tasks.id', '=', 'operate_logs.logable_id')
-                    ->where('operate_logs.logable_type', ModuleableType::TASK);
-            })->orderBy('t', 'desc')
+                    ->where('operate_logs.logable_type', ModuleableType::TASK)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('tasks.id')
+            ->orderBy('t', 'desc')
             ->take(5)->get();
 
         $result = $this->response->collection($tasks, new DashboardModelTransformer());

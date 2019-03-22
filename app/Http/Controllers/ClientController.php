@@ -321,12 +321,14 @@ class ClientController extends Controller
         $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
 
 
-        $clients = Client::select('clients.id as id', DB::raw('GREATEST(clients.created_at, operate_logs.created_at) as t'), 'clients.company as title')
+        $clients = Client::select('clients.id as id', DB::raw('GREATEST(clients.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'clients.company as title')
             ->whereIn('clients.principal_id', $userIds)
             ->leftjoin('operate_logs', function ($join) {
                 $join->on('clients.id', '=', 'operate_logs.logable_id')
-                    ->where('operate_logs.logable_type', ModuleableType::CLIENT);
-            })->orderBy('t', 'desc')
+                    ->where('operate_logs.logable_type', ModuleableType::CLIENT)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('clients.id')
+            ->orderBy('t', 'desc')
             ->take(5)->get();
 
         $result = $this->response->collection($clients, new DashboardModelTransformer());

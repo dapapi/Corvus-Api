@@ -1501,13 +1501,14 @@ class ProjectController extends Controller
         $departmentArr = Common::getChildDepartment($departmentId);
         $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
 
-
-        $projects = Project::select('projects.id as id', DB::raw('GREATEST(projects.created_at, operate_logs.created_at) as t'), 'projects.title')
+        $projects = Project::select('projects.id as id', DB::raw('GREATEST(projects.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'projects.title')
             ->whereIn('projects.principal_id', $userIds)
             ->leftjoin('operate_logs', function ($join) {
                 $join->on('projects.id', '=', 'operate_logs.logable_id')
-                    ->where('operate_logs.logable_type', ModuleableType::PROJECT);
-            })->orderBy('t', 'desc')
+                    ->where('operate_logs.logable_type', ModuleableType::PROJECT)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('projects.id')
+            ->orderBy('t', 'desc')
             ->take(5)->get();
 
         $result = $this->response->collection($projects, new DashboardModelTransformer());

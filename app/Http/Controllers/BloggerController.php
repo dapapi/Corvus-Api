@@ -7,6 +7,10 @@ use App\CommunicationStatus;
 use App\Events\BloggerDataChangeEvent;
 use App\Events\TaskMessageEvent;
 use App\Gender;
+use App\Helper\Common;
+use App\Http\Transformers\DashboardModelTransformer;
+use App\Models\Department;
+use App\Models\Project;
 use App\Models\TaskType;
 use App\Exports\BloggersExport;
 use App\Http\Requests\BloggerRequest;
@@ -30,6 +34,8 @@ use App\Models\ModuleUser;
 use App\Models\ReviewQuestion;
 use App\Models\ReviewQuestionItem;
 use App\Models\ReviewUser;
+use App\Models\Trail;
+use App\Models\TrailStar;
 use App\ModuleUserType;
 use App\ReviewItemAnswer;
 use App\Models\ReviewQuestionnaire;
@@ -48,6 +54,7 @@ use App\OperateLogMethod;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use App\Whether;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -996,5 +1003,80 @@ class BloggerController extends Controller
     {
         $file = '当前博主导出' . date('YmdHis', time()) . '.xlsx';
         return (new BloggersExport($request))->download($file);
+    }
+
+    public function dashboard(Request $request, Department $department)
+    {
+        $days = $request->get('days', 7);
+        $departmentId = $department->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
+
+        $bloggers = Blogger::select('bloggers.id as id', DB::raw('GREATEST(bloggers.created_at, COALESCE(MAX(b.created_at), 0)) as t'), 'bloggers.nickname as title')
+            ->join('module_users', function ($join) {
+                $join->on('bloggers.id', '=', 'module_users.moduleable_id')
+                    ->where('module_users.moduleable_type', '=', ModuleableType::BLOGGER)
+                    ->where('module_users.type', '=', ModuleUserType::PRODUCER);
+            })
+            ->whereIn('module_users.user_id', $userIds)
+            ->join('operate_logs as b', function ($join) {
+                $join->on('bloggers.id', '=', 'b.logable_id')
+                    ->where('b.logable_type', ModuleableType::BLOGGER)
+                    ->where('b.method', '=', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('bloggers.id')
+            ->orderBy('t', 'desc')
+            ->take(5)->get();
+
+//        $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
+//        dd($sql_with_bindings);
+        $result = $this->response->collection($bloggers, new DashboardModelTransformer());
+
+//        dd($result);
+        $count = blogger::join('module_users', function ($join) {
+            $join->on('bloggers.id', '=', 'module_users.moduleable_id')
+                ->where('module_users.moduleable_type', '=', ModuleableType::BLOGGER)
+                ->where('module_users.type', '=', ModuleUserType::PRODUCER);
+        })->whereIn('module_users.user_id', $userIds)->count('bloggers.id');
+
+        $timePoint = Carbon::today('PRC')->subDays($days);
+
+        $latestFollow = blogger::join('module_users', function ($join) {
+            $join->on('bloggers.id', '=', 'module_users.moduleable_id')
+                ->where('module_users.moduleable_type', '=', ModuleableType::BLOGGER);
+        })
+            ->where('module_users.type', '=', ModuleUserType::BROKER)
+            ->whereIn('module_users.user_id', $userIds)->join('operate_logs', function ($join) {
+                $join->on('bloggers.id', '=', 'operate_logs.logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::BLOGGER)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->where('operate_logs.created_at', '>', $timePoint)->distinct('bloggers.id')->count('bloggers.id');
+
+        $bloggerIdArr = blogger::join('module_users', function ($join) {
+            $join->on('bloggers.id', '=', 'module_users.moduleable_id')
+                ->where('module_users.moduleable_type', '=', ModuleableType::BLOGGER);
+        })
+            ->where('module_users.type', '=', ModuleUserType::BROKER)
+            ->whereIn('module_users.user_id', $userIds)->pluck('bloggers.id');
+        $withTrail = Trail::leftJoin('trail_star', function ($join) {
+            $join->on('trail_star.trail_id', '=', 'trails.id')
+                ->where('starable_type', ModuleableType::BLOGGER)
+                ->where('trail_star.type', TrailStar::EXPECTATION);
+        })->whereIn('starable_id', $bloggerIdArr)->where('trail_star.created_at', '>', $timePoint)->distinct('trails.id')->count('trails.id');
+        $trailIdArr = Trail::leftJoin('trail_star', function ($join) {
+            $join->on('trail_star.trail_id', '=', 'trails.id')
+                ->where('starable_type', ModuleableType::BLOGGER)
+                ->where('trail_star.type', TrailStar::EXPECTATION);
+        })->whereIn('starable_id', $bloggerIdArr)->where('trail_star.created_at', '>', $timePoint)->distinct('trails.id')->pluck('trails.id');
+        $withProject = Project::whereIn('trail_id', $trailIdArr)->where('created_at', '>', $timePoint)->distinct('projects.id')->count('projects.id');
+
+        $bloggerInfoArr = [
+            'total' => $count,
+            'latest_follow' => $latestFollow,
+            'with_trail' => $withTrail,
+            'with_project' => $withProject,
+        ];
+
+        $result->addMeta('count', $bloggerInfoArr);
+        return $result;
     }
 }

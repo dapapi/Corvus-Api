@@ -621,8 +621,33 @@ class TrailController extends Controller
                         $contact->update($payload['contact']);
                     }
                 }
+                if (isset($payload['contact']['wechat'])){
+                    if($payload['contact']['wechat'] != $contact->wechat){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => '微信',
+                            'start' => $contact->wechat,
+                            'end' => $payload['contact']['wechat'],
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+                        $contact->update($payload['wechat']);
+                    }
+                }
+                if (isset($payload['contact']['other_contact_ways'])){
+                    if($payload['contact']['other_contact_ways'] != $contact->other_contact_ways){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => '其他联系方式',
+                            'start' => $contact->other_contact_ways,
+                            'end' => $payload['contact']['other_contact_ways'],
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+                        $contact->update($payload['other_contact_ways']);
+                    }
+                }
             }
-
             if ($request->has('expectations') && is_array($payload['expectations'])) {
                 try{
                     $repository = new TrailStarRepository();

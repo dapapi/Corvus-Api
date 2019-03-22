@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Events\ApprovalMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
-
+use App\Models\Department;
+use App\Models\DepartmentUser;
+use App\Repositories\FilterReportRepository;
 use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Http\Requests\Filter\FilterRequest;
@@ -805,23 +807,46 @@ class ProjectController extends Controller
         }catch (Exception $exception){
             $project->power = "false";
         }
-
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;
         $array['expense_type'] = '支出';
         $approval  = (new ApprovalContractController())->projectList($request,$project);
-
         $contractmoney = $approval['money'];
         // 记住修改  收入
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+        // 获取目标艺人 所在部门
+        $expectations = $project->trail->bloggerExpectations;
+        if (count($expectations) <= 0) {
+            $expectations = $project->trail->expectations->first();
+            if(!$expectations) {
+                return null;
+            }else{
+                $expectations = $expectations->broker->toArray();
+//                ->broker;
+                $department_name = [];
+                if(!$expectations)
+                    return null;
+                foreach ($expectations as $key => $val){
+                    $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+                }
+            }
+
+        } else {
+            $expectations = $expectations->first()->publicity->toArray();
+            $department_name = [];
+            if(!$expectations)
+                return null;
+            foreach ($expectations as $key => $val){
+                $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+            }
+        }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-
-
             $user = Auth::guard('api')->user();
+            $result->addMeta('department_name',  $department_name);
             if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
                 $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
@@ -839,7 +864,6 @@ class ProjectController extends Controller
                         $result->addMeta('contractmoney', "".'0');
                     }
                 }
-
                 $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
                 if(!$contractMoneyResult)
                 {
@@ -858,7 +882,6 @@ class ProjectController extends Controller
             }
             else
             {
-
                 if (isset($contractmoney)) {
                     $result->addMeta('contractmoney', "".$contractmoney);
                 }
@@ -874,63 +897,6 @@ class ProjectController extends Controller
                     $result->addMeta('expendituresum',"".'0');
                 }
             }
-//            $setprivacy1 = array();
-//            $Viewprivacy2 = array();
-//            $array['moduleable_id'] = $project->id;
-//            $array['moduleable_type'] = ModuleableType::PROJECT;
-//           $array['is_privacy'] = PrivacyType::OTHER;
-//            $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//            foreach ($setprivacy as $key => $v) {
-//
-//                $setprivacy1[] = array_values($v)[0];
-//
-//            }
-//            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
-//
-//                $array['user_id'] = $user->id;
-//                $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//                unset($array);
-//                if ($Viewprivacy) {
-//                    foreach ($Viewprivacy as $key => $v) {
-//                        $Viewprivacy1[] = array_values($v)[0];
-//                    }
-//                    $setprivacy1 = array_diff($setprivacy1, $Viewprivacy1);
-//                } else {
-//                    $setprivacy1 = array();
-//                }
-//            }
-//            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
-//                if (empty($setprivacy1)) {
-//
-////                    $array1['moduleable_id']= $project->id;
-////                    $array1['moduleable_type']= ModuleableType::PROJECT;
-////                    $array1['is_privacy']=  PrivacyType::OTHER;
-////                    $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
-////                    foreach ($setprivacy as $key =>$v){
-////                        $setprivacy1[]=array_values($v)[0];
-////
-////                    }
-//                    $setprivacy1 = PrivacyType::getProject();
-//                }
-//                foreach ($setprivacy1 as $key => $v) {
-//                    $Viewprivacy2[$v] = $key;
-//                }
-//                foreach ($Viewprivacy2 as $key2 => $val2) {
-//
-//                    if ($key2 === 'contractmoney') {
-//                        $result->addMeta('contractmoney', '');
-//                    }
-//                    if ($key2 === 'expendituresum') {
-//                        $result->addMeta('expendituresum', '');
-//                    }
-//
-//                }
-//            } else {
-//                $result->addMeta('contractmoney', $contractmoney);
-//
-//                $result->addMeta('expendituresum', $expendituresum->expendituresum);
-//            }
-        //}
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $operate = new OperateEntity([
             'obj' => $project,
@@ -942,7 +908,6 @@ class ProjectController extends Controller
         event(new OperateLogEvent([
             $operate
         ]));
-
         return $result;
     }
 
@@ -1465,38 +1430,73 @@ class ProjectController extends Controller
      */
     public function getFilter(FilterRequest $request)
     {
+        $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
+        //  $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
+        $joinSql = '`projects`';
+        $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
+        $projects = $query->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        });
 
         $all = $request->get('all', false);
+        $user = Auth::guard('api')->user();
+        $project_type = $request->get('project_type',null);
+        $query =  $projects->where(function ($query) use ($request, $payload,$user,$project_type) {
+            if ($request->has('keyword'))
+                $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
 
-        $query = Project::query();
-        $conditions = $request->get('conditions');
-        foreach ($conditions as $condition) {
-            $field = $condition['field'];
-            $operator = $condition['operator'];
-            $type = $condition['type'];
-            if ($operator == 'LIKE') {
-                $value = '%' . $condition['value'] . '%';
-                $query->whereRaw("$field $operator ?", [$value]);
-            } else if ($operator == 'in') {
-                $value = $condition['value'];
-                if ($type >= 5)
-                    foreach ($value as &$v) {
-                        $v = hashid_decode($v);
-                    }
-                unset($v);
-                $query->whereIn($field, $value);
-            } else {
-                $value = $condition['value'];
-                $query->whereRaw("$field $operator ?", [$value]);
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('projects.principal_id', $payload['principal_ids']);
             }
 
+            if ($request->has('project_type') && $project_type <> '3,4' ){
+                $query->where('projects.type',$project_type);
+
+            }
+            if($request->has('project_type') && $project_type == '3,4'){
+                $query->whereIn('projects.type',[$project_type]);
+            }
+            if ($request->has('status'))#项目状态
+                $query->where('projects.status', $payload['status']);
+        });
+        if ($request->has('my')){
+            switch ($payload['my']){
+                case 'my_principal'://我负责
+                    $query->where('projects.principal_id', $user->id);
+                    break;
+                case 'my_participant'://我参与
+                    $query->leftJoin("module_users as mu2",function ($join){
+                        $join->on("mu2.moduleable_id","projects.id")
+                            ->where('mu2.moduleable_type',ModuleableType::PROJECT);
+                    })->where('mu2.user_id',$user->id);
+                    break;
+                case 'my_create'://我创建
+                    $query->where('projects.creator_id', $user->id);
+                    break;
+
+            }
         }
-        // 这句用来检查绑定的参数
-        $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
-
-        $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
-
+        $projects = $query->searchData()->groupBy('projects.id')
+            ->get();
+        $projects = Project::whereIn('projects.id', $projects)
+        ->leftJoin('operate_logs',function($join){
+            $join->on('projects.id','operate_logs.logable_id')
+                ->where('logable_type',ModuleableType::PROJECT)
+                ->where('operate_logs.method','4');
+        })->groupBy('projects.id')
+        ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','projects.creator_id','projects.project_number','projects.trail_id','projects.title','projects.type','projects.privacy','projects.status',
+            'projects.principal_id','projected_expenditure','projects.priority','projects.start_at','projects.end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
+//// 这句用来检查绑定的参数
+//        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
+////
+//        dd($sql_with_bindings);
+        ->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer(!$all));
     }
 

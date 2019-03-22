@@ -3,11 +3,18 @@
 namespace App\Repositories;
 
 use App\Models\Task;
+use App\User;
+use Illuminate\Support\Facades\Cache;
 
 class TaskRepository
 {
     public function getPower(User $user,Task $task)
     {
+        $cache_key = "power:user:".$user->id.":task:".$task->id;
+        $power = Cache::get($cache_key);
+        if ($power){
+            return $power;
+        }
         $power = [];
         $role_list = $user->roles()->pluck('id')->all();
         $repository = new ScopeRepository();
@@ -22,10 +29,11 @@ class TaskRepository
             try{
                 $repository->checkPower($value['uri'],$value['method'],$role_list,$task);
                 $power[$key] = "true";
-            }catch (Exception $exception){
+            }catch (\Exception $exception){
                 $power[$key] = "false";
             }
         }
+        Cache::put($cache_key,$power,1);
         return $power;
     }
 }

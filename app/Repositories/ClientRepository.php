@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Client;
 use App\Models\Contact;
 use App\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ClientRepository
@@ -49,7 +50,7 @@ class ClientRepository
             try{
                 $repository->checkPower("clients/{id}",'put',$role_list,$client);
                 $power[$key] = "true";
-            }catch (Exception $exception){
+            }catch (\Exception $exception){
                 $power[$key] = "false";
             }
         }

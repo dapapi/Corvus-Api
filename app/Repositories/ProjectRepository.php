@@ -84,10 +84,13 @@ class ProjectRepository
         //需要验证权限的功能
         $api_list = [
             "edit_project"  =>  ['method'=>'put','uri' =>  'projects/{id}'],//便捷项目
-            "add_bill"  =>  ['method'=>'post','uri' =>  '/projects/{id}/bill'],//新建账单
-            "edit_bill"  =>  ['method'=>'put','uri' =>  '/projects/{id}/bill'],//编辑账单
-//            'add_returned_money'    =>  ['method'   =>  'post','url'    =>  '/projects/{id}/returned/money'],//新建回款
-//            'add_returned_money'    =>  ['method'   =>  'put','url'    =>  '/projects/{id}/returned/money'],//编辑回款
+            "add_bill"  =>  ['method'=>'post','uri' =>  '/projects/{id}/bill'],//新建结算单
+            "edit_bill"  =>  ['method'=>'put','uri' =>  '/projects/{id}/bill'],//编辑结算单
+            'add_returned_money'    =>  ['method'   =>  'post','url'    =>  '/projects/{id}/returned/money'],//新建回款期次
+            'add_returned_money'    =>  ['method'   =>  'put','url'    =>  '/projects/{id}/returned/money'],//编辑回款期次
+            'add_'   =>  ['method'   =>  'post','uri'   =>  'projects/{id}/returned/{id}/money'],//新建回款记录
+            'edit_' =>  ['method'   =>  'put'  ,'uri'   =>  'returned/money/{projectreturnedmoney}'],//修改回款记录
+            'delete_'   =>  ['method'   =>  'delete','uri'  =>'returned/money/{projectreturnedmoney}'],//删除回款记录
         ];
         //验证权限
         foreach($api_list as $key => $value){
@@ -95,10 +98,10 @@ class ProjectRepository
                 //获取用户角色
                 $repository->checkPower($value['uri'],$value['method'],$role_list,$project);
                 $poewr[$key] = "true";
-            }catch (Exception $exception){
+            }catch (\Exception $exception){
                 $poewr[$key] = "false";
             }
         }
-
+        return $poewr;
     }
 }

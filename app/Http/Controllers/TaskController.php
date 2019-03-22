@@ -35,6 +35,7 @@ use App\Repositories\AffixRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScopeRepository;
+use App\Repositories\TaskRepository;
 use App\ResourceType;
 use App\TaskPriorityStatus;
 use App\TaskStatus;
@@ -359,7 +360,7 @@ class TaskController extends Controller
         return $request;
     }
 
-    public function show(Task $task,ScopeRepository $repository)
+    public function show(Task $task,TaskRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -373,15 +374,16 @@ class TaskController extends Controller
             $operate,
         ]));
         //登录用户对线索编辑权限验证
-        try{
+//        try{
             $user = Auth::guard("api")->user();
-            //获取用户角色
-            $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
-            $task->power = "true";
-        }catch (Exception $exception){
-            $task->power = "false";
-        }
+//            //获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
+//            $task->power = "true";
+//        }catch (Exception $exception){
+//            $task->power = "false";
+//        }
+        $task->power = $repository->getPower($user,$task);
         return $this->response()->item($task, new TaskTransformer());
     }
 

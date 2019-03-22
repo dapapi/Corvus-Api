@@ -786,6 +786,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
+        //供应商管理
+        $api->get('/supplier','App\Http\Controllers\SupplierController@index');
+
 
         // 仪表盘
         $api->get('/dashboards', 'App\Http\Controllers\DashboardController@index');

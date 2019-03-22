@@ -29,8 +29,10 @@ use App\Models\RoleResourceView;
 use App\Models\RoleResourceManage;
 
 use App\Models\RoleDataView;
+use App\Models\SupplierRelate;
 
 use App\Models\RoleDataManage;
+use App\Http\Requests\SupplierRequest;
 
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
@@ -47,8 +49,6 @@ class SupplierController extends Controller
     {
 
         $payload = $request->all();
-        $user = Auth::guard("api")->user();
-        $my = $request->get('my',0);
         $pageSize = $request->get('page_size', config('app.page_size'));
         $suppliers = Supplier::orderBy('created_at')->paginate($pageSize);
 
@@ -56,52 +56,83 @@ class SupplierController extends Controller
 
     }
 
-    public function my(Request $request)
+    public function detail(Request $request,Supplier $supplier)
+    {
+        // 操作日志
+//        $operate = new OperateEntity([
+//            'obj' => $supplier,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
+
+        return $this->response()->item($supplier, new SupplierTransformer());
+    }
+
+
+
+    public function store(SupplierRequest $request,Supplier $supplier)
     {
         $user = Auth::guard('api')->user();
-
-        return $this->response->item($user, new UserTransformer());
-    }
-
-    private function department(Department $department)
-    {
-        $department = $department->pDepartment;
-        if ($department->department_pid == 0) {
-            return $department;
-        } else {
-            $this->department($department);
-        }
-    }
-
-    public function getGroup(Request $request)
-    {
-        $groupInfo = GroupRoles::orderBy('created_at')->get();
-        return $this->response->collection($groupInfo, new GroupRolesTransformer());
-    }
-
-    public function storeGroup(Request $request,groupRoles $groupRoles,User $user)
-    {
+        $userId = $user->id;
         $payload = $request->all();
+        $suppliersInfo = Supplier::where('name',$payload['name'])->get()->toArray();
+        if(!empty($suppliersInfo)){
+            return $this->response->errorInternal('供应商名称已存在！');
+        }
+
         $array = [
             'name' => $payload['name'],
+            'create_id' => $userId,
+            'address' => $payload['address'],
+            'level' => $payload['level'],
         ];
+
+        DB::beginTransaction();
         try {
-            $groupRoles->create($array);
+            $supplier = $supplier->create($array);
+            $id = DB::getPdo()->lastInsertId();
+
+            foreach ($payload['currency'] as $value){
+                $currencyArr = [
+                    'key' => $value['name'],
+                    'value' => $value['account'],
+                    'currency' => $value['coin'],
+                    'supplier_id' => $id,
+                    'type' => 1,
+                ];
+                SupplierRelate::create($currencyArr);
+            }
+            $contactArr = [
+                'key' => $payload['contact'],
+                'value' => $payload['phone'],
+                'supplier_id' => $id,
+                'type' => 2,
+            ];
+
+            SupplierRelate::create($contactArr);
+
 //            // 操作日志
-//            $operate = new OperateEntity([
-//                'obj' => $groupRoles,
-//                'title' => null,
-//                'start' => null,
-//                'end' => null,
-//                'method' => OperateLogMethod::CREATE,
-//            ]);
-//            event(new OperateLogEvent([
-//                $operate,
-//            ]));
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return $this->response->errorInternal('修改失败');
+            $operate = new OperateEntity([
+                'obj' => $supplier,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('操作失败');
         }
+        DB::commit();
         return $this->response->accepted();
     }
 
@@ -251,387 +282,12 @@ class SupplierController extends Controller
         return $this->response->collection($roleInfo, new RoleUserTransformer());
     }
 
-    public function setRoleUser(Request $request,Role $role,RoleUser $roleUser)
-    {
-        $payload = $request->all();
-        $role_id = $role->id;
-        if(!empty($payload)){
-            //删除所有角色ID信息 然后在添加关联数据
-            RoleUser::where('role_id',$role_id)->delete();
-            try {
-                foreach($payload['user'] as $key=>$value){
-                    $array = [
-                        'role_id'=> $role_id,
-                        'user_id'=> hashid_decode($value)
-                    ];
-                    $roleUser->create($array);
-                }
-            } catch (\Exception $exception) {
-                Log::error($exception);
-                return $this->response->errorInternal('修改失败');
-            }
-            return $this->response->accepted();
-        }else{
-            return $this->response->errorBadRequest('用户类型是数组格式');
-        }
-    }
-
-    public function feature(Request $request,DataDictionarie $dataDictionarie,User $user,Role $role)
-    {
-
-        $roleId = $role->id;
-
-        $depatments = DataDictionarie::where('parent_id', 1)->get();//获取功能模块列表
-        $roleInfo = RoleResource::where('role_id', $roleId)->get()->toArray();
-
-        $tree_data=array();
-        foreach ($depatments as $key=>$value){
-            $tree_data[$value['id']]=array(
-                'id'=>$value['id'],
-                'parentid'=>$value['parent_id'],
-                'name'=>$value['name'],
-                'data'=>DataDictionarie::where('parent_id', $value['id'])->get()->toArray()
-            );
-            foreach($tree_data[$value['id']]['data'] as $k=>&$datum){
-                foreach ($roleInfo as $rkey=>$role){
-                    if($datum['id'] === $role['resouce_id']){
-                        $datum['selected'] = true;
-                    }else{
-                        $datum['selected'] = false;
-                    }
-                    if($datum['selected'] == true) {
-                        break;
-                    }
-                }
-            }
-        }
-        return $tree_data;
- //     return $this->response->collection($depatments, new DataDictionarieTransformer());
-    }
-
-    public function featureRole(Request $request,Role $role,RoleUser $roleUser,RoleResource $roleResource)
-    {
-        $payload = $request->all();
-
-        $role_id = $role->id;
-        if(!empty($payload)){
-            //删除所有角色ID信息 然后在添加关联数据
-            RoleResource::where('role_id',$role_id)->delete();
-            try {
-                foreach($payload['resouce'] as $key=>$value){
-                    $array = [
-                        'role_id'=>$role_id,
-                        'resouce_id'=>(int)$value
-                    ];
-                    $roleResource->create($array);
-                }
-            } catch (\Exception $exception) {
-                Log::error($exception);
-                return $this->response->errorInternal('修改失败');
-            }
-            return $this->response->accepted();
-        }else{
-            return $this->response->errorBadRequest('用户类型是数组格式');
-        }
-    }
-
-    public function scope(Request $request,Role $role,RoleUser $roleUser,RoleResource $roleResource,User $user,RoleDataView $roleDataView,RoleDataManage $roleDataManage)
-    {
-        $dataDictionarie = DataDictionarie::where('code', 1)->get()->toArray();//获取功能模块列表
-        $roleId = $role->id;
-        $tree_data = array();
-        $res = array();
-        foreach ($dataDictionarie as $key=>$value){
-
-            //本人相关 本部门 部门下属 全部
-            $reoureInfo = RoleResourceView::where('resource_id', $value['id'])->get()->toArray();//获取查看功能的列表
-            $info = array_column($reoureInfo, 'data_view_id');
-
-            $res = DataDictionarie::whereIn('id', $info)->orderBy('sort_number')->get()->toArray();
-
-            $roleManage = $roleDataView->where('role_id',$roleId)->where('resource_id',$value['id'])->get()->toArray();
-
-            foreach ($res as $rkey=>&$rvale){
-
-                foreach ($roleManage as $mkey=>&$mvalue){
-                    if($mvalue['data_view_id'] == $rvale['id']){
-                        $rvale['selected'] = true;
-                    }else{
-                        $rvale['selected'] = false;
-
-                    }
-                    if($rvale['selected'] == true) {
-                        break;
-                    }
-                }
-            }
-
-            //我创建 负责  参与 可见
-            $manageInfo = RoleResourceManage::where('resource_id', $value['id'])->get()->toArray();
-            $minfo = array_column($manageInfo, 'data_manage_id');
-            $resManage = DataDictionarie::whereIn('id', $minfo)->get()->toArray();
-
-            $manage = $roleDataManage->where('role_id',$roleId)->where('resource_id',$value['id'])->get()->toArray();
-//            //dd($roleManage);
-            foreach ($resManage as $rkey=>&$rolevalue){
-                foreach ($manage as $ekey=>$evalue){
-                    if($rolevalue['id'] == $evalue['data_manage_id']){
-                        $rolevalue['selected'] = true;
-                    }else{
-
-                        $rolevalue['selected'] = false;
-                    }
-                    if($rolevalue['selected'] == true) {
-                        break;
-                    }
-                }
-            }
-
-            $tree_data[$value['id']] = array(
-                'id' => $value['id'],
-                'parentid' => $value['parent_id'],
-                'name' => $value['name'],
-                'data1' => $res,
-                'data2' => $resManage,
-            );
-
-        }
-        return $tree_data;
-    }
-
-    public function scopeStore(Request $request,Role $role,RoleResourceView $roleResourceView)
-    {
-        $payload = $request->all();
-        $roleId = $role->id;
-        if(!empty($payload)){
-//            $dataViewSql = "{\"rules\": [{\"field\" : \"creator_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}, {\"field\" : \"principal_id\", \"op\" : \"in\", \"value\" : \"{user_ids}\"}], \"op\" : \"or\"}";
-            DB::beginTransaction();
-            try {
-                //首先清空角色对应的数据管理权限和数据查看权限
-                RoleDataView::where('role_id',$roleId)->delete();
-                RoleDataManage::where('role_id',$roleId)->delete();
-                foreach($payload as $key=>$value){
-                    if (is_array($value)) {
-                        //删除原先的查看数据的权限
-//                        $sum = RoleDataView::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
-                        $dataViewSql = RoleDataView::DATA_VIEW_SQL;
-                        if(DataDictionarie::STAR == $value['resource_id']){ //如果是模块是艺人增加对应的搜索条件
-                            $dataViewSql = RoleDataView::STAR_DATA_VIEW_SQL;
-                        }
-                        if(DataDictionarie::BLOGGER ==  $value['resource_id']){//如果是模块是博主增加对应的搜索条件
-                            $dataViewSql = RoleDataView::BLOGGER_DATA_VIEW_SQL;
-                        }
-                        if(DataDictionarie::TASK ==  $value['resource_id']){//如果是模块是任务增加对应的搜索条件
-                            $dataViewSql = RoleDataView::TASK_DATA_VIEW_SQL;
-                        }
-                        if (DataDictionarie::CONTRACTS == $value['resource_id']){
-                            $dataViewSql = RoleDataView::CONTRACTS_DATA_VIEW_SQL;
-                        }
-
-                        $array = [
-                            'role_id'=>$roleId,
-                            'resource_id'=>$value['resource_id'],
-                            'data_view_id'=>$value['scope'],
-                            'data_view_sql'=>$dataViewSql,
-                        ];
-                         $deparInfo = RoleDataView::insert($array);
-                        //创建 参与 所见 删除再添加  删除原先的数据管理权限
-//                        $info = RoleDataManage::where('role_id',$roleId)->where('resource_id',$value['resource_id'])->delete();
-                        if(!empty($value['manage'])){
-                            foreach ($value['manage'] as $mkey=>$mvalue){
-                                $array = [
-                                    'role_id'=>$roleId,
-                                    'resource_id'=>$value['resource_id'],
-                                    'data_manage_id'=>$mvalue,
-                                ];
-                                $depar = RoleDataManage::insert($array);
-                            }
-                        }
-                    }
-                }
-                // 操作日志
-    //            $operate = new OperateEntity([
-    //                'obj' => $department,
-    //                'title' => null,
-    //                'start' => null,
-    //                'end' => null,
-    //                'method' => OperateLogMethod::CREATE,
-    //            ]);
-    //            event(new OperateLogEvent([
-    //                $operate,
-    //            ]));
-                DB::commit();
-            } catch (Exception $e) {
-                DB::rollBack();
-                Log::error($e);
-                return $this->response->errorInternal('创建失败');
-            }
-            return $this->response->accepted();
-//
-        }else{
-            return $this->response->errorInternal('数据提交错误');
-        }
-    }
 
 
-    /**
-     * 检查权限
-     */
-    public function checkPower(Request $request)
-    {
-        $flag = false;
-        $method = $request->get('method');
 
 
-        $uri = $request->get('uri');
-        $uri = preg_replace('/\\d+/', '{id}', $uri);
-        $uri = trim($uri,"/");
-        $id = $request->get('id');
-        //根据method和uri查询对应的模块
-        $model_id = DataDictionarie::where('code',$method)->where('val',$uri)->value('parent_id');
-        if(!$model_id){//模块不存在
-            $flag = false;
-        }
-        $model = null;
-        if($request->has("id")){
-            if (DataDictionarie::BLOGGER == $model_id){//博主
-                try {
-                    $id = hashid_decode($id);
-                    $model = Blogger::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }elseif(DataDictionarie::PROJECT == $model_id){//项目
-                try {
 
-                    $model = Project::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }elseif(DataDictionarie::STAR == $model_id){//艺人
-                try {
-                    $id = hashid_decode($id);
-                    $model = Star::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }elseif(DataDictionarie::CLIENT == $model_id){//客户
-                try {
-                    $id = hashid_decode($id);
-                    $model = Client::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }elseif(DataDictionarie::TRAIL == $model_id){//销售线索
-                try {
-                    $id = hashid_decode($id);
-                    $model = Trail::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }elseif(DataDictionarie::TASK == $model_id){//任务
-                try {
-                    $id = hashid_decode($id);
-                    $model = Task::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }elseif(DataDictionarie::CONTRACTS == $model_id){//合同
-                try {
 
-                    $model = Contract::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }elseif(DataDictionarie::CALENDAR == $model_id) {//日历
-                try {
-                    $id = hashid_decode($id);
-                    $model = Calendar::findOrFail($id);
-                } catch (Exception $exception) {
-                    abort(404);
-                }
-            }
-//            }elseif(DataDictionarie::CALENDAR == $model_id){//审批暂时不清楚
-//                try {
-//
-//                    $model = Appr::findOrFail($id);
-//                } catch (Exception $exception) {
-//                    abort(404);
-//                }
-//            }
-        }
-        $user = Auth::guard('api')->user();
-        $userId = $user->id;
-        //获取用户角色
-        $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
-        try{
-            $res = (new ScopeRepository())->checkPower($uri,$method,$role_ids,$model);
-            if (!is_array($res) && $res === null){
-                $flag = true;
-            }
-        }catch (\Exception $e){
-            Log::error($e);
-        }
 
-        if ($flag){
-            return [
-                "data"  =>  [
-                    "power" =>  "true"
-                ]
-            ];
-        }else{
-            return [
-                "data"  =>  [
-                    "power" =>  "false"
-                ]
-            ];
-        }
-    }
-    //返回用户有哪些模块的功能权限
-    public function getPowerModel()
-    {
-        $user = Auth::guard('api')->user();
-        $userId = $user->id;
-        $role_ids = array_column(RoleUser::where('user_id',$userId)->select('role_id')->get()->toArray(),'role_id');
-        $result = RoleResource::leftJoin('data_dictionaries as dd',function ($join){
-            $join->on('dd.id','role_resources.resouce_id');
-        })->leftJoin('data_dictionaries as ddd','ddd.id','dd.parent_id')
-            ->select('ddd.*')
-            ->whereIn('role_id',$role_ids)->groupBy('ddd.id')->get()->toArray();
 
-        return $result;
-    }
-
-    public function directorList(Request $request)
-    {
-        $payload = $request->all();
-        $pageSize = $request->get('page_size', config('app.page_size'));
-        $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
-
-        $data = DB::table('department_principal as dp')
-            ->join('users', function ($join) {
-                $join->on('users.id', '=','dp.user_id');
-            })
-            ->groupBy('users.id')
-            ->select('users.name','users.icon_url','users.phone','users.email')
-            //->paginate($pageSize)->toArray();
-            ->get()->toArray();
-        //return $data;
-        $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
-        $article = array_slice($data, $start, $pageSize);
-
-        $total = count($data);//总条数
-        $totalPages = ceil($total / $pageSize);
-
-        $arr = array();
-        $arr['data'] = $article;
-        $arr['meta']['pagination'] = [
-            'total' => $total,
-            'count' => $payload['page'] < $totalPages ? $pageSize : $total - (($payload['page'] - 1) * $pageSize),
-            'per_page' => $pageSize,
-            'current_page' => $payload['page'],
-            'total_pages' => $totalPages == 0 ? 1 : $totalPages,
-        ];
-        return $arr;
-    }
 }

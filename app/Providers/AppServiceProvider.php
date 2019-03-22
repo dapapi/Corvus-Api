@@ -13,6 +13,7 @@ use App\Models\Project;
 use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\Star;
+use App\Models\Supplier;
 use App\Models\Task;
 use App\Models\Issues;
 use App\Models\Trail;
@@ -58,6 +59,8 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CONTRACT => Contract::class,
             ModuleableType::BUSINESS => Business::class,
             ModuleableType::INSTANCE => Instance::class,
+            ModuleableType::SUPPLIER => Supplier::class,
+
 
             //TODO
         ]);

@@ -609,7 +609,7 @@ class TrailController extends Controller
                     }
                 }
                 if (isset($payload['contact']['phone'])){
-                    if($payload['contact']['phone'] != $contact->name){
+                    if($payload['contact']['phone'] != $contact->phone){
                         $operateName = new OperateEntity([
                             'obj' => $trail,
                             'title' => '联系人电话',
@@ -631,7 +631,7 @@ class TrailController extends Controller
                             'method' => OperateLogMethod::UPDATE,
                         ]);
                         $arrayOperateLog[] = $operateName;
-                        $contact->update($payload['wechat']);
+                        $contact->update($payload['contact']);
                     }
                 }
                 if (isset($payload['contact']['other_contact_ways'])){
@@ -644,7 +644,7 @@ class TrailController extends Controller
                             'method' => OperateLogMethod::UPDATE,
                         ]);
                         $arrayOperateLog[] = $operateName;
-                        $contact->update($payload['other_contact_ways']);
+                        $contact->update($payload['contact']);
                     }
                 }
             }

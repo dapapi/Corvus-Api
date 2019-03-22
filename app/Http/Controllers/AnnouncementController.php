@@ -6,10 +6,11 @@ namespace App\Http\Controllers;
  * Date: 2018/11/19
  * Time: 下午2:14
  */
+
+use App\Events\AnnouncementMessageEvent;
 use App\ModuleableType;
 
 use App\AffixType;
-use App\Events\AnnouncementMessageEvent;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Transformers\DepartmentTransformer;
@@ -86,7 +87,11 @@ class AnnouncementController extends Controller
 //                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
                 }else{
-                    $stars = Announcement::where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
+                    $stars = Announcement::leftJoin('operate_logs',function($join){
+                        $join->on('announcement.id','operate_logs.logable_id')
+                            ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                            ->where('operate_logs.method',OperateLogMethod::LOOK);
+                    })->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
                 }
               }else{
                   $stars = null;
@@ -216,11 +221,13 @@ class AnnouncementController extends Controller
             DB::beginTransaction();
             try {
                 $star = Announcement::create($payload);
+
                 if ($request->has('affix')) {
                     foreach ($payload['affix'] as $affix) {
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
                     }
                 }
+
                 foreach($scope as $key => $value){
                     $arr['announcement_id'] = $star->id;
                     $arr['department_id'] = hashid_decode($value);
@@ -236,12 +243,14 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('创建失败');
         }
 
-        //创建公告成功发送消息
+
+        //公告创建成功发送消息
+
         try{
             $authorization = $request->header()['authorization'][0];
             event(new AnnouncementMessageEvent($star,AnnouncementTriggerPoint::CREATE,$authorization,$user));
         }catch (\Exception $exception){
-            Log::error("修改公告消息发送失败[$star->title]");
+            Log::error("创建公告消息发送失败[$star->title]");
             Log::error($exception);
         }
 
@@ -281,6 +290,7 @@ class AnnouncementController extends Controller
             event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
         }catch (\Exception $exception){
             Log::error("修改公告消息发送失败[$announcement->title]");
+
             Log::error($exception);
         }
     }
@@ -435,7 +445,9 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
+
         //修改公告成功发送消息
+
         try{
             $authorization = $request->header()['authorization'][0];
             event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
@@ -443,6 +455,7 @@ class AnnouncementController extends Controller
             Log::error("修改公告消息发送失败[$announcement->title]");
             Log::error($exception);
         }
+
         return $this->response->accepted();
 
     }

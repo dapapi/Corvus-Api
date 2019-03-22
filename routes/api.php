@@ -803,6 +803,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/clients', 'App\Http\Controllers\ClientController@dashboard');
         $api->get('/departments/{department}/dashboard/stars', 'App\Http\Controllers\StarController@dashboard');
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
+//        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
 
         // 供应商
         $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');

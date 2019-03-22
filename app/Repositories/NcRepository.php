@@ -21,14 +21,18 @@ class NcRepository
             return $token;
         }
         $client = new Client();
-        $sysCode = config('app.nc_syscode');//系统名称
-        $sysPass = config('app.nc_syspass');//系统密码
-        $companyId = config('app.nc_companyid');//目标系统
-        $login_url = config('app.nc_login');//登录地址
-        $options = compact($sysCode,$sysPass,$companyId);
-        $response = $client->request('post',$login_url,$options);
+        $sysCode = config('nc.nc_syscode');//系统名称
+        $sysPass = config('nc.nc_syspass');//系统密码
+        $companyId = config('nc.nc_companyid');//目标系统
+        $login_url = config('nc.nc_login');//登录地址
+        $options = [
+            "json"  =>  ["sysCode"   =>  $sysCode,"sysPass"  =>  $sysPass,"companyId"    =>$companyId],
+//            "headers"   =>  ['Accept'   =>  'application/json']
+        ];
+
+        $response = $client->request('POST',$login_url,$options);
         if($response->getStatusCode() == 200){
-            $body = json_decode($response->getBody());
+            $body = json_decode($response->getBody(),true);
             if ($body['success'] == "true"){
                 $token = $body['data']['token'];
                 Cache::put($cache_key,$token,50);

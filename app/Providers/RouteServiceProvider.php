@@ -26,6 +26,7 @@ use App\Models\Client;
 use App\Models\Production;
 use App\Models\ProjectHistorie;
 use App\Models\Position;
+use App\Models\Supplier;
 
 
 use App\Models\Draft;
@@ -545,6 +546,16 @@ class RouteServiceProvider extends ServiceProvider
                 if ($entity == null){
                     throw new Exception("合同不存在");
                 }
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplier', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Supplier::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

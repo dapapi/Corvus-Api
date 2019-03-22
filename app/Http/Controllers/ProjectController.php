@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
-<<<<<<< HEAD
 use App\Http\Transformers\Project\ProjectDetailTransformer;
 use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\ProjectImplode;
 use App\Repositories\FilterReportRepository;
-=======
->>>>>>> 03d4041b... save for dashboard
 use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Helper\Common;
@@ -35,12 +32,6 @@ use App\Http\Transformers\ClientProjectTransformer;
 use App\Models\Blogger;
 use App\Models\FilterJoin;
 use App\Models\Client;
-<<<<<<< HEAD
-
-=======
-use App\Models\Department;
-use App\Models\DepartmentUser;
->>>>>>> 03d4041b... save for dashboard
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
@@ -1603,7 +1594,6 @@ class ProjectController extends Controller
         $departmentArr = Common::getChildDepartment($departmentId);
         $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
 
-<<<<<<< HEAD
         $projects = Project::select('projects.id as id', DB::raw('GREATEST(projects.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'projects.title')
             ->whereIn('projects.principal_id', $userIds)
             ->leftjoin('operate_logs', function ($join) {
@@ -1612,15 +1602,6 @@ class ProjectController extends Controller
                     ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
             })->groupBy('projects.id')
             ->orderBy('t', 'desc')
-=======
-
-        $projects = Project::select('projects.id as id', DB::raw('GREATEST(projects.created_at, operate_logs.created_at) as t'), 'projects.title')
-            ->whereIn('projects.principal_id', $userIds)
-            ->leftjoin('operate_logs', function ($join) {
-                $join->on('projects.id', '=', 'operate_logs.logable_id')
-                    ->where('operate_logs.logable_type', ModuleableType::PROJECT);
-            })->orderBy('t', 'desc')
->>>>>>> 03d4041b... save for dashboard
             ->take(5)->get();
 
         $result = $this->response->collection($projects, new DashboardModelTransformer());
@@ -1653,7 +1634,6 @@ class ProjectController extends Controller
         $result->addMeta('count', $projectInfoArr);
         return $result;
     }
-<<<<<<< HEAD
 
     public function projectList(FilterRequest $request)
     {
@@ -1983,7 +1963,5 @@ class ProjectController extends Controller
         }
         ProjectImplode::find($projectImpId)->update($arr);
     }
-=======
->>>>>>> 03d4041b... save for dashboard
 }
 

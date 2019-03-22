@@ -9,14 +9,10 @@
 namespace App\Helper;
 
 
-<<<<<<< HEAD
 use App\Exceptions\ApprovalVerifyException;
 use App\Models\Department;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
-=======
-use App\Models\Department;
->>>>>>> 03d4041b... save for dashboard
 
 class Common
 {
@@ -59,7 +55,6 @@ class Common
         return $arr;
     }
 
-<<<<<<< HEAD
     /**
      * @param $userId
      * @param int $level
@@ -96,6 +91,4 @@ class Common
         }
         return $departmentPid;
     }
-=======
->>>>>>> 03d4041b... save for dashboard
 }

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\Common;
 use App\Http\Requests\Dashboard\StoreDashboardRequest;
 use App\Http\Transformers\DashboardTransformer;
 use App\Models\Dashboard;
+use App\Models\Department;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +22,12 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        # todo 当前所有下属部门都可以看
-        $collection = Dashboard::get();
-        return $this->response->collection($collection, new DashboardTransformer());
+        $user = Auth::guard('api')->user();
+        $departmentId = $user->department()->first()->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        # 149 总裁办 硬编码去掉
+        $departments = Department::whereIn('id', $departmentArr)->where('id', '!=', 149)->get();
+        return $this->response->collection($departments, new DashboardTransformer());
     }
 
     /**

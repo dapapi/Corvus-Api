@@ -32,6 +32,7 @@ use App\Models\ReviewQuestionItem;
 use App\Models\ReviewUser;
 use App\ModuleUserType;
 
+use App\Repositories\BloggerRepository;
 use App\Repositories\ScopeRepository;
 
 use App\ReviewItemAnswer;
@@ -121,7 +122,7 @@ class BloggerController extends Controller
     }
 
 
-    public function show(Blogger $blogger,ScopeRepository $repository)
+    public function show(Blogger $blogger,BloggerRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -136,15 +137,16 @@ class BloggerController extends Controller
         ]));
 
         //登录用户对博主编辑权限验证
-        try{
+//        try{
             $user = Auth::guard("api")->user();
-            //获取用户角色
-            $role_list = $user->roles()->pluck('id')->all();
-            $res = $repository->checkPower("bloggers/{id}",'put',$role_list,$blogger);
-            $blogger->power = "true";
-        }catch (Exception $exception){
-            $blogger->power = "false";
-        }
+//            //获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $res = $repository->checkPower("bloggers/{id}",'put',$role_list,$blogger);
+//            $blogger->power = "true";
+//        }catch (Exception $exception){
+//            $blogger->power = "false";
+//        }
+        $blogger->power = $repository->getPower($user,$blogger);
         return $this->response->item($blogger, new BloggerTransformer());
     }
     public function recycleBin(Request $request)

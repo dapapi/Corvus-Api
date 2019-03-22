@@ -74,13 +74,13 @@ class StarController extends Controller
             ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
                 'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
                 'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
-                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])->get();
+                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])->get()
         //根据条件查询
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
-        //->paginate($pageSize);
+        ->paginate($pageSize);
 
-        return $this->response->collection($stars, new StarTransformer());
+        return $this->response->paginator($stars, new StarTransformer());
     }
 
     public function getStarRelated(Request $request){
@@ -106,7 +106,7 @@ class StarController extends Controller
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
-    public function show(Star $star)
+    public function show(Star $star,StarRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -119,17 +119,19 @@ class StarController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        //登录用户对艺人编辑权限验证
-        try{
+//        //登录用户对艺人编辑权限验证
+//        try{
             $user = Auth::guard("api")->user();
-            //获取用户角色
-            $role_list = $user->roles()->pluck('id')->all();
-            $repository = new ScopeRepository();
-            $repository->checkPower("stars/{id}",'put',$role_list,$this);
-            $star->setAttribute('power',"true");
-        }catch (Exception $exception){
-            $star->setAttribute('power',"false");
-        }
+//            //获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $repository = new ScopeRepository();
+//            $repository->checkPower("stars/{id}",'put',$role_list,$this);
+//            $star->setAttribute('power',"true");
+//        }catch (Exception $exception){
+//            $star->setAttribute('power',"false");
+//        }
+        $star->power = $repository->getPower($user,$star);
+
         //艺人隐私字段
         return $this->response->item($star, new StarTransformer());
     }

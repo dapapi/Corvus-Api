@@ -9,4 +9,7 @@
 return [
     'nc_login' =>  env('NC_LOGIN','http://192.168.10.115:18080/ty/SecurityServlet'),
     'nc_query'  =>  env('NC_QUERY','http://192.168.10.115:18080/ty/QueryServlet'),
+    'nc_syscode'    => env('NC_SYSCODE','MTTGROUPERP'),
+    'nc_syspass'    =>  env('NC_SYSPASS','32AB34D34'),
+    'nc_companyid'  =>  env('NC_COMPANYID','0001A1100000000003G6'),
 ];

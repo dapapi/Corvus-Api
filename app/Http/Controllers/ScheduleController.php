@@ -174,10 +174,10 @@ class ScheduleController extends Controller
         })->mergeBindings($subquery)
             ->where('start_at', '>=', $payload['start_date'])->where('end_at', '<=', $payload['end_date'])
             ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy'
-                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')
-            ->get();
-//        $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
-//        dd($sql_with_bindings);
+                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc');
+//            ->get();
+        $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
+        dd($sql_with_bindings);
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 
@@ -537,11 +537,11 @@ class ScheduleController extends Controller
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $old_schedule = clone $schedule;//复制日程，以便发消息
-        $users = $this->getEditPowerUsers($schedule);
-        $user = Auth::guard("api")->user();
-        if (!in_array($user->id, $users)) {
-            return $this->response->errorInternal("你没有编辑该日程的权限");
-        }
+//        $users = $this->getEditPowerUsers($schedule);
+//        $user = Auth::guard("api")->user();
+//        if (!in_array($user->id, $users)) {
+//            return $this->response->errorInternal("你没有编辑该日程的权限");
+//        }
         $payload = $request->all();
         if ($request->has('calendar_id')) {
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);

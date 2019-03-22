@@ -59,16 +59,16 @@ class SupplierController extends Controller
     public function detail(Request $request,Supplier $supplier)
     {
         // 操作日志
-//        $operate = new OperateEntity([
-//            'obj' => $supplier,
-//            'title' => null,
-//            'start' => null,
-//            'end' => null,
-//            'method' => OperateLogMethod::LOOK,
-//        ]);
-//        event(new OperateLogEvent([
-//            $operate,
-//        ]));
+        $operate = new OperateEntity([
+            'obj' => $supplier,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
 
         return $this->response()->item($supplier, new SupplierTransformer());
     }

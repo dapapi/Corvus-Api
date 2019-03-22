@@ -131,7 +131,8 @@ class ScheduleController extends Controller
             $query->orWhere([['mu.user_id', $user->id], ['calendars.privacy', Calendar::SECRET]]);//参与人
             $query->orwhere('calendars.privacy', Calendar::OPEN);
         })->get();
-        $data = $payload['calendar_ids'];
+      //  $data = $payload['calendar_ids'];
+        $data = $calendars->toArray();
         if($request->has('calendar_ids')){
             $len = count($payload['calendar_ids']);
             for($i=0;$i<$len;$i++)

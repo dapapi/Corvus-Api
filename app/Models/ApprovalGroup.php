@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Models\ApprovalForm\ApprovalForm;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ApprovalGroup extends Model
 {
     protected $table = 'approval_form_groups';
+    use SoftDeletes;
 
     protected $fillable = [
         'name',

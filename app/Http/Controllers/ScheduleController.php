@@ -538,7 +538,7 @@ class ScheduleController extends Controller
     {
         $old_schedule = clone $schedule;//复制日程，以便发消息
 //        $users = $this->getEditPowerUsers($schedule);
-//        $user = Auth::guard("api")->user();
+        $user = Auth::guard("api")->user();
 //        if (!in_array($user->id, $users)) {
 //            return $this->response->errorInternal("你没有编辑该日程的权限");
 //        }

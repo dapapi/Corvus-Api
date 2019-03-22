@@ -3,22 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\AffixType;
-use App\Events\dataChangeEvent;
-use App\Events\MessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\TaskDataChangeEvent;
 use App\Events\TaskMessageEvent;
-use App\Models\DataDictionarie;
-use App\Models\Message;
+use App\Helper\Common;
 use App\Http\Requests\Task\AddRelateTaskRequest;
 use App\Http\Requests\Task\FilterTaskRequest;
 use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
+use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\TaskTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Resource;
@@ -32,14 +32,10 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
-use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
-use App\Repositories\ScopeRepository;
 use App\ResourceType;
-use App\TaskPriorityStatus;
 use App\TaskStatus;
 use App\TriggerPoint\TaskTriggerPoint;
-use App\TriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -47,8 +43,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\URL;
-
 
 class TaskController extends Controller
 {
@@ -66,7 +60,7 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard("api")->user();
-        $my = $request->get('my',0);
+        $my = $request->get('my', 0);
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $query = Task::select('tasks.*');
@@ -78,7 +72,7 @@ class TaskController extends Controller
                 $query->where('principal_id', $user->id);
                 break;
             case 4://我分配
-                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                $query->where('creator_id', $user->id)->where('principal_id', '!=', $user->id);
                 break;
             case 1://我创建
                 $query->where('creator_id', $user->id);
@@ -86,7 +80,7 @@ class TaskController extends Controller
             default:
                 break;
         }
-        $tasks = $query->where(function($query) use ($request, $payload) {
+        $tasks = $query->where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
@@ -125,21 +119,21 @@ class TaskController extends Controller
 
 
     public function tasksAll(Request $request,Task $task)
-    {
+   {
         $payload = $request->all();
         $data = $task
             ->searchData()
             ->get()->toArray();
         $dataArr = array();
-        if(!empty($data)){
-            foreach ($data as $k=>$value){
+        if (!empty($data)) {
+            foreach ($data as $k => $value) {
                 $dataArr['id'] = hashid_encode($value['id']);
                 $dataArr['title'] = $value['title'];
                 $Arr['data'][] = $dataArr;
             }
-        }else{
+        } else {
             //$Arr['data'][]=$dataArr;
-            $Arr['data']=$dataArr;
+            $Arr['data'] = $dataArr;
         }
 
         return $Arr;
@@ -223,7 +217,7 @@ class TaskController extends Controller
                 $query->where('principal_id', $user->id);
                 break;
             case 4://我分配
-                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                $query->where('creator_id', $user->id)->where('principal_id', '!=', $user->id);
                 break;
             case 1://我创建
             default:
@@ -247,7 +241,7 @@ class TaskController extends Controller
         if ($request->has('keyword'))
             $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
         if ($request->has('type_id'))
-            $query->where('type_id',hashid_decode($payload['type_id']));
+            $query->where('type_id', hashid_decode($payload['type_id']));
 
 
         // $tasks = $query->createDesc()->paginate($pageSize);
@@ -306,7 +300,7 @@ class TaskController extends Controller
                 $query->where('principal_id', $user->id);
                 break;
             case 4://我分配
-                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                $query->where('creator_id', $user->id)->where('principal_id', '!=', $user->id);
                 break;
             case 1://我创建
             default:
@@ -352,10 +346,10 @@ class TaskController extends Controller
 
 
         //获取任务完成数量
-        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
+        $complete_count = $query->where('privacy', false)->where('status', TaskStatus::COMPLETE)->count();
 
         $request = $this->response->paginator($tasks, new TaskTransformer());
-        $request->addMeta("complete_count",$complete_count);
+        $request->addMeta("complete_count", $complete_count);
         return $request;
     }
 
@@ -439,10 +433,10 @@ class TaskController extends Controller
         }
         DB::commit();
 
-        if ($status == TaskStatus::COMPLETE){
+        if ($status == TaskStatus::COMPLETE) {
             $user = Auth::guard("api")->user();
             $authorization = $request->header()['authorization'][0];
-            event(new TaskMessageEvent($task,TaskTriggerPoint::COMPLETE_TSAK,$authorization,$user));
+            event(new TaskMessageEvent($task, TaskTriggerPoint::COMPLETE_TSAK, $authorization, $user));
         }
         //发送消息
 //        DB::beginTransaction();
@@ -968,24 +962,24 @@ class TaskController extends Controller
         if ($request->has('resource_type')) {
             $resourceableId = hashid_decode($payload['resourceable_id']);
             $resourceType = $payload['resource_type'];
-            $taskResource = TaskResource::where('task_id',$task->id)->first();
-            if($payload['code'] == 'bloggers'){
+            $taskResource = TaskResource::where('task_id', $task->id)->first();
+            if ($payload['code'] == 'bloggers') {
                 $code = ModuleableType::BLOGGER;
-            }elseif($payload['code'] == 'stars'){
+            } elseif ($payload['code'] == 'stars') {
                 $code = ModuleableType::STAR;
-            }elseif($payload['code'] == 'projects'){
+            } elseif ($payload['code'] == 'projects') {
                 $code = ModuleableType::PROJECT;
-            }elseif($payload['code'] == 'clients'){
+            } elseif ($payload['code'] == 'clients') {
                 $code = ModuleableType::CLIENT;
-            }elseif($payload['code'] == 'trails'){
+            } elseif ($payload['code'] == 'trails') {
                 $code = ModuleableType::TRAIL;
-            }else{
+            } else {
                 return $this->response->errorInternal('上传类型不正确');
             }
             $resource = [
                 'resource_id' => $resourceType,
-                'resourceable_id' =>$resourceableId,
-                'resourceable_type' =>$code,
+                'resourceable_id' => $resourceableId,
+                'resourceable_type' => $code,
             ];
             $taskResource->update($resource);
             unset($payload['code']);
@@ -1027,13 +1021,13 @@ class TaskController extends Controller
                 //修改日期 如果日期大于当前时间 状态为1正常 反之则状态为4 延期
                 $endAt = strtotime($payload['end_at']);
                 $currentAt = time();
-                if($endAt > $currentAt){
+                if ($endAt > $currentAt) {
                     $array['status'] = 1;
 
-                }else{
+                } else {
                     $array['status'] = 4;
                 }
-                
+
             } else {
                 unset($array['end_at']);
             }
@@ -1046,7 +1040,7 @@ class TaskController extends Controller
             $task->update($array);
             // 操作日志
 //            event(new OperateLogEvent($arrayOperateLog));
-            event(new TaskDataChangeEvent($oldTask,$task));
+            event(new TaskDataChangeEvent($oldTask, $task));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -1210,7 +1204,7 @@ class TaskController extends Controller
 
                         $task_resource = TaskResource::create($array);
                         // 操作日志
-                        if ($model != null){
+                        if ($model != null) {
                             $operate = new OperateEntity([
                                 'obj' => $model,
                                 'title' => null,
@@ -1250,7 +1244,7 @@ class TaskController extends Controller
                 }
             }
 
-        //    添加参与人
+            //    添加参与人
             if ($request->has('participant_ids')) {
 
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
@@ -1263,7 +1257,7 @@ class TaskController extends Controller
         DB::commit();
         //发消息
         $authorization = $request->header()['authorization'][0];
-        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+        event(new TaskMessageEvent($task, TaskTriggerPoint::CRATE_TASK, $authorization, $user));
 
 //        DB::beginTransaction();
 //        try {
@@ -1303,12 +1297,12 @@ class TaskController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $tasks = Task::where(function($query) use ($request, $payload) {
+        $tasks = Task::where(function ($query) use ($request, $payload) {
 
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
-                $query->where('type_id',hashid_decode($payload['type_id']));
+                $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 
@@ -1359,7 +1353,7 @@ class TaskController extends Controller
         return $this->response->accepted();
     }
 
-    public function secret(Request $request,Task $task)
+    public function secret(Request $request, Task $task)
     {
 
         $payload = $request->all();
@@ -1378,5 +1372,45 @@ class TaskController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
+    }
+
+    public function dashboard(Request $request, Department $department)
+    {
+        $days = $request->get('days', 7);
+        $departmentId = $department->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
+
+        $tasks = Task::select('tasks.id as id', DB::raw('GREATEST(tasks.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'tasks.title')
+            ->whereIn('tasks.principal_id', $userIds)
+            ->leftJoin('operate_logs', function ($join) {
+                $join->on('tasks.id', '=', 'operate_logs.logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::TASK)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('tasks.id')
+            ->orderBy('t', 'desc')
+            ->take(5)->get();
+
+        $result = $this->response->collection($tasks, new DashboardModelTransformer());
+
+        $count = Task::whereIn('principal_id', $userIds)->count('id');
+        $delayCount = Task::whereIn('principal_id', $userIds)->where('status', TaskStatus::DELAY)->count('id');
+
+        $timePoint = Carbon::today('PRC')->subDays($days);
+        $newTasks = Task::whereIn('principal_id', $userIds)->where('created_at', '>', $timePoint)->count('id');
+
+        $completed = Task::whereIn('principal_id', $userIds)->where('status', TaskStatus::COMPLETE)->count('id');
+        $progressing = Task::whereIn('principal_id', $userIds)->where('status', TaskStatus::NORMAL)->count('id');
+
+        $taskInfoArr = [
+            'total' => $count,
+            'completed' => $completed,
+            'progressing' => $progressing,
+            'delayed' => $delayCount,
+            'latest' => $newTasks,
+        ];
+
+        $result->addMeta('count', $taskInfoArr);
+        return $result;
     }
 }

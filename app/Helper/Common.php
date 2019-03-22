@@ -9,6 +9,8 @@
 namespace App\Helper;
 
 
+use App\Models\Department;
+
 class Common
 {
     /**
@@ -38,6 +40,16 @@ class Common
             }
         }
         return $list;
+    }
+
+    public static function getChildDepartment($departmentId)
+    {
+        $arr = [$departmentId];
+        foreach (Department::where('department_pid', $departmentId)->cursor() as $department) {
+            $childId = self::getChildDepartment($department->id);
+            $arr = array_merge($arr, $childId);
+        }
+        return $arr;
     }
 
 }

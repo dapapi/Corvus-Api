@@ -12,6 +12,7 @@ use App\Models\Blogger;
 use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
 use App\Models\Contract;
+use App\Models\Dashboard;
 use App\Models\DataDictionary;
 use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
@@ -541,6 +542,9 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Position::findOrFail($id);
+                if ($entity == null){
+                    throw new Exception("合同不存在");
+                }
             } catch (Exception $exception) {
                 abort(404);
             }

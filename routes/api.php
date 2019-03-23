@@ -793,9 +793,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
         $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
-
-
-
-
+        $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
+        $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
+        $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
+        $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
+        $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
     });
 });

@@ -32,6 +32,8 @@ use App\Models\ProjectBillsResource;
 use App\Models\Role;
 use App\ModuleUserType;
 use App\Models\Supplier;
+use App\Models\SupplierRelate;
+
 
 use App\User;
 use App\ModuleableType;
@@ -199,6 +201,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof Supplier){
                 $type = ModuleableType::SUPPLIER;
                 $typeName = "供应商";
+            }else if($operate->obj instanceof SupplierRelate){
+                $type = ModuleableType::SUPPLIERRELATE;
+                $typeName = "供应商联系人";
             }
             //TODO
             $id = $operate->obj->id;

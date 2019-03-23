@@ -31,6 +31,8 @@ abstract class ModuleableType
     const INSTANCE = "instance";
     const BUSINESS = "business";
     const SUPPLIER = "supplier";
+    const SUPPLIERRELATE = "supplierRelate";
+
 
 
 

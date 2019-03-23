@@ -6,6 +6,7 @@ use App\Http\Middleware\DataAuth\DataView;
 use App\Http\Transformers\UserTransformer;
 use App\Http\Transformers\GroupRolesTransformer;
 use App\Http\Transformers\SupplierTransformer;
+use App\Http\Transformers\SupplierRelateTransformer;
 use App\Http\Transformers\DataDictionarieTransformer;
 use App\Http\Transformers\RoleUserTransformer;
 use App\Events\OperateLogEvent;
@@ -136,158 +137,222 @@ class SupplierController extends Controller
         return $this->response->accepted();
     }
 
-    public function editGroup(Request $request,GroupRoles $groupRoles,User $user)
+    public function edit(Request $request,Supplier $supplier)
     {
         $payload = $request->all();
-        try {
-            $operate = new OperateEntity([
-                'obj' => $groupRoles,
-                'title' => null,
-                'start' => $groupRoles->name,
-                'end' => $payload['name'],
+        $array = [];
+        $arrayOperateLog = [];
+        $old_star = clone $supplier;
+        $user = Auth::guard('api')->user();
+        if ($request->has('name') && !empty($payload['name'])) {
+
+            $array['name'] = $payload['name'];//姓名
+            if ($array['name'] != $supplier->name) {
+                $operateName = new OperateEntity([
+                    'obj' => $supplier,
+                    'title' => '供应商名称',
+                    'start' => $supplier->name,
+                    'end' => $array['name'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateName;
+                event(new OperateLogEvent([
+                    $operateName,
+                ]));
+            }
+        }
+        if ($request->has('address') && !empty($payload['address'])) {
+            $array['name'] = $payload['name'];//姓名
+            if ($array['name'] != $supplier->name) {
+                $operateaddress = new OperateEntity([
+                    'obj' => $supplier,
+                    'title' => '地址',
+                    'start' => $supplier->name,
+                    'end' => $array['name'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateaddress;
+                event(new OperateLogEvent([
+                    $operateaddress,
+                ]));
+            }
+        }
+        if ($request->has('level')) {//等级
+            $array['level'] = $payload['level'];
+            $operateAvatar = new OperateEntity([
+                'obj' => $supplier,
+                'title' => '等级',
+                'start' => $supplier->level,
+                'end' => $payload['level'],
                 'method' => OperateLogMethod::UPDATE,
             ]);
+            $arrayOperateLog[] = $operateAvatar;
             event(new OperateLogEvent([
-                $operate,
+                $operateAvatar,
             ]));
-            $array = [
-                'name' => $payload['name'],
-            ];
-            $groupRoles->update($array);
-
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return $this->response->errorInternal('修改失败');
         }
-        return $this->response->accepted();
+        DB::beginTransaction();
+        try {
+            $supplier->update($array);
+            //删除供应商关联表
+            $num = DB::table("supplier_relates")->where('supplier_id',$supplier->id)->where('type',1)->delete();
+
+            $array = array();
+            foreach ($payload['currency'] as $value){
+                $array['key']=$value['name'];
+                $array['value']=$value['account'];
+                $array['currency']=$value['coin'];
+                $array['supplier_id']=$supplier->id;
+                $array['type']=1;
+                SupplierRelate::create($array);
+            }
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+
     }
 
-    public function deleteGroup(Request $request,GroupRoles $groupRoles)
-    {
-        $groupRoles->delete();
-        return $this->response->noContent();
-    }
 
-    /*后台权限 角色 控制台*/
-    public function getRole(Request $request)
+    public function contactShow(Request $request,Supplier $supplier)
     {
-        $roleInfo = Role::orderBy('name')->get();
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $supplierRelates = SupplierRelate::where('supplier_id',$supplier->id)->where('type',2)->orderBy('updated_at')->paginate($pageSize);
 
-        return $this->response->collection($roleInfo, new RoleTransformer());
+        return $this->response->paginator($supplierRelates, new SupplierRelateTransformer());
+
     }
 
 
-    public function storeRole(RoleRequest $roleRequest,Role $role)
+
+
+    public function addContact(Request $request,Supplier $supplier,SupplierRelate $supplierRelate)
     {
-        $payload = $roleRequest->all();
+
+        $payload = $request->all();
+        $phone = SupplierRelate::where('value',$payload['value'])->where('type',2)->get()->toArray();
+        if(!empty($phone)){
+            return $this->response->errorInternal('该手机号已存在！');
+        }
+
         $array = [
-            'group_id' => hashid_decode($payload['group_id']),
-            'name' => $payload['name'],
-            'description' => isset($payload['description']) ? $payload['description'] : '',
+            'key' => $payload['key'],
+            'value' => $payload['value'],
+            'type' => 2,
+            'supplier_id' => $supplier->id,
         ];
 
+        DB::beginTransaction();
         try {
-            $role->create($array);
-//            // 操作日志
-//            $operate = new OperateEntity([
-//                'obj' => $role,
-//                'title' => null,
-//                'start' => null,
-//                'end' => null,
-//                'method' => OperateLogMethod::CREATE,
-//            ]);
-//            event(new OperateLogEvent([
-//                $operate,
-//            ]));
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return $this->response->errorInternal('修改失败');
+
+            $supplier = SupplierRelate::create($array);
+          if ($request->has('value')) {//等级
+              $array['value'] = $payload['value'];
+              $operateAvatar = new OperateEntity([
+                  'obj' => $supplier,
+                  'title' => '手机号',
+                  'start' => null,
+                  'end' => null,
+                  'method' => OperateLogMethod::CREATE,
+              ]);
+              $arrayOperateLog[] = $operateAvatar;
+              event(new OperateLogEvent([
+                  $operateAvatar,
+              ]));
+          }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('操作失败');
         }
+        DB::commit();
         return $this->response->accepted();
     }
 
-
-    public function mobileRole(Request $request,Role $role)
+    public function editContact(Request $request,SupplierRelate $supplierRelate)
     {
         $payload = $request->all();
-        if(isset($payload['group_id'])){
-            $array = [
-                'group_id' => hashid_decode($payload['group_id']),
-            ];
-            try {
-                $role->update($array);
-    //            // 操作日志
-                $operate = new OperateEntity([
-                    'obj' => $role,
-                    'title' => $role->group_id,
-                    'start' => $payload['group_id'],
-                    'end' => null,
-                    'method' => OperateLogMethod::CREATE,
+        $array = [];
+        $arrayOperateLog = [];
+        $old_star = clone $supplierRelate;
+        $user = Auth::guard('api')->user();
+        if ($request->has('key') && !empty($payload['key'])) {
+
+            $array['key'] = $payload['key'];//姓名
+            if ($array['key'] != $supplierRelate->key) {
+                $operateName = new OperateEntity([
+                    'obj' => $supplierRelate,
+                    'title' => '联系人',
+                    'start' => $supplierRelate->key,
+                    'end' => $array['key'],
+                    'method' => OperateLogMethod::UPDATE,
                 ]);
+                $arrayOperateLog[] = $operateName;
                 event(new OperateLogEvent([
-                    $operate,
+                    $operateName,
                 ]));
-            } catch (\Exception $exception) {
-                Log::error($exception);
-                return $this->response->errorInternal('修改失败');
+
             }
-        }else{
-            return $this->response->errorInternal('分组ID错误');
         }
-        return $this->response->accepted();
+        if ($request->has('value') && !empty($payload['value'])) {
+            $array['value'] = $payload['value'];//姓名
+            if ($array['value'] != $supplierRelate->value) {
+                $operateaddress = new OperateEntity([
+                    'obj' => $supplierRelate,
+                    'title' => '电话',
+                    'start' => $supplierRelate->value,
+                    'end' => $array['value'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateaddress;
+                event(new OperateLogEvent([
+                    $operateaddress,
+                ]));
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $supplierRelate->update($array);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+
     }
 
-    public function editRole(RoleRequest $roleRequest,Role $role)
-    {
-        $payload = $roleRequest->all();
+    public function removeContact(Request $request,SupplierRelate $supplierRelate){
+        DB::beginTransaction();
         try {
+            $user = Auth::guard('api')->user();
+            if($user->id == $supplierRelate->creator_id){
+                $supplierRelate->delete();
+            }
+
+            // 操作日志
             $operate = new OperateEntity([
-                'obj' => $role,
+                'obj' => $supplierRelate,
                 'title' => null,
-                'start' => $role->name,
-                'end' => $role['name'],
-                'method' => OperateLogMethod::UPDATE,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DELETE,
             ]);
             event(new OperateLogEvent([
                 $operate,
             ]));
-            $array = [
-                'group_id' => hashid_decode($payload['group_id']),
-                'name' => $payload['name'],
-                'description' => isset($payload['description']) ? $payload['description'] : '',
-            ];
-
-            $role->update($array);
-
-        } catch (\Exception $exception) {
-            Log::error($exception);
-            return $this->response->errorInternal('修改失败');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('删除失败');
         }
-        return $this->response->accepted();
+        DB::commit();
     }
-
-    public function deleteRole(Request $request,Role $role)
-    {
-        $role->delete();
-        return $this->response->noContent();
-    }
-
-
-    public function rolePerson(Request $request,Role $role)
-    {
-        $payload = $request->all();
-        $roleId = $role->id;
-        
-        $roleInfo = RoleUser::where('role_id',$roleId)->get();
-        return $this->response->collection($roleInfo, new RoleUserTransformer());
-    }
-
-
-
-
-
-
-
-
 
 }

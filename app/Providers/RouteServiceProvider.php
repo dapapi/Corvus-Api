@@ -27,7 +27,7 @@ use App\Models\Production;
 use App\Models\ProjectHistorie;
 use App\Models\Position;
 use App\Models\Supplier;
-
+use App\Models\supplierRelate;
 
 use App\Models\Draft;
 use App\Models\Repository;
@@ -556,6 +556,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Supplier::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplierRelate', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = supplierRelate::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

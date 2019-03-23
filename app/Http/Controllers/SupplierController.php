@@ -331,10 +331,10 @@ class SupplierController extends Controller
     public function removeContact(Request $request,SupplierRelate $supplierRelate){
         DB::beginTransaction();
         try {
-            $user = Auth::guard('api')->user();
-            if($user->id == $supplierRelate->creator_id){
+//            $user = Auth::guard('api')->user();
+//            if($user->id == $supplierRelate->creator_id){
                 $supplierRelate->delete();
-            }
+//            }
 
             // 操作日志
             $operate = new OperateEntity([

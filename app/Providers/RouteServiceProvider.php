@@ -27,8 +27,7 @@ use App\Models\Production;
 use App\Models\ProjectHistorie;
 use App\Models\Position;
 use App\Models\Supplier;
-use App\Models\supplierRelate;
-
+use App\Models\SupplierRelate;
 use App\Models\Draft;
 use App\Models\Repository;
 use App\Models\ReviewQuestionnaire;

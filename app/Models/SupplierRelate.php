@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class SupplierRelate extends Model
 {
     protected $table = 'supplier_relates';
-
     protected $fillable = [
         'id',
         'type',

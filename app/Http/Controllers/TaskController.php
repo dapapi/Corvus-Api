@@ -1360,9 +1360,20 @@ class TaskController extends Controller
         $privacy = isset($payload['privacy']) ? $payload['privacy'] : 0;
         DB::beginTransaction();
         try {
+
+            $id = $task->creator_id;
+            $info = DB::select("call getprincipal($id)");
+            if($info){
+                $data = json_decode(json_encode($info), true);
+                $adjId = array_unique(array_column($data, 'user_id'));
+                $adjIdStr = implode(",", $adjId);
+            }else{
+                $adjIdStr = 0;
+            }
             //修改任务私密状态
             $array = [
-                'privacy' => $privacy
+                'privacy' => $privacy,
+                'adj_id'=>$adjIdStr
             ];
 
             $task->update($array);

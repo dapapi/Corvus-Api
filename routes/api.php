@@ -11,6 +11,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array', 'App\Http\Controllers\TestController@testArray');
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
+        $api->get('/test/department', 'App\Http\Controllers\TestController@department');
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
@@ -198,6 +199,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/contracts/{contract}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->get('/supplier/{supplier}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         //stars
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
@@ -788,6 +792,24 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //供应商管理
         $api->get('/supplier','App\Http\Controllers\SupplierController@index');
 
+        $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
+        $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
+
+        // 仪表盘
+        $api->get('/dashboards', 'App\Http\Controllers\DashboardController@index');
+        $api->post('/dashboards', 'App\Http\Controllers\DashboardController@store');
+        $api->get('/dashboards/{dashboard}', 'App\Http\Controllers\DashboardController@detail');
+        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
+        $api->get('/departments/{department}/dashboard/projects', 'App\Http\Controllers\ProjectController@dashboard');
+        $api->get('/departments/{department}/dashboard/clients', 'App\Http\Controllers\ClientController@dashboard');
+        $api->get('/departments/{department}/dashboard/stars', 'App\Http\Controllers\StarController@dashboard');
+        $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
+        // 供应商
+        $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
+        $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
+        $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
+        $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
+        $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
 
     });
 });

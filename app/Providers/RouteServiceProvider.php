@@ -12,6 +12,7 @@ use App\Models\Blogger;
 use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
 use App\Models\Contract;
+use App\Models\Dashboard;
 use App\Models\DataDictionary;
 use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
@@ -25,8 +26,8 @@ use App\Models\Client;
 use App\Models\Production;
 use App\Models\ProjectHistorie;
 use App\Models\Position;
-
-
+use App\Models\Supplier;
+use App\Models\SupplierRelate;
 use App\Models\Draft;
 use App\Models\Repository;
 use App\Models\ReviewQuestionnaire;
@@ -541,6 +542,29 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Position::findOrFail($id);
+                if ($entity == null){
+                    throw new Exception("合同不存在");
+                }
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplier', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Supplier::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplierRelate', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = supplierRelate::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

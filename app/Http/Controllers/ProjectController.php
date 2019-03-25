@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
 
+
 use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Repositories\FilterReportRepository;
@@ -29,6 +30,8 @@ use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
+
+
 
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
@@ -829,6 +832,7 @@ class ProjectController extends Controller
                     return null;
                 }else{
                     $expectations = $expectations->broker->toArray();
+
 //                ->broker;
                     $department_name = [];
                     if(!$expectations)
@@ -847,6 +851,7 @@ class ProjectController extends Controller
                     $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
                 }
             }
+
         }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
@@ -856,6 +861,7 @@ class ProjectController extends Controller
         if($project->trail){
             $result->addMeta('department_name',  $department_name);
         }
+
 
         if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 

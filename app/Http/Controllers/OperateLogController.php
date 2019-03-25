@@ -14,6 +14,8 @@ use App\Models\Project;
 use App\Models\Blogger;
 use App\Models\Announcement;
 use App\Models\Star;
+use App\Models\Supplier;
+
 use App\Models\Report;
 use App\Models\Issues;
 use App\Models\Calendar;
@@ -37,7 +39,7 @@ class OperateLogController extends Controller
         $this->operateLogRepository = $operateLogRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business,Supplier $supplier)
     {
 
         $payload = $request->all();
@@ -68,6 +70,8 @@ class OperateLogController extends Controller
             $query = $instance->operateLogs();
         }else if($business && $business->id){
             $query = $business->operateLogs();
+        }else if($supplier && $supplier->id){
+            $query = $supplier->operateLogs();
         }
         //TODO 其他模块
         switch ($status) {

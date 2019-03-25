@@ -176,6 +176,7 @@ class UserTransformer extends TransformerAbstract
 //        and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1))  and schedules.start_at <=   '. "now()" .'and schedules.end_at >='. "now()" .'
 //        and schedules.deleted_at is null order by start_at asc');
         $sch =  Schedule::select('schedules.*')
+
             ->leftJoin('module_users as mu', function ($join) use ($this_id) {
                 $join->on('mu.moduleable_id', 'schedules.id');
             })

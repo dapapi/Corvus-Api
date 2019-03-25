@@ -674,7 +674,7 @@ class ScheduleController extends Controller
             $this->hasauxiliary($request, $payload, $schedule, '', $user);
             $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
         } catch (\Exception $exception) {
-           // dd($exception);
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('更新日程失败');

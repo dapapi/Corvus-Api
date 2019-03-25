@@ -403,6 +403,10 @@ class OperateLogEventListener
                     $level = OperateLogLevel::HIGH;
                     $content = sprintf($this->create_star_schedules,$title);
                     break;
+                case OperateLogMethod::TASK_TO_SECRET://任务转私密，转公开
+                    $level = OperateLogLevel::HIGH;
+                    $content = $title;
+                    break;
 
             }
 

@@ -35,6 +35,7 @@ class Task extends Model
         'complete_at',
         'stop_at',
         'deleted_at',
+        'adj_id',
     ];
     const PRIVACY = 1;//私密
     const OPEN = 0;//公开
@@ -63,14 +64,9 @@ class Task extends Model
                 "' left join users as u on u.id = mu.user_id where t.id = tasks.id
         )")->where("privacy",self::OPEN)->orWhere(function ($query)use ($user){//查询与本人相关的私密
                 $query->where("privacy",Self::PRIVACY)->where(function ($query) use ($user){
-                    $query->where('tasks.creator_id',$user->id)->orWhere('tasks.principal_id',$user->id);
+                    $query->where('tasks.creator_id',$user->id)->orWhere('tasks.principal_id',$user->id)->orWhere('tasks.adj_id','!=',"0");
                 });
-            })->orWhere(DB::raw("{$userid} in (SELECT T3.user_id  FROM ( SELECT @r AS _id, (SELECT @r := department_pid FROM departments WHERE id = _id) AS department_pid,
-                @l := @l + 1 AS lvl
-                 FROM (SELECT @r := (select department_id from department_user where user_id = 'tasks.creator_id') as departmentIds  , @l := 0) vars,departments h WHERE @r <> 0 ) T1 
-              JOIN departments T2 ON T1._id = T2.id 
-              JOIN department_principal T3 ON T3.`department_id`=T2.id
-              ORDER BY T1.lvl DESC)"));
+            });
         }
     }
     public function scopeCreateDesc($query)

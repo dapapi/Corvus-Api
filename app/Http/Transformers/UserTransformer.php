@@ -6,6 +6,8 @@ use App\Models\Department;
 use App\User;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
+use App\ModuleUserType;
+use App\ModuleableType;
 use App\Models\Schedule;
 use App\Models\DepartmentPrincipal;
 
@@ -28,7 +30,7 @@ class UserTransformer extends TransformerAbstract
         'schedules',
         'position'
     ];
-   // protected $defaultIncludes = ['detail','job','salary'];
+    // protected $defaultIncludes = ['detail','job','salary'];
     public function transform(User $user)
     {
         //假头像
@@ -75,9 +77,9 @@ class UserTransformer extends TransformerAbstract
         ];
 
         $companyInfo = DB::table('department_user as du')//
-            ->join('departments as ds', function ($join) {
-                $join->on('du.department_id', '=', 'ds.id');
-            })
+        ->join('departments as ds', function ($join) {
+            $join->on('du.department_id', '=', 'ds.id');
+        })
             ->join('data_dictionaries as dds', function ($join) {
                 $join->on('dds.id', '=', 'ds.company_id');
             })
@@ -169,10 +171,34 @@ class UserTransformer extends TransformerAbstract
 
         $schedules= $user->userSchedules;
         $this_id = $user -> id;
-        $sch =  DB::select('select * from schedules inner join module_users on module_users.moduleable_id = schedules.id where module_users.user_id ='.$this_id.'
-        and ( (privacy = '.Schedule::OPEN.' and creator_id = '.$this_id.' and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1) or (privacy= '.Schedule::SECRET.'
-        and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1))  and schedules.start_at <=   '."'now()'".'and schedules.end_at >='."'now()'".'
-        and schedules.deleted_at is null order by start_at asc');
+//        $sch =  DB::select('select schedules.* from schedules inner join module_users on module_users.moduleable_id = schedules.id where module_users.user_id ='.$this_id.'
+//        and ( (privacy = '.Schedule::OPEN.' and creator_id = '.$this_id.' and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1) or (privacy= '.Schedule::SECRET.'
+//        and module_users.moduleable_type = '."'schedule'".' and module_users.type = 1))  and schedules.start_at <=   '. "now()" .'and schedules.end_at >='. "now()" .'
+//        and schedules.deleted_at is null order by start_at asc');
+        $sch =  Schedule::select('schedules.*')
+            ->leftJoin('module_users as mu', function ($join) use ($this_id) {
+                $join->on('mu.moduleable_id', 'schedules.id');
+            })
+            ->where(function ($query) use ($user,$this_id) {
+                $query->where(function ($query) use ($user, $this_id) {
+                    $query->where('privacy', Schedule::OPEN)
+                        ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                        ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'")
+                        ->Where('creator_id', $user->id)
+                        ->whereRaw("mu.user_id='" . $this_id . "'");
+                })
+                    ->orWhere(function ($query) use ($user) {
+                        $query->where('privacy', Schedule::SECRET)
+                            ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                            ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+
+                    });
+            })->whereRaw("schedules.start_at <='" . now() . "'")->whereRaw("schedules.end_at >='" . now() . "'")
+            ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy'
+                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $sch->getBindings(), $sch->toSql());
+//        dd($sql_with_bindings);
         return $this->collection($sch, new ScheduleTransformer());
     }
     public function includeEducation(User $user)

@@ -174,10 +174,10 @@ class ScheduleController extends Controller
         })->mergeBindings($subquery)
             ->where('start_at', '>=', $payload['start_date'])->where('end_at', '<=', $payload['end_date'])
             ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy'
-                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc');
-//            ->get();
-        $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
-        dd($sql_with_bindings);
+                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
+//        dd($sql_with_bindings);
         return $this->response->collection($schedules, new ScheduleTransformer());
     }
 

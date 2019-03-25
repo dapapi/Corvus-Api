@@ -244,16 +244,20 @@ class BloggerTransformer extends TransformerAbstract
 
             })->whereRaw("s.id=schedules.id")
                 ->select('mu.user_id');
-            $calendar = $calendars->schedules()
-                ->where(function ($query) use ($user, $subquery) {
-                    $query->where('privacy', Schedule::OPEN)
-                    ->whereRaw("$user->id in ({$subquery->toSql()})");
-                })->orWhere(function ($query) use ($user, $subquery) {
-                    $query->orWhere('creator_id', $user->id);
-                    $query->orWhere(function ($query) use ($user, $subquery) {
-                        $query->where('privacy', Schedule::SECRET);
-                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
-                    });
+            $calendars = $calendars->schedules();
+              $calendar =  $calendars->where(function ($query) use ($user, $subquery){
+
+                  $query->where(function ($query) use ($user, $subquery) {
+                      $query->where('privacy', Schedule::OPEN)
+                          ->whereRaw("$user->id in ({$subquery->toSql()})");
+                  })->orWhere(function ($query) use ($user, $subquery) {
+                      $query->orWhere('creator_id', $user->id);
+                      $query->orWhere(function ($query) use ($user, $subquery) {
+                          $query->where('privacy', Schedule::SECRET);
+                          $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                      });
+
+                  });
                 })->mergeBindings($subquery)
                 ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')
                 ->limit(3)->get();

@@ -1359,7 +1359,7 @@ class TaskController extends Controller
     {
 
         $payload = $request->all();
-        $privacy = isset($payload['privacy']) ? $payload['privacy'] : 0;
+        $privacy = isset($payload['privacy']) && $payload['privacy'] == 1 ? $payload['privacy'] : 0;
         DB::beginTransaction();
         try {
 
@@ -1379,6 +1379,19 @@ class TaskController extends Controller
             ];
 
             $task->update($array);
+
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => $task->privacy == 1 ? "将任务转私密":"将任务转公开",
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::TASK_TO_SECRET,
+            'field_name'    =>  'privacy',
+            'field_title'   =>  '隐私'
+            ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
 
         } catch (Exception $e) {
             Log::error($e);

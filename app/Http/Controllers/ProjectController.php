@@ -817,6 +817,7 @@ class ProjectController extends Controller
         // 记住修改  收入
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         // 获取目标艺人 所在部门
+        if($project->trail){
         $expectations = $project->trail->bloggerExpectations;
         if (count($expectations) <= 0) {
             $expectations = $project->trail->expectations->first();
@@ -841,13 +842,17 @@ class ProjectController extends Controller
             foreach ($expectations as $key => $val){
                 $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
             }
+         }
         }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
             $user = Auth::guard('api')->user();
-            $result->addMeta('department_name',  $department_name);
+            if($project->trail){
+                $result->addMeta('department_name',  $department_name);
+            }
+
             if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
                 $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');

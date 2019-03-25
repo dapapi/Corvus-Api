@@ -33,6 +33,8 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\ModuleUserRepository;
+use App\Repositories\ScopeRepository;
+
 use App\ResourceType;
 use App\TaskStatus;
 use App\TriggerPoint\TaskTriggerPoint;

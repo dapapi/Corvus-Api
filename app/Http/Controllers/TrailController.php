@@ -595,6 +595,9 @@ class TrailController extends Controller
 
             if ($request->has('contact')) {//联系人
                 $contact = $trail->contact;
+                if($contact)
+                {
+
                 if(isset($payload['contact']['name'])){
                     if($payload['contact']['name'] != $contact->name){
                         $operateName = new OperateEntity([
@@ -647,7 +650,27 @@ class TrailController extends Controller
                         $contact->update($payload['contact']);
                     }
                 }
+               }else{
+                    $dataArray = [];
+                    $dataArray['client_id'] = $client->id;
+                    if($request->has("contact.name")){
+                        $dataArray['name'] = $payload['contact']['name'];
+                    }
+                    if($request->has("contact.phone")){
+                        $dataArray['phone'] = $payload['contact']['phone'];
+                    }
+                    if($request->has("contact.wechat")){
+                        $dataArray['wechat'] = $payload['contact']['wechat'];
+                    }
+                    if($request->has("contact.other_contact_ways")){
+                        $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                    }
+                    $contact_id = Contact::create($dataArray);
+                    $trail->update(['contact_id' => $contact_id->id]);
+                }
+
             }
+
             if ($request->has('expectations') && is_array($payload['expectations'])) {
                 try{
                     $repository = new TrailStarRepository();

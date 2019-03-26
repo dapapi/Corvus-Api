@@ -6,30 +6,25 @@ use App\Events\ClientDataChangeEvent;
 use App\Events\ClientMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exports\ClientsExport;
-use App\Helper\Common;
 use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\FilterClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Transformers\ClientTransformer;
-use App\Http\Transformers\DashboardModelTransformer;
 use App\Imports\ClientsImport;
 use App\Models\Client;
 use App\Models\Contact;
-use App\Models\Department;
-use App\Models\DepartmentUser;
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
-use App\Models\Project;
-use App\Models\Trail;
-use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\ClientRepository;
 use App\Repositories\FilterReportRepository;
 use App\Repositories\ScopeRepository;
 use App\TriggerPoint\ClientTriggerPoint;
+use App\User;
 use Carbon\Carbon;
+use App\ModuleableType;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -231,7 +226,7 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request, Client $client,ClientRepository $repository,ScopeRepository $scopeRepository)
+    public function detail(Request $request, Client $client,ScopeRepository $repository)
     {
         $client = $client->searchData()->find($client->id);
         if($client == null){
@@ -248,18 +243,16 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-
+            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $scopeRepository->checkPower("clients/{id}",'put',$role_list,$client);
+            $repository->checkPower("clients/{id}",'put',$role_list,$client);
             $client->power = "true";
         }catch (Exception $exception){
             $client->power = "false";
         }
-        $client->powers = $repository->getPower($user,$client);
         return $this->response->item($client, new ClientTransformer());
     }
 
@@ -317,7 +310,9 @@ class ClientController extends Controller
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+          //  return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
         }
         DB::commit();
         return $this->response->created();
@@ -366,53 +361,5 @@ class ClientController extends Controller
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
 //        dd(DB::getQueryLog());
         return $this->response->paginator($clients, new ClientTransformer(!$all));
-    }
-
-    public function dashboard(Request $request, Department $department)
-    {
-        $days = $request->get('days', 7);
-        $departmentId = $department->id;
-        $departmentArr = Common::getChildDepartment($departmentId);
-        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
-
-
-        $clients = Client::select('clients.id as id', DB::raw('GREATEST(clients.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'clients.company as title')
-            ->whereIn('clients.principal_id', $userIds)
-            ->leftjoin('operate_logs', function ($join) {
-                $join->on('clients.id', '=', 'operate_logs.logable_id')
-                    ->where('operate_logs.logable_type', ModuleableType::CLIENT)
-                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
-            })->groupBy('clients.id')
-            ->orderBy('t', 'desc')
-            ->take(5)->get();
-
-        $result = $this->response->collection($clients, new DashboardModelTransformer());
-
-
-        $count = Client::whereIn('principal_id', $userIds)->count('id');
-
-        $timePoint = Carbon::today('PRC')->subDays($days);
-
-        $latestFollow = Client::whereIn('principal_id', $userIds)->join('operate_logs', function ($join) {
-            $join->on('clients.id', '=', 'operate_logs.logable_id')
-                ->where('operate_logs.logable_type', ModuleableType::CLIENT)
-                ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
-        })->where('operate_logs.created_at', '>', $timePoint)->distinct('clients.id')->count('clients.id');
-
-        $clientIdArr = Client::whereIn('principal_id', $userIds)->pluck('id');
-
-        $withTrail = Trail::whereIn('client_id', $clientIdArr)->where('created_at', '>', $days)->distinct('client_id')->count('client_id');
-        $trailIdArr = Trail::whereIn('client_id', $clientIdArr)->where('created_at', '>', $days)->pluck('id');
-        $withProject = Project::whereIn('trail_id', $trailIdArr)->where('created_at', '>', $days)->distinct('trail_id')->count('trail_id');
-
-        $clientInfoArr = [
-            'total' => $count,
-            'latest_follow' => $latestFollow,
-            'with_trail' => $withTrail,
-            'with_project' => $withProject,
-        ];
-
-        $result->addMeta('count', $clientInfoArr);
-        return $result;
     }
 }

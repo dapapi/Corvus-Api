@@ -20,7 +20,7 @@ class TaskTransformer extends TransformerAbstract
     public function transform(Task $task)
     {
         $array = [
-            'id' => hashid_encode($task->id),
+            'id' => $task->id,
             'title' => $task->title,
             'status' => $task->status,
             'priority' => $task->priority,
@@ -57,16 +57,24 @@ class TaskTransformer extends TransformerAbstract
         $array['operate'] = $operate;
 
         $user = Auth::guard('api')->user();
-        $adjId = $task->adj_id;
-        if($adjId !=="0"){
-            $adjIdArr = explode(",", $adjId);
-            if(in_array($user->id,$adjIdArr)){
 
+        $adjId = $task->adj_id;
+
+        if($adjId !=="0"){
+            if($user->id == $task->creator_id && $user->id == $task->principal_id){
+                $array['private']=0;
             }else{
-                unset($task->id);
-                $array = [];
+                $adjIdArr = explode(",", $adjId);
+                if(in_array($user->id,$adjIdArr)){
+
+                    $array['private']=0;
+                }else{
+                    $array['private']=1;
+                }
             }
+
         }
+
         return $array;
     }
 

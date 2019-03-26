@@ -104,9 +104,6 @@ class ApprovalGeneralController extends Controller
         $payload['keyword'] = isset($payload['keyword']) ? $payload['keyword'] : '';
         if ($payload['status'] == 1) {
             $payload['status'] = array('231');
-
-
-
             //查询角色
             $dataRole = DB::table('approval_flow_execute as afe')//
             ->join('role_users as ru', function ($join) {
@@ -453,6 +450,8 @@ class ApprovalGeneralController extends Controller
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
+
+
         //查询个人
         $dataUser = DB::table('approval_flow_change as afc')//
         ->join('users as u', function ($join) {
@@ -483,13 +482,12 @@ class ApprovalGeneralController extends Controller
                     $query->where('afg.name',$payload['group_name']);
                 }
             })
-            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)->orwhere('afc.approver_type','!=',247)
+            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)//->orwhere('afc.approver_type','!=',247)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
         //查询角色
         //根据user_id 查询角色id
-
         $dataUserInfo = DB::table('approval_flow_change as afc')
             ->join('role_users', function ($join) {
                 $join->on('role_users.role_id', '=','afc.role_id');
@@ -523,7 +521,6 @@ class ApprovalGeneralController extends Controller
             ->where('role_users.user_id',$userId)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
-
         $resArrs = array_merge($dataUser, $dataUserInfo);
         $resArrInfo = json_decode(json_encode($resArrs), true);
 

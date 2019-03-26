@@ -104,6 +104,7 @@ class TaskController extends Controller
             }
 
         })->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
+
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
@@ -1366,9 +1367,24 @@ class TaskController extends Controller
         $privacy = isset($payload['privacy']) && $payload['privacy'] == 1 ? $payload['privacy'] : 0;
         DB::beginTransaction();
         try {
+            if($privacy ==1){
+                $id = $task->creator_id;
+                $info = DB::select("call getprincipal($id)");
+                if($info){
+                    $data = json_decode(json_encode($info), true);
+                    $adjId = array_unique(array_column($data, 'user_id'));
+                    $adjIdStr = implode(",", $adjId);
+                }else{
+                    $adjIdStr = 0;
+                }
+
+            }else{
+                $adjIdStr = 0;
+            }
             //修改任务私密状态
             $array = [
-                'privacy' => $privacy
+                'privacy' => $privacy,
+                'adj_id'=>$adjIdStr
             ];
 
             $task->update($array);

@@ -10,6 +10,7 @@ class CalendarTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['starable', 'participants','schdule'];
 
+    protected $defaultIncludes = ['principal'];
     public function transform(Calendar $calendar)
     {
         return [
@@ -44,6 +45,13 @@ class CalendarTransformer extends TransformerAbstract
     {
         $participants = $calendar->participants;
         return $this->collection($participants, new UserTransformer());
+    }
+    public function includePrincipal(Calendar $calendar)
+    {
+        $principal = $calendar->principal;
+        if(!$principal)
+            return $this->null();
+        return $this->item($principal, new UsersTransformer());
     }
     public function includeSchdule(Calendar $calendar)
     {

@@ -50,7 +50,7 @@ class CalendarTransformer extends TransformerAbstract
     {
         $principal = $calendar->principal;
         if(!$principal)
-            return $this->null();
+            return null;
         return $this->item($principal, new UsersTransformer());
     }
     public function includeSchdule(Calendar $calendar)

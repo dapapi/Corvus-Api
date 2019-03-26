@@ -26,6 +26,7 @@ class Calendar extends Model
         'starable_id',
         'starable_type',
         'creator_id',
+        'principal_id',
         'type',
         'status',
     ];
@@ -43,6 +44,10 @@ class Calendar extends Model
     public function participants()
     {
         return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PARTICIPANT);
+    }
+    public function principal()
+    {
+        return $this->belongsTo(User::class, 'principal_id', 'id');
     }
     public function schedules()
     {

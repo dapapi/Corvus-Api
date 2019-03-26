@@ -188,7 +188,7 @@ class ApprovalFlowController extends Controller
                 $person = $now->person;
                 // todo 把主管换成人
                 if ($now->current_handler_type == 246) {
-                    $person = User::find(410);
+                    $person = User::find($now->principal_uid);
                 }
                 $array[] = [
                     'id' => hashid_encode($person->id),

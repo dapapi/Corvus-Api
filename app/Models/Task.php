@@ -50,12 +50,12 @@ class Task extends Model
         }, array());
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         if(in_array($userid,$result)){
-            return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
-                select u.id from tasks as t 
-                left join module_users as mu on mu.moduleable_id = t.id and 
-                mu.moduleable_type='".ModuleableType::TASK.
-                "' left join users as u on u.id = mu.user_id where t.id = tasks.id
-            )");
+//            return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
+//                select u.id from tasks as t
+//                left join module_users as mu on mu.moduleable_id = t.id and
+//                mu.moduleable_type='".ModuleableType::TASK.
+//                "' left join users as u on u.id = mu.user_id where t.id = tasks.id
+//            )");
         }else{
             return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from tasks as t 

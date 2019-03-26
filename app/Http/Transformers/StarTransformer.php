@@ -6,6 +6,7 @@ use App\Models\Calendar;
 use App\Models\Schedule;
 use App\Models\Star;
 use App\ModuleableType;
+use App\PrivacyType;
 use App\ModuleUserType;
 use App\TaskStatus;
 use League\Fractal\TransformerAbstract;
@@ -31,6 +32,7 @@ class StarTransformer extends TransformerAbstract
         if ($sub_str == "#" || $sub_str == null){
             $star->avatar = "https://res-crm.papitube.com/image/artist-no-avatar.png";
         }
+        $user = Auth::guard('api')->user();
         $array = [
             'id' => hashid_encode($star->id),
             'name' => $star->name,
@@ -53,8 +55,11 @@ class StarTransformer extends TransformerAbstract
             'terminate_agreement_at' => $star->terminate_agreement_at,
             'status' => $star->status,
             'type' => $star->type,
+
             'created_at' => $star->created_at->toDatetimeString(),
+//            'created_at' => $star->created_at,
             'updated_at' => $star->updated_at->toDatetimeString(),
+//            'updated_at' => $star->updated_at,
             'deleted_at' => $star->deleted_at,
 
             'platform'  =>  $star->platform,
@@ -70,11 +75,31 @@ class StarTransformer extends TransformerAbstract
             'star_location' =>  $star->star_location,
             // 日志内容
             'last_updated_user' => $star->last_updated_user,
+//            'last_updated_user' => $star->getLastUpdatedUserAttribute(),
             'last_updated_at'   =>  $star->last_updated_at,
-            'last_follow_up_at' => $star->last_follow_up_at,
+//            'last_updated_at'   =>  $star->getLastUpdatedAtAttribute(),
+//            'last_updated_at'   =>  $star->last_updated_at,
+//            'last_follow_up_at' => $star->getLastFollowUpAtAttribute(),
+            'last_follow_up_at' =>  $star->last_follow_up_at,
+            'star_risk_point'   =>  $star->star_risk_point,
+            'power' =>  $star->power,
 
         ];
-
+        if($star ->creator_id != $user->id)
+        {
+            foreach ($array as $key => $value)
+            {
+                $result = PrivacyType::isPrivacy(ModuleableType::STAR,$key);
+                if($result)
+                {
+                    $result = PrivacyType::excludePrivacy($user->id,$star->id,ModuleableType::STAR, $key);
+                    if(!$result)
+                    {
+                        $array[$key] = 'privacy';
+                    }
+                }
+            }
+        }
         $arraySimple = [
             'id' => hashid_encode($star->id),
             'flag'   =>  ModuleableType::STAR,
@@ -88,7 +113,7 @@ class StarTransformer extends TransformerAbstract
 
     public function includeCreator(Star $star)
     {
-        $user = $star->creator;
+        $user = $star->creator()->first();
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
@@ -125,7 +150,10 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeTrails(Star $star)
     {
-        $trails = $star->trails;
+        $trails = $star->trails()->get();
+        if ($trails->count() == 0){
+            return $this->null();
+        }
         return $this->collection($trails,new TrailTransformer());
     }
     public function includePublicity(Star $star){
@@ -156,24 +184,40 @@ class StarTransformer extends TransformerAbstract
         $user = Auth::guard("api")->user();
         //日历是公开的或者当前登录人在日历的参与人中或者是创建人
         $calendars = $star->calendar()
-            ->join('module_users as mu',function ($join){
-                $join->on('mu.moduleable_id','calendars.id')
-                    ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
-            })
-            ->where('privacy',Calendar::OPEN)
-            ->orWhere('calendars.creator_id',$user->id)
-            ->orWhere('mu.user_id',$user->id)
             ->first();//查找艺人日历
         if($calendars){//日历存在查找日程
-            $calendar = $calendars->schedules()
-                ->join('module_users as mu',function ($join){
-                    $join->on('mu.moduleable_id','schdules.id')
-                        ->whereRaw("mu.moduleable_type = '".ModuleUserType::PARTICIPANT."'");
-                })
-                ->where('schdules.privacy',Schedule::OPEN)
-                ->orWhere('schdules.creator_id')
-                ->orWhere('mu.user_id',$user->id)
-                ->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3);
+            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+                $join->on('mu.moduleable_id', 's.id')
+                    ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                    ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+
+            })->whereRaw("s.id=schedules.id")
+                ->select('mu.user_id');
+
+            $calendars = $calendars->schedules();
+
+
+            $calendar = $calendars->where(function ($query) use ($user, $subquery) {
+
+                $query->where(function ($query) use ($user, $subquery) {
+                    $query->where('privacy', Schedule::OPEN)
+                        ->whereRaw("$user->id in ({$subquery->toSql()})");
+                })->orWhere(function ($query) use ($user, $subquery) {
+                    $query->orWhere('creator_id', $user->id);
+                    $query->orWhere(function ($query) use ($user, $subquery) {
+                        $query->where('privacy', Schedule::SECRET);
+                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                    });
+                });
+
+                       })->mergeBindings($subquery)
+
+
+                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')
+                ->limit(3)->get();
+//            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
+//        dd($sql_with_bindings);
+
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
             return null;

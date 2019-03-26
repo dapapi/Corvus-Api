@@ -32,7 +32,9 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
 use App\Repositories\FilterReportRepository;
+use App\Repositories\ScopeRepository;
 use App\Repositories\StarReportRepository;
+use App\Repositories\StarRepository;
 use App\SignContractStatus;
 use App\StarSource;
 use App\User;
@@ -84,7 +86,20 @@ class StarController extends Controller
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
             ->paginate($pageSize);
+
         return $this->response->paginator($stars, new StarTransformer());
+    }
+
+    public function getStarRelated(Request $request)
+    {
+
+        $stars = Star::where('sign_contract_status', 2)->searchData()->select('id', 'name')->get();
+        $data = array();
+        $data['data'] = $stars;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
     }
 
     public function all(Request $request)
@@ -112,6 +127,18 @@ class StarController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        //登录用户对艺人编辑权限验证
+        try {
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository = new ScopeRepository();
+            $repository->checkPower("stars/{id}", 'put', $role_list, $this);
+            $star->setAttribute('power', "true");
+        } catch (Exception $exception) {
+            $star->setAttribute('power', "false");
+        }
+        //艺人隐私字段
         return $this->response->item($star, new StarTransformer());
     }
 
@@ -649,6 +676,9 @@ class StarController extends Controller
 //                $arrayOperateLog[] = $operateStarLocation;
             }
         }
+        if ($request->has("star_risk_point")) {
+            $array['star_risk_point'] = $payload['star_risk_point'];
+        }
         DB::beginTransaction();
         try {
             if ($request->has('affix') && count($request->get('affix'))) {
@@ -673,7 +703,6 @@ class StarController extends Controller
             }
 //            if (count($array) == 0)
 //                return $this->response->noContent();
-
             if (count($array) != 0)
                 $star->update($array);
             // 操作日志
@@ -691,7 +720,6 @@ class StarController extends Controller
 
     public function store(StarRequest $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
@@ -827,7 +855,7 @@ class StarController extends Controller
      * @param FilterRequest $request
      * @return \Dingo\Api\Http\Response
      */
-    public function getFilter(FilterRequest $request)
+    public function getFilter(FilterRequest $request, StarRepository $repository)
     {
         $payload = $request->all();
         $array = [];//查询条件
@@ -847,18 +875,22 @@ class StarController extends Controller
 
 
         $all = $request->get('all', false);
-        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
-        $query = Star::from(DB::raw($joinSql))->select("stars.*");
+//        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
+//        $query = Star::from(DB::raw($joinSql))->select("stars.*");
+
+        $query = $repository->starCustomSiftBuilder();
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
         });
 
 
-        $stars->select('stars.id', 'stars.name', 'stars.source', 'stars.created_at', 'stars.birthday', 'stars.created_at', 'stars.updated_at', 'stars.sign_contract_status', DB::raw("max(operate_logs.updated_at) as up_time"))
-            ->where($array);
-//            ->searchData();
-        $stars = $stars->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->groupBy('stars.id')->paginate($pageSize);
-
+        $stars->select('stars.id','stars.platform','stars.name','stars.source','stars.created_at','stars.birthday','stars.created_at','stars.updated_at','stars.sign_contract_status',"operate_logs.user_id")
+            ->where($array)
+            ->searchData();
+//        DB::connection()->enableQueryLog();
+        $stars = $stars->orderBy('operate_logs.created_at','desc')->groupBy('stars.id')->paginate($pageSize);
+//        dd($stars->toArray());
+//        dd(DB::getQueryLog());
 
         return $this->response->paginator($stars, new StarTransformer(!$all));
     }

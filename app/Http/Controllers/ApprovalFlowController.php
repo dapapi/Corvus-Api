@@ -353,8 +353,8 @@ class ApprovalFlowController extends Controller
             DB::rollBack();
             Log::error($exception);
         }
-        DB::commit();
 
+        DB::commit();
         $authorization = $request->header()['authorization'][0];
         $execute = Execute::where("form_instance_number", $instance->form_instance_number)->first();
         if ($execute->flow_type_id == 232) {//审批通过

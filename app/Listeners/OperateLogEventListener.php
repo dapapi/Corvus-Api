@@ -200,6 +200,7 @@ class OperateLogEventListener
             $title = $operate->title;
             $start = $operate->start;
             $end = $operate->end;
+            $field_name = $operate->field_name;
             $level = 0;
             $content = null;
             switch ($operate->method) {
@@ -402,6 +403,10 @@ class OperateLogEventListener
                     $level = OperateLogLevel::HIGH;
                     $content = sprintf($this->create_star_schedules,$title);
                     break;
+                case OperateLogMethod::TASK_TO_SECRET://任务转私密，转公开
+                    $level = OperateLogLevel::HIGH;
+                    $content = $title;
+                    break;
 
             }
 
@@ -413,6 +418,8 @@ class OperateLogEventListener
                 'method' => $operate->method,
                 'level' => $level,
                 'status' => 1,
+                'field_name'    =>$field_name,
+                'field_title' =>  $title
             ]);
 
         }

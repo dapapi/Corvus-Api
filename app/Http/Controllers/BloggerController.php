@@ -37,6 +37,9 @@ use App\Models\ReviewUser;
 use App\Models\Trail;
 use App\Models\TrailStar;
 use App\ModuleUserType;
+
+use App\Repositories\ScopeRepository;
+
 use App\ReviewItemAnswer;
 use App\Models\ReviewQuestionnaire;
 use App\Models\StarWeiboshuInfo;
@@ -77,21 +80,6 @@ class BloggerController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
-        $bloggers = Blogger::where(function ($query) use ($payload) {
-          FilterReportRepository::getTableNameAndCondition($payload,$query);
-        });
-//        $bloggers = $bloggers->searchData()->leftJoin('operate_logs',function($join){
-//            $join->on('bloggers.id','operate_logs.logable_id')
-//                ->where('logable_type',ModuleableType::BLOGGER)
-//                ->where('operate_logs.method','4');
-//        })->groupBy('bloggers.id')
-//            ->orderBy('up_time', 'desc')->orderBy('bloggers.created_at', 'desc')->select(['bloggers.id','nickname','platform_id','communication_status','intention','intention_desc','sign_contract_at','bloggers.level',
-//                'hatch_star_at','bloggers.status','hatch_end_at','producer_id','sign_contract_status','icon','type_id','desc','type_id','avatar','creator_id','gender','cooperation_demand','terminate_agreement_at','sign_contract_other',
-//                'bloggers.updated_at','bloggers.created_at','sign_contract_other_name',DB::raw("max(operate_logs.updated_at) as up_time")])
-//            ->paginate($pageSize);
-//                $sql_with_bindings = str_replace_array('?', $bloggers->getBindings(), $bloggers->toSql());
-//        dd($sql_with_bindings);
-
         $array = [];//查询条件
         //合同
         $status = empty($status) ? $array[] = ['sign_contract_status',1] : $array[] = ['sign_contract_status',$status];
@@ -106,7 +94,7 @@ class BloggerController extends Controller
             $array[] = ['communication_status',$payload['communication_status']];
         }
         // sign_contract_status   签约状态
-        $bloggers = $bloggers->where($array)->searchData()->leftJoin('operate_logs',function($join){
+        $bloggers = Blogger::where($array)->searchData()->leftJoin('operate_logs',function($join){
             $join->on('bloggers.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::BLOGGER)
                 ->where('operate_logs.method','4');
@@ -140,7 +128,7 @@ class BloggerController extends Controller
     }
 
 
-    public function show(Blogger $blogger)
+    public function show(Blogger $blogger,ScopeRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -153,6 +141,17 @@ class BloggerController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+
+        //登录用户对博主编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $res = $repository->checkPower("bloggers/{id}",'put',$role_list,$blogger);
+            $blogger->power = "true";
+        }catch (Exception $exception){
+            $blogger->power = "false";
+        }
         return $this->response->item($blogger, new BloggerTransformer());
     }
     public function recycleBin(Request $request)
@@ -993,7 +992,9 @@ class BloggerController extends Controller
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+           // return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
         }
         DB::commit();
         return $this->response->created();

@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Http\Transformers;
-use App\ModuleableType;
 use App\PrivacyType;
 use App\TaskStatus;
+use App\Models\Schedule;
+use App\ModuleableType;
+use App\ModuleUserType;
 use App\Models\Blogger;
 use League\Fractal\TransformerAbstract;
 use App\Models\PrivacyUser;
@@ -92,6 +94,7 @@ class BloggerTransformer extends TransformerAbstract
             'last_updated_user' => $blogger->last_updated_user,
             'last_updated_at' => $blogger->last_updated_at,
             'updated_at' => $blogger->updated_at->toDateTimeString(),
+            'power' =>  $blogger->power,//对博主是否有编辑权限
         ];
 
         if(!$setprivacy1 && $blogger ->creator_id != $user->id){
@@ -174,7 +177,11 @@ class BloggerTransformer extends TransformerAbstract
     }
     public function includeTasks(Blogger $blogger)
     {
-        $tasks = $blogger->tasks()->where('status',TaskStatus::NORMAL)->stopAsc()->limit(3)->get();
+        $tasks = $blogger->tasks()->searchData()
+            ->where('status',TaskStatus::NORMAL)
+            ->where('resourceable_id',$blogger->id)
+            ->where('resourceable_type','blogger')
+            ->stopAsc()->limit(3)->get();
         return $this->collection($tasks, new TaskTransformer());
     }
     public function includeOperateLogs(Blogger $blogger)
@@ -212,10 +219,51 @@ class BloggerTransformer extends TransformerAbstract
     }
     public function includeSchedule(Blogger $blogger)
     {
-
+        $user = Auth::guard("api")->user();
         $calendars = $blogger->calendars()->first();
         if($calendars){
-            $calendar = $calendars->schedules()->select('*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+//            $calendar = $calendars->schedules()
+//                ->join('module_users as mu',function ($join){
+//
+//                    $join->on('mu.moduleable_id','schedules.id')
+//                        ->whereRaw("mu.moduleable_type = '".ModuleableType::SCHEDULE."'");
+//                })
+//                ->where('schedules.privacy',Schedule::OPEN)
+//                ->Orwhere(function ($query) use ($user){
+//                    $query->where('schedules.privacy',Schedule::SECRET)
+//                        ->orWhere('schedules.creator_id',$user->id)
+//                        ->orWhere('mu.user_id',$user->id);
+//                })->where('schedules.calendar_id',$calendars->id)
+//
+//                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
+
+            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+                $join->on('mu.moduleable_id', 's.id')
+                    ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                    ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+
+            })->whereRaw("s.id=schedules.id")
+                ->select('mu.user_id');
+            $calendars = $calendars->schedules();
+              $calendar =  $calendars->where(function ($query) use ($user, $subquery){
+
+                  $query->where(function ($query) use ($user, $subquery) {
+                      $query->where('privacy', Schedule::OPEN)
+                          ->whereRaw("$user->id in ({$subquery->toSql()})");
+                  })->orWhere(function ($query) use ($user, $subquery) {
+                      $query->orWhere('creator_id', $user->id);
+                      $query->orWhere(function ($query) use ($user, $subquery) {
+                          $query->where('privacy', Schedule::SECRET);
+                          $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                      });
+
+                  });
+                })->mergeBindings($subquery)
+                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')
+                ->limit(3)->get();
+//            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
+//        dd($sql_with_bindings);
+
             return $this->collection($calendar,new ScheduleTransformer());
         }else{
             return null;

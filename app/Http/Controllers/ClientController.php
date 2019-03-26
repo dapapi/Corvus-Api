@@ -25,7 +25,9 @@ use App\Models\Project;
 use App\Models\Trail;
 use App\ModuleableType;
 use App\OperateLogMethod;
+use App\Repositories\ClientRepository;
 use App\Repositories\FilterReportRepository;
+use App\Repositories\ScopeRepository;
 use App\TriggerPoint\ClientTriggerPoint;
 use Carbon\Carbon;
 use Exception;
@@ -40,6 +42,7 @@ class ClientController extends Controller
     // todo 加日志
     public function index(Request $request)
     {
+        $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $clients = Client::searchData()
             ->leftJoin('operate_logs',function($join){
@@ -48,14 +51,42 @@ class ClientController extends Controller
                     ->where('operate_logs.method','4');
 
             })
+            ->where(function ($query) use ($request, $payload) {
+                if ($request->has('keyword'))
+                    $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
+                if ($request->has('grade'))
+                    $query->where('grade', $payload['grade']);
+                if ($request->has('principal_ids') && count($payload['principal_ids'])) {
+                    foreach ($payload['principal_ids'] as &$id) {
+                        $id = hashid_decode((int)$id);
+                    }
+                    unset($id);
+                    $query->whereIn('principal_id', $payload['principal_ids']);
+                }
+                if ($request->has('type')){
+                    $query->where('type',$payload['type']);
+                }
+            })
             ->groupBy('clients.id')
-            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','type','grade','province','city','district',
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','company','clients.type','grade','province','city','district',
                 'address','clients.status','principal_id','creator_id','client_rating','size','desc','clients.created_at','clients.updated_at','protected_client_time',
                 DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
 //        dd($sql_with_bindings);
         return $this->response->paginator($clients, new ClientTransformer());
+    }
+
+    public function getClientRelated(Request $request){
+
+        $clients = Client::searchData()->select('id','company')->get();
+
+        $data = array();
+        $data['data'] = $clients;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
     }
 
     public function all(Request $request)
@@ -81,7 +112,6 @@ class ClientController extends Controller
 
         DB::beginTransaction();
         try {
-
             $client = Client::create($payload);
             // 操作日志
             $operate = new OperateEntity([
@@ -96,13 +126,23 @@ class ClientController extends Controller
             ]));
 
             if ($request->has('contact')) {
-                $contact = Contact::create([
-                    'name' => $payload['contact']['name'],
-                    'phone' => $payload['contact']['phone'],
-                    'position' => $payload['contact']['position'],
-                    'client_id' => $client->id,
-                    'type' => $payload['contact']['type']
-                ]);
+
+                $dataArray = [];
+                $dataArray['client_id'] = $client->id;
+                $dataArray['name'] = $payload['contact']['name'];
+                $dataArray['position'] = $payload['contact']['position'];
+                $dataArray['client_id'] = $client->id;
+                $dataArray['type'] = $payload['contact']['type'];
+                if($request->has("contact.phone")){
+                    $dataArray['phone'] = $payload['contact']['phone'];
+                }
+                if($request->has("contact.wechat")){
+                    $dataArray['wechat'] = $payload['contact']['wechat'];
+                }
+                if($request->has("contact.other_contact_ways")){
+                    $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                }
+                $contact = Contact::create($dataArray);
                 $operate = new OperateEntity([
                     'obj' => $client,
                     'title' => '该用户',
@@ -138,7 +178,7 @@ class ClientController extends Controller
             unset($payload['_url']);
 
         $columns = DB::getDoctrineSchemaManager()->listTableDetails('clients');
-        if ($request->has('principal_id'))
+        if ($request->has('principal_id') && !empty($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
         try {
@@ -191,7 +231,7 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request, Client $client)
+    public function detail(Request $request, Client $client,ScopeRepository $repository)
     {
         $client = $client->searchData()->find($client->id);
         if($client == null){
@@ -208,6 +248,16 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("clients/{id}",'put',$role_list,$client);
+            $client->power = "true";
+        }catch (Exception $exception){
+            $client->power = "false";
+        }
         return $this->response->item($client, new ClientTransformer());
     }
 
@@ -228,7 +278,7 @@ class ClientController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-        })->searchData() ->leftJoin('operate_logs',function($join){
+        })->searchData()->leftJoin('operate_logs',function($join){
             $join->on('clients.id','operate_logs.logable_id')
                 ->where('logable_type',ModuleableType::CLIENT)
                 ->where('operate_logs.method','4');
@@ -282,7 +332,7 @@ class ClientController extends Controller
      * @param FilterRequest $request
      * @return \Dingo\Api\Http\Response
      */
-    public function getFilter(FilterRequest $request)
+    public function getFilter(FilterRequest $request,ClientRepository $repository)
     {
         $payload = $request->all();
         $array = [];
@@ -301,16 +351,19 @@ class ClientController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $all = $request->get('all', false);
-        $joinSql = FilterJoin::where('table_name', 'clients')->first()->join_sql;
-        $query = Client::from(DB::raw($joinSql));
+//        $joinSql = FilterJoin::where('table_name', 'clients')->first()->join_sql;
+//        $query = Client::from(DB::raw($joinSql));
+        $query = $repository->clientCustomSiftBuilder();
         $clients = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
+        DB::connection()->enableQueryLog();
+        $clients = $clients->where($array)
 
-        $stars = $clients->where($array)
+            ->select('clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
-
-        return $this->response->paginator($stars, new ClientTransformer(!$all));
+//        dd(DB::getQueryLog());
+        return $this->response->paginator($clients, new ClientTransformer(!$all));
     }
 
     public function dashboard(Request $request, Department $department)

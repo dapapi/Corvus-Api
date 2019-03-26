@@ -9,6 +9,7 @@ namespace App\Traits;
 
 use App\Models\OperateLog;
 use App\OperateLogMethod;
+use Illuminate\Support\Facades\DB;
 
 trait OperateLogTrait
 {
@@ -29,8 +30,7 @@ trait OperateLogTrait
 
     public function getLastUpdatedUserAttribute()
     {
-        $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('created_at', 'desc')->first();
-
+        $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('operate_logs.created_at', 'desc')->first();
         if ($lastFollowUp)
             return $lastFollowUp->user->name;
         else
@@ -40,7 +40,6 @@ trait OperateLogTrait
     public function getLastUpdatedAtAttribute()
     {
         $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('created_at', 'desc')->first();
-
         if ($lastFollowUp)
             return $lastFollowUp->created_at->toDateTimeString();
         else

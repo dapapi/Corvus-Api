@@ -1,12 +1,15 @@
 <?php
 namespace App\Http\Controllers;
-
 /**
  * Created by PhpStorm.
  * User: wy
  * Date: 2018/11/19
  * Time: 下午2:14
  */
+
+use App\Events\AnnouncementMessageEvent;
+use App\ModuleableType;
+
 use App\AffixType;
 use App\Http\Requests\AccessoryStoreRequest;
 use App\Http\Transformers\AnnouncementTransformer;
@@ -19,7 +22,10 @@ use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\AnnouncementClassify;
 use App\Models\AnnouncementScope;
+use App\Models\OperateLog;
+
 use App\Repositories\AffixRepository;
+use App\TriggerPoint\AnnouncementTriggerPoint;
 use Illuminate\Http\Request;
 use App\Events\OperateLogEvent;
 use App\Repositories\OperateLogRepository;
@@ -43,6 +49,7 @@ class AnnouncementController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $status = empty($payload['status'])?1:$payload['status'];
+        $readflag = empty($payload['readflag'])?2:$payload['readflag'];
         $userId = $user->id;
         $department = DepartmentUser::where('user_id',$userId)->get(['department_id'])->toarray();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -65,18 +72,31 @@ class AnnouncementController extends Controller
                 {
                     $ar[$key] = $value->announcement_id;
                 }
+                $query =   Announcement::whereIn('announcement.id',$ar)
+                      ->leftJoin('operate_logs',function($join){
+                          $join->on('announcement.id','operate_logs.logable_id')
+                              ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                              ->where('operate_logs.method',OperateLogMethod::LOOK);
+                      });
                 if($status == 1){
-                    $stars = Announcement::whereIn('id',$ar)->createDesc()->paginate($pageSize);
+                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')
+                    ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                            ,'announcement.updated_at')
+                        ->paginate($pageSize);
+//                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
                 }else{
-                    $stars = Announcement::whereIn('id',$ar)->where('creator_id',$userId)->createDesc()->paginate($pageSize);
+                    $stars = Announcement::leftJoin('operate_logs',function($join){
+                        $join->on('announcement.id','operate_logs.logable_id')
+                            ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                            ->where('operate_logs.method',OperateLogMethod::LOOK);
+                    })->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
                 }
-
               }else{
                   $stars = null;
               }
         }
-
-
         return $this->response->paginator($stars, new AnnouncementTransformer());
     }
 //    public function generateTree($array,$pi){
@@ -159,7 +179,17 @@ class AnnouncementController extends Controller
     public function show(Request $request,Announcement $announcement)
     {
 
-
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $announcement,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $this->response->item($announcement, new AnnouncementTransformer());
 
     }
@@ -191,11 +221,13 @@ class AnnouncementController extends Controller
             DB::beginTransaction();
             try {
                 $star = Announcement::create($payload);
+
                 if ($request->has('affix')) {
                     foreach ($payload['affix'] as $affix) {
                         $this->affixRepository->addAffix($user, $star, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
                     }
                 }
+
                 foreach($scope as $key => $value){
                     $arr['announcement_id'] = $star->id;
                     $arr['department_id'] = hashid_decode($value);
@@ -210,10 +242,22 @@ class AnnouncementController extends Controller
         }else{
             return $this->response->errorInternal('创建失败');
         }
+
+
+        //公告创建成功发送消息
+
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($star,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("创建公告消息发送失败[$star->title]");
+            Log::error($exception);
+        }
+
         return $this->response->item($star, new AnnouncementTransformer());
 
     }
-    public function remove(Announcement $announcement)
+    public function remove(Request $request,Announcement $announcement)
     {
         DB::beginTransaction();
         try {
@@ -239,6 +283,16 @@ class AnnouncementController extends Controller
             return $this->response->errorInternal('删除失败');
         }
         DB::commit();
+
+        //删除公告成功发送消息
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$announcement->title]");
+
+            Log::error($exception);
+        }
     }
     public function edit(AnnouncementUpdateRequest $request, Announcement $announcement)
     {
@@ -392,6 +446,16 @@ class AnnouncementController extends Controller
         }
         DB::commit();
 
+        //修改公告成功发送消息
+
+        try{
+            $authorization = $request->header()['authorization'][0];
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+        }catch (\Exception $exception){
+            Log::error("修改公告消息发送失败[$announcement->title]");
+            Log::error($exception);
+        }
+
         return $this->response->accepted();
 
     }
@@ -405,5 +469,63 @@ class AnnouncementController extends Controller
        // dd($this->response->item($department, new DepartmentTransformer()));
 
         return $department;
+    }
+    public function editReadflag(Request $request, Announcement $announcement)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $array = [];
+        $arrayOperateLog = [];
+        if ($request->has('readflag')) {
+
+            $array['readflag'] = $payload['readflag'];
+            if ($array['readflag'] != empty($announcement->look)? 0 :1) {
+
+            } else {
+                unset($array['readflag']);
+            }
+        }
+        DB::beginTransaction();
+        try {
+            if($array['readflag'] ==  0){
+                $announcement->look->update(['status' => 2]);
+                $operate = new OperateEntity([
+                    'obj' => $announcement,
+                    'title' => '已读状态',
+                    'start' => 1,
+                    'end' => $array['readflag'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+            if($array['readflag'] ==  1){
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $announcement,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::LOOK,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+            // 操作日志
+          //  event(new OperateLogEvent($arrayOperateLog));
+        } catch (Exception $e) {
+//            dd($e);
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
+
+        return $this->response->accepted();
+
+
+
     }
 }

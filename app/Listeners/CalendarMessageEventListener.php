@@ -64,7 +64,7 @@ class CalendarMessageEventListener
      */
     public function sendMessageWhenCreateSchedule()
     {
-        $subheading = $title = $this->user->name."邀请你参与了任务";
+        $subheading = $title = $this->user->name."邀请你参与了日程";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
 
         $this->sendMessage($title,$subheading,$send_to);
@@ -91,6 +91,10 @@ class CalendarMessageEventListener
         $schedule_arr = $this->schedule->toArray();
         foreach ($old_schedule_arr as $key => $value){
             if ($key == "start_at" || $key == "end_at" || $key == "material_id" || $key == "position"){
+                if ($key == "start_at" || $key == "end_at"){
+                    $value = date('Y-m-d H:i:s',strtotime($value));
+                    $schedule_arr[$key] = date('Y-m-d H:i:s',strtotime($schedule_arr[$key]));
+                }
                 if ($value != $schedule_arr[$key]){
                     $update_filed = "";
                     if ($key == "start_at")

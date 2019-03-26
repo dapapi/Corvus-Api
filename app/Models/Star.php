@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\Repositories\PrivacyUserRepository;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
+use App\Traits\PrivacyFieldTrait;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -19,12 +21,13 @@ class Star extends Model
 {
     use SoftDeletes;
     use OperateLogTrait;
+    use PrivacyFieldTrait;
     private  $model_dic_id = DataDictionarie::STAR;//数据字典中模块id
-
     protected $fillable = [
         'name',//姓名
         'desc',//描述
         'broker_id',//经纪人ID
+        'principal_id',//负责人
         'avatar',//头像
         'gender',//性别
         'birthday',//生日
@@ -55,7 +58,9 @@ class Star extends Model
         'qita_fans_num',//其他平台粉丝数
         'artist_scout_name',//星探
         'star_location',//地区
+        'star_risk_point',//艺人风险点
     ];
+
 
 //隐藏字段
 //'contract_type',//合同类型
@@ -142,4 +147,50 @@ class Star extends Model
     {
 
     }
+
+    /**
+     * 艺人隐私字段
+     * @param string $key
+     * @return mixed|string
+     * @author lile
+     * @date 2019-03-13 18:57
+     */
+//    public function getAttribute($key)
+//    {
+//        return $this->getPrivacyField(ModuleableType::STAR,$key);
+//    }
+    /**
+     * 艺人隐私字段
+     * @param string $key
+     * @return mixed|string
+     * @author lile
+     * @date 2019-03-13 18:57
+     */
+//    public function setAttribute($key, $value)
+//    {
+//        return $this->setPrivacyField(ModuleableType::STAR,$key,$value);
+//    }
+
+
+    /**
+     * 判断用户是否有编辑权限
+     * @return string
+     * @author lile
+     * @date 2019-03-13 18:58
+     */
+//    public function getPowerAttribute()
+//    {
+//        //登录用户对艺人编辑权限验证
+//        try{
+//            $user = Auth::guard("api")->user();
+//            //获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $repository = new ScopeRepository();
+//            $repository->checkPower("stars/{id}",'put',$role_list,$this);
+//            return "true";
+//        }catch (Exception $exception){
+//            return "false";
+//        }
+//    }
+
 }

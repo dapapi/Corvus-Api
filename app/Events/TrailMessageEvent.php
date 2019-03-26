@@ -21,10 +21,15 @@ class TrailMessageEvent
     public $authorization;
     public $user;
     public $meta;
+
     /**
-     * Create a new event instance.
-     *
-     * @return void
+     * 消息事件构造器
+     * TrailMessageEvent constructor.
+     * @param Trail $model 线索模型
+     * @param $trigger_point 线索触发点(常量)
+     * @param $authorization 当前登录用户的token
+     * @param User $user    发送消息的的用户，及当前登录用户
+     * @param array $meta   额外参数
      */
     public function __construct(Trail $model,$trigger_point,$authorization,User $user,$meta = [])
     {

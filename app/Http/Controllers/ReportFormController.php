@@ -12,6 +12,7 @@ use App\Exports\ClientsStatementExport;
 use App\Exports\ProjectsStatementExport;
 use App\Exports\StarsStatementExport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportFormController extends Controller
 {
@@ -27,13 +28,81 @@ class ReportFormController extends Controller
     public function reportExport(Request $request)
     {
         $file = '当前商务报表报表导出' . date('YmdHis', time()) . '.xlsx';
-        return (new ReportStatementExport($request))->download($file);
+        return Excel::download(new ReportStatementExport($request), $file);
+           // 原生导出  成 xls
+//        $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
+//        $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+//        $dataArray = (new ReportFormRepository())->CommercialFunnelReportFrom($start_time,$end_time);
+//        $dataTime = date('YmdHis', time());
+//        $filename = '当前商务报表报表导出' . $dataTime;
+//
+//        header("Content-Type: application/vnd.ms-excel;charset=utf-8");
+//        header("Accept-Ranges:bytes");
+//        header("Content-type:application/vnd.ms-excel");
+//
+//        header("Content-type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+//        $filename = rawurlencode($filename);
+//        header("Content-Disposition:attachment;filename =$dataTime.xlsx;filename*=utf-8''$filename.xls");
+//        header("Cache-Control: public");
+//        header("Expires: 0");
+//        header("Access-Control-Allow-Origin:*");
+//        Header("Access-Control-Allow-Credentials:true");
+//
+//        $data = '';
+//        $data .= "<table border='1'>";
+//        $data .= "<tr><td colspan='1'>     </td><td colspan='1'>       </td><td colspan='1'>接触数量 </td><td colspan='1'>数量占比</td><td colspan='1'>接触环比增量</td><td colspan='1'>接触同比增量</td><td colspan='1'>达成数量</td>
+//         <td colspan='1'>达成环比增量 </td><td colspan='1'>达成同比增量 </td><td colspan='1'>客户转化率 </td></tr>";
+//        $data .= "<tr><td colspan='1'>     </td><td colspan='1'>       </td><td colspan='1'>".$dataArray['sum']."</td><td colspan='1'>".$dataArray['ratio_sum']*100..'%'."</td><td colspan='1'>".$dataArray['ring_ratio_increment_sum']."</td><td colspan='1'>".$dataArray['annual_ratio_increment_sum']."</td>
+//         <td colspan='1'>".$dataArray['confirm_annual_increment_sum']."</td><td colspan='1'>".$dataArray['confirm_ratio_increment_sum']." </td><td colspan='1'>".$dataArray['confirm_sum']." </td><td colspan='1'>".$dataArray['customer_conversion_rate_sum']*100..'%' ." </td></tr>";
+//        $data .= "</table>";
+//        $data .= "<br>";
+//        foreach($dataArray['data']['industry_data'] as $key => $val)
+//        {
+//
+//            $key = $key==0?'品类':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";      $data .= "</table>";
+//            $data .= "<br>";
+//        }
+//        foreach($dataArray['data']['cooperation_data'] as $key => $val)
+//        {
+//            $key = $key==0?'合作':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";
+//            $data .= "</table>";
+//            $data .= "<br>";
+//        }
+//        foreach($dataArray['data']['resource_type_data'] as $key => $val)
+//        {
+//            $key = $key==0?'线索来源':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";     $data .= "</table>";
+//            $data .= "<br>";
+//        }
+//        foreach($dataArray['data']['priority_data'] as $key => $val)
+//        {
+//            $key = $key==0?'优先级':'';
+//            $data .= "<table border='1'>";
+//            $data .= "<tr><td colspan='1'>".$key."</td><td colspan='1'>$val->name</td><td colspan='1'>$val->number</td><td colspan='1'>".$val->ratio*100..'%'." </td><td colspan='1'>$val->ring_ratio_increment</td><td colspan='1'>$val->annual_increment</td><td colspan='1'>$val->confirm_number </td><td colspan='1'>$val->confirm_annual_increment</td>
+//         <td colspan='1'>$val->confirm_ratio_increment </td><td colspan='1'>".$val->customer_conversion_rate.'%'." </td></tr>";     $data .= "</table>";
+//            $data .= "<br>";
+//        }
+//        $data.='</table>';
+//
+//        echo $data . "\t";
     }
     //商业漏斗分析报表---销售漏斗
     public function salesFunnel(CommercialFunnelRequest $request){
         //默认分析7天
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
+
+
+
+
         return (new ReportFormRepository())->salesFunnel($start_time,$end_time);
     }
     //销售线索报表
@@ -62,7 +131,8 @@ class ReportFormController extends Controller
         $target_star = $request->get('target_star',null);
         $department = $department == null ? null : hashid_decode($department);
         $target_star = $target_star == null ? null :hashid_decode($target_star);
-        return (new ReportFormRepository())->newTrail($start_time,$end_time,$department,$target_star);
+        $client = $request->get('client','pc');//终端
+        return (new ReportFormRepository())->newTrail($start_time,$end_time,$department,$target_star,$client);
     }
     //销售线索占比
     public function perTrail(Request $request)
@@ -116,7 +186,8 @@ class ReportFormController extends Controller
         $target_star = $request->get('target_star',null);
         $target_star = $target_star == null ? null :hashid_decode($target_star);
         $department = $department == null ? null : hashid_decode($department);
-        return (new ReportFormRepository())->newProject($start_time,$end_time,$department,$target_star);
+        $client = $request->get("client",'pc');
+        return (new ReportFormRepository())->newProject($start_time,$end_time,$department,$target_star,$client);
     }
     //项目占比
     public function percentageOfProject(Request $request)
@@ -149,7 +220,8 @@ class ReportFormController extends Controller
     {
         $start_time = $request->get('start_time',Carbon::now()->addDay(-7)->toDateTimeString());
         $end_time = $request->get("end_time",Carbon::now()->toDateTimeString());
-        return (new ReportFormRepository())->clientAnalysis($start_time,$end_time);
+        $_client = $request->get('client','pc');
+        return (new ReportFormRepository())->clientAnalysis($start_time,$end_time,$_client);
     }
     public function starReport(Request $request)
     {

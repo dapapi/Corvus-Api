@@ -80,15 +80,12 @@ class ScheduleRemind extends Command
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
         $now = Carbon::now();
-        echo $now->toDateTimeString();
-        //日程提醒
-        $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select('remind','id','title','creator_id','start_at')->get();
+        //查询开始时间大于当前时间的日程
+        $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select(['remind','id','title','creator_id','start_at'])->get();
         foreach ($schdules->toArray() as $schdule){
-//            echo $schdule['title'];
             $remid_time = Carbon::createFromTimeString($schdule['start_at']);
-            echo $schdule['title'].": ".$remid_time->diffInMinutes($now)."\n";
             $flag = false; //是否发消息标志
-            echo $schdule['remind'];
+            //提醒 1:无 2:日程发生时 3:5分钟前 4:10分钟前 5:15分钟前 6:30分钟前 7:1小时前 8:2小时前 9:1天前 10:2天前
             switch ($schdule['remind']){
                 case Schedule::REMIND_CURR://日程发生时
                     if ($remid_time->diffInMinutes($now) == 0){
@@ -131,12 +128,19 @@ class ScheduleRemind extends Command
                     }
                     break;
             }
+//            Log::info($flag);
             if($flag){
                 $user = User::find(config("app.schdule_user_id"));
                 //发消息
                 $schdule_obj = Schedule::find($schdule['id']);
                 Log::info("发送日程提醒".$schdule_obj->title);
-                event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
+                try{
+                    event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
+                    Log::info("日程提醒消息发送成功");
+                }catch (\Exception $exception){
+                    Log::error("日程提醒消息发送失败");
+                    Log::error($exception);
+                }
             }
         }
 //        Log::info("日程提醒检测结束");

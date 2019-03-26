@@ -22,6 +22,9 @@ class ScheduleTransformer extends TransformerAbstract
             'position' => $schedule->position,
             'repeat' => $schedule->repeat,
             'desc' => $schedule->desc,
+            'icon_url'  =>  $schedule->icon_url,
+            'remind'    =>  $schedule->remind,
+            'calendar_id'   =>  $schedule->calendar_id,
         ];
 
         return $array;

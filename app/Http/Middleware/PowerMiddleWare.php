@@ -40,7 +40,6 @@ class PowerMiddleWare
         }
         $operation = preg_replace('/\\d+/', '{id}', $request->path());
         $method = $request->method();
-
             $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
             if (is_array($res)){
                 $array = [
@@ -53,7 +52,7 @@ class PowerMiddleWare
                           'current_page'    =>  0,
                           'total_pages' =>  0,
                           'links'   =>  [
-                              'next'    =>  'https://sandbox-api-crm.papitube.com'
+                              'next'    =>  'https://sandbox-api-crm.papitube.com',
                           ]
                       ]
                   ]

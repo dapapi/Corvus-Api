@@ -87,12 +87,38 @@ class TaskController extends Controller
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
+            if ($request->has('user')){
+                $userId = hashid_decode($payload['user']);
+                $query->where('principal_id', $userId);
+            }
+            if ($request->has('department')){
+                $userIds = array();
+                $userIds = $this->getDepartmentUserIds($payload['department']);
+                $query->whereIn('principal_id', $userIds);
+            }
 
         })->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
-    public function tasksAll(Request $request, Task $task)
+    public function getDepartmentUserIds($departmentId){
+        $userIds = array();
+        $departmentId = hashid_decode($departmentId);
+        //查询部门id所有下级部门id
+        $res = DB::select("select id from departments where find_in_set(id, getChildList($departmentId))");
+        $resArr = json_decode(json_encode($res), true);
+        $ids = array_column($resArr, 'id');
+        //根据部门查询所有部门下userid
+        $departmentUserIds = DB::table('department_user')->select('user_id')->whereIn('department_id',$ids)->get()->toArray();
+        $departmentUserIdArr = json_decode(json_encode($departmentUserIds), true);
+        $userIds = array_column($departmentUserIdArr, 'user_id');
+        $uniqueUserIds = array_unique($userIds);
+
+        return $uniqueUserIds;
+    }
+
+
+    public function tasksAll(Request $request,Task $task)
     {
         $payload = $request->all();
         $data = $task
@@ -327,7 +353,7 @@ class TaskController extends Controller
         return $request;
     }
 
-    public function show(Task $task)
+    public function show(Task $task,ScopeRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -340,6 +366,16 @@ class TaskController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $task->power = "true";
+        }catch (Exception $exception){
+            $task->power = "false";
+        }
         return $this->response()->item($task, new TaskTransformer());
     }
 
@@ -1321,7 +1357,7 @@ class TaskController extends Controller
     {
 
         $payload = $request->all();
-        $privacy = isset($payload['privacy']) ? $payload['privacy'] : 0;
+        $privacy = isset($payload['privacy']) && $payload['privacy'] == 1 ? $payload['privacy'] : 0;
         DB::beginTransaction();
         try {
             //修改任务私密状态
@@ -1330,6 +1366,19 @@ class TaskController extends Controller
             ];
 
             $task->update($array);
+
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => $task->privacy == 1 ? "将任务转私密":"将任务转公开",
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::TASK_TO_SECRET,
+            'field_name'    =>  'privacy',
+            'field_title'   =>  '隐私'
+            ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
 
         } catch (Exception $e) {
             Log::error($e);

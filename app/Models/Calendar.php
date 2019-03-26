@@ -26,6 +26,7 @@ class Calendar extends Model
         'starable_id',
         'starable_type',
         'creator_id',
+        'principal_id',
         'type',
         'status',
     ];

@@ -75,8 +75,15 @@ class CalendarController extends Controller
         DB::beginTransaction();
         //todo 加参与人
         try {
-
-            $calendar = Calendar::create($payload);
+          
+            if($payload['star']['flag'] == 'star'){
+                if ($request->has('principal_id'))
+                    $payload['principal_id'] = hashid_decode($payload['principal_id']);
+                $calendar = Calendar::create($payload);
+            }else{
+                $calendar = Calendar::create($payload);
+            }
+           
 
             if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
                 $payload['participant_ids'] = [];

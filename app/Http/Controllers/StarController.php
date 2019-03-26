@@ -119,18 +119,18 @@ class StarController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $user = Auth::guard("api")->user();
 //        //登录用户对艺人编辑权限验证
 //        try{
-            $user = Auth::guard("api")->user();
 //            //获取用户角色
 //            $role_list = $user->roles()->pluck('id')->all();
 //            $repository = new ScopeRepository();
 //            $repository->checkPower("stars/{id}",'put',$role_list,$this);
 //            $star->setAttribute('power',"true");
 //        }catch (Exception $exception){
-//            $star->setAttribute('power',"false");
+            $star->setAttribute('power',"false");
 //        }
-        $star->power = $repository->getPower($user,$star);
+        $star->powers = $repository->getPower($user,$star);
 
         //艺人隐私字段
         return $this->response->item($star, new StarTransformer());

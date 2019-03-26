@@ -73,6 +73,7 @@ class TrailTransformer extends TransformerAbstract
                 'created_at' => $trail->created_at->toDatetimeString(),//时间去掉秒
                 'creator' => $trail->creator->name,
                 'power' =>  $trail->power,
+                "powers" => $trail->powers,
             ];
            if( $this->project != NULL &&   $this->user != NULL){
 

@@ -88,9 +88,9 @@ class ProjectRepository
             "edit_bill"  =>  ['method'=>'put','uri' =>  '/projects/{id}/bill'],//编辑结算单
             'add_returned_money'    =>  ['method'   =>  'post','url'    =>  '/projects/{id}/returned/money'],//新建回款期次
             'add_returned_money'    =>  ['method'   =>  'put','url'    =>  '/projects/{id}/returned/money'],//编辑回款期次
-            'add_'   =>  ['method'   =>  'post','uri'   =>  'projects/{id}/returned/{id}/money'],//新建回款记录
-            'edit_' =>  ['method'   =>  'put'  ,'uri'   =>  'returned/money/{projectreturnedmoney}'],//修改回款记录
-            'delete_'   =>  ['method'   =>  'delete','uri'  =>'returned/money/{projectreturnedmoney}'],//删除回款记录
+//            'add_'   =>  ['method'   =>  'post','uri'   =>  'projects/{id}/returned/{id}/money'],//新建回款记录
+//            'edit_' =>  ['method'   =>  'put'  ,'uri'   =>  'returned/money/{projectreturnedmoney}'],//修改回款记录
+//            'delete_'   =>  ['method'   =>  'delete','uri'  =>'returned/money/{projectreturnedmoney}'],//删除回款记录
         ];
         //验证权限
         foreach($api_list as $key => $value){

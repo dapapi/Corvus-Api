@@ -243,17 +243,18 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
 //        try{
-            $user = Auth::guard("api")->user();
-//            //获取用户角色
+
+            //获取用户角色
 //            $role_list = $user->roles()->pluck('id')->all();
 //            $repository->checkPower("clients/{id}",'put',$role_list,$client);
 //            $client->power = "true";
 //        }catch (Exception $exception){
-//            $client->power = "false";
+            $client->power = "false";
 //        }
-        $client->power = $repository->getPower($user,$client);
+        $client->powers = $repository->getPower($user,$client);
         return $this->response->item($client, new ClientTransformer());
     }
 

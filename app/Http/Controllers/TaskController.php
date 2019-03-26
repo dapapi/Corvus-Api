@@ -373,17 +373,18 @@ class TaskController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
 //        try{
-            $user = Auth::guard("api")->user();
-//            //获取用户角色
+
+            //获取用户角色
 //            $role_list = $user->roles()->pluck('id')->all();
 //            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
 //            $task->power = "true";
 //        }catch (Exception $exception){
-//            $task->power = "false";
+            $task->power = "false";
 //        }
-        $task->power = $repository->getPower($user,$task);
+        $task->powers = $repository->getPower($user,$task);
         return $this->response()->item($task, new TaskTransformer());
     }
 

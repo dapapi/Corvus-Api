@@ -136,17 +136,17 @@ class BloggerController extends Controller
             $operate,
         ]));
 
+        $user = Auth::guard("api")->user();
         //登录用户对博主编辑权限验证
 //        try{
-            $user = Auth::guard("api")->user();
-//            //获取用户角色
+            //获取用户角色
 //            $role_list = $user->roles()->pluck('id')->all();
 //            $res = $repository->checkPower("bloggers/{id}",'put',$role_list,$blogger);
 //            $blogger->power = "true";
 //        }catch (Exception $exception){
-//            $blogger->power = "false";
+            $blogger->power = "false";
 //        }
-        $blogger->power = $repository->getPower($user,$blogger);
+        $blogger->powers = $repository->getPower($user,$blogger);
         return $this->response->item($blogger, new BloggerTransformer());
     }
     public function recycleBin(Request $request)

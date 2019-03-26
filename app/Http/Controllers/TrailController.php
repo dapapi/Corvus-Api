@@ -830,17 +830,17 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
 //        try{
-            $user = Auth::guard("api")->user();
-//            //获取用户角色
+//            获取用户角色
 //            $role_list = $user->roles()->pluck('id')->all();
 //            $repository->checkPower("trails/{id}",'put',$role_list,$trail);
 //            $trail->power = "true";
 //        }catch (Exception $exception){
-//            $trail->power = "false";
+            $trail->power = "false";
 //        }
-        $trail->power = $repository->getPower($user,$trail);
+        $trail->powers = $repository->getPower($user,$trail);
         return $this->response->item($trail, new TrailTransformer());
     }
 

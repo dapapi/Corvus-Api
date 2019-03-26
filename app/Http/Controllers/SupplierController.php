@@ -134,7 +134,7 @@ class SupplierController extends Controller
             return $this->response->errorInternal('操作失败');
         }
         DB::commit();
-        return $this->response->accepted();
+        return hashid_encode($id);
     }
 
     public function edit(Request $request,Supplier $supplier)

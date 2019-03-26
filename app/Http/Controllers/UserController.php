@@ -75,56 +75,61 @@ class UserController extends Controller
     public function my(Request $request,ScopeRepository $repository)
     {
         $user = Auth::guard('api')->user();
-        $power = [];
-        //获取当前用户所有角色
-        $role_ids = RoleUser::where('user_id',$user->id)->pluck('role_id')->all();
-        //获取对艺人新增权限
-        try{
-            $repository->checkPower("stars",'post',$role_ids,null);
-            $power['star'] = "true";
-        }catch (Exception $exception){
-            $power['star'] = "false";
+        $cache_key = "power:user:".$user->id.":all:list";
+        $power = Cache::get($cache_key);
+        if (!$power) {
+            $power = [];
+            //获取当前用户所有角色
+            $role_ids = RoleUser::where('user_id', $user->id)->pluck('role_id')->all();
+
+            $api_list = [
+                'star' => [
+                    'add' => ['method' => 'post', 'uri' => 'stars'],
+                    'export' => ['method' => 'post', 'uri' => 'stars/export'],
+                    'import' => ['method' => 'post', 'uri' => 'stars/import']
+                ],
+                'project' => [
+                    'add' => ['method' => 'post', 'uri' => 'projects'],
+                    'export' => ['method' => 'post', 'uri' => 'projects/export'],
+                    'import' => ['method' => 'post', 'uri' => 'projects/import']
+                ],
+                'blogger' => [
+                    'add' => ['method' => 'post', 'uri' => 'bloggers'],
+                    'export' => ['method' => 'post', 'uri' => 'bloggers/export'],
+                    'import' => ['method' => 'post', 'uri' => 'bloggers/import']
+                ],
+                'task' => [
+                    'add' => ['method' => 'post', 'uri' => 'tasks'],
+                    'export' => ['method' => 'post', 'uri' => 'tasks/export'],
+                    'import' => ['method' => 'post', 'uri' => 'tasks/import']
+                ],
+                'client' => [
+                    'add' => ['method' => 'post', 'uri' => 'clients'],
+                    'export' => ['method' => 'post', 'uri' => 'clients/export'],
+                    'import' => ['method' => 'post', 'uri' => 'clients/import']
+                ],
+                'trail' => [
+                    'add' => ['method' => 'post', 'uri' => 'trails'],
+                    'export' => ['method' => 'post', 'uri' => 'trails/export'],
+                    'import' => ['method' => 'post', 'uri' => 'trails/import']
+                ],
+
+
+            ];
+            foreach ($api_list as $key => $value) {
+                foreach ($value as $k => $v) {
+                    //获取对线索新增权限
+                    try {
+                        $repository->checkPower($v['uri'], $v['method'], $role_ids, null);
+                        $power[$key][$k] = "true";
+                    } catch (Exception $exception) {
+                        $power[$key][$k] = "false";
+                    }
+                }
+            }
+            Cache::put($cache_key,$power,1);
         }
 
-        //获取对项目新增权限
-        try{
-            $repository->checkPower("projects",'post',$role_ids,null);
-            $power['project'] = "true";
-        }catch (Exception $exception){
-            $power['project'] = "false";
-        }
-
-        //获取对博主新增权限
-        try{
-            $repository->checkPower("bloggers",'post',$role_ids,null);
-            $power['blogger'] = "true";
-        }catch (Exception $exception){
-            $power['blogger'] = "false";
-        }
-
-        //获取对任务新增权限
-        try{
-            $repository->checkPower("tasks",'post',$role_ids,null);
-            $power['task'] = "true";
-        }catch (Exception $exception){
-            $power['task'] = "false";
-        }
-
-        //获取对客户新增权限
-        try{
-            $repository->checkPower("clients",'post',$role_ids,null);
-            $power['client'] = "true";
-        }catch (Exception $exception){
-            $power['client'] = "false";
-        }
-
-        //获取对线索新增权限
-        try{
-            $repository->checkPower("trails",'post',$role_ids,null);
-            $power['trail'] = "true";
-        }catch (Exception $exception){
-            $power['trail'] = "false";
-        }
         $user->power = $power;
         //我负责的项目数
         $my_project_number = Project::where('principal_id',$user->id)->count();

@@ -86,8 +86,8 @@ class OperateLogController extends Controller
                 break;
         }
 
-//        $operateLogs = $query->createDesc()->paginate($pageSize);
-        $operateLogs = $query->createDesc()->get();
+        $operateLogs = $query->createDesc()->paginate($pageSize);
+//        $operateLogs = $query->createDesc()->get();
 
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
@@ -96,8 +96,8 @@ class OperateLogController extends Controller
             }
         }
 
-//        return $this->response->paginator($operateLogs, new OperateLogTransformer());
-        return $this->response->collection($operateLogs,new OperateLogTransformer());
+        return $this->response->paginator($operateLogs, new OperateLogTransformer());
+//        return $this->response->collection($operateLogs,new OperateLogTransformer());
     }
     public function myIndex(Request $request, Issues $issues)
     {

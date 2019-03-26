@@ -97,4 +97,10 @@ class TestController extends Controller
         return $this->response->array($arr);
     }
 
+    public function pdepartment()
+    {
+        $id = Common::getDepartmentPrincipal(255, 1);
+        dd(1);
+    }
+
 }

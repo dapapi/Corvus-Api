@@ -10,6 +10,8 @@ namespace App\Helper;
 
 
 use App\Models\Department;
+use App\Models\DepartmentPrincipal;
+use App\Models\DepartmentUser;
 
 class Common
 {
@@ -52,4 +54,33 @@ class Common
         return $arr;
     }
 
+    /**
+     * @param $userId
+     * @param int $level
+     * @return int $departmentPrincipalId
+     */
+    public static function getDepartmentPrincipal($userId, $level = 0)
+    {
+        $departmentUser = DepartmentUser::where('user_id', $userId)->first();
+        $departmentId = $departmentUser->department_id;
+        $departmentPrincipalId = DepartmentPrincipal::where('department_id', $departmentId)->first()->user_id;
+        $level = $departmentPrincipalId == $userId ? $level + 1 : $level;
+
+        for ($i = $level;$i > 1; $i--) {
+            $departmentId = self::getParentDepartment($departmentId);
+        }
+        $departmentPrincipalId = DepartmentPrincipal::where('department_id', $departmentId)->first()->user_id;
+        return $departmentPrincipalId;
+    }
+
+    public static function getParentDepartment($departmentId)
+    {
+        $department = Department::where('id', $departmentId)->first();
+        if ($department) {
+            $departmentPid = $department->department_pid;
+        } else {
+            $departmentPid = $departmentId;
+        }
+        return $departmentPid;
+    }
 }

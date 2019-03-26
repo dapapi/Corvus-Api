@@ -24,26 +24,21 @@ trait PrivacyFieldTrait
      * @author lile
      * @date 2019-03-13 18:57
      */
-    public function setPrivacyField($module,$key, $value)
+    public function setAttribute($key, $value)
     {
-        //如果不存在id，则判断为新建不加限制
-        $id = $this->getAttribute('id');
-        if ($id) {
-            //判断字段是否是隐私字段
-            $privacy_field_list = DataDictionarie::getPrivacyFieldList();
-            if (!in_array($module . "." . $key, $privacy_field_list)) {//如果该字段不在隐私字段内
-                $this->attributes[$key] = $value;
-            } else {
-                $user = Auth::guard("api")->user();
-                $has_power = PrivacyUserRepository::has_power($module, $key, $id, $user->id);//判断是否有权限查看该字段
-                if ($this->creator_id == $user->id || $has_power) {//创建人可以修改有权限的可以修改
-                    $this->attributes[$key] = $value;//有权限则修改
-                } else {
-                    $this->attributes[$key] = $this->getOriginal($key);
-                }
-            }
+        //判断当前要设置的字段是否是隐私字段
+        $privacy_field_list = DataDictionarie::getPrivacyFieldList();
+        if (!in_array($this->getMorphClass().".".$key,$privacy_field_list)){//如果该字段不在在隐私字段内
+            return parent::setAttribute($key,$value);//调用model模型的set魔术方法
         }
+        $user = Auth::guard("api")->user();
+        $id = $this->attributes['id'];
+        $has_power = PrivacyUserRepository::has_power($this->getMorphClass(),$key,$id,$user->id);//判断是否有权限查看该字段
 
+        if($this->creator_id == $user->id || $has_power){//创建人可以修改有权限的可以修改
+            return parent::setAttribute($key,$value);//调用model模型的set魔术方法
+        }
+        //没有权限不调用model模型的魔术方法进行修改，即不做任何操作
     }
 
     /**
@@ -53,31 +48,21 @@ trait PrivacyFieldTrait
      * @author lile
      * @date 2019-03-13 18:57
      */
-    public function getPrivacyField($module,$key)
+    public function getAttribute($key)
     {
-        $fields = array_keys($this->attributes);
-        if (!in_array($key,$fields)){
-            $temp_key = ucwords(camel_case($key));
-            $get_attribute = "get".$temp_key."Attribute";
-            if(method_exists($this,$get_attribute)){
-                return $this->$get_attribute();
-            }
-//            return $this->$key;
-            return;
-        }
-        //判断字段是否是隐私字段
+        //判断当前要设置的字段是否是隐私字段
         $privacy_field_list = DataDictionarie::getPrivacyFieldList();
-        if (!in_array($module.".".$key,$privacy_field_list)){//如果该字段在隐私字段内,则判断是否有权限查看
-            return $this->attributes[$key];
+        if (!in_array($this->getMorphClass().".".$key,$privacy_field_list)){//如果该字段不在在隐私字段内
+            return parent::getAttribute($key);//调用model模型的get魔术方法
         }
         $user = Auth::guard("api")->user();
         $id = $this->attributes['id'];
-        $has_power = PrivacyUserRepository::has_power($module,$key,$id,$user->id);//判断是否有权限查看该字段
+        $has_power = PrivacyUserRepository::has_power($this->getMorphClass(),$key,$id,$user->id);//判断是否有权限查看该字段
 
         if($this->creator_id == $user->id || $has_power){//创建人可以修改有权限的可以修改
-            return $this->attributes[$key];//有权限则修改
+            return parent::getAttribute($key);//调用model模型的get魔术方法
         }
-        return "xxxxxx";
+        return "privacy";
 
     }
 }

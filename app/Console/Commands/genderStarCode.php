@@ -42,12 +42,13 @@ class genderStarCode extends Command
      */
     public function handle()
     {
+        $genderator = new Generator();
         //生成艺人编码
         $star_list = Star::where('sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
             ->whereRaw('accode is null')
             ->get(['id']);
         foreach ($star_list as $star){
-            $star->accode = (new Generator())->generatorCode('ty',4,false);
+            $star->accode = $genderator->generatorCode('ty',4,false);
             $star->save();
         }
         //生博主编码
@@ -55,14 +56,23 @@ class genderStarCode extends Command
             ->whereRaw('accode is null')
             ->get(['id']);
         foreach ($blogger_list as $blogger){
-            $blogger->accode = (new Generator())->generatorCode('cy',4,false);
+            $blogger->accode = $genderator->generatorCode('cy',4,false);
             $blogger->save();
         }
         //生成客户编码
         $client_list = Client::whereRaw('cuscode is null')->get(['id']);
         foreach ($client_list as $client){
-            $client->cuscode = (new Generator())->generatorCode('kh',5,false);
+            $client->cuscode = $genderator->generatorCode('kh',5,false);
             $client->save();
+        }
+        //生成项目编码
+        $project_list = \App\Models\Project::join('approval_form_instances as afi','afi.form_instance_number','projects.project_number')
+            ->where("form_status",232)->get();
+
+        foreach ($project_list as $project){
+            $project->project_code = $genderator->generatorCode("xm",4,true);
+            $project->project_enflag = 2;
+            $project->save();
         }
 
     }

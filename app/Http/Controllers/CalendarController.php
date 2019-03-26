@@ -71,20 +71,17 @@ class CalendarController extends Controller
             }
         }
         $payload['creator_id'] = $user->id;
-
+        if ($request->has('principal_id'))
+            $payload['principal_id'] = hashid_decode($payload['principal_id']);
         DB::beginTransaction();
         //todo 加参与人
         try {
-          
-            if($payload['star']['flag'] == 'star'){
-                if ($request->has('principal_id'))
-                    $payload['principal_id'] = hashid_decode($payload['principal_id']);
+            if($request->has('star') && $payload['star']['flag'] == 'star'){
                 $calendar = Calendar::create($payload);
             }else{
                 $calendar = Calendar::create($payload);
             }
-           
-
+            
             if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
                 $payload['participant_ids'] = [];
 
@@ -101,7 +98,6 @@ class CalendarController extends Controller
                 $operate
             ]));
         } catch (Exception $exception) {
-
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建失败');

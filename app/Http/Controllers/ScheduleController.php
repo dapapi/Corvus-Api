@@ -172,7 +172,8 @@ class ScheduleController extends Controller
             })->whereNotIn('calendar_id', $data);
 
         })->mergeBindings($subquery)
-            ->where('start_at', '>=', $payload['start_date'])->where('end_at', '<=', $payload['end_date'])
+           // ->where('start_at', '>=', $payload['start_date'])->where('end_at', '<=', $payload['end_date'])
+            ->where('start_at', '<=', $payload['end_date'])->where('end_at', '>=', $payload['start_date'])
             ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy'
                 ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')
             ->get();
@@ -379,7 +380,6 @@ class ScheduleController extends Controller
         if ($request->has('calendar_id'))
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
         $calendar = Calendar::find($payload['calendar_id']);
-
         if (!$calendar)
             $this->response->errorInternal("日历不存在");
         $participants = array_column($calendar->participants()->get()->toArray(), 'id');
@@ -406,7 +406,7 @@ class ScheduleController extends Controller
                 ->where($materials['start_at'][0], $materials['start_at'][1], $materials['start_at'][2])
                 ->orderby('start_at')->get(['id'])->toArray();
             if ($endmaterials) {
-                $this->response->errorForbidden("该时段会议室已被占用");
+                return  $this->response->errorForbidden("该时段会议室已被占用");
             }
         }
 
@@ -414,7 +414,15 @@ class ScheduleController extends Controller
 
         DB::beginTransaction();
         try {
-            $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            if($calendar['starable_type'] == ModuleableType::STAR){
+
+                if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                    return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+                $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            }else{
+                $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            }
+
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $schedule,
@@ -460,6 +468,7 @@ class ScheduleController extends Controller
 //            }
 
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');
@@ -537,11 +546,11 @@ class ScheduleController extends Controller
     public function edit(EditScheduleRequest $request, Schedule $schedule)
     {
         $old_schedule = clone $schedule;//复制日程，以便发消息
-        $users = $this->getEditPowerUsers($schedule);
+//        $users = $this->getEditPowerUsers($schedule);
         $user = Auth::guard("api")->user();
-        if (!in_array($user->id, $users)) {
-            return $this->response->errorInternal("你没有编辑该日程的权限");
-        }
+//        if (!in_array($user->id, $users)) {
+//            return $this->response->errorInternal("你没有编辑该日程的权限");
+//        }
         $payload = $request->all();
         if ($request->has('calendar_id')) {
             $payload['calendar_id'] = hashid_decode($payload['calendar_id']);
@@ -566,8 +575,13 @@ class ScheduleController extends Controller
             $payload['participant_del_ids'] = [];
         DB::beginTransaction();
         try {
-            $schedule->update($payload);
-
+            if($calendar['starable_type'] == ModuleableType::STAR){
+                if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                    return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+                $schedule->update($payload);
+            }else{
+                $schedule->update($payload);
+            }
             if ($old_schedule->title != $schedule->title){
                 // 操作日志
                 $operate = new OperateEntity([
@@ -669,12 +683,17 @@ class ScheduleController extends Controller
                     $operate
                 ]));
             }
+            if($calendar['starable_type'] == ModuleableType::STAR){
+                if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                    return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+                $this->hasauxiliary($request, $payload, $schedule, '', $user);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
 
-
-            $this->hasauxiliary($request, $payload, $schedule, '', $user);
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
+            }else{
+                $this->hasauxiliary($request, $payload, $schedule, '', $user);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
+            }
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('更新日程失败');
@@ -721,8 +740,15 @@ class ScheduleController extends Controller
         if (!in_array($user->id, $users)) {
             $this->response->errorInternal("你没有权限删除日程");
         }
+        $calendar = Calendar::find($schedule->calendar_id);
+        if($calendar['starable_type'] == ModuleableType::STAR){
+            if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+            $schedule->delete();
+        } else {
+            $schedule->delete();
+        }
 
-        $schedule->delete();
         return $this->response->noContent();
     }
 

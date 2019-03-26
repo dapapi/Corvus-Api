@@ -15,6 +15,7 @@ use App\Models\Announcement;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\Star;
+use App\Models\Supplier;
 use App\Models\Task;
 use App\Models\Issues;
 use App\Models\Trail;
@@ -56,6 +57,8 @@ class OperateLogRepository
         }else if ($model instanceof Instance && $model->form_instance_id){
             $obj = $model;
         }else if ($model instanceof Business && $model->id){
+            $obj = $model;
+        }else if ($model instanceof Supplier && $model->id){
             $obj = $model;
         }
 

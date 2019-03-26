@@ -83,6 +83,7 @@ class StarTransformer extends TransformerAbstract
             'last_follow_up_at' =>  $star->last_follow_up_at,
             'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
+            'powers'    =>  $star->powers,
 
         ];
         if($star ->creator_id != $user->id)
@@ -194,17 +195,23 @@ class StarTransformer extends TransformerAbstract
             })->whereRaw("s.id=schedules.id")
                 ->select('mu.user_id');
 
-            $calendar = $calendars->schedules()
-                ->where(function ($query) use ($user, $subquery) {
-                        $query->where('privacy', Schedule::OPEN)
+            $calendars = $calendars->schedules();
+
+
+            $calendar = $calendars->where(function ($query) use ($user, $subquery) {
+
+                $query->where(function ($query) use ($user, $subquery) {
+                    $query->where('privacy', Schedule::OPEN)
                         ->whereRaw("$user->id in ({$subquery->toSql()})");
-                    })->orWhere(function ($query) use ($user, $subquery) {
-                        $query->orWhere('creator_id', $user->id);
-                        $query->orWhere(function ($query) use ($user, $subquery) {
-                            $query->where('privacy', Schedule::SECRET);
-                            $query->whereRaw("$user->id in ({$subquery->toSql()})");
-                        });
-                    })->mergeBindings($subquery)
+                })->orWhere(function ($query) use ($user, $subquery) {
+                    $query->orWhere('creator_id', $user->id);
+                    $query->orWhere(function ($query) use ($user, $subquery) {
+                        $query->where('privacy', Schedule::SECRET);
+                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                    });
+                });
+
+                       })->mergeBindings($subquery)
 
 
                 ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')

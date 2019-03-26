@@ -26,8 +26,8 @@ use App\Models\Client;
 use App\Models\Production;
 use App\Models\ProjectHistorie;
 use App\Models\Position;
-
-
+use App\Models\Supplier;
+use App\Models\SupplierRelate;
 use App\Models\Draft;
 use App\Models\Repository;
 use App\Models\ReviewQuestionnaire;
@@ -209,6 +209,7 @@ class RouteServiceProvider extends ServiceProvider
                 $id = hashid_decode($value);
                 $entity = Star::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
+                dd($exception);
                 abort(404);
             }
             return $entity;
@@ -545,6 +546,26 @@ class RouteServiceProvider extends ServiceProvider
                 if ($entity == null){
                     throw new Exception("合同不存在");
                 }
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplier', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Supplier::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplierRelate', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = supplierRelate::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

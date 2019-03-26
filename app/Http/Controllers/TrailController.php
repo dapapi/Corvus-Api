@@ -33,6 +33,7 @@ use App\Repositories\DepartmentRepository;
 use App\Repositories\FilterReportRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ScopeRepository;
+use App\Repositories\TrailRepository;
 use App\Repositories\TrailStarRepository;
 use App\TriggerPoint\TrailTrigreePoint;
 use App\User;
@@ -595,6 +596,9 @@ class TrailController extends Controller
 
             if ($request->has('contact')) {//联系人
                 $contact = $trail->contact;
+                if($contact)
+                {
+
                 if(isset($payload['contact']['name'])){
                     if($payload['contact']['name'] != $contact->name){
                         $operateName = new OperateEntity([
@@ -609,7 +613,7 @@ class TrailController extends Controller
                     }
                 }
                 if (isset($payload['contact']['phone'])){
-                    if($payload['contact']['phone'] != $contact->name){
+                    if($payload['contact']['phone'] != $contact->phone){
                         $operateName = new OperateEntity([
                             'obj' => $trail,
                             'title' => '联系人电话',
@@ -631,7 +635,7 @@ class TrailController extends Controller
                             'method' => OperateLogMethod::UPDATE,
                         ]);
                         $arrayOperateLog[] = $operateName;
-                        $contact->update($payload['wechat']);
+                        $contact->update($payload['contact']);
                     }
                 }
                 if (isset($payload['contact']['other_contact_ways'])){
@@ -644,10 +648,30 @@ class TrailController extends Controller
                             'method' => OperateLogMethod::UPDATE,
                         ]);
                         $arrayOperateLog[] = $operateName;
-                        $contact->update($payload['other_contact_ways']);
+                        $contact->update($payload['contact']);
                     }
                 }
+               }else{
+                    $dataArray = [];
+                    $dataArray['client_id'] = $client->id;
+                    if($request->has("contact.name")){
+                        $dataArray['name'] = $payload['contact']['name'];
+                    }
+                    if($request->has("contact.phone")){
+                        $dataArray['phone'] = $payload['contact']['phone'];
+                    }
+                    if($request->has("contact.wechat")){
+                        $dataArray['wechat'] = $payload['contact']['wechat'];
+                    }
+                    if($request->has("contact.other_contact_ways")){
+                        $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                    }
+                    $contact_id = Contact::create($dataArray);
+                    $trail->update(['contact_id' => $contact_id->id]);
+                }
+
             }
+
             if ($request->has('expectations') && is_array($payload['expectations'])) {
                 try{
                     $repository = new TrailStarRepository();
@@ -839,7 +863,7 @@ class TrailController extends Controller
         $this->response->item($trail, new TrailTransformer());
     }
 
-    public function detail(Request $request, Trail $trail,ScopeRepository $repository)
+    public function detail(Request $request, Trail $trail,TrailRepository $repository,ScopeRepository $scopeRepository)
     {
         $trail = $trail->searchData()->find($trail->id);
 
@@ -854,16 +878,17 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-            $user = Auth::guard("api")->user();
-            //获取用户角色
+//            获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("trails/{id}",'put',$role_list,$trail);
+            $scopeRepository->checkPower("trails/{id}",'put',$role_list,$trail);
             $trail->power = "true";
         }catch (Exception $exception){
             $trail->power = "false";
         }
+        $trail->powers = $repository->getPower($user,$trail);
         return $this->response->item($trail, new TrailTransformer());
     }
 

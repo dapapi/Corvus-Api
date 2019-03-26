@@ -95,6 +95,7 @@ class BloggerTransformer extends TransformerAbstract
             'last_updated_at' => $blogger->last_updated_at,
             'updated_at' => $blogger->updated_at->toDateTimeString(),
             'power' =>  $blogger->power,//对博主是否有编辑权限
+            'powers' => $blogger->powers,
         ];
 
         if(!$setprivacy1 && $blogger ->creator_id != $user->id){
@@ -244,16 +245,20 @@ class BloggerTransformer extends TransformerAbstract
 
             })->whereRaw("s.id=schedules.id")
                 ->select('mu.user_id');
-            $calendar = $calendars->schedules()
-                ->where(function ($query) use ($user, $subquery) {
-                    $query->where('privacy', Schedule::OPEN)
-                    ->whereRaw("$user->id in ({$subquery->toSql()})");
-                })->orWhere(function ($query) use ($user, $subquery) {
-                    $query->orWhere('creator_id', $user->id);
-                    $query->orWhere(function ($query) use ($user, $subquery) {
-                        $query->where('privacy', Schedule::SECRET);
-                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
-                    });
+            $calendars = $calendars->schedules();
+              $calendar =  $calendars->where(function ($query) use ($user, $subquery){
+
+                  $query->where(function ($query) use ($user, $subquery) {
+                      $query->where('privacy', Schedule::OPEN)
+                          ->whereRaw("$user->id in ({$subquery->toSql()})");
+                  })->orWhere(function ($query) use ($user, $subquery) {
+                      $query->orWhere('creator_id', $user->id);
+                      $query->orWhere(function ($query) use ($user, $subquery) {
+                          $query->where('privacy', Schedule::SECRET);
+                          $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                      });
+
+                  });
                 })->mergeBindings($subquery)
                 ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')
                 ->limit(3)->get();

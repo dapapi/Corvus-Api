@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
+
+
+use App\Models\Department;
+use App\Models\DepartmentUser;
+use App\Repositories\FilterReportRepository;
+
 use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Helper\Common;
@@ -23,9 +29,11 @@ use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
+use App\Models\FilterJoin;
 use App\Models\Client;
-use App\Models\Department;
-use App\Models\DepartmentUser;
+
+
+
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
@@ -46,7 +54,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\PrivacyType;
-use App\Repositories\FilterReportRepository;
+
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
@@ -795,19 +803,20 @@ class ProjectController extends Controller
         return $this->response->accepted();
     }
 
-    public function detail(Request $request, $project,ScopeRepository $repository)
+    public function detail(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
     {
         $type = $project->type;
+        $user = Auth::guard("api")->user();
         //登录用户对艺人编辑权限验证
         try{
-            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("projects/{id}",'put',$role_list,$project);
+            $scopeRepository->checkPower("projects/{id}",'put',$role_list,$project);
             $project->power = "true";
         }catch (Exception $exception){
             $project->power = "false";
         }
+        $this->powers = $repository->getPower($user,$project);
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;
@@ -817,14 +826,26 @@ class ProjectController extends Controller
         // 记住修改  收入
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         // 获取目标艺人 所在部门
-        $expectations = $project->trail->bloggerExpectations;
-        if (count($expectations) <= 0) {
-            $expectations = $project->trail->expectations->first();
-            if(!$expectations) {
-                return null;
-            }else{
-                $expectations = $expectations->broker->toArray();
+        if($project->trail){
+            $expectations = $project->trail->bloggerExpectations;
+            if (count($expectations) <= 0) {
+                $expectations = $project->trail->expectations->first();
+                if(!$expectations) {
+                    return null;
+                }else{
+                    $expectations = $expectations->broker->toArray();
+
 //                ->broker;
+                    $department_name = [];
+                    if(!$expectations)
+                        return null;
+                    foreach ($expectations as $key => $val){
+                        $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+                    }
+                }
+
+            } else {
+                $expectations = $expectations->first()->publicity->toArray();
                 $department_name = [];
                 if(!$expectations)
                     return null;
@@ -833,53 +854,23 @@ class ProjectController extends Controller
                 }
             }
 
-        } else {
-            $expectations = $expectations->first()->publicity->toArray();
-            $department_name = [];
-            if(!$expectations)
-                return null;
-            foreach ($expectations as $key => $val){
-                $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-            }
         }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-            $user = Auth::guard('api')->user();
+        $user = Auth::guard('api')->user();
+        if($project->trail){
             $result->addMeta('department_name',  $department_name);
-            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+        }
 
-                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
-                if(!$contractMoneyResult)
-                {
-                    $result->addMeta('contractmoney', 'privacy');
-                }
-                else
-                {
-                    if (isset($contractmoney)) {
-                        $result->addMeta('contractmoney', "".$contractmoney);
-                    }
-                    else
-                    {
-                        $result->addMeta('contractmoney', "".'0');
-                    }
-                }
-                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
-                if(!$contractMoneyResult)
-                {
-                    $result->addMeta('expendituresum', 'privacy');
-                }
-                else
-                {
-                    if (isset($expendituresum)) {
-                        $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
-                    }
-                    else
-                    {
-                        $result->addMeta('expendituresum', "".'0');
-                    }
-                }
+
+        if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('contractmoney', 'privacy');
             }
             else
             {
@@ -890,14 +881,40 @@ class ProjectController extends Controller
                 {
                     $result->addMeta('contractmoney', "".'0');
                 }
+            }
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('expendituresum', 'privacy');
+            }
+            else
+            {
                 if (isset($expendituresum)) {
                     $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
                 }
                 else
                 {
-                    $result->addMeta('expendituresum',"".'0');
+                    $result->addMeta('expendituresum', "".'0');
                 }
             }
+        }
+        else
+        {
+            if (isset($contractmoney)) {
+                $result->addMeta('contractmoney', "".$contractmoney);
+            }
+            else
+            {
+                $result->addMeta('contractmoney', "".'0');
+            }
+            if (isset($expendituresum)) {
+                $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+            }
+            else
+            {
+                $result->addMeta('expendituresum',"".'0');
+            }
+        }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $operate = new OperateEntity([
             'obj' => $project,
@@ -1433,8 +1450,8 @@ class ProjectController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        //  $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
-        $joinSql = '`projects`';
+        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+    //    $joinSql = '`projects`';
         $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);

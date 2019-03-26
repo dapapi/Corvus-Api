@@ -17,7 +17,7 @@ class Change extends Model
         'change_id',
         'change_at',
         'change_state',
-        'approval_type',
+        'approver_type',
         'role_id',
         'comment',
     ];

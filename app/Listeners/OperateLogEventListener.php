@@ -31,6 +31,10 @@ use App\Models\GroupRoles;
 use App\Models\ProjectBillsResource;
 use App\Models\Role;
 use App\ModuleUserType;
+use App\Models\Supplier;
+use App\Models\SupplierRelate;
+
+
 use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -194,6 +198,12 @@ class OperateLogEventListener
                     $typeName = "合同审批";
                 }
                 $type = ModuleableType::BUSINESS;
+            }else if($operate->obj instanceof Supplier){
+                $type = ModuleableType::SUPPLIER;
+                $typeName = "供应商";
+            }else if($operate->obj instanceof SupplierRelate){
+                $type = ModuleableType::SUPPLIERRELATE;
+                $typeName = "供应商联系人";
             }
             //TODO
             $id = $operate->obj->id;
@@ -402,6 +412,10 @@ class OperateLogEventListener
                 case OperateLogMethod::CREATE_STAR_SCHEDULE://创建艺人日程
                     $level = OperateLogLevel::HIGH;
                     $content = sprintf($this->create_star_schedules,$title);
+                    break;
+                case OperateLogMethod::TASK_TO_SECRET://任务转私密，转公开
+                    $level = OperateLogLevel::HIGH;
+                    $content = $title;
                     break;
 
             }

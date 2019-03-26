@@ -78,20 +78,71 @@ class AnnouncementController extends Controller
                               ->where('logable_type',ModuleableType::ANNOUNCEMENT)
                               ->where('operate_logs.method',OperateLogMethod::LOOK);
                       });
+
+
                 if($status == 1){
-                    $stars = $query->where('operate_logs.status',$readflag)->groupBy('announcement.id')
+                    if($readflag == 2){
+                        $queryId =   Announcement::whereIn('announcement.id',$ar)
+                            ->leftJoin('operate_logs',function($join) use($readflag,$userId){
+                                $join->on('announcement.id','operate_logs.logable_id')
+                                    ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                                    ->where('operate_logs.method',OperateLogMethod::LOOK)
+
+                                ;
+
+                            })
+                            ->where('operate_logs.status',1)
+                            ->where('operate_logs.user_id',$userId)
+                            ->groupBy('announcement.id')
+                            ->select('announcement.id');
+                        $stars = $query->whereNotIn('announcement.id',$queryId)->groupBy('announcement.id')
+                            ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                                ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                                ,'announcement.updated_at')
+                         ->paginate($pageSize);
+//                    $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//                    dd($sql_with_bindings);
+
+
+                    }else{
+                    $stars = $query->where('operate_logs.status',$readflag)->where('operate_logs.user_id',$userId)->groupBy('announcement.id')
                     ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
                         ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
                             ,'announcement.updated_at')
                         ->paginate($pageSize);
+                    }
 //                $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
                 }else{
+                    if($readflag == 2){
+                        $starsId = Announcement::leftJoin('operate_logs',function($join){
+                            $join->on('announcement.id','operate_logs.logable_id')
+                                ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                                ->where('operate_logs.method',OperateLogMethod::LOOK);
+                        })->where('operate_logs.status',1)->where('operate_logs.user_id',$userId)->where('announcement.creator_id',$userId)->groupBy('announcement.id')->select('announcement.id');
+                        $stars = Announcement::leftJoin('operate_logs',function($join){
+                            $join->on('announcement.id','operate_logs.logable_id')
+                                ->where('logable_type',ModuleableType::ANNOUNCEMENT)
+                                ->where('operate_logs.method',OperateLogMethod::LOOK);
+                        })->whereNotIn('announcement.id',$starsId)->where('announcement.creator_id',$userId)->groupBy('announcement.id')
+                        ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                                ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                                ,'announcement.updated_at')->paginate($pageSize);
+                        //->where('operate_logs.user_id','<>',$userId)
+//                        $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//                        dd($sql_with_bindings);
+                    }else{
                     $stars = Announcement::leftJoin('operate_logs',function($join){
                         $join->on('announcement.id','operate_logs.logable_id')
                             ->where('logable_type',ModuleableType::ANNOUNCEMENT)
                             ->where('operate_logs.method',OperateLogMethod::LOOK);
-                    })->where('operate_logs.status',$readflag)->groupBy('announcement.id')->where('announcement.creator_id',$userId)->createDesc()->paginate($pageSize);
+                    })->where('operate_logs.status',$readflag)->where('operate_logs.user_id',$userId)->groupBy('announcement.id')->where('announcement.creator_id',$userId)
+                        ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
+                            ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                            ,'announcement.updated_at')->paginate($pageSize);
+//                         $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
+                    }
                 }
               }else{
                   $stars = null;

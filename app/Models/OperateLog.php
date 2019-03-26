@@ -6,6 +6,7 @@ use App\Repositories\PrivacyUserRepository;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OperateLog extends Model
 {
@@ -55,10 +56,12 @@ class OperateLog extends Model
             return $content;
         }
         $repository = new PrivacyUserRepository();
+
         $power = $repository->has_power($table,$field_name,$id,$user->id);
+        //获取数据的创建人
+        $creator_id = $this->logable()->value('creator_id');
         //如果是数据创建人或者有权限才可以看
-        $creator = $this->user()->first();
-        if ($creator->id == $user->id || $power){
+        if ($creator_id == $user->id || $power){
             return $this->attributes['content'];
         }
         return "修改了".$this->attributes['field_title'];

@@ -16,7 +16,7 @@ class CalendarTransformer extends TransformerAbstract
             'id' => hashid_encode($calendar->id),
             'title' => $calendar->title,
             'color' => $calendar->color,
-            'principal_id' => $calendar->principal_id,   //
+            'principal_id' => hashid_encode($calendar->principal_id),   //
             'starable_type' => $calendar->starable_type,   
             'privacy' => $calendar->privacy,
         ];

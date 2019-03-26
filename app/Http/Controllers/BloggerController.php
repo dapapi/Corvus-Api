@@ -122,7 +122,7 @@ class BloggerController extends Controller
     }
 
 
-    public function show(Blogger $blogger,BloggerRepository $repository)
+    public function show(Blogger $blogger,BloggerRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -138,14 +138,14 @@ class BloggerController extends Controller
 
         $user = Auth::guard("api")->user();
         //登录用户对博主编辑权限验证
-//        try{
+        try{
             //获取用户角色
-//            $role_list = $user->roles()->pluck('id')->all();
-//            $res = $repository->checkPower("bloggers/{id}",'put',$role_list,$blogger);
-//            $blogger->power = "true";
-//        }catch (Exception $exception){
+            $role_list = $user->roles()->pluck('id')->all();
+            $res = $scopeRepository->checkPower("bloggers/{id}",'put',$role_list,$blogger);
+            $blogger->power = "true";
+        }catch (Exception $exception){
             $blogger->power = "false";
-//        }
+        }
         $blogger->powers = $repository->getPower($user,$blogger);
         return $this->response->item($blogger, new BloggerTransformer());
     }

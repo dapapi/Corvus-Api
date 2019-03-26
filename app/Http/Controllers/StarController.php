@@ -106,7 +106,7 @@ class StarController extends Controller
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
-    public function show(Star $star,StarRepository $repository)
+    public function show(Star $star,StarRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -121,15 +121,14 @@ class StarController extends Controller
         ]));
         $user = Auth::guard("api")->user();
 //        //登录用户对艺人编辑权限验证
-//        try{
-//            //获取用户角色
-//            $role_list = $user->roles()->pluck('id')->all();
-//            $repository = new ScopeRepository();
-//            $repository->checkPower("stars/{id}",'put',$role_list,$this);
-//            $star->setAttribute('power',"true");
-//        }catch (Exception $exception){
-            $star->setAttribute('power',"false");
-//        }
+        try{
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $scopeRepository->checkPower("stars/{id}",'put',$role_list,$star);
+            $star->power = "true";
+        }catch (Exception $exception){
+            $star->power = "false";
+        }
         $star->powers = $repository->getPower($user,$star);
 
         //艺人隐私字段

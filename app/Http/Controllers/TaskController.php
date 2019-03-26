@@ -360,7 +360,7 @@ class TaskController extends Controller
         return $request;
     }
 
-    public function show(Task $task,TaskRepository $repository)
+    public function show(Task $task,TaskRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -375,15 +375,15 @@ class TaskController extends Controller
         ]));
         $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
-//        try{
+        try{
 
             //获取用户角色
-//            $role_list = $user->roles()->pluck('id')->all();
-//            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
-//            $task->power = "true";
-//        }catch (Exception $exception){
+            $role_list = $user->roles()->pluck('id')->all();
+            $scopeRepository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $task->power = "true";
+        }catch (Exception $exception){
             $task->power = "false";
-//        }
+        }
         $task->powers = $repository->getPower($user,$task);
         return $this->response()->item($task, new TaskTransformer());
     }

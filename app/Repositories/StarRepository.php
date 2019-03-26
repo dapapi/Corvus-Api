@@ -50,7 +50,7 @@ class StarRepository
         $repository = new ScopeRepository();
         //登录用户对艺人编辑权限验证
         $api_list = [
-            'edit_store' =>  ['uri'  =>  'stars/{id}','method'   =>  'put'],
+            'edit_star' =>  ['uri'  =>  'stars/{id}','method'   =>  'put'],
             'add_work'  =>  ['uri'  =>  '/stars/{id}/works','method'    =>  'post'],
             "edit_publicity"  =>  ['uri'  =>  'stars/{id}/publicity','method' =>  'post'],
             "edit_broker"  =>  ['uri'  =>  '/stars/{id}/broker','method'   =>  'post'],

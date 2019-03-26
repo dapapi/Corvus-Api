@@ -792,19 +792,19 @@ class ProjectController extends Controller
         return $this->response->accepted();
     }
 
-    public function detail(Request $request, $project,ProjectRepository $repository)
+    public function detail(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
     {
         $type = $project->type;
         $user = Auth::guard("api")->user();
         //登录用户对艺人编辑权限验证
-//        try{
+        try{
             //获取用户角色
-//            $role_list = $user->roles()->pluck('id')->all();
-//            $repository->checkPower("projects/{id}",'put',$role_list,$project);
-//            $project->power = "true";
-//        }catch (Exception $exception){
+            $role_list = $user->roles()->pluck('id')->all();
+            $scopeRepository->checkPower("projects/{id}",'put',$role_list,$project);
+            $project->power = "true";
+        }catch (Exception $exception){
             $project->power = "false";
-//        }
+        }
         $this->powers = $repository->getPower($user,$project);
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();

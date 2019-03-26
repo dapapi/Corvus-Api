@@ -24,7 +24,7 @@ class OperateLog extends Model
 
     public function scopeCreateDesc($query)
     {
-        return $query->orderBy('created_at', 'desc');
+        return $query->orderBy('operate_logs.created_at', 'desc');
     }
 
     public function user()
@@ -36,6 +36,8 @@ class OperateLog extends Model
     {
         return $this->morphTo();
     }
+
+
 
     /**
      * 获取日志的时候判断用户是否有权限查看该条日志

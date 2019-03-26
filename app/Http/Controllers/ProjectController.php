@@ -29,6 +29,7 @@ use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
 use App\Models\Blogger;
+use App\Models\FilterJoin;
 use App\Models\Client;
 
 
@@ -1449,8 +1450,8 @@ class ProjectController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        //  $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
-        $joinSql = '`projects`';
+        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+    //    $joinSql = '`projects`';
         $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);

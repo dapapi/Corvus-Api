@@ -314,9 +314,9 @@ class ApprovalFlowController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
-//        DB::commit();
-//
-//        DB::beginTransaction();
+        DB::commit();
+
+        DB::beginTransaction();
         # todo 判断是否需要连续跳过 改进
         try {
             if ($type == 246) {
@@ -336,15 +336,16 @@ class ApprovalFlowController extends Controller
                             $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null, 232);
                 }
             } elseif ($nextId == $userId) {
-                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
+                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $nextId);
                 $this->storeRecord($num, $userId, $now, 239, $comment, $nextId, $type);
                 if ($nextId)
                     if ($type == 246)
                         $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId);
                     else
                         $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null);
-                else
-                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null, 232);
+                else {
+                    $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, null, 232);
+                }
             }
         } catch (Exception $exception) {
             DB::rollBack();

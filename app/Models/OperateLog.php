@@ -44,12 +44,17 @@ class OperateLog extends Model
         if (is_array($users)){
             $users = implode($users,",");
         }
-        $query->whereRaw(
-            "(select s.id from stars as s 
+        if ($users == null){
+            $query->whereRaw("0 = 1");
+        }else{
+            $query->whereRaw(
+                "(select s.id from stars as s 
             left join module_users as mu on mu.moduleable_id = s.id and mu.moduleable_type='".ModuleableType::STAR."' 
             and mu.type = ".ModuleUserType::BROKER."
             where s.id = operate_logs.logable_id and mu.user_id in ({$users}))"
-        );
+            );
+        }
+
     }
 
     /**

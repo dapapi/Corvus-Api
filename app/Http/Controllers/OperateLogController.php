@@ -101,6 +101,7 @@ class OperateLogController extends Controller
 //        $operateLogs = $query->createDesc()->paginate($pageSize);
 //        DB::connection()->enableQueryLog();
         $operateLogs = $query->createDesc()->get();
+//        dd($operateLogs);
 //        dd(DB::getQueryLog());
 
 
@@ -111,8 +112,8 @@ class OperateLogController extends Controller
             }
         }
 
-        return $this->response->paginator($operateLogs, new OperateLogTransformer());
-//        return $this->response->collection($operateLogs,new OperateLogTransformer());
+//        return $this->response->paginator($operateLogs, new OperateLogTransformer());
+        return $this->response->collection($operateLogs,new OperateLogTransformer());
     }
     public function myIndex(Request $request, Issues $issues)
     {

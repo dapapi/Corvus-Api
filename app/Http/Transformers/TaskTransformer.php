@@ -7,6 +7,8 @@ use App\TaskStatus;
 use App\Traits\OperateLogTrait;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 
 class TaskTransformer extends TransformerAbstract
@@ -37,6 +39,8 @@ class TaskTransformer extends TransformerAbstract
             'last_follow_up_at' => $task->last_follow_up_at,
             "power" =>  $task->power,
             "powers" => $task->powers,
+            'adj_id' => $task->adj_id,
+
         ];
 
         $array['task_p'] = true;
@@ -54,6 +58,26 @@ class TaskTransformer extends TransformerAbstract
             ->select('og.created_at','users.name')->orderBy('created_at','desc')->first();
 
         $array['operate'] = $operate;
+
+        $user = Auth::guard('api')->user();
+
+        $adjId = $task->adj_id;
+
+        if($adjId !=="0"){
+            if($user->id == $task->creator_id && $user->id == $task->principal_id){
+                $array['private']=0;
+            }else{
+                $adjIdArr = explode(",", $adjId);
+                if(in_array($user->id,$adjIdArr)){
+
+                    $array['private']=0;
+                }else{
+                    $array['private']=1;
+                }
+            }
+
+        }
+
         return $array;
     }
 

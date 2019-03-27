@@ -9,6 +9,7 @@ use App\Events\OperateLogEvent;
 use App\Events\StarMessageEvent;
 use App\Exceptions\ApprovalConditionMissException;
 use App\Exceptions\ApprovalVerifyException;
+use App\Helper\Common;
 use App\Http\Requests\ApprovalFlow\ApprovalTransferRequest;
 use App\Http\Requests\ApprovalFlow\ChangeParticipantReuqest;
 use App\Http\Requests\ApprovalFlow\GetChainsRequest;
@@ -137,10 +138,6 @@ class ApprovalFlowController extends Controller
                 'sort_number' => count($chains) + 1,
             ]);
             $now = Carbon::now();
-
-//            $this->storeRecord($formNumber, $user->id, $now, 237);
-//
-//            $this->createOrUpdateHandler($formNumber, $chains[0]['id'], 245, 231);
         } catch (Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -191,9 +188,7 @@ class ApprovalFlowController extends Controller
                 $person = $now->person;
                 // todo 把主管换成人
                 if ($now->current_handler_type == 246) {
-                    $header = $this->departmentHeaderToUser($num, $formId, $condition);
-                    if ($header)
-                        $person = $header;
+                    $person = User::find($now->principal_uid);
                 }
                 $array[] = [
                     'id' => hashid_encode($person->id),
@@ -273,6 +268,10 @@ class ApprovalFlowController extends Controller
             $condition = $this->getCondition($formId, $value);
         }
 
+        # 申请人id
+        $applyId = $instance->apply_id;
+        $principalId = null;
+
         $comment = $request->get('comment', null);
 
         $user = Auth::guard('api')->user();
@@ -288,10 +287,13 @@ class ApprovalFlowController extends Controller
 
             $this->storeRecord($num, $userId, $now, 239, $comment, $currentHandlerId, $currentHandlerType);
 
+            if ($type == 246)
+                $principalId = Common::getDepartmentPrincipal($applyId, $principalLevel);
+
             if ($nextId)
-                $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel);
+                $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $principalId);
             else
-                $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, 232);
+                $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, $principalId, 232);
 
             // 操作日志
             $operate = new OperateEntity([
@@ -312,27 +314,40 @@ class ApprovalFlowController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
-        DB::commit();
-
-        DB::beginTransaction();
+//        DB::commit();
+//
+//        DB::beginTransaction();
+        # todo 判断是否需要连续跳过 改进
         try {
             if ($type == 246) {
-                $header = $this->departmentHeaderToUser($num, $formId, $condition);
-                if ($userId == $header->id) {
-                    list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
-                    $this->storeRecord($num, $userId, $now, 239, $comment, $type, $nextId);
+                $header = Common::getDepartmentPrincipal($applyId, $principalLevel);
+                if ($userId == $header) {
+                    list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId, false, $principalLevel);
+                    $this->storeRecord($num, $userId, $now, 239, $comment, $currentHandlerId, $currentHandlerType);
                     if ($nextId)
-                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel);
+                        if ($type == 246)
+                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId);
+                        else
+                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null);
                     else
-                        $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, 232);
+                        if ($type == 246)
+                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId, 232);
+                        else
+                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null, 232);
                 }
             } elseif ($nextId == $userId) {
                 list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId);
-                $this->storeRecord($num, $userId, $now, 239, $comment, $type, $nextId);
+                $this->storeRecord($num, $userId, $now, 239, $comment, $nextId, $type);
                 if ($nextId)
-                    $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel);
+                    if ($type == 246)
+                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId);
+                    else
+                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null);
                 else
-                    $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, 232);
+                    if ($type == 246)
+                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId, 232);
+                    else
+                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null, 232);
             }
         } catch (Exception $exception) {
             DB::rollBack();
@@ -341,8 +356,8 @@ class ApprovalFlowController extends Controller
 
         DB::commit();
         $authorization = $request->header()['authorization'][0];
-        $excute = Execute::where("form_instance_number", $instance->form_instance_number)->first();
-        if ($excute->flow_type_id == 232) {//审批通过
+        $execute = Execute::where("form_instance_number", $instance->form_instance_number)->first();
+        if ($execute->flow_type_id == 232) {//审批通过
 
             $num = $instance->form_instance_number;
             $contract = Contract::where('form_instance_number', $num)->first();
@@ -412,7 +427,7 @@ class ApprovalFlowController extends Controller
             list($currentHandlerId, $currentHandlerType) = $this->verifyHandler($num, $userId);
             $this->storeRecord($num, $userId, $now, 240, $comment, $currentHandlerId, $currentHandlerType);
 
-            $this->createOrUpdateHandler($num, $userId, 245, null, 233);
+            $this->createOrUpdateHandler($num, $userId, 245, null, null, 233);
 
             // 操作日志
             $operate = new OperateEntity([
@@ -514,7 +529,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 242, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 245, null, 234);
+            $this->createOrUpdateHandler($num, $userId, 245, null, null, 234);
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $instance,
@@ -565,7 +580,7 @@ class ApprovalFlowController extends Controller
         try {
             $this->storeRecord($num, $userId, $now, 243, $comment);
 
-            $this->createOrUpdateHandler($num, $userId, 245, null, 235);
+            $this->createOrUpdateHandler($num, $userId, 245, null, null, 235);
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $instance,
@@ -717,6 +732,21 @@ class ApprovalFlowController extends Controller
         }
         if ($preId == 0 && $count > 1)
             $arr = [0, 245, $principalLevel];
+//        elseif ($preId == 75 && $count > 1) {
+//            if ($form->change_type == 223) {
+//                $chain = ChainFree::where('form_number', $num)->where('sort_number', $count)->first();
+//                $arr = [$chain->next_id, 245, null];
+//            } else if ($form->change_type == 222) {
+//                $chain = ChainFixed::where('form_id', $form->form_id)->where('sort_number', $count)->first();
+//                $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];
+//            } else if ($form->change_type == 224) {
+//                $formControlIds = Condition::where('form_id', $form->form_id)->value('form_control_id');
+//                $value = $this->getValuesForCondition($formControlIds, $num);
+//                $conditionId = $this->getCondition($instance->form_id, $value);
+//                $chain = ChainFixed::where('form_id', $form->form_id)->where('condition_id', $conditionId)->where('sort_number', $count)->first();
+//                $arr = [$chain->next_id, $chain->approver_type, $chain->principal_level];
+//            }
+//        }
         else {
             if ($form->change_type == 223) {
                 $chain = ChainFree::where('form_number', $num)->where('sort_number', $count + 1)->first();
@@ -752,7 +782,8 @@ class ApprovalFlowController extends Controller
 
     }
 
-    private function createOrUpdateHandler($num, $nextId, $type, $level = null, $status = 231)
+    # todo 多了个字段要处理
+    private function createOrUpdateHandler($num, $nextId, $type, $level = null, $principalId = null, $status = 231)
     {
         $instance = Instance::where('form_instance_number', $num)->first();
         if (is_null($instance)) {
@@ -764,11 +795,6 @@ class ApprovalFlowController extends Controller
         } else {
             $creatorId = $instance->apply_id;
         }
-        $principal = DepartmentPrincipal::where('user_id', $creatorId)->first();
-        $flag = 0;
-        if (!is_null($principal)) {
-            $flag = 1;
-        }
 
         try {
             $execute = Execute::where('form_instance_number', $num)->first();
@@ -776,7 +802,8 @@ class ApprovalFlowController extends Controller
                 $execute->update([
                     'current_handler_id' => $nextId,
                     'current_handler_type' => $type,
-                    'principal_level' => $level + $flag,
+                    'principal_level' => $level,
+                    'principal_uid' => $principalId,
                     'flow_type_id' => $status,
                 ]);
             else
@@ -784,7 +811,8 @@ class ApprovalFlowController extends Controller
                     'form_instance_number' => $num,
                     'current_handler_id' => $nextId,
                     'current_handler_type' => $type,
-                    'principal_level' => $level + $flag,
+                    'principal_level' => $level,
+                    'principal_uid' => $principalId,
                     'flow_type_id' => $status,
                 ]);
 
@@ -838,7 +866,12 @@ class ApprovalFlowController extends Controller
         if ($now->current_handler_id != $userId) {
             $user = User::find($userId);
             $role = $user->roles()->where('role_id', $now->current_handler_id)->first();
-            if (is_null($role))
+            if ($now->current_handler_type == 246)
+                if ($now->principal_uid == $userId)
+                    return [$now->current_handler_id, $now->current_handler_type];
+                else
+                    throw new ApprovalVerifyException('当前用户没权限进行该操作');
+            elseif (is_null($role))
                 throw new ApprovalVerifyException('当前用户没权限进行该操作');
         }
 

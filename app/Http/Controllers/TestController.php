@@ -90,4 +90,16 @@ class TestController extends Controller
         dd('no');
     }
 
+    public function department()
+    {
+        $arr = Common::getChildDepartment(149);
+        return $this->response->array($arr);
+    }
+
+    public function pdepartment()
+    {
+        $id = Common::getDepartmentPrincipal(255, 1);
+        dd(1);
+    }
+
 }

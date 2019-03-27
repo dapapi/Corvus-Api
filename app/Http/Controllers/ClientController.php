@@ -312,7 +312,9 @@ class ClientController extends Controller
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+          //  return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
         }
         DB::commit();
         return $this->response->created();

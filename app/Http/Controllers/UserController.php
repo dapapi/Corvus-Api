@@ -130,8 +130,10 @@ class UserController extends Controller
         $my_project_number = Project::where('principal_id',$user->id)->count();
         //我的任务数
         $my_task_number = Task::where('principal_id',$user->id)->count();
-        //我的审批数
-        $my_approval_number = 30;
+        //我的审批数pendingSum
+        $Approval = new ApprovalFormController();
+        $sumInfo = $Approval->pendingSum($request);
+        $my_approval_number = array_sum($sumInfo);
         //待完成任务数
         $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
         $user->my_number = [

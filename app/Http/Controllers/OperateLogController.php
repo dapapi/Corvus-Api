@@ -21,7 +21,9 @@ use App\Models\Issues;
 use App\Models\Calendar;
 use App\Models\Task;
 use App\Models\Trail;
+use App\ModuleUserType;
 use App\OperateLogMethod;
+use App\Repositories\ScopeRepository;
 use Illuminate\Support\Facades\Auth;
 use App\Repositories\OperateLogRepository;
 use Exception;
@@ -33,15 +35,16 @@ class OperateLogController extends Controller
 {
 
     protected $operateLogRepository;
+    protected $scopeRepository;
 
-    public function __construct(OperateLogRepository $operateLogRepository)
+    public function __construct(OperateLogRepository $operateLogRepository,ScopeRepository $scopeRepository)
     {
         $this->operateLogRepository = $operateLogRepository;
+        $this->scopeRepository = $scopeRepository;
     }
 
     public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business,Supplier $supplier)
     {
-
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 1);
@@ -50,12 +53,20 @@ class OperateLogController extends Controller
             $query = $task->operateLogs();
         } else if ($project && $project->id) {
             $query = $project->operateLogs();
-        } else if ($star && $star->id) {
-            $query = $star->operateLogs();
+        } else if ($star && $star->id) {//对艺人跟进进行权限控制
+//            $users = $this->scopeRepository->getDataViewUsers(537,true);
+            $query = $star->operateLogs()->starOperateLogSearchData();
+//                ->join("module_users","module_users.moduleable_id","operate_logs.logable_id")
+//                ->where("module_users.type",ModuleUserType::BROKER)
+//                ->whereIn('module_users.user_id',$users);
         } else if ($trail && $trail->id) {
             $query = $trail->operateLogs();
-        }else if ($blogger && $blogger->id) {
-            $query = $blogger->operateLogs();
+        }else if ($blogger && $blogger->id) {//对博主跟进进行权限控制
+//            $users = $this->scopeRepository->getDataViewUsers(538,true);
+            $query = $blogger->operateLogs()->bloggerOperateLogSearchData();
+//                ->join("module_users","module_users.moduleable_id","operate_logs.logable_id")
+//                ->where("module_users.type",ModuleUserType::PRODUCER)
+//                ->whereIn('module_users.user_id',$users);
         }else if ($report && $report->id) {
             $query = $report->operateLogs();
         }else if ($issues && $issues->id) {
@@ -86,8 +97,15 @@ class OperateLogController extends Controller
                 break;
         }
 
+<<<<<<< HEAD
         $operateLogs = $query->createDesc()->paginate($pageSize);
 //        $operateLogs = $query->createDesc()->get();
+=======
+//        $operateLogs = $query->createDesc()->paginate($pageSize);
+//        DB::connection()->enableQueryLog();
+        $operateLogs = $query->createDesc()->get();
+//        dd(DB::getQueryLog());
+>>>>>>> genjinpower
 
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {

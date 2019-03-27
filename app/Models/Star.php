@@ -72,12 +72,14 @@ class Star extends Model
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
-            select u.id from stars as s 
+            select u.id from stars as s
             left join module_users as mu on mu.moduleable_id = s.id and 
             mu.moduleable_type='".ModuleableType::STAR.
             "' left join users as u on u.id = mu.user_id where s.id = stars.id
         )");
     }
+
+
 
     //按创建时间倒叙
     public function scopeCreateDesc($query)
@@ -148,5 +150,54 @@ class Star extends Model
 
     }
 
+    public function starBills()
+    {
+        return $this->hasMany(ProjectBill::class, 'artist_name','name');
+    }
+
+    /**
+     * 艺人隐私字段
+     * @param string $key
+     * @return mixed|string
+     * @author lile
+     * @date 2019-03-13 18:57
+     */
+//    public function getAttribute($key)
+//    {
+//        return $this->getPrivacyField(ModuleableType::STAR,$key);
+//    }
+    /**
+     * 艺人隐私字段
+     * @param string $key
+     * @return mixed|string
+     * @author lile
+     * @date 2019-03-13 18:57
+     */
+//    public function setAttribute($key, $value)
+//    {
+//        return $this->setPrivacyField(ModuleableType::STAR,$key,$value);
+//    }
+
+
+    /**
+     * 判断用户是否有编辑权限
+     * @return string
+     * @author lile
+     * @date 2019-03-13 18:58
+     */
+//    public function getPowerAttribute()
+//    {
+//        //登录用户对艺人编辑权限验证
+//        try{
+//            $user = Auth::guard("api")->user();
+//            //获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $repository = new ScopeRepository();
+//            $repository->checkPower("stars/{id}",'put',$role_list,$this);
+//            return "true";
+//        }catch (Exception $exception){
+//            return "false";
+//        }
+//    }
 
 }

@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\ModuleableType;
+use App\ModuleUserType;
 use App\Repositories\PrivacyUserRepository;
+use App\Repositories\ScopeRepository;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +28,45 @@ class OperateLog extends Model
 
     public function scopeCreateDesc($query)
     {
-        return $query->orderBy('created_at', 'desc');
+        return $query->orderBy('operate_logs.created_at', 'desc');
+    }
+
+    /**
+     * 艺人跟进权限
+     * @param $query
+     * @author lile
+     * @date 2019-03-27 11:02
+     */
+    public function scopeStarOperateLogSearchData($query)
+    {
+        //本人相关，本部门相关，本部门及下属部门，本部门及同级部门，全部，获取有权限查看的人
+        $users = (new ScopeRepository())->getDataViewUsers(537,true);
+        $users = implode($users,",");
+        $query->whereRaw(
+            "(select s.id from stars as s 
+            left join module_users as mu on mu.moduleable_id = s.id and mu.moduleable_type='".ModuleableType::STAR."' 
+            and mu.type = ".ModuleUserType::BROKER."
+            where s.id = operate_logs.logable_id and mu.user_id in ({$users}))"
+        );
+    }
+
+    /**
+     * 博主跟进权限
+     * @param $query
+     * @author lile
+     * @date 2019-03-27 11:02
+     */
+    public function scopeBloggerOperateLogSearchData($query)
+    {
+        //本人相关，本部门相关，本部门及下属部门，本部门及同级部门，全部，获取有权限查看的人
+        $users = (new ScopeRepository())->getDataViewUsers(537,true);
+        $users = implode($users,",");
+        $query->whereRaw(
+            "(select b.id from bloggers as b 
+            left join module_users as mu on mu.moduleable_id = b.id and mu.moduleable_type='".ModuleableType::BLOGGER."' 
+            and mu.type = ".ModuleUserType::PRODUCER."
+            where b.id = operate_logs.logable_id and mu.user_id in ({$users}))"
+        );
     }
 
     public function user()
@@ -37,6 +78,8 @@ class OperateLog extends Model
     {
         return $this->morphTo();
     }
+
+
 
     /**
      * 获取日志的时候判断用户是否有权限查看该条日志

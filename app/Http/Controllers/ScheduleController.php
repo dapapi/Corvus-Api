@@ -694,6 +694,10 @@ class ScheduleController extends Controller
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
             }
         } catch (\Exception $exception) {
+<<<<<<< HEAD
+=======
+            dd($exception);
+>>>>>>> genjinpower
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('更新日程失败');

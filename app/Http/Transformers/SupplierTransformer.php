@@ -37,7 +37,7 @@ class SupplierTransformer extends TransformerAbstract
                 $array['create_name'] = '';
             }
 
-            $info = DB::table('supplier_relates')->where('supplier_id', $supplier->id)->where('type',1)->select('key','value','currency')->get()->toArray();
+            $info = DB::table('supplier_relates')->where('supplier_id', $supplier->id)->where('type',1)->select('key as name','value as account','currency')->get()->toArray();
             if (!empty($info)) {
                 $array['bank'] = $info;
             }else{

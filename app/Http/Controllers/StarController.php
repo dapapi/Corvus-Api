@@ -90,9 +90,10 @@ class StarController extends Controller
         return $this->response->paginator($stars, new StarTransformer());
     }
 
-    public function getStarRelated(Request $request){
+    public function getStarRelated(Request $request)
+    {
 
-        $stars = Star::where('sign_contract_status',2)->searchData()->select('id','name')->get();
+        $stars = Star::where('sign_contract_status', 2)->searchData()->select('id', 'name')->get();
         $data = array();
         $data['data'] = $stars;
         foreach ($data['data'] as $key => &$value) {
@@ -136,6 +137,7 @@ class StarController extends Controller
             $star->power = "true";
         }catch (Exception $exception){
             $star->power = "false";
+
         }
         $star->powers = $repository->getPower($user,$star);
 
@@ -677,8 +679,7 @@ class StarController extends Controller
 //                $arrayOperateLog[] = $operateStarLocation;
             }
         }
-        if ($request->has("star_risk_point"))
-        {
+        if ($request->has("star_risk_point")) {
             $array['star_risk_point'] = $payload['star_risk_point'];
         }
         DB::beginTransaction();
@@ -857,7 +858,7 @@ class StarController extends Controller
      * @param FilterRequest $request
      * @return \Dingo\Api\Http\Response
      */
-    public function getFilter(FilterRequest $request,StarRepository $repository)
+    public function getFilter(FilterRequest $request, StarRepository $repository)
     {
         $payload = $request->all();
         $array = [];//查询条件
@@ -880,7 +881,7 @@ class StarController extends Controller
 //        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
 //        $query = Star::from(DB::raw($joinSql))->select("stars.*");
 
-        $query =    $repository->starCustomSiftBuilder();
+        $query = $repository->starCustomSiftBuilder();
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
         });

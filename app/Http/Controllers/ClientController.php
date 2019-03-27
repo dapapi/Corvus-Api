@@ -23,13 +23,14 @@ use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Trail;
-use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\ClientRepository;
 use App\Repositories\FilterReportRepository;
 use App\Repositories\ScopeRepository;
 use App\TriggerPoint\ClientTriggerPoint;
+use App\User;
 use Carbon\Carbon;
+use App\ModuleableType;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -231,7 +232,7 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request, Client $client,ClientRepository $repository,ScopeRepository $scopeRepository)
+    public function detail(Request $request, Client $client,ScopeRepository $repository)
     {
         $client = $client->searchData()->find($client->id);
         if($client == null){
@@ -248,18 +249,16 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-
+            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $scopeRepository->checkPower("clients/{id}",'put',$role_list,$client);
+            $repository->checkPower("clients/{id}",'put',$role_list,$client);
             $client->power = "true";
         }catch (Exception $exception){
             $client->power = "false";
         }
-        $client->powers = $repository->getPower($user,$client);
         return $this->response->item($client, new ClientTransformer());
     }
 
@@ -317,7 +316,9 @@ class ClientController extends Controller
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+          //  return $this->response->errorBadRequest('上传文件排版有问题，请严格按照模版格式填写');
         }
         DB::commit();
         return $this->response->created();
@@ -364,8 +365,8 @@ class ClientController extends Controller
 
             ->select('clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
-//        dd(DB::getQueryLog());
         return $this->response->paginator($clients, new ClientTransformer(!$all));
+
     }
 
     public function dashboard(Request $request, Department $department)

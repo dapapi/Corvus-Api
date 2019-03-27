@@ -695,9 +695,12 @@ class ScheduleController extends Controller
             }
         } catch (\Exception $exception) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             dd($exception);
 >>>>>>> genjinpower
+=======
+>>>>>>> 9f7227e03485f2cef3a7bfc37c83fbcfa472e385
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('更新日程失败');

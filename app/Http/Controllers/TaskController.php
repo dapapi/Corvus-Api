@@ -124,7 +124,7 @@ class TaskController extends Controller
 
 
     public function tasksAll(Request $request,Task $task)
-   {
+    {
         $payload = $request->all();
         $data = $task
             ->searchData()

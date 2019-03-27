@@ -97,15 +97,12 @@ class OperateLogController extends Controller
                 break;
         }
 
-<<<<<<< HEAD
-        $operateLogs = $query->createDesc()->paginate($pageSize);
-//        $operateLogs = $query->createDesc()->get();
-=======
+
 //        $operateLogs = $query->createDesc()->paginate($pageSize);
 //        DB::connection()->enableQueryLog();
         $operateLogs = $query->createDesc()->get();
 //        dd(DB::getQueryLog());
->>>>>>> genjinpower
+
 
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {

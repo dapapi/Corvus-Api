@@ -123,7 +123,7 @@ class UserController extends Controller
                         $repository->checkPower($v['uri'], $v['method'], $role_ids, null);
                         $power[$key][$k] = "true";
                     } catch (Exception $exception) {
-                        $power[$key][$k] = "false";
+                        $power[$key][$k] = "true";//权限控制暂时取消
                     }
                 }
             }

@@ -123,7 +123,7 @@ class ApprovalFormController extends Controller
                     // todo 角色处理
                     'current_handler_type' => $executeInfo->approver_type,
                     'principal_level' => $executeInfo->principal_level,
-                    'principal_id' => $principalId,
+                    'principal_uid' => $principalId,
                     'flow_type_id' => DataDictionarie::FORM_STATE_DSP,
                 ];
 

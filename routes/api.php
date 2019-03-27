@@ -773,7 +773,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
 
-
         //app版本相关接口
         //新建版本信息
         $api->post('/appversion', 'App\Http\Controllers\AppVersionController@addAppVersion');
@@ -804,6 +803,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/clients', 'App\Http\Controllers\ClientController@dashboard');
         $api->get('/departments/{department}/dashboard/stars', 'App\Http\Controllers\StarController@dashboard');
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
+
         // 供应商
         $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
         $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');

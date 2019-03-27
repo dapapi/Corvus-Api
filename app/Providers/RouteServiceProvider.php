@@ -546,6 +546,16 @@ class RouteServiceProvider extends ServiceProvider
                 if ($entity == null){
                     throw new Exception("合同不存在");
                 }
+                } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('dashboard', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Dashboard::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }
@@ -556,6 +566,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Supplier::findOrFail($id);
+                } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('appversion', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Position::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

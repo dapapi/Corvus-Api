@@ -52,25 +52,21 @@ class FormControlTransformer extends TransformerAbstract
 
         if ($this->num && !is_null($control->value($this->num)))
             $arr['control_value'] = $control->value($this->num)->form_control_value;
-        else {
-            $arr['control_value'] = null;
-
-            $detailControl = Control::where('form_id', $control->form_id)->where('control_id', 88)->first();
-
-            if ($detailControl) {
-                $detailArr = [];
-                foreach (DetailValue::where('form_instance_number', $this->num)->cursor() as $item) {
-                    $detailArr[$item->sort_number][] = [
-                        'key' => $item->key,
-                        'values' => [
-                            'data' => [
-                                'value' => $item->value
-                            ]
+        elseif ($control->control_id == 88) {
+            $detailArr = [];
+            foreach (DetailValue::where('form_instance_number', $this->num)->cursor() as $item) {
+                $detailArr[$item->sort_number][] = [
+                    'key' => $item->key,
+                    'values' => [
+                        'data' => [
+                            'value' => $item->value
                         ]
-                    ];
-                }
-                $arr['control_value'] = $detailArr;
+                    ]
+                ];
             }
+            $arr['control_value'] = $detailArr;
+        } else {
+            $arr['control_value'] = null;
         }
 
 

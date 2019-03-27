@@ -52,19 +52,19 @@ class OperateLogController extends Controller
         } else if ($project && $project->id) {
             $query = $project->operateLogs();
         } else if ($star && $star->id) {//对艺人跟进进行权限控制
-            $users = $this->scopeRepository->getDataViewUsers(537,true);
-            $query = $star->operateLogs()
-                ->join("module_users","module_users.moduleable_id","operate_logs.logable_id")
-                ->where("module_users.type",ModuleUserType::BROKER)
-                ->whereIn('module_users.user_id',$users);
+//            $users = $this->scopeRepository->getDataViewUsers(537,true);
+            $query = $star->operateLogs()->starOperateLogSearchData();
+//                ->join("module_users","module_users.moduleable_id","operate_logs.logable_id")
+//                ->where("module_users.type",ModuleUserType::BROKER)
+//                ->whereIn('module_users.user_id',$users);
         } else if ($trail && $trail->id) {
             $query = $trail->operateLogs();
         }else if ($blogger && $blogger->id) {//对博主跟进进行权限控制
-            $users = $this->scopeRepository->getDataViewUsers(538,true);
-            $query = $blogger->operateLogs()
-                ->join("module_users","module_users.moduleable_id","operate_logs.logable_id")
-                ->where("module_users.type",ModuleUserType::PRODUCER)
-                ->whereIn('module_users.user_id',$users);
+//            $users = $this->scopeRepository->getDataViewUsers(538,true);
+            $query = $blogger->operateLogs()->bloggerOperateLogSearchData();
+//                ->join("module_users","module_users.moduleable_id","operate_logs.logable_id")
+//                ->where("module_users.type",ModuleUserType::PRODUCER)
+//                ->whereIn('module_users.user_id',$users);
         }else if ($report && $report->id) {
             $query = $report->operateLogs();
         }else if ($issues && $issues->id) {
@@ -96,7 +96,6 @@ class OperateLogController extends Controller
 //        $operateLogs = $query->createDesc()->paginate($pageSize);
 //        DB::connection()->enableQueryLog();
         $operateLogs = $query->createDesc()->get();
-//        dd($operateLogs);
 //        dd(DB::getQueryLog());
 
         foreach ($operateLogs as $operateLog) {

@@ -72,12 +72,14 @@ class Star extends Model
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
-            select u.id from stars as s 
+            select u.id from stars as s
             left join module_users as mu on mu.moduleable_id = s.id and 
             mu.moduleable_type='".ModuleableType::STAR.
             "' left join users as u on u.id = mu.user_id where s.id = stars.id
         )");
     }
+
+
 
     //按创建时间倒叙
     public function scopeCreateDesc($query)
@@ -146,6 +148,11 @@ class Star extends Model
     public function projects()
     {
 
+    }
+
+    public function starBills()
+    {
+        return $this->hasMany(ProjectBill::class, 'artist_name','name');
     }
 
     /**

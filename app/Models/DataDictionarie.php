@@ -50,6 +50,9 @@ class DataDictionarie extends Model
     const ATTENDANCE = 12;//考勤
     const APPROVAL = 13;//审批
     const MESSAGE = 14;//消息
+    const PROJECT_BILL = 543;//项目账单
+    const BLOGGER_BILL = 544; //博主账单
+    const STAR_BILL = 545; //艺人账单
     //。。。。
 
 

@@ -40,13 +40,22 @@ class OperateLog extends Model
     {
         //本人相关，本部门相关，本部门及下属部门，本部门及同级部门，全部，获取有权限查看的人
         $users = (new ScopeRepository())->getDataViewUsers(537,true);
-        $users = implode($users,",");
-        $query->whereRaw(
-            "(select s.id from stars as s 
+
+        if (is_array($users) && count($users) == 0){
+            $query->whereRaw("1=1");
+        }
+        elseif ($users == null){
+            $query->whereRaw("0 = 1");
+        }elseif(is_array($users)){
+            $users = implode($users,",");
+            $query->whereRaw(
+                "(select s.id from stars as s 
             left join module_users as mu on mu.moduleable_id = s.id and mu.moduleable_type='".ModuleableType::STAR."' 
             and mu.type = ".ModuleUserType::BROKER."
             where s.id = operate_logs.logable_id and mu.user_id in ({$users}))"
-        );
+            );
+        }
+
     }
 
     /**
@@ -59,13 +68,21 @@ class OperateLog extends Model
     {
         //本人相关，本部门相关，本部门及下属部门，本部门及同级部门，全部，获取有权限查看的人
         $users = (new ScopeRepository())->getDataViewUsers(537,true);
-        $users = implode($users,",");
-        $query->whereRaw(
-            "(select b.id from bloggers as b 
-            left join module_users as mu on mu.moduleable_id = b.id and mu.moduleable_type='".ModuleableType::BLOGGER."' 
-            and mu.type = ".ModuleUserType::PRODUCER."
-            where b.id = operate_logs.logable_id and mu.user_id in ({$users}))"
-        );
+
+        if (is_array($users) && count($users) == 0){
+            $query->whereRaw("1=1");
+        }
+        elseif ($users == null){
+            $query->whereRaw("0 = 1");
+        }elseif (is_array($users)){
+            $users = implode($users,",");
+            $query->whereRaw(
+                "(select b.id from bloggers as b 
+                left join module_users as mu on mu.moduleable_id = b.id and mu.moduleable_type='" . ModuleableType::BLOGGER . "' 
+                and mu.type = " . ModuleUserType::PRODUCER . "
+                where b.id = operate_logs.logable_id and mu.user_id in ({$users}))"
+            );
+        }
     }
 
     public function user()

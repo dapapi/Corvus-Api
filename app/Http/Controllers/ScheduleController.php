@@ -201,19 +201,12 @@ class ScheduleController extends Controller
                 $query->where(function ($query) use ($payload, $calendars_id) {
                     $query->where('privacy', Schedule::OPEN);
                     $query->whereIn('calendar_id', $calendars_id);
-                })->Where(function ($query) use ($user, $subquery) {
+                })->orWhere(function ($query) use ($user, $subquery) {
                     $query->Where('creator_id', $user->id);
-                    $query->Where(function ($query) use ($user, $subquery) {
+                    $query->orwhere(function ($query) use ($user, $subquery) {
                         $query->whereRaw("$user->id in ({$subquery->toSql()})");
                     });
-                })->orwhere(function ($query) use ($payload, $calendars_id) {
-                    $query->where('privacy', Schedule::SECRET);
-                    $query->whereIn('calendar_id', $calendars_id);
-                })->Where(function ($query) use ($user, $subquery) {
-                    $query->Where(function ($query) use ($user, $subquery) {
-                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
-                    });
-                });
+                })->whereIn('calendar_id', $calendars_id);
                     })
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
                 ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
@@ -223,8 +216,8 @@ class ScheduleController extends Controller
 //                $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
 //               dd($sql_with_bindings);
                     return $this->response->collection($schedules, new ScheduleTransformer());
-            }
 
+        }
     }
 
 
@@ -417,7 +410,7 @@ class ScheduleController extends Controller
             if($calendar['starable_type'] == ModuleableType::STAR){
 
                 if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
-                    return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+                    return  $this->response->errorForbidden("艺人日程只有负责人可以创建");
                 $schedule = $this->hasrepeat($request, $payload, $module, $user);
             }else{
                 $schedule = $this->hasrepeat($request, $payload, $module, $user);
@@ -468,7 +461,6 @@ class ScheduleController extends Controller
 //            }
 
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建日程失败');
@@ -577,7 +569,7 @@ class ScheduleController extends Controller
         try {
             if($calendar['starable_type'] == ModuleableType::STAR){
                 if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
-                    return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+                    return  $this->response->errorForbidden("艺人日程只有负责人可以修改");
                 $schedule->update($payload);
             }else{
                 $schedule->update($payload);
@@ -743,7 +735,7 @@ class ScheduleController extends Controller
         $calendar = Calendar::find($schedule->calendar_id);
         if($calendar['starable_type'] == ModuleableType::STAR){
             if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
-                return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+                return  $this->response->errorForbidden("艺人日程只有负责人可以删除");
             $schedule->delete();
         } else {
             $schedule->delete();

@@ -48,9 +48,10 @@ class Contract extends Model
         $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
 
         return  (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
-            select usr.id from contracts as c 
-            left join approval_form_participants as afps on afps.notice_id = c.creator_id
-             left join users as usr on usr.id = afps.notice_id  where usr.id = c.creator_id
+            select afps.notice_id from contracts as c 
+            left join approval_form_participants as afps on afps.form_instance_number = c.form_instance_number
+            where cs.form_instance_number = c.form_instance_number
+           
         )");
 
     }

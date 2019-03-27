@@ -816,6 +816,7 @@ class ProjectController extends Controller
         }catch (Exception $exception){
             $project->power = "false";
         }
+
         $this->powers = $repository->getPower($user,$project);
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();

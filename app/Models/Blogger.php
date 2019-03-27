@@ -125,4 +125,8 @@ class Blogger extends Model
     {
         return $this->hasMany(Production::class, 'blogger_id', 'id');
     }
+    public function bloggerBills()
+    {
+        return $this->hasMany(ProjectBill::class, 'action_user','nickname');
+    }
 }

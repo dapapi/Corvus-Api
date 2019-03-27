@@ -41,7 +41,9 @@ class OperateLog extends Model
     {
         //本人相关，本部门相关，本部门及下属部门，本部门及同级部门，全部，获取有权限查看的人
         $users = (new ScopeRepository())->getDataViewUsers(537,true);
-        $users = implode($users,",");
+        if (is_array($users)){
+            $users = implode($users,",");
+        }
         $query->whereRaw(
             "(select s.id from stars as s 
             left join module_users as mu on mu.moduleable_id = s.id and mu.moduleable_type='".ModuleableType::STAR."' 

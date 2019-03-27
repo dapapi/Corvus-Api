@@ -60,7 +60,7 @@ class StarRepository
             try{
                 $repository->checkPower("stars/{id}",'put',$role_list,$star);
                 $power[$key] = "true";
-            }catch (Exception $exception){
+            }catch (\Exception $exception){
                 $power[$key] = "false";
             }
         }

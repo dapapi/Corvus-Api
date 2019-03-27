@@ -344,16 +344,12 @@ class ApprovalFlowController extends Controller
                     else
                         $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null);
                 else
-                    if ($type == 246)
-                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId, 232);
-                    else
                         $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null, 232);
             }
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
         }
-
         DB::commit();
         $authorization = $request->header()['authorization'][0];
         $execute = Execute::where("form_instance_number", $instance->form_instance_number)->first();

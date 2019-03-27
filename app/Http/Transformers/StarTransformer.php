@@ -83,6 +83,7 @@ class StarTransformer extends TransformerAbstract
             'last_follow_up_at' =>  $star->last_follow_up_at,
             'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
+            'powers'    =>  $star->powers,
 
         ];
         if($star ->creator_id != $user->id)

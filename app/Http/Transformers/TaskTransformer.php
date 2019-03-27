@@ -38,6 +38,7 @@ class TaskTransformer extends TransformerAbstract
             'last_updated_at'   =>  $task->last_updated_at,
             'last_follow_up_at' => $task->last_follow_up_at,
             "power" =>  $task->power,
+            "powers" => $task->powers,
             'adj_id' => $task->adj_id,
 
         ];

@@ -157,6 +157,13 @@ class Project extends Model
 
         return $this->morphMany(ProjectBillsResource::class, 'resourceable');
     }
+
+    public function projectBills()
+    {
+        return $this->hasMany(ProjectBill::class, 'project_kd_name','title');
+    }
+
+
     public function getProjectType($type)
     {
         if ($type == self::TYPE_MOVIE){

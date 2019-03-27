@@ -421,6 +421,16 @@ class ConsoleController extends Controller
                         if (DataDictionarie::CONTRACTS == $value['resource_id']){
                             $dataViewSql = RoleDataView::CONTRACTS_DATA_VIEW_SQL;
                         }
+                        if (DataDictionarie::PROJECT_BILL == $value['resource_id']){//项目账单
+                            $dataViewSql = RoleDataView::PROJECT_BILL_DATA_VIEW_SQL;
+                        }
+                        if (DataDictionarie::BLOGGER_BILL == $value['resource_id']){//博主账单账单
+                            $dataViewSql = "";
+                        }
+                        if (DataDictionarie::STAR_BILL == $value['resource_id']){//艺人账单账单
+                            $dataViewSql = "";
+                        }
+
 
                         $array = [
                             'role_id'=>$roleId,

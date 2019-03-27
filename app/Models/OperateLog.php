@@ -41,12 +41,14 @@ class OperateLog extends Model
     {
         //本人相关，本部门相关，本部门及下属部门，本部门及同级部门，全部，获取有权限查看的人
         $users = (new ScopeRepository())->getDataViewUsers(537,true);
-        if (is_array($users)){
-            $users = implode($users,",");
+
+        if (is_array($users) && count($users) == 0){
+            $query->whereRaw("1=1");
         }
-        if ($users == null){
+        elseif ($users == null){
             $query->whereRaw("0 = 1");
-        }else{
+        }elseif(is_array($users)){
+            $users = implode($users,",");
             $query->whereRaw(
                 "(select s.id from stars as s 
             left join module_users as mu on mu.moduleable_id = s.id and mu.moduleable_type='".ModuleableType::STAR."' 
@@ -67,12 +69,14 @@ class OperateLog extends Model
     {
         //本人相关，本部门相关，本部门及下属部门，本部门及同级部门，全部，获取有权限查看的人
         $users = (new ScopeRepository())->getDataViewUsers(537,true);
-        if (is_array($users)){
-            $users = implode($users,",");
+
+        if (is_array($users) && count($users) == 0){
+            $query->whereRaw("1=1");
         }
-        if ($users == null){
+        elseif ($users == null){
             $query->whereRaw("0 = 1");
-        }else {
+        }elseif (is_array($users)){
+            $users = implode($users,",");
             $query->whereRaw(
                 "(select b.id from bloggers as b 
                 left join module_users as mu on mu.moduleable_id = b.id and mu.moduleable_type='" . ModuleableType::BLOGGER . "' 

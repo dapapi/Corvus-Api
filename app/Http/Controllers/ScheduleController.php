@@ -463,7 +463,9 @@ class ScheduleController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorInternal('创建日程失败');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+          //  return $this->response->errorInternal('创建日程失败');
         }
         DB::commit();
         //向参与人发送消息
@@ -688,7 +690,9 @@ class ScheduleController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorInternal('更新日程失败');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+//            return $this->response->errorInternal('更新日程失败');
         }
         DB::commit();
         try{

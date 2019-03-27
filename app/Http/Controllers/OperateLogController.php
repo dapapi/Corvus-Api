@@ -105,6 +105,7 @@ class OperateLogController extends Controller
 //        dd(DB::getQueryLog());
 
 
+
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
                 $operateLog->content = '!!!!!!!';

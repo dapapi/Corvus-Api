@@ -41,6 +41,7 @@ class TaskTransformer extends TransformerAbstract
             'adj_id' => $task->adj_id,
             "powers" => $task->powers,
 
+
         ];
 
         $array['task_p'] = true;

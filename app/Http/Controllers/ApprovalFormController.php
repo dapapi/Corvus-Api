@@ -336,12 +336,11 @@ class ApprovalFormController extends Controller
                 ->join('users as creator', function ($join) {
                     $join->on('recode.change_id', '=', 'creator.id')->where('afe.current_handler_type', '=', 246);
                 })
-
                 ->join('project_histories as ph', function ($join) {
                     $join->on('ph.project_number', '=', 'bu.form_instance_number');
                 })
-                ->join("data_dictionaries as dds", function ($join) {
-                    $join->on("dds.id", '=', 'afe.flow_type_id');
+                ->join("data_dictionaries as dds",function ($join){
+                    $join->on("dds.id",'=','afe.flow_type_id');
                 })
                 ->where(function ($query) use ($payload, $request) {
                     if ($request->has('keywords')) {
@@ -374,7 +373,7 @@ class ApprovalFormController extends Controller
             }
             array_multisort($ctime_str, SORT_DESC, $resArr);
 
-        } else {
+        }else{
 
             //$payload['status'] = array('232', '233', '234', '235');
             $resArr = $this->thenApproval($request, $payload);

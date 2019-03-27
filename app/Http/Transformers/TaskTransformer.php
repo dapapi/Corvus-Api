@@ -20,7 +20,7 @@ class TaskTransformer extends TransformerAbstract
     public function transform(Task $task)
     {
         $array = [
-            'id' => $task->id,
+            'id' => hashid_encode($task->id),
             'title' => $task->title,
             'status' => $task->status,
             'priority' => $task->priority,

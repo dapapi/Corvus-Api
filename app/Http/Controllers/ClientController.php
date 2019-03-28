@@ -232,7 +232,7 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request, Client $client,ScopeRepository $repository)
+    public function detail(Request $request, Client $client,ScopeRepository $repository,ClientRepository $clientRepository)
     {
         $client = $client->searchData()->find($client->id);
         if($client == null){
@@ -259,6 +259,7 @@ class ClientController extends Controller
         }catch (Exception $exception){
             $client->power = "false";
         }
+        $client->powers = $clientRepository->getPower($user,$client);
         return $this->response->item($client, new ClientTransformer());
     }
 

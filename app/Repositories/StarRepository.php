@@ -61,7 +61,7 @@ class StarRepository
                 $repository->checkPower("stars/{id}",'put',$role_list,$star);
                 $power[$key] = "true";
             }catch (\Exception $exception){
-                $power[$key] = "false";
+                $power[$key] =  "false";
             }
         }
         Cache::put($cache_key,$power,1);

@@ -811,6 +811,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
         $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
         $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
+        //获取我的任务，我的审批，我的项目，待我审批的数量
+        $api->get('/user/mynumber','App\Http\Controllers\UserController@getMyNumber');
+        //获取各个模块列表里面按钮权限
+        $api->get('/user/list_power','App\Http\Controllers\UserController@getListPower');
+
 
     });
 });

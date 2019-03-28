@@ -59,14 +59,21 @@ class Task extends Model
 //            )");
 
         }else{
-            return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
+            return $query->where(function ($query)use ($rules,$userid){
+                (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from tasks as t 
             left join module_users as mu on mu.moduleable_id = t.id and 
             mu.moduleable_type='".ModuleableType::TASK.
-                "' left join users as u on u.id = mu.user_id where t.id = tasks.id
-        )")->where("privacy",self::OPEN)->orWhere(function ($query)use ($user){//查询与本人相关的私密
+                    "' left join users as u on u.id = mu.user_id where t.id = tasks.id
+        )");
+            })->where("privacy",self::OPEN)->orWhere(function ($query)use ($user){//查询与本人相关的私密
                 $query->where("privacy",Self::PRIVACY)->where(function ($query) use ($user){
-                    $query->where('tasks.creator_id',$user->id)->orWhere('tasks.principal_id',$user->id);
+                    $query->where('tasks.creator_id',$user->id)->orWhere('tasks.principal_id',$user->id)->orWhereRaw("{$user->id} in (
+                       select u.id from tasks as t 
+                        left join module_users as mu on mu.moduleable_id = t.id and 
+                        mu.moduleable_type='".ModuleableType::TASK.
+                        "' left join users as u on u.id = mu.user_id where t.id = tasks.id
+                    )");
                 });
             });
         }

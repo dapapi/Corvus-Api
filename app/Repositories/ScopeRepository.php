@@ -389,8 +389,8 @@ class ScopeRepository
                 ],
                 'task' => [
                     'add' => ['method' => 'post', 'uri' => 'tasks'],
-                    'export' => ['method' => 'post', 'uri' => 'tasks/export'],
-                    'import' => ['method' => 'post', 'uri' => 'tasks/import']
+//                    'export' => ['method' => 'post', 'uri' => 'tasks/export'],
+//                    'import' => ['method' => 'post', 'uri' => 'tasks/import']
                 ],
                 'client' => [
                     'add' => ['method' => 'post', 'uri' => 'clients'],

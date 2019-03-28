@@ -63,6 +63,7 @@ class NcRepository
             "json"  =>  ['token'=>$token,'itfcode'=>$itfconde,'companyId'=>config('nc.nc_companyid'),'data'=>$data],
             "debug" =>  true
         ];
+        dump($options);
         $client = new Client();
         $nc_query = config("nc.nc_query");
         $response = $client->request("POST",$nc_query,$options);

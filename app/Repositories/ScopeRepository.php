@@ -355,5 +355,70 @@ class ScopeRepository
         }
         return false;
     }
-    //
+
+    /**
+     * 各个模块列表页按钮权限
+     * @author lile
+     * @date 2019-03-28 10:14
+    */
+    public function getAllListPageButtonPower()
+    {
+        $user = Auth::guard('api')->user();
+        $cache_key = "power:user:".$user->id.":all:list";
+        $power = Cache::get($cache_key);
+        if (!$power) {
+            $power = [];
+            //获取当前用户所有角色
+            $role_ids = RoleUser::where('user_id', $user->id)->pluck('role_id')->all();
+
+            $api_list = [
+                'star' => [
+                    'add' => ['method' => 'post', 'uri' => 'stars'],
+                    'export' => ['method' => 'post', 'uri' => 'stars/export'],
+                    'import' => ['method' => 'post', 'uri' => 'stars/import']
+                ],
+                'project' => [
+                    'add' => ['method' => 'post', 'uri' => 'projects'],
+                    'export' => ['method' => 'post', 'uri' => 'projects/export'],
+                    'import' => ['method' => 'post', 'uri' => 'projects/import']
+                ],
+                'blogger' => [
+                    'add' => ['method' => 'post', 'uri' => 'bloggers'],
+                    'export' => ['method' => 'post', 'uri' => 'bloggers/export'],
+                    'import' => ['method' => 'post', 'uri' => 'bloggers/import']
+                ],
+                'task' => [
+                    'add' => ['method' => 'post', 'uri' => 'tasks'],
+                    'export' => ['method' => 'post', 'uri' => 'tasks/export'],
+                    'import' => ['method' => 'post', 'uri' => 'tasks/import']
+                ],
+                'client' => [
+                    'add' => ['method' => 'post', 'uri' => 'clients'],
+                    'export' => ['method' => 'post', 'uri' => 'clients/export'],
+                    'import' => ['method' => 'post', 'uri' => 'clients/import']
+                ],
+                'trail' => [
+                    'add' => ['method' => 'post', 'uri' => 'trails'],
+                    'export' => ['method' => 'post', 'uri' => 'trails/export'],
+                    'import' => ['method' => 'post', 'uri' => 'trails/import']
+                ],
+
+
+            ];
+            foreach ($api_list as $key => $value) {
+                foreach ($value as $k => $v) {
+                    //获取对线索新增权限
+                    try {
+                        $this->checkPower($v['uri'], $v['method'], $role_ids, null);
+                        $power[$key][$k] = "true";
+                    } catch (Exception $exception) {
+                        $power[$key][$k] = "true";//权限控制暂时取消
+                    }
+                }
+            }
+            Cache::put($cache_key,$power,1);
+        }
+    }
+
+
 }

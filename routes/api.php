@@ -785,6 +785,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
+        //获取我的任务，我的审批，我的项目，待我审批的数量
+        $api->get('/user/mynumber','App\Http\Controllers\UserController@getMyNumber');
+        //获取各个模块列表里面按钮权限
+        $api->get('/user/list_power','App\Http\Controllers\UserController@getListPower');
+
 
     });
 });

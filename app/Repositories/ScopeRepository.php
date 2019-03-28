@@ -16,6 +16,7 @@ use App\Models\RoleDataView;
 use App\Models\RoleDataManage;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -411,13 +412,14 @@ class ScopeRepository
                     try {
                         $this->checkPower($v['uri'], $v['method'], $role_ids, null);
                         $power[$key][$k] = "true";
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
                         $power[$key][$k] = "true";//权限控制暂时取消
                     }
                 }
             }
             Cache::put($cache_key,$power,1);
         }
+        return $power;
     }
 
 

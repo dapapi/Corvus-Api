@@ -164,7 +164,7 @@ class UserController extends Controller
      */
     public function getMyNumber(Request $request)
     {
-        $user = $this->user;
+        $user = Auth::guard("api")->user();
         //我负责的项目数
         $my_project_number = Project::where('principal_id',$user->id)->count();
         //我的任务数
@@ -175,16 +175,25 @@ class UserController extends Controller
         $my_approval_number = array_sum($sumInfo);
         //待完成任务数
         $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
-        $user->my_number = [
+        $my_number = [
             'my_project_number' =>  $my_project_number,
             'my_task_number'    =>  $my_task_number,
             'my_approval_number'    =>  $my_approval_number,
             'my_wait_task_number'   =>  $my_wait_task_number
         ];
+        return [
+            "data"  =>  [
+                "my_number"=>$my_number
+            ]
+        ];
     }
 
     public function getListPower(ScopeRepository $scopeRepository){
-        return $scopeRepository->getAllListPageButtonPower();
+        return [
+            "data"=>[
+                "power"=>$scopeRepository->getAllListPageButtonPower()
+            ]
+        ];
     }
 
 }

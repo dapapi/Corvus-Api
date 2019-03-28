@@ -818,7 +818,6 @@ class ProjectController extends Controller
         }
 
         $project->powers = $repository->getPower($user,$project);
-
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;

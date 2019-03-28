@@ -72,81 +72,9 @@ class UserController extends Controller
         return  $arr;
     }
 
-    public function my(Request $request,ScopeRepository $repository)
+    public function my(Request $request)
     {
-        $user = Auth::guard('api')->user();
-        $cache_key = "power:user:".$user->id.":all:list";
-        $power = Cache::get($cache_key);
-        if (!$power) {
-            $power = [];
-            //获取当前用户所有角色
-            $role_ids = RoleUser::where('user_id', $user->id)->pluck('role_id')->all();
-
-            $api_list = [
-                'star' => [
-                    'add' => ['method' => 'post', 'uri' => 'stars'],
-                    'export' => ['method' => 'post', 'uri' => 'stars/export'],
-                    'import' => ['method' => 'post', 'uri' => 'stars/import']
-                ],
-                'project' => [
-                    'add' => ['method' => 'post', 'uri' => 'projects'],
-                    'export' => ['method' => 'post', 'uri' => 'projects/export'],
-                    'import' => ['method' => 'post', 'uri' => 'projects/import']
-                ],
-                'blogger' => [
-                    'add' => ['method' => 'post', 'uri' => 'bloggers'],
-                    'export' => ['method' => 'post', 'uri' => 'bloggers/export'],
-                    'import' => ['method' => 'post', 'uri' => 'bloggers/import']
-                ],
-                'task' => [
-                    'add' => ['method' => 'post', 'uri' => 'tasks'],
-                    'export' => ['method' => 'post', 'uri' => 'tasks/export'],
-                    'import' => ['method' => 'post', 'uri' => 'tasks/import']
-                ],
-                'client' => [
-                    'add' => ['method' => 'post', 'uri' => 'clients'],
-                    'export' => ['method' => 'post', 'uri' => 'clients/export'],
-                    'import' => ['method' => 'post', 'uri' => 'clients/import']
-                ],
-                'trail' => [
-                    'add' => ['method' => 'post', 'uri' => 'trails'],
-                    'export' => ['method' => 'post', 'uri' => 'trails/export'],
-                    'import' => ['method' => 'post', 'uri' => 'trails/import']
-                ],
-
-
-            ];
-            foreach ($api_list as $key => $value) {
-                foreach ($value as $k => $v) {
-                    //获取对线索新增权限
-                    try {
-                        $repository->checkPower($v['uri'], $v['method'], $role_ids, null);
-                        $power[$key][$k] = "true";
-                    } catch (Exception $exception) {
-                        $power[$key][$k] = "true";//权限控制暂时取消
-                    }
-                }
-            }
-            Cache::put($cache_key,$power,1);
-        }
-
-        $user->power = $power;
-        //我负责的项目数
-        $my_project_number = Project::where('principal_id',$user->id)->count();
-        //我的任务数
-        $my_task_number = Task::where('principal_id',$user->id)->count();
-        //我的审批数pendingSum
-        $Approval = new ApprovalFormController();
-        $sumInfo = $Approval->pendingSum($request);
-        $my_approval_number = array_sum($sumInfo);
-        //待完成任务数
-        $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
-        $user->my_number = [
-            'my_project_number' =>  $my_project_number,
-            'my_task_number'    =>  $my_task_number,
-            'my_approval_number'    =>  $my_approval_number,
-            'my_wait_task_number'   =>  $my_wait_task_number
-        ];
+        $user = Auth::guard("api")->user();
         return $this->response->item($user, new UserTransformer());
     }
     public function show(User $user)
@@ -228,5 +156,44 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * 获取我的项目，我的任务，我的审批，待完成任务数量
+     * @param Request $request
+     * @author lile
+     * @date 2019-03-28 10:30
+     */
+    public function getMyNumber(Request $request)
+    {
+        $user = Auth::guard("api")->user();
+        //我负责的项目数
+        $my_project_number = Project::where('principal_id',$user->id)->count();
+        //我的任务数
+        $my_task_number = Task::where('principal_id',$user->id)->count();
+        //我的审批数pendingSum
+        $Approval = new ApprovalFormController();
+        $sumInfo = $Approval->pendingSum($request);
+        $my_approval_number = array_sum($sumInfo);
+        //待完成任务数
+        $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
+        $my_number = [
+            'my_project_number' =>  $my_project_number,
+            'my_task_number'    =>  $my_task_number,
+            'my_approval_number'    =>  $my_approval_number,
+            'my_wait_task_number'   =>  $my_wait_task_number
+        ];
+        return [
+            "data"  =>  [
+                "my_number"=>$my_number
+            ]
+        ];
+    }
+
+    public function getListPower(ScopeRepository $scopeRepository){
+        return [
+            "data"=>[
+                "power"=>$scopeRepository->getAllListPageButtonPower()
+            ]
+        ];
+    }
 
 }

@@ -70,10 +70,6 @@ class UserTransformer extends TransformerAbstract
             'real_name' => $user->real_name,
             'current_address' => $user->current_address,
             'organization_id'   =>  $user->department()->first() == null ? 0 : $user->department()->first()->company_id,
-            'power' =>  $user->power,
-            'my_number' =>  $user->my_number,
-
-
         ];
 
         $companyInfo = DB::table('department_user as du')//

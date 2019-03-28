@@ -582,6 +582,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
         //查看部门
         $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
+        // 查看部门成员
+        $api->get('/departments/{department}/users', 'App\Http\Controllers\DepartmentController@users');
         //增加部门
         $api->post('/departments', 'App\Http\Controllers\DepartmentController@store');
         //编辑部门

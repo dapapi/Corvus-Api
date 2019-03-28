@@ -129,4 +129,15 @@ class Blogger extends Model
     {
         return $this->hasMany(ProjectBill::class, 'action_user','nickname');
     }
+
+    /**
+     * 博主的参与人定义人制作人，为了权限加的这个方法
+     * @return \Illuminate\Database\Eloquent\Relations\MorphToMany
+     * @author lile
+     * @date 2019-03-28 17:15
+     */
+    public function participants()
+    {
+        return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PRODUCER);
+    }
 }

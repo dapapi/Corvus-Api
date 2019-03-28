@@ -61,15 +61,9 @@ class NcRepository
             return false;
         }
         $options = [
-<<<<<<< HEAD
-            "json"  =>  ["token"=>$token,"itfcode"=>$itfconde,"companyId"=>config('nc.nc_companyid'),"data"=>$data]
-        ];
-=======
             "json"  =>  ['token'=>$token,'itfcode'=>$itfconde,'companyId'=>config('nc.nc_companyid'),'data'=>$data],
             "debug" =>  true
         ];
-        dump($options);
->>>>>>> power
         $client = new Client();
         $nc_query = config("nc.nc_query");
         $response = $client->request("POST",$nc_query,$options);
@@ -78,15 +72,11 @@ class NcRepository
             if ($body['success'] == "true"){
                 return true;
             }
-<<<<<<< HEAD
-            return false;
-        }
-        return false;
-=======
+
             throw new \Exception($response->getBody());
         }
         throw new \Exception($response->getStatusCode());
->>>>>>> power
+
     }
 
     /**
@@ -99,24 +89,16 @@ class NcRepository
     {
         $itfcode = "ACTOR";
         $signflag = null;
-<<<<<<< HEAD
-        $enflag = null;
-=======
 
->>>>>>> power
         if($star->sign_contract_status == SignContractStatus::ALREADY_SIGN_CONTRACT){
             $signflag = 0;//签约
         }
         if($star->sign_contract_status == SignContractStatus::ALREADY_TERMINATE_AGREEMENT){
             $signflag = 1;//解约
         }
-<<<<<<< HEAD
-        $data = ['accode'=>$star->accode,'acname'=>$star->name,'signflag'=>$star->$signflag,'enflag'=>$enflag];
-        $this->senMessageToNC($itfcode,$data);
-=======
+
         $data = ['accode'=>$star->accode,'acname'=>$star->name,'signflag'=>$signflag,'enflag'=>$star->enflag];
         return $this->senMessageToNC($itfcode,$data);
->>>>>>> power
     }
     /**
      * 发送博主消息到nc

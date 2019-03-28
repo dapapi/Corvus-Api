@@ -144,7 +144,7 @@ class TaskController extends Controller
                 $query->whereIn('tasks.principal_id', $userIds);
             }
             $query->whereRaw('1=1');
-        })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+        })->searchData()->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
 
         foreach ($tasks as &$value){
             $value['id'] = hashid_encode($value['id']);
@@ -171,7 +171,8 @@ class TaskController extends Controller
 
             }
         }
-       return $tasks;
+        return $tasks;
+
     }
 
 

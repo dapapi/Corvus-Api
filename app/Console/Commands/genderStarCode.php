@@ -45,10 +45,11 @@ class genderStarCode extends Command
         $genderator = new Generator();
         //生成艺人编码
         $star_list = Star::where('sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
-            ->whereRaw('accode is null')
+//            ->whereRaw('accode is null')
             ->get(['id']);
         foreach ($star_list as $star){
             $star->accode = $genderator->generatorCode('ty',4,false);
+            $star->enflag=2;
             $star->save();
         }
         //生博主编码
@@ -66,14 +67,14 @@ class genderStarCode extends Command
             $client->save();
         }
         //生成项目编码
-        $project_list = \App\Models\Project::join('approval_form_instances as afi','afi.form_instance_number','projects.project_number')
-            ->where("form_status",232)->get();
-
-        foreach ($project_list as $project){
-            $project->project_code = $genderator->generatorCode("xm",4,true);
-            $project->project_enflag = 2;
-            $project->save();
-        }
+//        $project_list = \App\Models\Project::join('approval_form_instances as afi','afi.form_instance_number','projects.project_number')
+//            ->where("form_status",232)->get();
+//
+//        foreach ($project_list as $project){
+//            $project->project_code = $genderator->generatorCode("xm",4,true);
+//            $project->project_enflag = 2;
+//            $project->save();
+//        }
 
     }
 }

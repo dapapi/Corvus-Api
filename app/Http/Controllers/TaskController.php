@@ -115,13 +115,17 @@ class TaskController extends Controller
         $my = $request->get('my',0);
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-      $query = Task::select('tasks.id','tasks.title','tasks.end_at','tr.resourceable_id','tr.resourceable_type','tr.resource_id','users.name','tasks.adj_id')
-              ->join('task_resources as tr', function ($join) {
-                  $join->on('tr.task_id', '=', 'tasks.id');
-              })
+      $query = Task::select('tasks.id','tasks.title','tasks.end_at','tts.title','tr.resourceable_id','tr.resourceable_type','tr.resource_id','users.name','tasks.adj_id')
+               ->join('task_resources as tr', function ($join) {
+                   $join->on('tr.task_id', '=', 'tasks.id');
+                 })
                 ->join('users', function ($join) {
                 $join->on('tasks.creator_id', '=', 'users.id');
-                });
+                })
+              ->join('task_types as tts', function ($join) {
+                  $join->on('tasks.type_id', '=', 'tts.id');
+              });
+
 
         $tasks = $query->where(function($query) use ($request, $payload) {
             if ($request->has('keyword'))
@@ -143,26 +147,28 @@ class TaskController extends Controller
         })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
 
         foreach ($tasks as &$value){
+            $value['id'] = hashid_encode($value['id']);
             if($value['resourceable_type'] == 'star'){
-                $value['resource_name'] = DB::table('stars')->where('stars.id',$value['resourceable_id'])->select('name')->first();
-                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+                $resource_name = DB::table('stars')->where('stars.id',$value['resourceable_id'])->select('name')->first();
+                $resource_type = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
             }elseif($value['resourceable_type'] == 'project'){
-                $value['resource_name'] = DB::table('projects')->where('projects.id',$value['resourceable_id'])->select('title')->first();
+                $value['resource_name'] = DB::table('projects')->where('projects.id',$value['resourceable_id'])->select('title as name')->first();
                 $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
 
             }elseif($value['resourceable_type'] == 'blogger'){
-                $value['resource_name'] = DB::table('bloggers')->where('bloggers.id',$value['resourceable_id'])->select('nickname')->first();
+                $value['resource_name'] = DB::table('bloggers')->where('bloggers.id',$value['resourceable_id'])->select('nickname as name')->first();
                 $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
 
             }elseif($value['resourceable_type'] == 'trail'){
-                $value['resource_name'] = DB::table('trails')->where('trails.id',$value['resourceable_id'])->select('title')->first();
+                $value['resource_name'] = DB::table('trails')->where('trails.id',$value['resourceable_id'])->select('title as name')->first();
                 $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
 
             }elseif($value['resourceable_type'] == 'client'){
-                $value['resource_name'] = DB::table('clients')->where('clients.id',$value['resourceable_id'])->select('company')->first();
+                $value['resource_name'] = DB::table('clients')->where('clients.id',$value['resourceable_id'])->select('company as name')->first();
                 $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
 
-            $value['id'] = hashid_encode($value['id']);
+
             }
         }
        return $tasks;

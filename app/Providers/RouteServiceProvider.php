@@ -208,7 +208,6 @@ class RouteServiceProvider extends ServiceProvider
                 $id = hashid_decode($value);
                 $entity = Star::withTrashed()->findOrFail($id);
             } catch (Exception $exception) {
-                dd($exception);
                 abort(404);
             }
             return $entity;

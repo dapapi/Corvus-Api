@@ -115,7 +115,7 @@ class TaskController extends Controller
         $my = $request->get('my',0);
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-      $query = Task::select('tasks.id','tasks.title','tasks.end_at','tts.title','tr.resourceable_id','tr.resourceable_type','tr.resource_id','users.name','tasks.adj_id')
+      $query = Task::select('tasks.id','tasks.title','tasks.statusgit ','tasks.end_at','tts.title','tr.resourceable_id','tr.resourceable_type','tr.resource_id','users.name','tasks.adj_id')
                ->join('task_resources as tr', function ($join) {
                    $join->on('tr.task_id', '=', 'tasks.id');
                  })

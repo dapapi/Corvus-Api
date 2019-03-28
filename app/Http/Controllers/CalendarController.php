@@ -145,6 +145,8 @@ class CalendarController extends Controller
         try {
             //获取未更新之前的参与人
             $start_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
+            if ($request->has('principal_id'))
+                $payload['principal_id'] = hashid_decode($payload['principal_id']);
             $calendar->update($payload);
             $this->moduleUserRepository->addModuleUserss($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
             //更新之后的参与人

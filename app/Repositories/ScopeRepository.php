@@ -307,7 +307,6 @@ class ScopeRepository
                     }
                 }
 
-
             }
 
         }

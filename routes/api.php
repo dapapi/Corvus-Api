@@ -86,6 +86,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/tasks/{task}/privacy', 'App\Http\Controllers\TaskController@togglePrivacy');
         $api->get('/task_types', 'App\Http\Controllers\TaskTypeController@index');
         $api->get('/task_types/all', 'App\Http\Controllers\TaskTypeController@all');
+        $api->get('/task/all', 'App\Http\Controllers\TaskController@indexall');
+
         //关联任务查询
         $api->get('/projects/{project}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/clients/{client}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');

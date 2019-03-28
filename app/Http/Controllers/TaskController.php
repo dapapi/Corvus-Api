@@ -106,6 +106,72 @@ class TaskController extends Controller
         return $this->response->paginator($tasks, new TaskTransformer());
     }
 
+
+    public function indexAll(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        $userId = $user->id;
+        $my = $request->get('my',0);
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+      $query = Task::select('tasks.id','tasks.title','tasks.end_at','tr.resourceable_id','tr.resourceable_type','tr.resource_id','users.name','tasks.adj_id')
+              ->join('task_resources as tr', function ($join) {
+                  $join->on('tr.task_id', '=', 'tasks.id');
+              })
+                ->join('users', function ($join) {
+                $join->on('tasks.creator_id', '=', 'users.id');
+                });
+
+        $tasks = $query->where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('tasks.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('type_id'))
+                $query->where('type_id', hashid_decode($payload['type_id']));
+            if ($request->has('status'))
+                $query->where('tasks.status', $payload['status']);
+            if ($request->has('user')){
+                $userId = hashid_decode($payload['user']);
+                $query->where('tasks.principal_id', $userId);
+            }
+            if ($request->has('department')){
+                $userIds = array();
+                $userIds = $this->getDepartmentUserIds($payload['department']);
+                $query->whereIn('tasks.principal_id', $userIds);
+            }
+            $query->whereRaw('1=1');
+        })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+
+        foreach ($tasks as &$value){
+            if($value['resourceable_type'] == 'star'){
+                $value['resource_name'] = DB::table('stars')->where('stars.id',$value['resourceable_id'])->select('name')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+            }elseif($value['resourceable_type'] == 'project'){
+                $value['resource_name'] = DB::table('projects')->where('projects.id',$value['resourceable_id'])->select('title')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            }elseif($value['resourceable_type'] == 'blogger'){
+                $value['resource_name'] = DB::table('bloggers')->where('bloggers.id',$value['resourceable_id'])->select('nickname')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            }elseif($value['resourceable_type'] == 'trail'){
+                $value['resource_name'] = DB::table('trails')->where('trails.id',$value['resourceable_id'])->select('title')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            }elseif($value['resourceable_type'] == 'client'){
+                $value['resource_name'] = DB::table('clients')->where('clients.id',$value['resourceable_id'])->select('company')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            $value['id'] = hashid_encode($value['id']);
+            }
+        }
+       return $tasks;
+    }
+
+
+
+
+
     public function getDepartmentUserIds($departmentId){
         $userIds = array();
         $departmentId = hashid_decode($departmentId);

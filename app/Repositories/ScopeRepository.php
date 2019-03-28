@@ -413,7 +413,7 @@ class ScopeRepository
                         $this->checkPower($v['uri'], $v['method'], $role_ids, null);
                         $power[$key][$k] = "true";
                     } catch (\Exception $exception) {
-                        $power[$key][$k] = "true";//权限控制暂时取消
+                        $power[$key][$k] = "false";//权限控制暂时取消
                     }
                 }
             }

@@ -35,10 +35,7 @@ class NcRepository
             "json"  =>  ["sysCode"   =>  $sysCode,"sysPass"  =>  $sysPass,"companyId"    =>$companyId],
 //            "headers"   =>  ['Accept'   =>  'application/json']
         ];
-<<<<<<< HEAD
 
-=======
->>>>>>> power
         $response = $client->request('POST',$login_url,$options);
         if($response->getStatusCode() == 200){
             $body = json_decode($response->getBody(),true);

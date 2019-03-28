@@ -191,6 +191,36 @@ class ScheduleController extends Controller
             foreach ($payload['calendar_ids'] as $calendar_id) {
                 $calendars_id[] = hashid_decode($calendar_id);
             }
+            $calendars = Calendar::select(DB::raw('distinct calendars.id'), 'calendars.id')->leftJoin('module_users as mu', function ($join) {
+                $join->on('moduleable_id', 'calendars.id')
+                    ->where('moduleable_type', ModuleableType::CALENDAR);
+            })->where(function ($query) use ($user) {
+                $query->where('calendars.creator_id', $user->id);//创建人
+                $query->orWhere([['mu.user_id', $user->id], ['calendars.privacy', Calendar::SECRET]]);//参与人
+                $query->orwhere('calendars.privacy', Calendar::OPEN);
+            })->get();
+            //  $data = $payload['calendar_ids'];
+            $data = $calendars->toArray();
+            $dataArr = [];
+            foreach ($calendars_id as  $key1 => $value1)
+                {
+                    foreach ($data as  $key => $value){
+                        if($value['id'] == $calendars_id[0])
+                        {
+
+                            unset($data[$key]);
+                        }
+
+                    }
+                }
+            foreach ($data as  $key => $value){
+
+                $dataArr[] = $value['id'];
+            }
+            $arr = array_intersect($dataArr,$calendars_id);
+            if(!$arr){
+                return $this->response->created();
+            }
             //日程仅参与人可见
             $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
                 $join->on('mu.moduleable_id', 's.id')

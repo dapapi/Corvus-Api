@@ -30,8 +30,8 @@ class TaskTransformer extends TransformerAbstract
             'end_at' => date('Y-m-d H:i',strtotime($task->end_at)),
             'complete_at' => $task->complete_at,
             'stop_at' => $task->stop_at,
-            'created_at' => $task->created_at,
-            'updated_at' => $task->updated_at,
+            'created_at' => $task->created_at->toDatetimeString(),
+            'updated_at' => $task->updated_at->toDatetimeString(),
             'deleted_at' => $task->deleted_at,
             // 日志内容
             'last_updated_user' => $task->last_updated_user,

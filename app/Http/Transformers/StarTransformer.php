@@ -182,6 +182,10 @@ class StarTransformer extends TransformerAbstract
     }
     public function includeSchedule(Star $star)
     {
+        $data =  $star->calendar()->select(['id'])->first();
+        if(!$data){
+            return null;
+        }
         $calendar_ids = $star->calendar()
             ->select(['id'])->first()->toArray();//查找艺人日历
         if($calendar_ids){//日历存在查找日程
@@ -199,7 +203,7 @@ class StarTransformer extends TransformerAbstract
                 }
                 $arr = array_intersect($dataArr,$calendar_ids);
                 if(!$arr){
-                    return $this->response->created();
+                    return null;
                 }
                 //日程仅参与人可见
                 $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {

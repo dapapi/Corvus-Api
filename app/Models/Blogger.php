@@ -120,7 +120,10 @@ class Blogger extends Model
     {
         return $this->belongsTo(Schedule::class,'calendar_id','id');
     }
-
+    public function calendar()
+    {
+        return $this->morphOne(Calendar::class,'starable');
+    }
     public function productions()
     {
         return $this->hasMany(Production::class, 'blogger_id', 'id');

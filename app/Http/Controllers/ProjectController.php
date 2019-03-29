@@ -1450,6 +1450,13 @@ class ProjectController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
+        foreach ($payload['conditions'] as $v => $k){
+            if($k['type'] == 5);
+            {
+
+                unset($payload['conditions'][$v]);
+            }
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
     //    $joinSql = '`projects`';
@@ -1457,7 +1464,6 @@ class ProjectController extends Controller
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-
         $all = $request->get('all', false);
         $user = Auth::guard('api')->user();
         $project_type = $request->get('project_type',null);

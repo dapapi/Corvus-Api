@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PrivacyUserStoreRequest;
 use App\Models\Blogger;
 use App\Models\PrivacyUser;
 use App\Models\Project;
@@ -109,6 +110,7 @@ class privacyUserController extends Controller
         $moduleable_type = $model->getMorphClass();
         $moduleable_id = $model->id;
         $payload = $request->all();
+        unset($payload['_url']);
         $data = [];
         $user = Auth::guard('api')->user();
         $thisnull = $this->privacyUserRepository->is_creator(["user_id"=>$user->id],$model);

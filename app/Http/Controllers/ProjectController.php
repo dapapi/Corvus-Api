@@ -1441,7 +1441,19 @@ class ProjectController extends Controller
         return $this->response->collection($res,new simpleProjectTransformer());
     }
 
-
+    function str_insert($str, $i, $substr)
+    {
+        $startstr = [];
+        $laststr = [];
+        for($j=0; $j<$i; $j++){
+            $startstr .= $str[$j];
+        }
+        for ($j=$i; $j<strlen($str); $j++){
+            $laststr .= $str[$j];
+        }
+        $str = ($startstr . $substr . $laststr);
+        return $str;
+    }
     /**
      * 暂时不用列表了，逻辑要换
      * @param FilterRequest $request
@@ -1450,16 +1462,88 @@ class ProjectController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
-        foreach ($payload['conditions'] as $v => $k){
-            if($k['type'] == 5);
-            {
-
-                unset($payload['conditions'][$v]);
+//        $joinSql = '`projects`';
+        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+        if($request->has('conditions')){
+            foreach ($payload['conditions'] as $v => $k){
+                if($k['type'] == 5);
+                {
+                    unset($payload['conditions'][$v]);
+                }
+                if($k['field'] == 'th.value'){
+                   $arr =  'left join `template_field_value_histories` as th on th.project_id = projects.id and th.field_id = 22';
+                   $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'cc.value'){
+                    $arr =  'left join `template_field_value_histories` as cc on cc.project_id = projects.id and cc.field_id = 52 ';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'clo.value'){
+                    $arr =  'left join `template_field_value_histories` as clo on clo.project_id = projects.id and clo.field_id = 11';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tcs.value'){
+                    $arr =  'left join `template_field_value_histories` as tcs on tcs.project_id = projects.id and tcs.field_id = 31';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tc.value'){
+                    $arr =  'left join `template_field_value_histories` as tc on tc.project_id = projects.id and tc.field_id = 32';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tl.value'){
+                    $arr =  'left join `template_field_value_histories` as tl on tl.project_id = projects.id and tl.field_id = 34';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tt.value'){
+                    $arr =  'left join `template_field_value_histories` as tt on tt.project_id = projects.id and tt.field_id = 7';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tq.value'){
+                    $arr =  'left join `template_field_value_histories` as tq on tq.project_id = projects.id and tq.field_id = 9';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tx.value'){
+                    $arr =  'left join `template_field_value_histories` as tx on tx.project_id = projects.id and tx.field_id = 23';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tg.value'){
+                    $arr =  'left join `template_field_value_histories` as tg on tg.project_id = projects.id and tg.field_id = 24';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'td.value'){
+                    $arr =  'left join `template_field_value_histories` as td on td.project_id = projects.id and td.field_id = 25';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tr.value'){
+                    $arr =  'left join `template_field_value_histories` as tr on tr.project_id = projects.id and tr.field_id = 26';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'trd.value'){
+                    $arr =  'left join `template_field_value_histories` as trd on trd.project_id = projects.id and trd.field_id = 27';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'cl.value'){
+                    $arr =  'left join `template_field_value_histories` as cl on cl.project_id = projects.id and cl.field_id = 28';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'co.value'){
+                    $arr =  'left join `template_field_value_histories` as co on co.project_id = projects.id and co.field_id = 55';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'cp.value'){
+                    $arr =  'left join `template_field_value_histories` as cp on cp.project_id = projects.id and cp.field_id = 54';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'mu.user_id'){
+                    $arr =  'left join `module_users` as mu on mu.moduleable_id = projects.id and mu.moduleable_type = \'project\' and mu.type = 1';
+                    $joinSql = $joinSql."$arr";
+                }
             }
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
-    //    $joinSql = '`projects`';
+      //  $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+
+
         $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
@@ -1470,7 +1554,6 @@ class ProjectController extends Controller
         $query =  $projects->where(function ($query) use ($request, $payload,$user,$project_type) {
             if ($request->has('keyword'))
                 $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
-
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -1479,10 +1562,8 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('projects.principal_id', $payload['principal_ids']);
             }
-
             if ($request->has('project_type') && $project_type <> '3,4' ){
                 $query->where('projects.type',$project_type);
-
             }
             if($request->has('project_type') && $project_type == '3,4'){
                 $query->whereIn('projects.type',[$project_type]);

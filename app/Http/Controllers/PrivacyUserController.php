@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PrivacyUserStoreRequest;
 use App\Models\Blogger;
 use App\Models\PrivacyUser;
 use App\Models\Project;
@@ -104,7 +105,7 @@ class privacyUserController extends Controller
         DB::commit();
 
     }
-    public function store(Request $request,$model)
+    public function store(PrivacyUserStoreRequest $request,$model)
     {
         $moduleable_type = $model->getMorphClass();
         $moduleable_id = $model->id;

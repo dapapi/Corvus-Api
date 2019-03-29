@@ -1450,16 +1450,17 @@ class ProjectController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
-        foreach ($payload['conditions'] as $v => $k){
-            if($k['type'] == 5);
-            {
-
-                unset($payload['conditions'][$v]);
+        if($request->has('conditions')){
+            foreach ($payload['conditions'] as $v => $k){
+                if($k['type'] == 5);
+                {
+                    unset($payload['conditions'][$v]);
+                }
             }
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
         $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
-    //    $joinSql = '`projects`';
+     //   $joinSql = '`projects`';
         $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
@@ -1470,7 +1471,6 @@ class ProjectController extends Controller
         $query =  $projects->where(function ($query) use ($request, $payload,$user,$project_type) {
             if ($request->has('keyword'))
                 $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
-
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -1479,10 +1479,8 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('projects.principal_id', $payload['principal_ids']);
             }
-
             if ($request->has('project_type') && $project_type <> '3,4' ){
                 $query->where('projects.type',$project_type);
-
             }
             if($request->has('project_type') && $project_type == '3,4'){
                 $query->whereIn('projects.type',[$project_type]);

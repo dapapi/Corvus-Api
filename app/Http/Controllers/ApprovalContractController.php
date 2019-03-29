@@ -818,6 +818,8 @@ class ApprovalContractController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $userId = $user->id;
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
@@ -832,17 +834,19 @@ class ApprovalContractController extends Controller
             $array[] = ['cs.contract_number','like','%'.$payload['number'].'%'];
         if ($request->has('keyword'))
             $array[] = ['cs.title','like','%'.$payload['keyword'].'%'];
-        if ($request->has('type'))
-
+        if ($request->has('type')){
             $array[] = ['cs.star_type',$payload['type']];
-        $contractsInfo = $contracts->searchData()->where($array)->groupBy('cs.id')
+
+        }
+
+        $contractsInfo = $contracts->searchData()->where($array)->whereIn('afb.form_id', [5, 6, 7, 8])->groupBy('cs.id')
          ->orderBy('cs.created_at', 'desc')->select('cs.contract_number', 'afb.form_instance_number', 'cs.title', 'af.name as form_name', 'cs.creator_name as name', 'cs.created_at', 'afb.form_status')->distinct()->get()->toArray();
 //        $sql_with_bindings = str_replace_array('?', $contractsInfo->getBindings(), $contractsInfo->toSql());
-//        dd($sql_with_bindings);
+
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($contractsInfo, $start, $pageSize);
 
-        $total = count($article);//总条数
+        $total = count($contractsInfo);//总条数
         $totalPages = ceil($total / $pageSize);
 
         $arr = array();
@@ -857,5 +861,6 @@ class ApprovalContractController extends Controller
 
         return $arr;
     }
+
 
 }

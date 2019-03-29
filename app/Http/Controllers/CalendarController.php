@@ -71,13 +71,17 @@ class CalendarController extends Controller
             }
         }
         $payload['creator_id'] = $user->id;
-
+        if ($request->has('principal_id'))
+            $payload['principal_id'] = hashid_decode($payload['principal_id']);
         DB::beginTransaction();
         //todo 加参与人
         try {
-
-            $calendar = Calendar::create($payload);
-
+            if($request->has('star') && $payload['star']['flag'] == 'star'){
+                $calendar = Calendar::create($payload);
+            }else{
+                $calendar = Calendar::create($payload);
+            }
+            
             if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
                 $payload['participant_ids'] = [];
 
@@ -94,7 +98,6 @@ class CalendarController extends Controller
                 $operate
             ]));
         } catch (Exception $exception) {
-
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建失败');
@@ -142,6 +145,8 @@ class CalendarController extends Controller
         try {
             //获取未更新之前的参与人
             $start_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
+            if ($request->has('principal_id'))
+                $payload['principal_id'] = hashid_decode($payload['principal_id']);
             $calendar->update($payload);
             $this->moduleUserRepository->addModuleUserss($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
             //更新之后的参与人

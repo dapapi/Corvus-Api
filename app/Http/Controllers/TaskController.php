@@ -35,6 +35,7 @@ use App\Repositories\AffixRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScopeRepository;
+use App\Repositories\TaskRepository;
 use App\ResourceType;
 use App\TaskPriorityStatus;
 use App\TaskStatus;
@@ -93,10 +94,111 @@ class TaskController extends Controller
                 $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
+            if ($request->has('user')){
+                $userId = hashid_decode($payload['user']);
+                $query->where('principal_id', $userId);
+            }
+            if ($request->has('department')){
+                $userIds = array();
+                $userIds = $this->getDepartmentUserIds($payload['department']);
+                $query->whereIn('principal_id', $userIds);
+            }
 
         })->searchData()->orderBy('updated_at', 'desc')->paginate($pageSize);//created_at
+
         return $this->response->paginator($tasks, new TaskTransformer());
     }
+
+
+    public function indexAll(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        $userId = $user->id;
+        $my = $request->get('my',0);
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+      $query = Task::select('tasks.id','tasks.title as task_name','tasks.status','tasks.end_at','tts.title','tr.resourceable_id','tr.resourceable_type','tr.resource_id','users.name','tasks.adj_id')
+               ->leftjoin('task_resources as tr', function ($join) {
+                   $join->on('tr.task_id', '=', 'tasks.id');
+                 })
+                ->join('users', function ($join) {
+                $join->on('tasks.principal_id', '=', 'users.id');
+                })
+              ->leftjoin('task_types as tts', function ($join) {
+                  $join->on('tasks.type_id', '=', 'tts.id');
+              });
+
+
+        $tasks = $query->where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('tasks.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('type_id'))
+                $query->where('type_id', hashid_decode($payload['type_id']));
+            if ($request->has('status'))
+                $query->where('tasks.status', $payload['status']);
+            if ($request->has('user')){
+                $userId = hashid_decode($payload['user']);
+                $query->where('tasks.principal_id', $userId);
+            }
+            if ($request->has('department')){
+                $userIds = array();
+                $userIds = $this->getDepartmentUserIds($payload['department']);
+                $query->whereIn('tasks.principal_id', $userIds);
+            }else{
+                $query->whereRaw('1=1');
+            }
+        })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+
+        foreach ($tasks as &$value){
+            $value['id'] = hashid_encode($value['id']);
+            if($value['resourceable_type'] == 'star'){
+                $resource_name = DB::table('stars')->where('stars.id',$value['resourceable_id'])->select('name')->first();
+                $resource_type = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            }elseif($value['resourceable_type'] == 'project'){
+                $value['resource_name'] = DB::table('projects')->where('projects.id',$value['resourceable_id'])->select('title as name')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            }elseif($value['resourceable_type'] == 'blogger'){
+                $value['resource_name'] = DB::table('bloggers')->where('bloggers.id',$value['resourceable_id'])->select('nickname as name')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            }elseif($value['resourceable_type'] == 'trail'){
+                $value['resource_name'] = DB::table('trails')->where('trails.id',$value['resourceable_id'])->select('title as name')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+            }elseif($value['resourceable_type'] == 'client'){
+                $value['resource_name'] = DB::table('clients')->where('clients.id',$value['resourceable_id'])->select('company as name')->first();
+                $value['resource_type'] = DB::table('resources')->where('resources.id',$value['resource_id'])->select('title')->first();
+
+
+            }
+        }
+        return $tasks;
+
+    }
+
+
+
+
+
+    public function getDepartmentUserIds($departmentId){
+        $userIds = array();
+        $departmentId = hashid_decode($departmentId);
+        //查询部门id所有下级部门id
+        $res = DB::select("select id from departments where find_in_set(id, getChildList($departmentId))");
+        $resArr = json_decode(json_encode($res), true);
+        $ids = array_column($resArr, 'id');
+        //根据部门查询所有部门下userid
+        $departmentUserIds = DB::table('department_user')->select('user_id')->whereIn('department_id',$ids)->get()->toArray();
+        $departmentUserIdArr = json_decode(json_encode($departmentUserIds), true);
+        $userIds = array_column($departmentUserIdArr, 'user_id');
+        $uniqueUserIds = array_unique($userIds);
+
+        return $uniqueUserIds;
+    }
+
 
     public function tasksAll(Request $request,Task $task)
     {
@@ -324,7 +426,6 @@ class TaskController extends Controller
         //TODO 还有其他模块
         $tasks = $query->searchData()->where('privacy', false)->paginate($pageSize);
 
-
         //获取任务完成数量
         $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
 
@@ -333,7 +434,7 @@ class TaskController extends Controller
         return $request;
     }
 
-    public function show(Task $task,ScopeRepository $repository)
+    public function show(Task $task,TaskRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -346,16 +447,18 @@ class TaskController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-            $user = Auth::guard("api")->user();
+
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $scopeRepository->checkPower("tasks/{id}",'put',$role_list,$task);
             $task->power = "true";
         }catch (Exception $exception){
             $task->power = "false";
         }
+        $task->powers = $repository->getPower($user,$task);
         return $this->response()->item($task, new TaskTransformer());
     }
 
@@ -1337,15 +1440,43 @@ class TaskController extends Controller
     {
 
         $payload = $request->all();
-        $privacy = isset($payload['privacy']) ? $payload['privacy'] : 0;
+        $privacy = isset($payload['privacy']) && $payload['privacy'] == 1 ? $payload['privacy'] : 0;
         DB::beginTransaction();
         try {
+            if($privacy ==1){
+                $id = $task->creator_id;
+                $info = DB::select("call getprincipal($id)");
+                if($info){
+                    $data = json_decode(json_encode($info), true);
+                    $adjId = array_unique(array_column($data, 'user_id'));
+                    $adjIdStr = implode(",", $adjId);
+                }else{
+                    $adjIdStr = 0;
+                }
+
+            }else{
+                $adjIdStr = 0;
+            }
             //修改任务私密状态
             $array = [
-                'privacy' => $privacy
+                'privacy' => $privacy,
+                'adj_id'=>$adjIdStr
             ];
 
             $task->update($array);
+
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => $task->privacy == 1 ? "将任务转私密":"将任务转公开",
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::TASK_TO_SECRET,
+            'field_name'    =>  'privacy',
+            'field_title'   =>  '隐私'
+            ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
 
         } catch (Exception $e) {
             Log::error($e);

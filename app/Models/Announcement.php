@@ -27,7 +27,7 @@ class Announcement extends Model
 
     public function scopeCreateDesc($query)
     {
-       return $query->orderBy('stick','desc')->orderBy('created_at', 'desc');
+       return $query->orderBy('stick','desc')->orderBy('announcement.created_at', 'desc');
 //       return $query->orderByRaw('created_at,stick ASC');
 
     }

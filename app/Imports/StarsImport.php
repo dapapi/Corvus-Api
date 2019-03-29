@@ -56,7 +56,7 @@ class StarsImport implements ToCollection, WithBatchInserts, WithChunkReading
                     continue ;
                 $title = Star::where('name',$row[0])->get();
                 if(count($title)>0){
-                    throw new Exception('系统中已存在销售线索数据，请处理后再进行上传');
+                    throw new Exception('系统中已存在此数据，请处理后再进行上传');
                 }
                 Star::create([
                     'name' => $row[0],

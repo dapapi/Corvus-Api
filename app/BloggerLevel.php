@@ -4,10 +4,10 @@ namespace App;
 
 abstract class BloggerLevel
 {
-    const S = 1;
-    const A = 2;
-    const B = 3;
-    const C = 4;
+    const S = 4;
+    const A = 3;
+    const B = 2;
+    const C = 1;
     /**
      * @param $key
      * @return string

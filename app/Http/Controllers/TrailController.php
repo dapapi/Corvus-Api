@@ -33,6 +33,7 @@ use App\Repositories\DepartmentRepository;
 use App\Repositories\FilterReportRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ScopeRepository;
+use App\Repositories\TrailRepository;
 use App\Repositories\TrailStarRepository;
 use App\TriggerPoint\TrailTrigreePoint;
 use App\User;
@@ -91,6 +92,19 @@ class TrailController extends Controller
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
         return $this->response->paginator($trails, new TrailTransformer());
+    }
+
+
+    public function getTrailRelated(Request $request)
+    {
+
+        $trails = Trail::searchData()->select('id', 'title')->get();
+        $data = array();
+        $data['data'] = $trails;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
     }
 
     public function all(Request $request)
@@ -582,6 +596,9 @@ class TrailController extends Controller
 
             if ($request->has('contact')) {//联系人
                 $contact = $trail->contact;
+                if($contact)
+                {
+
                 if(isset($payload['contact']['name'])){
                     if($payload['contact']['name'] != $contact->name){
                         $operateName = new OperateEntity([
@@ -596,7 +613,7 @@ class TrailController extends Controller
                     }
                 }
                 if (isset($payload['contact']['phone'])){
-                    if($payload['contact']['phone'] != $contact->name){
+                    if($payload['contact']['phone'] != $contact->phone){
                         $operateName = new OperateEntity([
                             'obj' => $trail,
                             'title' => '联系人电话',
@@ -608,6 +625,51 @@ class TrailController extends Controller
                         $contact->update($payload['contact']);
                     }
                 }
+                if (isset($payload['contact']['wechat'])){
+                    if($payload['contact']['wechat'] != $contact->wechat){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => '微信',
+                            'start' => $contact->wechat,
+                            'end' => $payload['contact']['wechat'],
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+                        $contact->update($payload['contact']);
+                    }
+                }
+                if (isset($payload['contact']['other_contact_ways'])){
+                    if($payload['contact']['other_contact_ways'] != $contact->other_contact_ways){
+                        $operateName = new OperateEntity([
+                            'obj' => $trail,
+                            'title' => '其他联系方式',
+                            'start' => $contact->other_contact_ways,
+                            'end' => $payload['contact']['other_contact_ways'],
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operateName;
+                        $contact->update($payload['contact']);
+                    }
+                }
+               }else{
+                    $dataArray = [];
+                    $dataArray['client_id'] = $client->id;
+                    if($request->has("contact.name")){
+                        $dataArray['name'] = $payload['contact']['name'];
+                    }
+                    if($request->has("contact.phone")){
+                        $dataArray['phone'] = $payload['contact']['phone'];
+                    }
+                    if($request->has("contact.wechat")){
+                        $dataArray['wechat'] = $payload['contact']['wechat'];
+                    }
+                    if($request->has("contact.other_contact_ways")){
+                        $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                    }
+                    $contact_id = Contact::create($dataArray);
+                    $trail->update(['contact_id' => $contact_id->id]);
+                }
+
             }
 
             if ($request->has('expectations') && is_array($payload['expectations'])) {
@@ -801,7 +863,7 @@ class TrailController extends Controller
         $this->response->item($trail, new TrailTransformer());
     }
 
-    public function detail(Request $request, Trail $trail,ScopeRepository $repository)
+    public function detail(Request $request, Trail $trail,TrailRepository $repository,ScopeRepository $scopeRepository)
     {
         $trail = $trail->searchData()->find($trail->id);
 
@@ -816,16 +878,17 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
+        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-            $user = Auth::guard("api")->user();
-            //获取用户角色
+//            获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository->checkPower("trails/{id}",'put',$role_list,$trail);
+            $scopeRepository->checkPower("trails/{id}",'put',$role_list,$trail);
             $trail->power = "true";
         }catch (Exception $exception){
             $trail->power = "false";
         }
+        $trail->powers = $repository->getPower($user,$trail);
         return $this->response->item($trail, new TrailTransformer());
     }
 

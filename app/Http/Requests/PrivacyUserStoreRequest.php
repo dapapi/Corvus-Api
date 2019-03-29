@@ -3,9 +3,10 @@
 namespace App\Http\Requests;
 
 
+
 use Dingo\Api\Http\FormRequest;
 
-class GeneralFormsRequest extends FormRequest
+class PrivacyUserStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -14,7 +15,7 @@ class GeneralFormsRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return false;
     }
 
     /**
@@ -25,16 +26,7 @@ class GeneralFormsRequest extends FormRequest
     public function rules()
     {
         return [
-            'form_group_id' =>  'numeric',
-            'except_form_group_id'  =>  'numeric'
-        ];
-    }
-
-    public function messages()
-    {
-        return [
-            "form_group_id.numeric"   =>  '参数错误',
-            'except_form_group_id.numeric'    =>  '参数错误'
+            //
         ];
     }
 }

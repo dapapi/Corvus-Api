@@ -79,7 +79,19 @@ class StarController extends Controller
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
         ->paginate($pageSize);
+
         return $this->response->paginator($stars, new StarTransformer());
+    }
+
+    public function getStarRelated(Request $request){
+
+        $stars = Star::where('sign_contract_status',2)->searchData()->select('id','name')->get();
+        $data = array();
+        $data['data'] = $stars;
+        foreach ($data['data'] as $key => &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $data;
     }
 
     public function all(Request $request)
@@ -94,7 +106,7 @@ class StarController extends Controller
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
-    public function show(Star $star)
+    public function show(Star $star,StarRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -107,17 +119,18 @@ class StarController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        //登录用户对艺人编辑权限验证
+        $user = Auth::guard("api")->user();
+//        //登录用户对艺人编辑权限验证
         try{
-            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $repository = new ScopeRepository();
-            $repository->checkPower("stars/{id}",'put',$role_list,$this);
-            $star->setAttribute('power',"true");
+            $scopeRepository->checkPower("stars/{id}",'put',$role_list,$star);
+            $star->power = "true";
         }catch (Exception $exception){
-            $star->setAttribute('power',"false");
+            $star->power = "false";
         }
+        $star->powers = $repository->getPower($user,$star);
+
         //艺人隐私字段
         return $this->response->item($star, new StarTransformer());
     }
@@ -701,7 +714,6 @@ class StarController extends Controller
 
     public function store(StarRequest $request)
     {
-
         $payload = $request->all();
         $user = Auth::guard('api')->user();
 
@@ -747,6 +759,7 @@ class StarController extends Controller
             }
 
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

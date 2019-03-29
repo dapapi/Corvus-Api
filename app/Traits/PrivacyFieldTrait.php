@@ -32,8 +32,12 @@ trait PrivacyFieldTrait
             return parent::setAttribute($key,$value);//调用model模型的set魔术方法
         }
         $user = Auth::guard("api")->user();
-        $id = $this->attributes['id'];
-        $has_power = PrivacyUserRepository::has_power($this->getMorphClass(),$key,$id,$user->id);//判断是否有权限查看该字段
+        $id = array_key_exists('id',$this->attributes) ? $this->attributes['id'] : null;
+        if ($id){
+            $has_power = PrivacyUserRepository::has_power($this->getMorphClass(),$key,$id,$user->id);//判断是否有权限查看该字段
+        }else{
+            $has_power = true;
+        }
 
         if($this->creator_id == $user->id || $has_power){//创建人可以修改有权限的可以修改
             return parent::setAttribute($key,$value);//调用model模型的set魔术方法

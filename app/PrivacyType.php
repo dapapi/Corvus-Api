@@ -25,8 +25,10 @@ abstract class PrivacyType
     const HATCH_STAR_AT ='hatch_star_at';
 
     const HATCH_END_AT ='hatch_end_at';
+
     // 艺人的隐私字段
     const STAR_RISK_POINT ='star_risk_point';
+
     public static function getStar()
     {           $project = array();
         $project[] = 'star_risk_point';

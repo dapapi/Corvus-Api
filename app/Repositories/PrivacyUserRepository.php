@@ -34,6 +34,8 @@ class PrivacyUserRepository
             $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
         }elseif ($array['moduleable_type'] == ModuleableType::BLOGGER){
             $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
+        }elseif ($array['moduleable_type'] == ModuleableType::STAR){
+            $isnot = PrivacyUser::where($array)->orderby('moduleable_field')->get();
         }
         return $isnot;
     }

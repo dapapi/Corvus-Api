@@ -61,7 +61,7 @@ class NcRepository
             return false;
         }
         $options = [
-            "json"  =>  json_encode(['token'=>$token,'itfcode'=>$itfconde,'companyId'=>config('nc.nc_companyid'),'data'=>$data]),
+            "json"  =>  ['token'=>$token,'itfcode'=>$itfconde,'companyId'=>config('nc.nc_companyid'),'data'=>$data],
             "debug" =>  true
         ];
         $client = new Client();

@@ -16,6 +16,7 @@ class ChainFixed extends Model implements ChainInterface
         'pre_id',
         'next_id',
         'condition_id',
+        'approver_type',
         'principal_level'
     ];
 

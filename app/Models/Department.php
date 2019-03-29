@@ -37,7 +37,7 @@ class Department extends Model
 
     public function users()
     {
-        return $this->hasManyThrough(User::class, DepartmentUser::class, 'department_id', 'id', 'id', 'user_id')->where('position_type',1);
+        return $this->hasManyThrough(User::class, DepartmentUser::class, 'department_id', 'id', 'id', 'user_id')->where('users.status','!=',3);
     }
 
     /**

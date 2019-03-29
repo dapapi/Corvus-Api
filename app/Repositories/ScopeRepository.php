@@ -15,6 +15,7 @@ use App\Models\DataDictionarie;
 use App\Models\RoleDataView;
 use App\Models\RoleDataManage;
 
+use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -314,7 +315,19 @@ class ScopeRepository
     }
     private function checkDataViewPower($model)
     {
-        $model = $model->searchData()->find($model->id);
+        if ($model instanceof Task){ //热舞
+            $res = $model->searchData()->find($model->id);
+            $user = Auth::guard('api')->user();
+            if (!$res){
+               $model = $model->whereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->first();
+            }else{
+                $model = $res;
+            }
+        }else{
+            $model = $model->searchData()->find($model->id);
+        }
+
+
         if($model == null){
             return false;
         }

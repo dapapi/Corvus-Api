@@ -768,6 +768,7 @@ class StarController extends Controller
             }
 
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

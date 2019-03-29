@@ -2,6 +2,7 @@
 
 namespace App\Http\Transformers;
 use App\PrivacyType;
+use App\Models\Calendar;
 use App\TaskStatus;
 use App\Models\Schedule;
 use App\ModuleableType;
@@ -220,52 +221,79 @@ class BloggerTransformer extends TransformerAbstract
     }
     public function includeSchedule(Blogger $blogger)
     {
-        $user = Auth::guard("api")->user();
-        $calendars = $blogger->calendars()->first();
-        if($calendars){
-//            $calendar = $calendars->schedules()
-//                ->join('module_users as mu',function ($join){
+
+            $data =  $blogger->calendar()->select(['id'])->first();
+            if(!$data){
+                return null;
+            }
+            $calendar_ids = $blogger->calendar()
+                ->select(['id'])->first()->toArray();//查找艺人日历
+            if($calendar_ids){//日历存在查找日程
+                $user = Auth::guard("api")->user();
+                $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.*')->leftJoin('module_users as mu',function ($join){
+                    $join->on('moduleable_id','calendars.id')
+                        ->where('moduleable_type',ModuleableType::CALENDAR);
+                })->where(function ($query)use ($user){
+                    $query->where('calendars.creator_id',$user->id);//创建人
+                    $query->orWhere([['mu.user_id',$user->id],['calendars.privacy',Calendar::SECRET]]);//参与人
+                    $query->orwhere('calendars.privacy',Calendar::OPEN);
+                })->select('calendars.id')->get()->toArray();
+                foreach ($calendars as  $key => $value){
+                    $dataArr[] = $value['id'];
+                }
+                $arr = array_intersect($dataArr,$calendar_ids);
+                if(!$arr){
+                    return null;
+                }
+                //日程仅参与人可见
+                $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+                    $join->on('mu.moduleable_id', 's.id')
+                        ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+                        ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+                })->whereRaw("s.id=schedules.id")->select('mu.user_id');
+                $schedules = Schedule::select('schedules.*')->where(function ($query) use ($subquery,$user,$calendar_ids) {
+                    $query->where(function ($query) use ($calendar_ids) {
+                        $query->where('privacy', Schedule::OPEN);
+                        $query->whereIn('calendar_id', $calendar_ids);
+                    })->orWhere(function ($query) use ($user, $subquery) {
+                        $query->Where('creator_id', $user->id);
+                        $query->orwhere(function ($query) use ($user, $subquery) {
+                            $query->whereRaw("$user->id in ({$subquery->toSql()})");
+                        });
+                    })->whereIn('calendar_id', $calendar_ids);
+                })
+                    ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
+                        'schedules.end_at','schedules.position','schedules.repeat','schedules.desc','schedules.calendar_id',
+                        'schedules.creator_id',DB::raw("ABS(NOW() - start_at)  AS diffTime"))->orderBy('diffTime')
+                    ->limit(3)->get();
+//            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
+//                $join->on('mu.moduleable_id', 's.id')
+//                    ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
+//                    ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
 //
-//                    $join->on('mu.moduleable_id','schedules.id')
-//                        ->whereRaw("mu.moduleable_type = '".ModuleableType::SCHEDULE."'");
-//                })
-//                ->where('schedules.privacy',Schedule::OPEN)
-//                ->Orwhere(function ($query) use ($user){
-//                    $query->where('schedules.privacy',Schedule::SECRET)
-//                        ->orWhere('schedules.creator_id',$user->id)
-//                        ->orWhere('mu.user_id',$user->id);
-//                })->where('schedules.calendar_id',$calendars->id)
+//            })->whereRaw("s.id=schedules.id")
+//                ->select('mu.user_id');
+//            $calendars = $calendars->schedules();
+//              $calendar =  $calendars->where(function ($query) use ($user, $subquery){
 //
-//                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')->limit(3)->get();
-
-            $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
-                $join->on('mu.moduleable_id', 's.id')
-                    ->whereRaw("mu.moduleable_type='" . ModuleableType::SCHEDULE . "'")
-                    ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
-
-            })->whereRaw("s.id=schedules.id")
-                ->select('mu.user_id');
-            $calendars = $calendars->schedules();
-              $calendar =  $calendars->where(function ($query) use ($user, $subquery){
-
-                  $query->where(function ($query) use ($user, $subquery) {
-                      $query->where('privacy', Schedule::OPEN)
-                          ->whereRaw("$user->id in ({$subquery->toSql()})");
-                  })->orWhere(function ($query) use ($user, $subquery) {
-                      $query->orWhere('creator_id', $user->id);
-                      $query->orWhere(function ($query) use ($user, $subquery) {
-                          $query->where('privacy', Schedule::SECRET);
-                          $query->whereRaw("$user->id in ({$subquery->toSql()})");
-                      });
-
-                  });
-                })->mergeBindings($subquery)
-                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')
-                ->limit(3)->get();
+//                  $query->where(function ($query) use ($user, $subquery) {
+//                      $query->where('privacy', Schedule::OPEN)
+//                          ->whereRaw("$user->id in ({$subquery->toSql()})");
+//                  })->orWhere(function ($query) use ($user, $subquery) {
+//                      $query->orWhere('creator_id', $user->id);
+//                      $query->orWhere(function ($query) use ($user, $subquery) {
+//                          $query->where('privacy', Schedule::SECRET);
+//                          $query->whereRaw("$user->id in ({$subquery->toSql()})");
+//                      });
+//
+//                  });
+//                })->mergeBindings($subquery)
+//                ->select('schedules.*',DB::raw("ABS(NOW() - start_at)  AS diffTime")) ->orderBy('diffTime')
+//                ->limit(3)->get();
 //            $sql_with_bindings = str_replace_array('?', $calendar->getBindings(), $calendar->toSql());
 //        dd($sql_with_bindings);
 
-            return $this->collection($calendar,new ScheduleTransformer());
+            return $this->collection($schedules,new ScheduleTransformer());
         }else{
             return null;
         }

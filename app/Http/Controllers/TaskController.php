@@ -120,7 +120,7 @@ class TaskController extends Controller
                    $join->on('tr.task_id', '=', 'tasks.id');
                  })
                 ->join('users', function ($join) {
-                $join->on('tasks.creator_id', '=', 'users.id');
+                $join->on('tasks.principal_id', '=', 'users.id');
                 })
               ->join('task_types as tts', function ($join) {
                   $join->on('tasks.type_id', '=', 'tts.id');
@@ -142,8 +142,9 @@ class TaskController extends Controller
                 $userIds = array();
                 $userIds = $this->getDepartmentUserIds($payload['department']);
                 $query->whereIn('tasks.principal_id', $userIds);
+            }else{
+                $query->whereRaw('1=1');
             }
-            $query->whereRaw('1=1');
         })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
 
         foreach ($tasks as &$value){

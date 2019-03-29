@@ -119,7 +119,6 @@ class privacyUserController extends Controller
         }
 //        $data[] = ['moduleable_id' => $moduleable_id,"moduleable_type"=>$moduleable_type,"user_id"=>$user->id];//将创建人加入
         foreach ($payload as $moduleable_field => $users){
-            $users[] = hashid_encode($user->id)."";
             $users = array_unique($users);
             foreach ($users as $user_id){
                 $user_id = hashid_decode($user_id);

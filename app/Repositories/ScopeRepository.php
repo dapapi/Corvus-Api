@@ -315,7 +315,7 @@ class ScopeRepository
     }
     private function checkDataViewPower($model)
     {
-        if ($model instanceof Task){ //热舞
+        if ($model instanceof Task){ //todo 为任务隐私任务增加的一段逻辑,希望日后移除掉
             $res = $model->searchData()->find($model->id);
             $user = Auth::guard('api')->user();
             if (!$res){

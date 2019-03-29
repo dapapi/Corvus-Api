@@ -191,6 +191,29 @@ class ScheduleController extends Controller
             foreach ($payload['calendar_ids'] as $calendar_id) {
                 $calendars_id[] = hashid_decode($calendar_id);
             }
+            // todo 按权限筛选
+            $payload = $request->all();
+            $user = Auth::guard("api")->user();
+            $array = [];//查询条件
+            if($request->has('title')){//姓名
+                $array[] = ['title','like','%'.$payload['title'].'%'];
+            }
+            $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.*')->leftJoin('module_users as mu',function ($join){
+                $join->on('moduleable_id','calendars.id')
+                    ->where('moduleable_type',ModuleableType::CALENDAR);
+            })->where(function ($query)use ($user){
+                $query->where('calendars.creator_id',$user->id);//创建人
+                $query->orWhere([['mu.user_id',$user->id],['calendars.privacy',Calendar::SECRET]]);//参与人
+                $query->orwhere('calendars.privacy',Calendar::OPEN);
+            })->where($array)->select('calendars.id')->get()->toArray();
+            foreach ($calendars as  $key => $value){
+
+                $dataArr[] = $value['id'];
+            }
+            $arr = array_intersect($dataArr,$calendars_id);
+            if(!$arr){
+                return $this->response->created();
+            }
             //日程仅参与人可见
             $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
                 $join->on('mu.moduleable_id', 's.id')
@@ -569,6 +592,7 @@ class ScheduleController extends Controller
             $payload['participant_del_ids'] = [];
         DB::beginTransaction();
         try {
+            $calendar = Calendar::find($schedule['calendar_id']);
             if($calendar['starable_type'] == ModuleableType::STAR){
                 if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
                     return  $this->response->errorForbidden("艺人日程只有负责人可以修改");

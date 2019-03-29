@@ -105,11 +105,12 @@ class privacyUserController extends Controller
         DB::commit();
 
     }
-    public function store(PrivacyUserStoreRequest $request,$model)
+    public function store(Request $request,$model)
     {
         $moduleable_type = $model->getMorphClass();
         $moduleable_id = $model->id;
         $payload = $request->all();
+        unset($payload['_url']);
         $data = [];
         $user = Auth::guard('api')->user();
         $thisnull = $this->privacyUserRepository->is_creator(["user_id"=>$user->id],$model);

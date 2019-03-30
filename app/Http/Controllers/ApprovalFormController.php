@@ -569,7 +569,7 @@ class ApprovalFormController extends Controller
                     $query->where('afg.name', $payload['group_name']);
                 }
             })
-            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)
+            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('role_users.role_id','!=',75)
             ->where('approver_type', 247)->where('role_users.user_id', $userId)
             ->orderBy('ph.created_at', 'desc')
             ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id', 'afc.change_at', 'us.icon_url', 'dds.icon', 'dds.name as approval_status_name')->get()->toArray();

@@ -499,7 +499,7 @@ class ApprovalContractController extends Controller
         $article = array_slice($resArr, $start, $pageSize);
 
 
-        $total = count($article);//总条数
+        $total = count($resArr);//总条数
         $totalPages = ceil($total / $pageSize);
 
         $arr = array();

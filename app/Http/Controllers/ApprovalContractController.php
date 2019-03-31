@@ -240,7 +240,7 @@ class ApprovalContractController extends Controller
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($resArr, $start, $pageSize);
 
-        $total = count($article);//总条数
+        $total = count($resArr);//总条数
         $totalPages = ceil($total / $pageSize);
 
         $arr = array();

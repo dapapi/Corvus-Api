@@ -581,8 +581,44 @@ class ApprovalFormController extends Controller
             ->orderBy('ph.created_at', 'desc')
             ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id', 'afc.change_at', 'us.icon_url', 'dds.icon', 'dds.name as approval_status_name')->get()->toArray();
 
-        $resArr = array_merge($dataUser, $dataUserInfo);
+        $res = array_merge($dataUser, $dataUserInfo);
+        //return $resArr;
+        $resArrInfo = json_decode(json_encode($res), true);
+
+        if (empty($resArrInfo)) {
+            $resArr = array();
+        } else {
+            $resArr = $this->array_unique_fbarr($resArrInfo);
+        }
         return $resArr;
+    }
+
+
+    function array_unique_fbarr($array2D)
+    {
+        foreach ($array2D as $k=>$v)
+        {
+            $v = join(",",$v);  //降维,也可以用implode,将一维数组转换为用逗号连接的字符串
+            $temp[$k] = $v;
+        }
+        $temp = array_unique($temp);    //去掉重复的字符串,也就是重复的一维数组
+        foreach ($temp as $k => $v)
+        {
+            $array=explode(",",$v);        //再将拆开的数组重新组装
+            $temp2[$k]["form_instance_number"] =$array[0];
+            $temp2[$k]["form_status"] =$array[1];
+            $temp2[$k]["title"] =$array[2];
+            $temp2[$k]["name"] =$array[3];
+            $temp2[$k]["created_at"] =$array[4];
+            $temp2[$k]["id"] =$array[5];
+            $temp2[$k]["change_at"] =$array[6];
+            $temp2[$k]["icon_url"] =$array[7];
+            $temp2[$k]["icon"] =$array[8];
+            $temp2[$k]["approval_status_name"] =$array[9];
+
+
+        }
+        return $temp2;
     }
 
     public function myThenApproval(Request $request)

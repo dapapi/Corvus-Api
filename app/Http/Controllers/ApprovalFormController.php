@@ -945,6 +945,7 @@ class ApprovalFormController extends Controller
 //            })
             ->select('trails.id', 'trails.title', 'ph.priority', 'ph.projected_expenditure', 'ph.start_at', 'ph.end_at', 'ph.desc', 'trail_star.starable_type', 'trail_star.starable_id', 'trails.fee', 'trails.cooperation_type', 'trails.status', 'users.name as principal_name', 'trails.title', 'trails.resource_type', 'trails.resource')
             ->where('ph.id', $project->id)->where('trail_star.type', 1)->get()->toArray();
+
         $data1 = json_decode(json_encode($projectArr), true);
         //目标艺人
         $arrName = array();
@@ -990,42 +991,49 @@ class ApprovalFormController extends Controller
             }
             $str1Arr = $tmpsArr['key']->name . '-' . $tmpsArr['value'];
         }
-        //优先级查找匹配
-        if ($data1[0]['priority'] !== '') {
-            //查询数据字典优先级
-            $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val', 'dds.name')->where('dds.parent_id', 49)->get()->toArray();
-            $dictionariesArr = json_decode(json_encode($dictionaries), true);
+        if(empty($data1)){
+            $priority = '';
+            $cooperation = null;
+            $status = null;
+        }else {
+            //优先级查找匹配
+            if ($data1[0]['priority'] !== '') {
+                //查询数据字典优先级
+                $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val', 'dds.name')->where('dds.parent_id', 49)->get()->toArray();
+                $dictionariesArr = json_decode(json_encode($dictionaries), true);
 
-            if ($dictionariesArr) {
-                foreach ($dictionariesArr as $dvalue) {
-                    if ($data1[0]['priority'] == $dvalue['val']) {
-                        $priority = $dvalue['name'];
+                if ($dictionariesArr) {
+                    foreach ($dictionariesArr as $dvalue) {
+                        if ($data1[0]['priority'] == $dvalue['val']) {
+                            $priority = $dvalue['name'];
+                        }
                     }
                 }
+            } else {
+
+                $priority = '';
             }
-        } else {
 
-            $priority = '';
-        }
 
-        // 合作类型
-        if ($data1[0]['cooperation_type'] !== '') {
-            $cooperation = DB::table('data_dictionaries as dds')
-                ->where('dds.parent_id', 28)
-                ->where('dds.val', $data1[0]['cooperation_type'])
-                ->value('dds.name');
-        } else {
-            $cooperation = null;
-        }
+            // 合作类型
+            if ($data1[0]['cooperation_type'] !== '') {
+                $cooperation = DB::table('data_dictionaries as dds')
+                    ->where('dds.parent_id', 28)
+                    ->where('dds.val', $data1[0]['cooperation_type'])
+                    ->value('dds.name');
+            } else {
+                $cooperation = null;
+            }
 
-        // 线索状态
-        if ($data1[0]['cooperation_type'] !== '') {
-            $status = DB::table('data_dictionaries as dds')
-                ->where('dds.parent_id', 488)
-                ->where('dds.val', $data1[0]['status'])
-                ->value('dds.name');
-        } else {
-            $status = null;
+            // 线索状态
+            if ($data1[0]['cooperation_type'] !== '') {
+                $status = DB::table('data_dictionaries as dds')
+                    ->where('dds.parent_id', 488)
+                    ->where('dds.val', $data1[0]['status'])
+                    ->value('dds.name');
+            } else {
+                $status = null;
+            }
         }
         $tmpArr['key'] = '关联销售线索';
         $tmpArr['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title'] : null;
@@ -1082,7 +1090,7 @@ class ApprovalFormController extends Controller
             ->join('departments', function ($join) {
                 $join->on('departments.id', '=', 'department_user.department_id');
             })->select('users.name', 'departments.name as department_name', 'projects.project_number as form_instance_number', 'bu.form_status', 'projects.created_at', 'position.name as position')
-            ->where('projects.project_number', $project->project_number)->get();
+            ->where('projects.project_number', $project->project_number)->first();
         $resArr['data'] = $strArr;
         $result->addMeta('fields', $resArr);
         $result->addMeta('approval', $project);

@@ -191,6 +191,29 @@ class ScheduleController extends Controller
             foreach ($payload['calendar_ids'] as $calendar_id) {
                 $calendars_id[] = hashid_decode($calendar_id);
             }
+            // todo 按权限筛选
+            $payload = $request->all();
+            $user = Auth::guard("api")->user();
+            $array = [];//查询条件
+            if($request->has('title')){//姓名
+                $array[] = ['title','like','%'.$payload['title'].'%'];
+            }
+            $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.*')->leftJoin('module_users as mu',function ($join){
+                $join->on('moduleable_id','calendars.id')
+                    ->where('moduleable_type',ModuleableType::CALENDAR);
+            })->where(function ($query)use ($user){
+                $query->where('calendars.creator_id',$user->id);//创建人
+                $query->orWhere([['mu.user_id',$user->id],['calendars.privacy',Calendar::SECRET]]);//参与人
+                $query->orwhere('calendars.privacy',Calendar::OPEN);
+            })->where($array)->select('calendars.id')->get()->toArray();
+            foreach ($calendars as  $key => $value){
+
+                $dataArr[] = $value['id'];
+            }
+            $arr = array_intersect($dataArr,$calendars_id);
+            if(!$arr){
+                return $this->response->created();
+            }
             //日程仅参与人可见
             $subquery = DB::table("schedules as s")->leftJoin('module_users as mu', function ($join) {
                 $join->on('mu.moduleable_id', 's.id')
@@ -201,19 +224,12 @@ class ScheduleController extends Controller
                 $query->where(function ($query) use ($payload, $calendars_id) {
                     $query->where('privacy', Schedule::OPEN);
                     $query->whereIn('calendar_id', $calendars_id);
-                })->Where(function ($query) use ($user, $subquery) {
+                })->orWhere(function ($query) use ($user, $subquery) {
                     $query->Where('creator_id', $user->id);
-                    $query->Where(function ($query) use ($user, $subquery) {
+                    $query->orwhere(function ($query) use ($user, $subquery) {
                         $query->whereRaw("$user->id in ({$subquery->toSql()})");
                     });
-                })->orwhere(function ($query) use ($payload, $calendars_id) {
-                    $query->where('privacy', Schedule::SECRET);
-                    $query->whereIn('calendar_id', $calendars_id);
-                })->Where(function ($query) use ($user, $subquery) {
-                    $query->Where(function ($query) use ($user, $subquery) {
-                        $query->whereRaw("$user->id in ({$subquery->toSql()})");
-                    });
-                });
+                })->whereIn('calendar_id', $calendars_id);
                     })
                 ->where('start_at', '>', $payload['start_date'])->where('end_at', '<', $payload['end_date'])
                 ->select('schedules.id','schedules.title','schedules.is_allday','schedules.privacy','schedules.start_at',
@@ -223,8 +239,8 @@ class ScheduleController extends Controller
 //                $sql_with_bindings = str_replace_array('?', $schedules->getBindings(), $schedules->toSql());
 //               dd($sql_with_bindings);
                     return $this->response->collection($schedules, new ScheduleTransformer());
-            }
 
+        }
     }
 
 
@@ -406,7 +422,7 @@ class ScheduleController extends Controller
                 ->where($materials['start_at'][0], $materials['start_at'][1], $materials['start_at'][2])
                 ->orderby('start_at')->get(['id'])->toArray();
             if ($endmaterials) {
-                $this->response->errorForbidden("该时段会议室已被占用");
+                return  $this->response->errorForbidden("该时段会议室已被占用");
             }
         }
 
@@ -414,7 +430,15 @@ class ScheduleController extends Controller
 
         DB::beginTransaction();
         try {
-            $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            if($calendar['starable_type'] == ModuleableType::STAR){
+
+                if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                    return  $this->response->errorForbidden("艺人日程只有负责人可以创建");
+                $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            }else{
+                $schedule = $this->hasrepeat($request, $payload, $module, $user);
+            }
+
             // 操作日志
             $operate = new OperateEntity([
                 'obj' => $schedule,
@@ -462,7 +486,9 @@ class ScheduleController extends Controller
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorInternal('创建日程失败');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+          //  return $this->response->errorInternal('创建日程失败');
         }
         DB::commit();
         //向参与人发送消息
@@ -566,8 +592,14 @@ class ScheduleController extends Controller
             $payload['participant_del_ids'] = [];
         DB::beginTransaction();
         try {
-            $schedule->update($payload);
-
+            $calendar = Calendar::find($schedule['calendar_id']);
+            if($calendar['starable_type'] == ModuleableType::STAR){
+                if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                    return  $this->response->errorForbidden("艺人日程只有负责人可以修改");
+                $schedule->update($payload);
+            }else{
+                $schedule->update($payload);
+            }
             if ($old_schedule->title != $schedule->title){
                 // 操作日志
                 $operate = new OperateEntity([
@@ -669,15 +701,22 @@ class ScheduleController extends Controller
                     $operate
                 ]));
             }
+            if($calendar['starable_type'] == ModuleableType::STAR){
+                if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                    return  $this->response->errorForbidden("艺人日历只有负责人可以修改");
+                $this->hasauxiliary($request, $payload, $schedule, '', $user);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
 
-
-            $this->hasauxiliary($request, $payload, $schedule, '', $user);
-            $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
+            }else{
+                $this->hasauxiliary($request, $payload, $schedule, '', $user);
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], $payload['participant_del_ids'], $schedule, ModuleUserType::PARTICIPANT);
+            }
         } catch (\Exception $exception) {
-            dd($exception);
             Log::error($exception);
             DB::rollBack();
-            return $this->response->errorInternal('更新日程失败');
+            $error = $exception->getMessage();
+            return $this->response->errorForbidden($error);
+//            return $this->response->errorInternal('更新日程失败');
         }
         DB::commit();
         try{
@@ -721,8 +760,15 @@ class ScheduleController extends Controller
         if (!in_array($user->id, $users)) {
             $this->response->errorInternal("你没有权限删除日程");
         }
+        $calendar = Calendar::find($schedule->calendar_id);
+        if($calendar['starable_type'] == ModuleableType::STAR){
+            if(empty($calendar['principal_id']) || $calendar['principal_id'] != $user->id)
+                return  $this->response->errorForbidden("艺人日程只有负责人可以删除");
+            $schedule->delete();
+        } else {
+            $schedule->delete();
+        }
 
-        $schedule->delete();
         return $this->response->noContent();
     }
 

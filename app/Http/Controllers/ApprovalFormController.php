@@ -334,13 +334,7 @@ class ApprovalFormController extends Controller
                     $join->on('afe.form_instance_number', '=', 'recode.form_instance_number')->where('recode.change_state', '=', 237);
                 })
                 ->join('users as creator', function ($join) {
-                    $join->on('recode.change_id', '=', 'creator.id');
-                })
-                ->join('department_user as du', function ($join) {
-                    $join->on('creator.id', '=', 'du.user_id');
-                })
-                ->join('department_principal as dp', function ($join) {
-                    $join->on('dp.department_id', '=', 'du.department_id')->where('afe.current_handler_type', '=', 246);
+                    $join->on('recode.change_id', '=', 'creator.id')->where('afe.current_handler_type', '=', 246);
                 })
                 ->join('project_histories as ph', function ($join) {
                     $join->on('ph.project_number', '=', 'bu.form_instance_number');
@@ -353,14 +347,15 @@ class ApprovalFormController extends Controller
                         $query->where('bu.form_instance_number', 'LIKE', '%' . $payload['keywords'] . '%')->orwhere('creator.name', 'LIKE', '%' . $payload['keywords'] . '%');
                     }
                 })
-                ->where('dp.user_id', $userId)
+                ->where('afe.principal_uid', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
                 ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name', 'creator.icon_url', 'ph.created_at', 'dds.name as approval_status_name', 'dds.icon')->get()->toArray();
 
-            $dataPrincipals = $this->getPrincipalLevel($userId,$request,$payload);
+            //$dataPrincipals = $this->getPrincipalLevel($userId,$request,$payload);
            
-            $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole,$dataPrincipals);
+            $resArrs = array_merge($dataPrincipal, $dataUser, $dataRole);
+
 
             $resArrInfo = json_decode(json_encode($resArrs), true);
 
@@ -579,7 +574,7 @@ class ApprovalFormController extends Controller
                     $query->where('afg.name', $payload['group_name']);
                 }
             })
-            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)
+            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('role_users.role_id','!=',75)
             ->where('approver_type', 247)->where('role_users.user_id', $userId)
             ->orderBy('ph.created_at', 'desc')
             ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id', 'afc.change_at', 'us.icon_url', 'dds.icon', 'dds.name as approval_status_name')->get()->toArray();

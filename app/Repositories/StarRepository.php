@@ -5,6 +5,8 @@ namespace App\Repositories;
 use App\Models\OperateLog;
 use App\Models\Star;
 use App\OperateLogMethod;
+use App\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class StarRepository
@@ -34,5 +36,35 @@ class StarRepository
             ->leftJoin('contracts',function ($join){
                 $join->whereRaw('find_in_set(stars.id,stars)');
             })->mergeBindings($sub_sql);
+    }
+
+    public function getPower(User $user,Star $star)
+    {
+        $cache_key = "power:user:".$user->id.":star:".$star->id;
+        $power = Cache::get($cache_key);
+        if ($power){
+            return $power;
+        }
+        $power = [];
+        $role_list = $user->roles()->pluck('id')->all();
+        $repository = new ScopeRepository();
+        //登录用户对艺人编辑权限验证
+        $api_list = [
+            'edit_star' =>  ['uri'  =>  'stars/{id}','method'   =>  'put'],
+            'add_work'  =>  ['uri'  =>  '/stars/{id}/works','method'    =>  'post'],
+            "edit_publicity"  =>  ['uri'  =>  'stars/{id}/publicity','method' =>  'post'],
+            "edit_broker"  =>  ['uri'  =>  '/stars/{id}/broker','method'   =>  'post'],
+
+        ];
+        foreach ($api_list as $key => $value){
+            try{
+                $repository->checkPower("stars/{id}",'put',$role_list,$star);
+                $power[$key] = "true";
+            }catch (\Exception $exception){
+                $power[$key] =  "false";
+            }
+        }
+        Cache::put($cache_key,$power,1);
+        return $power;
     }
 }

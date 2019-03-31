@@ -114,7 +114,7 @@ class StarController extends Controller
         return $this->response->collection($stars, new StarTransformer($isAll));
     }
 
-    public function show(Star $star)
+    public function show(Star $star,StarRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -137,7 +137,10 @@ class StarController extends Controller
             $star->setAttribute('power', "true");
         } catch (Exception $exception) {
             $star->setAttribute('power', "false");
+
         }
+        $star->powers = $repository->getPower($user,$star);
+
         //艺人隐私字段
         return $this->response->item($star, new StarTransformer());
     }
@@ -765,6 +768,7 @@ class StarController extends Controller
             }
 
         } catch (Exception $e) {
+            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');

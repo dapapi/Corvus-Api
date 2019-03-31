@@ -10,12 +10,15 @@ class CalendarTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['starable', 'participants','schdule'];
 
+    protected $defaultIncludes = ['principal'];
     public function transform(Calendar $calendar)
     {
         return [
             'id' => hashid_encode($calendar->id),
             'title' => $calendar->title,
             'color' => $calendar->color,
+            'principal_id' => empty($calendar->principal_id)? null:hashid_encode($calendar->principal_id),   //
+            'starable_type' => $calendar->starable_type,   
             'privacy' => $calendar->privacy,
         ];
     }
@@ -42,6 +45,13 @@ class CalendarTransformer extends TransformerAbstract
     {
         $participants = $calendar->participants;
         return $this->collection($participants, new UserTransformer());
+    }
+    public function includePrincipal(Calendar $calendar)
+    {
+        $principal = $calendar->principal;
+        if(!$principal)
+            return null;
+        return $this->item($principal, new UsersTransformer());
     }
     public function includeSchdule(Calendar $calendar)
     {

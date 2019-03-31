@@ -317,6 +317,7 @@ class ApprovalFlowController extends Controller
         DB::commit();
 
         DB::beginTransaction();
+        # todo 判断是否需要连续跳过 改进
         try {
             if ($type == 246) {
                 $header = Common::getDepartmentPrincipal($applyId, $principalLevel);

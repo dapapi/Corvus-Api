@@ -72,74 +72,9 @@ class UserController extends Controller
         return  $arr;
     }
 
-    public function my(Request $request,ScopeRepository $repository)
+    public function my(Request $request)
     {
-        $user = Auth::guard('api')->user();
-        $power = [];
-        //获取当前用户所有角色
-        $role_ids = RoleUser::where('user_id',$user->id)->pluck('role_id')->all();
-        //获取对艺人新增权限
-        try{
-            $repository->checkPower("stars",'post',$role_ids,null);
-            $power['star'] = "true";
-        }catch (Exception $exception){
-            $power['star'] = "false";
-        }
-
-        //获取对项目新增权限
-        try{
-            $repository->checkPower("projects",'post',$role_ids,null);
-            $power['project'] = "true";
-        }catch (Exception $exception){
-            $power['project'] = "false";
-        }
-
-        //获取对博主新增权限
-        try{
-            $repository->checkPower("bloggers",'post',$role_ids,null);
-            $power['blogger'] = "true";
-        }catch (Exception $exception){
-            $power['blogger'] = "false";
-        }
-
-        //获取对任务新增权限
-        try{
-            $repository->checkPower("tasks",'post',$role_ids,null);
-            $power['task'] = "true";
-        }catch (Exception $exception){
-            $power['task'] = "false";
-        }
-
-        //获取对客户新增权限
-        try{
-            $repository->checkPower("clients",'post',$role_ids,null);
-            $power['client'] = "true";
-        }catch (Exception $exception){
-            $power['client'] = "false";
-        }
-
-        //获取对线索新增权限
-        try{
-            $repository->checkPower("trails",'post',$role_ids,null);
-            $power['trail'] = "true";
-        }catch (Exception $exception){
-            $power['trail'] = "false";
-        }
-        $user->power = $power;
-        //我负责的项目数
-        $my_project_number = Project::where('principal_id',$user->id)->count();
-        //我的任务数
-        $my_task_number = Task::where('principal_id',$user->id)->count();
-        //我的审批数
-        $my_approval_number = 30;
-        //待完成任务数
-        $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
-        $user->my_number = [
-            'my_project_number' =>  $my_project_number,
-            'my_task_number'    =>  $my_task_number,
-            'my_approval_number'    =>  $my_approval_number,
-            'my_wait_task_number'   =>  $my_wait_task_number
-        ];
+        $user = Auth::guard("api")->user();
         return $this->response->item($user, new UserTransformer());
     }
     public function show(User $user)
@@ -221,5 +156,44 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * 获取我的项目，我的任务，我的审批，待完成任务数量
+     * @param Request $request
+     * @author lile
+     * @date 2019-03-28 10:30
+     */
+    public function getMyNumber(Request $request)
+    {
+        $user = Auth::guard("api")->user();
+        //我负责的项目数
+        $my_project_number = Project::where('principal_id',$user->id)->count();
+        //我的任务数
+        $my_task_number = Task::where('principal_id',$user->id)->count();
+        //我的审批数pendingSum
+        $Approval = new ApprovalFormController();
+        $sumInfo = $Approval->pendingSum($request);
+        $my_approval_number = array_sum($sumInfo);
+        //待完成任务数
+        $my_wait_task_number = Task::where('principal_id',$user->id)->whereIn('status',[TaskStatus::NORMAL,TaskStatus::DELAY])->count();
+        $my_number = [
+            'my_project_number' =>  $my_project_number,
+            'my_task_number'    =>  $my_task_number,
+            'my_approval_number'    =>  $my_approval_number,
+            'my_wait_task_number'   =>  $my_wait_task_number
+        ];
+        return [
+            "data"  =>  [
+                "my_number"=>$my_number
+            ]
+        ];
+    }
+
+    public function getListPower(ScopeRepository $scopeRepository){
+        return [
+            "data"=>[
+                "power"=>$scopeRepository->getAllListPageButtonPower()
+            ]
+        ];
+    }
 
 }

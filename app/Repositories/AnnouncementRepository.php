@@ -6,10 +6,12 @@ use App\Models\Announcement;
 use App\Models\AnnouncementScope;
 use App\Models\Department;
 use App\Models\DepartmentUser;
+use App\User;
 
 class AnnouncementRepository
 {
     /**
+     * 获取所有可以看见公告的人的列表
      * @param Announcement $announcement
      * @return mixed
      * @author lile
@@ -34,4 +36,23 @@ class AnnouncementRepository
         $users = DepartmentUser::whereIn('department_id',$departments)->pluck('user_id')->toArray();
         return $users;
     }
+
+    public function getPower(User $user,Announcement $announcement)
+    {
+        $power = [];
+        $role_list = $user->roles()->pluck('id')->all();
+        $repository = new ScopeRepository();
+        $api_list = [
+            'edit_announcement' =>  ['uri'  =>  'announcements/{id}','method'   =>  'put']
+        ];
+        foreach ($api_list as $key => $value){
+            try{
+                $repository->checkPower($value['method'],$value['method'],$role_list,$announcement);
+                $power[$key] = "true";
+            }catch (Exception $exception){
+                $power[$key] = "false";
+            }
+        }
+    }
+
 }

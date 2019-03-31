@@ -439,7 +439,7 @@ class ApprovalGeneralController extends Controller
                 if ($form_group_id){
                     $query->where('afi.form_id',$form_group_id);
                 }
-            })->where('afi.form_status','232')
+            })//->where('afi.form_status','232')
 
               ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)//->orwhere('afc.approver_type','!=',247)
             ->orderBy('afi.created_at', 'desc')
@@ -478,7 +478,7 @@ class ApprovalGeneralController extends Controller
                 if ($form_group_id){
                     $query->where('afi.form_id',$form_group_id);
                 }
-            })->where('afi.form_status','232')
+            })//->where('afi.form_status','232')
             ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('role_users.role_id','!=',75)
             ->where('role_users.user_id',$userId)
             ->orderBy('afi.created_at', 'desc')

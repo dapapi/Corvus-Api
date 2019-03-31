@@ -581,8 +581,44 @@ class ApprovalFormController extends Controller
             ->orderBy('ph.created_at', 'desc')
             ->select('afb.form_instance_number', 'afb.form_status', 'ph.title', 'us.name', 'ph.created_at', 'ph.id', 'afc.change_at', 'us.icon_url', 'dds.icon', 'dds.name as approval_status_name')->get()->toArray();
 
-        $resArr = array_merge($dataUser, $dataUserInfo);
+        $res = array_merge($dataUser, $dataUserInfo);
+        //return $resArr;
+        $resArrInfo = json_decode(json_encode($res), true);
+
+        if (empty($resArrInfo)) {
+            $resArr = array();
+        } else {
+            $resArr = $this->array_unique_fbarr($resArrInfo);
+        }
         return $resArr;
+    }
+
+
+    function array_unique_fbarr($array2D)
+    {
+        foreach ($array2D as $k=>$v)
+        {
+            $v = join(",",$v);  //降维,也可以用implode,将一维数组转换为用逗号连接的字符串
+            $temp[$k] = $v;
+        }
+        $temp = array_unique($temp);    //去掉重复的字符串,也就是重复的一维数组
+        foreach ($temp as $k => $v)
+        {
+            $array=explode(",",$v);        //再将拆开的数组重新组装
+            $temp2[$k]["form_instance_number"] =$array[0];
+            $temp2[$k]["form_status"] =$array[1];
+            $temp2[$k]["title"] =$array[2];
+            $temp2[$k]["name"] =$array[3];
+            $temp2[$k]["created_at"] =$array[4];
+            $temp2[$k]["id"] =$array[5];
+            $temp2[$k]["change_at"] =$array[6];
+            $temp2[$k]["icon_url"] =$array[7];
+            $temp2[$k]["icon"] =$array[8];
+            $temp2[$k]["approval_status_name"] =$array[9];
+
+
+        }
+        return $temp2;
     }
 
     public function myThenApproval(Request $request)
@@ -952,6 +988,7 @@ class ApprovalFormController extends Controller
 //            })
             ->select('trails.id', 'trails.title', 'ph.priority', 'ph.projected_expenditure', 'ph.start_at', 'ph.end_at', 'ph.desc', 'trail_star.starable_type', 'trail_star.starable_id', 'trails.fee', 'trails.cooperation_type', 'trails.status', 'users.name as principal_name', 'trails.title', 'trails.resource_type', 'trails.resource')
             ->where('ph.id', $project->id)->where('trail_star.type', 1)->get()->toArray();
+
         $data1 = json_decode(json_encode($projectArr), true);
         //目标艺人
         $arrName = array();
@@ -997,42 +1034,49 @@ class ApprovalFormController extends Controller
             }
             $str1Arr = $tmpsArr['key']->name . '-' . $tmpsArr['value'];
         }
-        //优先级查找匹配
-        if ($data1[0]['priority'] !== '') {
-            //查询数据字典优先级
-            $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val', 'dds.name')->where('dds.parent_id', 49)->get()->toArray();
-            $dictionariesArr = json_decode(json_encode($dictionaries), true);
+        if(empty($data1)){
+            $priority = '';
+            $cooperation = null;
+            $status = null;
+        }else {
+            //优先级查找匹配
+            if ($data1[0]['priority'] !== '') {
+                //查询数据字典优先级
+                $dictionaries = DB::table('data_dictionaries as dds')->select('dds.val', 'dds.name')->where('dds.parent_id', 49)->get()->toArray();
+                $dictionariesArr = json_decode(json_encode($dictionaries), true);
 
-            if ($dictionariesArr) {
-                foreach ($dictionariesArr as $dvalue) {
-                    if ($data1[0]['priority'] == $dvalue['val']) {
-                        $priority = $dvalue['name'];
+                if ($dictionariesArr) {
+                    foreach ($dictionariesArr as $dvalue) {
+                        if ($data1[0]['priority'] == $dvalue['val']) {
+                            $priority = $dvalue['name'];
+                        }
                     }
                 }
+            } else {
+
+                $priority = '';
             }
-        } else {
 
-            $priority = '';
-        }
 
-        // 合作类型
-        if ($data1[0]['cooperation_type'] !== '') {
-            $cooperation = DB::table('data_dictionaries as dds')
-                ->where('dds.parent_id', 28)
-                ->where('dds.val', $data1[0]['cooperation_type'])
-                ->value('dds.name');
-        } else {
-            $cooperation = null;
-        }
+            // 合作类型
+            if ($data1[0]['cooperation_type'] !== '') {
+                $cooperation = DB::table('data_dictionaries as dds')
+                    ->where('dds.parent_id', 28)
+                    ->where('dds.val', $data1[0]['cooperation_type'])
+                    ->value('dds.name');
+            } else {
+                $cooperation = null;
+            }
 
-        // 线索状态
-        if ($data1[0]['cooperation_type'] !== '') {
-            $status = DB::table('data_dictionaries as dds')
-                ->where('dds.parent_id', 488)
-                ->where('dds.val', $data1[0]['status'])
-                ->value('dds.name');
-        } else {
-            $status = null;
+            // 线索状态
+            if ($data1[0]['cooperation_type'] !== '') {
+                $status = DB::table('data_dictionaries as dds')
+                    ->where('dds.parent_id', 488)
+                    ->where('dds.val', $data1[0]['status'])
+                    ->value('dds.name');
+            } else {
+                $status = null;
+            }
         }
         $tmpArr['key'] = '关联销售线索';
         $tmpArr['values']['data']['value'] = isset($data1[0]['title']) ? $data1[0]['title'] : null;
@@ -1089,7 +1133,7 @@ class ApprovalFormController extends Controller
             ->join('departments', function ($join) {
                 $join->on('departments.id', '=', 'department_user.department_id');
             })->select('users.name', 'departments.name as department_name', 'projects.project_number as form_instance_number', 'bu.form_status', 'projects.created_at', 'position.name as position')
-            ->where('projects.project_number', $project->project_number)->get();
+            ->where('projects.project_number', $project->project_number)->first();
         $resArr['data'] = $strArr;
         $result->addMeta('fields', $resArr);
         $result->addMeta('approval', $project);

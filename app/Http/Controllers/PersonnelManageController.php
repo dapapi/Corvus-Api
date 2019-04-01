@@ -1082,4 +1082,18 @@ class PersonnelManageController extends Controller
         DB::commit();
     }
 
+    public function setImage(Request $request)
+    {
+        $users = DB::table("users")->select('name','id')->get()->toArray();
+        $usersArr = json_decode(json_encode($users), true);
+        foreach ($usersArr as $value){
+            $userInfo = $this->getColorName($value['name']);
+            $snum = DB::table('users')
+                ->where('id',$value['id'])
+                ->update(['user_url'=>$userInfo]);
+        }
+        dd($snum);
+
+    }
+
 }

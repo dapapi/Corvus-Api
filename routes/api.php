@@ -450,7 +450,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
         // calendar
-        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
+        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@all');
+        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@index');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
 
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');
@@ -477,6 +478,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+
+        $api->get('/set/image', 'App\Http\Controllers\PersonnelManageController@setImage');
 
         // personnel
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
@@ -794,6 +797,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
+
         //供应商管理
         $api->get('/supplier','App\Http\Controllers\SupplierController@index');
 
@@ -821,6 +825,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/user/mynumber','App\Http\Controllers\UserController@getMyNumber');
         //获取各个模块列表里面按钮权限
         $api->get('/user/list_power','App\Http\Controllers\UserController@getListPower');
+
+
+        $api->get('/test/task', 'App\Http\Controllers\TestController@task');
 
 
     });

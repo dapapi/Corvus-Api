@@ -9,6 +9,9 @@ use App\Models\Task;
 use App\OperateLogMethod;
 use App\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TestController extends Controller
 {
@@ -102,5 +105,7 @@ class TestController extends Controller
         $id = Common::getDepartmentPrincipal(255, 1);
         dd(1);
     }
+
+
 
 }

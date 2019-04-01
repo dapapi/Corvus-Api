@@ -1025,7 +1025,7 @@ class StarController extends Controller
         $res = [];
         foreach ($star_list as $key => $star){
             $temp['id'] = hashid_encode($star->id);
-            $temp['artist']['contracts']['data']['contract_start_date'] = $star->contract_start_date;
+            $temp['contracts']['data']['contract_start_date'] = $star->contract_start_date;
             $temp['contract_start_date'] = $star->contract_start_date;
             $temp['name'] = $star->name;
             $temp['weibo_fans_num'] = $star->weibo_fans_num;

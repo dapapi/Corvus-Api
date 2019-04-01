@@ -84,8 +84,9 @@ class StarRepository
         }
         $where = Star::getConditionSql();
         $sql = <<<AAA
-        select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.created_at,stars.last_follow_up_at,stars.contract_start_date from stars 
+        select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.contract_start_date from stars 
         left join module_users on module_users.moduleable_id = stars.id and module_users.moduleable_type = :moduleable_type 
+        left join department_user on department_user.user_id = module_users.user_id
         where 1 = 1 {$where}  {$condition['where']} limit 0,10
 AAA;
         $placeholder = $condition['placeholder'];

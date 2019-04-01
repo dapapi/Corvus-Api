@@ -885,9 +885,8 @@ class StarController extends Controller
 //        $query = Star::from(DB::raw($joinSql))->select("stars.*");
 
 
-        $query = $repository->starCustomSiftBuilder();
-
-//        $query =    $repository->starCustomSiftBuilder();
+        $query =    $repository->starCustomSiftBuilder();
+//        $query = StarRepository::getStarList();
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
         });
@@ -1025,14 +1024,16 @@ class StarController extends Controller
         $star_list =  StarRepository::getStarList($condition);
         $res = [];
         foreach ($star_list as $key => $star){
-            $res[$key]['artist']['contracts']['data']['contract_start_date'] = $star->contract_start_date;
-            $res[$key]['contract_start_date'] = $star->contract_start_date;
-            $res[$key]['name'] = $star->name;
-            $res[$key]['weibo_fans_num'] = $star->weibo_fans_num;
-            $res[$key]['source'] = $star->source;
-            $res[$key]['created_at'] = $star->created_at;
-            $res[$key]['last_follow_up_at'] = $star->last_follow_up_at;
-
+            $temp['id'] = hashid_encode($star->id);
+            $temp['artist']['contracts']['data']['contract_start_date'] = $star->contract_start_date;
+            $temp['contract_start_date'] = $star->contract_start_date;
+            $temp['name'] = $star->name;
+            $temp['weibo_fans_num'] = $star->weibo_fans_num;
+            $temp['source'] = $star->source;
+            $temp['created_at'] = $star->created_at;
+            $temp['last_follow_up_at'] = $star->last_follow_up_at;
+            $temp['sign_contract_status'] = $star->sign_contract_status;
+            $res[] = $temp;
         }
         $res['meta'] = [
         "meta"=> [

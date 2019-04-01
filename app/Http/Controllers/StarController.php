@@ -1020,12 +1020,15 @@ class StarController extends Controller
         $star_list =  StarRepository::getStarList();
 //            ->where('stars.sign_contract_status',SignContractStatus::SIGN_CONTRACTING)
 ////            ->where('stars.name','周冬菇')
+
 //            ->where(function ($query) use ($payload) {
 //            FilterReportRepository::getTableNameAndCondition($payload,$query);
 //        })
 //            ->paginate($pageSize);
 //        return $this->response()->paginator($star_list,new StarListTransformer());
+
         return $star_list;
+
     }
     public function getStarById(Star $star)
     {

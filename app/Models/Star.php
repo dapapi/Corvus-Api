@@ -22,7 +22,7 @@ class Star extends Model
     use SoftDeletes;
     use OperateLogTrait;
     use PrivacyFieldTrait;
-    private  $model_dic_id = DataDictionarie::STAR;//数据字典中模块id
+    private  static $model_dic_id = DataDictionarie::STAR;//数据字典中模块id
     protected $fillable = [
         'name',//姓名
         'desc',//描述
@@ -70,13 +70,32 @@ class Star extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
+        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from stars as s
             left join module_users as mu on mu.moduleable_id = s.id and 
             mu.moduleable_type='".ModuleableType::STAR.
             "' left join users as u on u.id = mu.user_id where s.id = stars.id
         )");
+    }
+
+    public static function getConditionSql()
+    {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
+        $where = (new SearchDataScope())->getConditionSql($rules);
+        $where .= <<<AAA
+        or ({$userid} in (
+                select u.id from stars as s
+                left join module_users as mu on mu.moduleable_id = s.id and 
+                mu.moduleable_type='star' 
+                left join users as u on u.id = mu.user_id where s.id = stars.id
+            )
+        )
+AAA;
+        return $where;
+
     }
 
 

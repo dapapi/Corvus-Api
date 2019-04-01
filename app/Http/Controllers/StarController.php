@@ -919,15 +919,23 @@ class StarController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $star_list =  StarRepository::getStarList();
-        return $star_list;
-//            ->where('stars.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
-//            ->where('stars.name','周冬菇')
-//            ->where(function ($query) use ($payload) {
-//            FilterReportRepository::getTableNameAndCondition($payload,$query);
-//        })
-//            ->paginate($pageSize);
-//        return $this->response()->paginator($star_list,new StarListTransformer());
+        $condition = null;
+        if (isset($payload['conditions'])){
+            $condition = FilterReportRepository::getCondition($payload['conditions']);
+        }
+        $star_list =  StarRepository::getStarList($condition);
+        $res = [];
+        foreach ($star_list as $key => $star){
+            $res[$key]['artist']['contracts']['data']['contract_start_date'] = $star->contract_start_date;
+            $res[$key]['contract_start_date'] = $star->contract_start_date;
+            $res[$key]['name'] = $star->name;
+            $res[$key]['weibo_fans_num'] = $star->weibo_fans_num;
+            $res[$key]['source'] = $star->source;
+            $res[$key]['created_at'] = $star->created_at;
+            $res[$key]['last_follow_up_at'] = $star->last_follow_up_at;
+
+        }
+        return $res;
     }
     public function getStarById(Star $star)
     {

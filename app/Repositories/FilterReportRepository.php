@@ -99,7 +99,7 @@ class FilterReportRepository
     {
         $where = "";
         $placeholder = [];
-        foreach($payload['conditions'] as $k => $v) {
+        foreach($payload as $k => $v) {
 
             $field = $v['field'];
             $operator = $v['operator'];
@@ -111,11 +111,13 @@ class FilterReportRepository
                 $id = Null;
             }
             if ($field){
+                $tmp = $tmp = str_replace('.','_',$field);
                 switch ($v['operator']) {
                     case 'LIKE':
                     case 'like':
                         $value = '%' . $v['value'] . '%';
                         $where .= " and {$field} like :{$field}";
+                        $placeholder[":{$field}"] = $value;
                         break;
                     case 'in':
                         if ($type >= 5)#type = 5 type =6
@@ -124,26 +126,31 @@ class FilterReportRepository
                             }
                         unset($v);
                         $value = implode($value,",");
-                        $where .= " and {$field} in :{$field}";
+                        $placeholder[":{$tmp}"] = $value;
+                        $where .= " and {$field} in (:{$tmp})";
                         break;
                     case '>':
-                        $where .= " and {$field} > :{$field}";
+                        $where .= " and {$field} > :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
                         break;
                     case '>=':
-                        $where .= " and {$field} >= :{$field}";
+                        $where .= " and {$field} >= :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
                         break;
                     case '<':
-                        $where .= " and {$field} < :{$field}";
+                        $where .= " and {$field} < :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
                         break;
                     case '<=':
-                        $where .= " and {$field} <= :{$field}";
+                        $where .= " and {$field} <= :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
                         break;
 
                     default:
-                        $where .= " and {$field} {$operator} :{$field}";
+                        $where .= " and {$field} {$operator} :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
                         break;
                 }
-                $placeholder[":{$field}"] = $value;
             }
 
         }

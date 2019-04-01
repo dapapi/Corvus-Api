@@ -11,6 +11,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array', 'App\Http\Controllers\TestController@testArray');
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
+        $api->get('/test/department', 'App\Http\Controllers\TestController@department');
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
@@ -200,6 +201,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/contracts/{contract}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->get('/supplier/{supplier}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         //stars
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
@@ -444,6 +448,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
         // calendar
+        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
         $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
 
@@ -471,6 +476,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         // material
         $api->get('/materials/all', 'App\Http\Controllers\MaterialController@all');
+
+        $api->get('/set/image', 'App\Http\Controllers\PersonnelManageController@setImage');
 
         // personnel
         $api->get('/personnel_list', 'App\Http\Controllers\PersonnelManageController@index');
@@ -580,6 +587,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/crew', 'App\Http\Controllers\DepartmentController@show');
         //查看部门
         $api->get('/departments/{department}', 'App\Http\Controllers\DepartmentController@detail');
+        // 查看部门成员
+        $api->get('/departments/{department}/users', 'App\Http\Controllers\DepartmentController@users');
         //增加部门
         $api->post('/departments', 'App\Http\Controllers\DepartmentController@store');
         //编辑部门
@@ -771,7 +780,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取部门主管
         $api->get('/department/director/{user}', 'App\Http\Controllers\DepartmentController@director');
 
-
         //app版本相关接口
         //新建版本信息
         $api->post('/appversion', 'App\Http\Controllers\AppVersionController@addAppVersion');
@@ -787,10 +795,37 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
+
+        //供应商管理
+        $api->get('/supplier','App\Http\Controllers\SupplierController@index');
+
+        $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
+        $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
+
+        // 仪表盘
+        $api->get('/dashboards', 'App\Http\Controllers\DashboardController@index');
+        $api->post('/dashboards', 'App\Http\Controllers\DashboardController@store');
+        $api->get('/dashboards/{dashboard}', 'App\Http\Controllers\DashboardController@detail');
+        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
+        $api->get('/departments/{department}/dashboard/projects', 'App\Http\Controllers\ProjectController@dashboard');
+        $api->get('/departments/{department}/dashboard/clients', 'App\Http\Controllers\ClientController@dashboard');
+        $api->get('/departments/{department}/dashboard/stars', 'App\Http\Controllers\StarController@dashboard');
+        $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
+//        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
+
+        // 供应商
+        $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
+        $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
+        $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
+        $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
+        $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
         //获取我的任务，我的审批，我的项目，待我审批的数量
         $api->get('/user/mynumber','App\Http\Controllers\UserController@getMyNumber');
         //获取各个模块列表里面按钮权限
         $api->get('/user/list_power','App\Http\Controllers\UserController@getListPower');
+
+
+        $api->get('/test/task', 'App\Http\Controllers\TestController@task');
 
 
     });

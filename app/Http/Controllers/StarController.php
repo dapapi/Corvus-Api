@@ -13,6 +13,8 @@ use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\StarRequest;
 use App\Http\Requests\StarUpdateRequest;
 use App\Http\Transformers\StarAndBloggerTransfromer;
+use App\Http\Transformers\StarDeatilTransformer;
+use App\Http\Transformers\StarListTransformer;
 use App\Http\Transformers\StarTransformer;
 use App\Models\Affix;
 use App\Models\Blogger;
@@ -872,7 +874,8 @@ class StarController extends Controller
 //        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
 //        $query = Star::from(DB::raw($joinSql))->select("stars.*");
 
-        $query =    $repository->starCustomSiftBuilder();
+//        $query =    $repository->starCustomSiftBuilder();
+        $query = StarRepository::getStarList();
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
@@ -910,5 +913,23 @@ class StarController extends Controller
     {
         $file = '当前艺人导出' . date('YmdHis', time()) . '.xlsx';
         return (new StarsExport($request))->download($file);
+    }
+
+    public function getStarList(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $star_list =  StarRepository::getStarList()
+            ->where('stars.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
+//            ->where('stars.name','周冬菇')
+            ->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        })
+            ->paginate($pageSize);
+        return $this->response()->paginator($star_list,new StarListTransformer());
+    }
+    public function getStarById(Star $star)
+    {
+        return $this->response()->item($star,new StarDeatilTransformer());
     }
 }

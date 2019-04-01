@@ -91,8 +91,63 @@ class FilterReportRepository
               $query->whereRaw($relation_contidion);
           }
       }
-
       return $query;
+    }
+
+    //为原生sql生成查询条件
+    public static function getCondition($payload)
+    {
+        $where = "";
+        $placeholder = [];
+        foreach($payload['conditions'] as $k => $v) {
+
+            $field = $v['field'];
+            $operator = $v['operator'];
+            $value = $v['value'];
+            $type = $v['type'];
+            if (!empty($v['id'])) {
+                $id = hashid_decode($v['id']);
+            } else {
+                $id = Null;
+            }
+            if ($field){
+                switch ($v['operator']) {
+                    case 'LIKE':
+                    case 'like':
+                        $value = '%' . $v['value'] . '%';
+                        $where .= " and {$field} like :{$field}";
+                        break;
+                    case 'in':
+                        if ($type >= 5)#type = 5 type =6
+                            foreach ($value as &$v) {
+                                $v = hashid_decode($v);
+                            }
+                        unset($v);
+                        $value = implode($value,",");
+                        $where .= " and {$field} in :{$field}";
+                        break;
+                    case '>':
+                        $where .= " and {$field} > :{$field}";
+                        break;
+                    case '>=':
+                        $where .= " and {$field} >= :{$field}";
+                        break;
+                    case '<':
+                        $where .= " and {$field} < :{$field}";
+                        break;
+                    case '<=':
+                        $where .= " and {$field} <= :{$field}";
+                        break;
+
+                    default:
+                        $where .= " and {$field} {$operator} :{$field}";
+                        break;
+                }
+                $placeholder[":{$field}"] = $value;
+            }
+
+        }
+        return ["where"=>$where,'placeholder'=>$placeholder];
     }
 
 }

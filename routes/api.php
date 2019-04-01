@@ -201,7 +201,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         //stars
-        $api->post('stars/list','App\Http\Controllers\StarController@getStarList');
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
@@ -210,6 +210,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
         $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
+//        $api->get('/stars/{star}', 'App\Http\Controllers\StarController@getStarById');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
         $api->get('/stars/{star}/gettaskandprojejct', 'App\Http\Controllers\StarController@getFiveTaskAndProjejct');

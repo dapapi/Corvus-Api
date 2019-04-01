@@ -78,22 +78,22 @@ class StarRepository
     }
     public static function getStarList()
     {
-        return Star::select("stars.id","stars.name",'stars.avatar',"stars.weibo_fans_num","stars.source","stars.created_at","stars.last_follow_up_at")
-            ->searchData()
-            ->leftJoin('module_users',function ($join){
-                $join->on('module_users.moduleable_id','stars.id')
-                    ->where('module_users.moduleable_type',"''".ModuleableType::STAR."''");
-            })
-            ->leftJoin('department_user','department_user.user_id','module_users.user_id');
-//        $sql = <<<AAA
-//        select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.created_at,stars.last_follow_up_at from stars
-//          left join module_users on module_users.moduleable_id = stars.id and module_users.moduleable_type = :moduleable_type
-//          left join department_user on department_user.user_id = module_users.user_id
-//--            where stars.id = :star_id
-//AAA;
+//        return Star::select("stars.id","stars.name",'stars.avatar',"stars.weibo_fans_num","stars.source","stars.created_at","stars.last_follow_up_at")
+//            ->searchData()
+//            ->leftJoin('module_users',function ($join){
+//                $join->on('module_users.moduleable_id','stars.id')
+//                    ->where('module_users.moduleable_type',"''".ModuleableType::STAR."''");
+//            })
+//            ->leftJoin('department_user','department_user.user_id','module_users.user_id');
+        $sql = <<<AAA
+        select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.created_at,stars.last_follow_up_at,stars.contract_start_date from stars
+          left join module_users on module_users.moduleable_id = stars.id and module_users.moduleable_type = :moduleable_type
+          left join department_user on department_user.user_id = module_users.user_id
+--             where stars.id = :star_id
+AAA;
 //        $placeholder = $where['placeholder'];
 //        $placeholder[":moduleable_type"] = ModuleableType::STAR;
-//        return DB::select($sql,[":moduleable_type" => ModuleableType::STAR]);
+        return DB::select($sql,[":moduleable_type" => ModuleableType::STAR]);
 //        return DB::select($sql,$placeholder);
     }
 }

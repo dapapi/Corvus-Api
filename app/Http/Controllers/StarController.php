@@ -919,14 +919,15 @@ class StarController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $star_list =  StarRepository::getStarList()
-            ->where('stars.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
+        $star_list =  StarRepository::getStarList();
+        return $star_list;
+//            ->where('stars.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
 //            ->where('stars.name','周冬菇')
-            ->where(function ($query) use ($payload) {
-            FilterReportRepository::getTableNameAndCondition($payload,$query);
-        })
-            ->paginate($pageSize);
-        return $this->response()->paginator($star_list,new StarListTransformer());
+//            ->where(function ($query) use ($payload) {
+//            FilterReportRepository::getTableNameAndCondition($payload,$query);
+//        })
+//            ->paginate($pageSize);
+//        return $this->response()->paginator($star_list,new StarListTransformer());
     }
     public function getStarById(Star $star)
     {

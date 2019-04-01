@@ -935,7 +935,21 @@ class StarController extends Controller
             $res[$key]['last_follow_up_at'] = $star->last_follow_up_at;
 
         }
-        return $res;
+        $res['meta'] = [
+        "meta"=> [
+            "pagination"=> [
+                "total"=> 576,
+                "count"=> 15,
+                "per_page"=> 15,
+                "current_page"=> 1,
+                "total_pages"=> 39,
+                "links"=> [
+                    "next"=> "http://corvus.cn/stars/filter?page=2"
+                ],
+            ]
+        ]
+    ];
+        return ["data" => $res];
     }
     public function getStarById(Star $star)
     {

@@ -448,6 +448,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
         // calendar
+        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
         $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
 

@@ -109,7 +109,7 @@ class TaskController extends Controller
     }
 
 
-    public function indexAll(Request $request)
+    public function indexAllDemo(Request $request)
     {
         $payload = $request->all();
         $user = Auth::guard("api")->user();
@@ -173,6 +173,42 @@ class TaskController extends Controller
 
 
             }
+        }
+        return $tasks;
+
+    }
+    public function indexAll(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        $userId = $user->id;
+        $my = $request->get('my',0);
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $query = Task::select('tasks.id','tasks.title as task_name','tasks.status','tasks.resource_name','tasks.resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id');
+
+
+        $tasks = $query->where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('tasks.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('type_id'))
+                $query->where('type_id', hashid_decode($payload['type_id']));
+            if ($request->has('status'))
+                $query->where('tasks.status', $payload['status']);
+            if ($request->has('user')){
+                $userId = hashid_decode($payload['user']);
+                $query->where('tasks.principal_id', $userId);
+            }
+            if ($request->has('department')){
+                $userIds = array();
+                $userIds = $this->getDepartmentUserIds($payload['department']);
+                $query->whereIn('tasks.principal_id', $userIds);
+            }else{
+                $query->whereRaw('1=1');
+            }
+        })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+        foreach ($tasks as &$value) {
+            $value['id'] = hashid_encode($value['id']);
         }
         return $tasks;
 

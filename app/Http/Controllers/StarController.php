@@ -15,6 +15,8 @@ use App\Http\Requests\StarRequest;
 use App\Http\Requests\StarUpdateRequest;
 use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\StarAndBloggerTransfromer;
+use App\Http\Transformers\StarDeatilTransformer;
+use App\Http\Transformers\StarListTransformer;
 use App\Http\Transformers\StarTransformer;
 use App\Models\Affix;
 use App\Models\Blogger;
@@ -882,7 +884,10 @@ class StarController extends Controller
 //        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
 //        $query = Star::from(DB::raw($joinSql))->select("stars.*");
 
+
         $query = $repository->starCustomSiftBuilder();
+
+//        $query =    $repository->starCustomSiftBuilder();
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
         });
@@ -962,15 +967,15 @@ class StarController extends Controller
         $timePoint = Carbon::today('PRC')->subDays($days);
 
         $latestFollow = Star::join('module_users', function ($join) {
-                $join->on('stars.id', '=', 'module_users.moduleable_id')
-                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
-            })
-                ->where('module_users.type', '=', ModuleUserType::BROKER)
-                ->whereIn('module_users.user_id', $userIds)->join('operate_logs', function ($join) {
-            $join->on('stars.id', '=', 'operate_logs.logable_id')
-                ->where('operate_logs.logable_type', ModuleableType::STAR)
-                ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
-        })->where('operate_logs.created_at', '>', $timePoint)->distinct('stars.id')->count('stars.id');
+            $join->on('stars.id', '=', 'module_users.moduleable_id')
+                ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
+        })
+            ->where('module_users.type', '=', ModuleUserType::BROKER)
+            ->whereIn('module_users.user_id', $userIds)->join('operate_logs', function ($join) {
+                $join->on('stars.id', '=', 'operate_logs.logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::STAR)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->where('operate_logs.created_at', '>', $timePoint)->distinct('stars.id')->count('stars.id');
 
         $starIdArr = Star::select('stars.id as id', DB::raw('GREATEST(stars.created_at, MAX(b.created_at)) as t'), 'stars.name as title')
             ->join('module_users', function ($join) {
@@ -1006,5 +1011,23 @@ class StarController extends Controller
 
         $result->addMeta('count', $starInfoArr);
         return $result;
+    }
+
+    public function getStarList(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $star_list =  StarRepository::getStarList()
+            ->where('stars.sign_contract_status',SignContractStatus::ALREADY_SIGN_CONTRACT)
+//            ->where('stars.name','周冬菇')
+            ->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload,$query);
+        })
+            ->paginate($pageSize);
+        return $this->response()->paginator($star_list,new StarListTransformer());
+    }
+    public function getStarById(Star $star)
+    {
+        return $this->response()->item($star,new StarDeatilTransformer());
     }
 }

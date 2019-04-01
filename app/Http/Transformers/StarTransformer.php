@@ -56,10 +56,10 @@ class StarTransformer extends TransformerAbstract
             'status' => $star->status,
             'type' => $star->type,
 
-            'created_at' => $star->created_at->toDatetimeString(),
-//            'created_at' => $star->created_at,
-            'updated_at' => $star->updated_at->toDatetimeString(),
-//            'updated_at' => $star->updated_at,
+//            'created_at' => $star->created_at->toDatetimeString(),
+            'created_at' => $star->created_at,
+//            'updated_at' => $star->updated_at->toDatetimeString(),
+            'updated_at' => $star->updated_at,
             'deleted_at' => $star->deleted_at,
 
             'platform'  =>  $star->platform,
@@ -114,7 +114,7 @@ class StarTransformer extends TransformerAbstract
 
     public function includeCreator(Star $star)
     {
-        $user = $star->creator()->first();
+        $user = $star->creator()->select('name')->first();
         if (!$user)
             return null;
         return $this->item($user, new UserTransformer());
@@ -122,7 +122,7 @@ class StarTransformer extends TransformerAbstract
 
     public function includeBroker(Star $star)
     {
-        $users = $star->broker()->get();
+        $users = $star->broker()->select('name')->get();
         return $this->collection($users, new UserTransformer());
     }
 

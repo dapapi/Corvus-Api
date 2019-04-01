@@ -12,6 +12,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
@@ -205,6 +206,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
+
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
@@ -213,6 +215,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
         $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
+//        $api->get('/stars/{star}', 'App\Http\Controllers\StarController@getStarById');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
         $api->get('/stars/{star}/gettaskandprojejct', 'App\Http\Controllers\StarController@getFiveTaskAndProjejct');
@@ -448,8 +451,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
         // calendar
-        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
-        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
+        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@all');
+        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@index');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
 
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');

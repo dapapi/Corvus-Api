@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
 class Star extends Model
 {
     use SoftDeletes;
-    use OperateLogTrait;
+//    use OperateLogTrait;
     use PrivacyFieldTrait;
     private  $model_dic_id = DataDictionarie::STAR;//数据字典中模块id
     protected $fillable = [

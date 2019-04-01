@@ -50,7 +50,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
         $api->get('/stars/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
-        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
+//        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
+        $api->post('stars/filter',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
         $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -205,7 +206,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');

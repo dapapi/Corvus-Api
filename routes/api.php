@@ -11,7 +11,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/array', 'App\Http\Controllers\TestController@testArray');
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
@@ -202,7 +201,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/approval_instances/{instance}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         //stars
-
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');

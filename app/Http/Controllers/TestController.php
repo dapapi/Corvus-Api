@@ -106,6 +106,9 @@ class TestController extends Controller
         dd(1);
     }
 
+    public function task()
+    {
 
+    }
 
 }

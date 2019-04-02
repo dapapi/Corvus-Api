@@ -73,10 +73,9 @@ class Blogger extends Model
         $where = (new SearchDataScope())->getConditionSql($rules);
         $where .= <<<AAA
         or ({$userid} in (
-                select u.id from stars as s
-                left join module_users as mu on mu.moduleable_id = s.id and 
-                mu.moduleable_type='blogger' 
-                left join users as u on u.id = mu.user_id where s.id = bloggers.id
+                select mu.user_id from bloggers as b
+                inner join module_users as mu on mu.moduleable_id = b.id
+                where b.id = bloggers.id and mu.moduleable_type='blogger' and mu.type=2
             )
         )
 AAA;

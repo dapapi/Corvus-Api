@@ -87,8 +87,8 @@ class TaskTransformer extends TransformerAbstract
             $array['resource']['data']['resource']['data']['code'] = 'trails';
             $array['resource']['data']['resource']['data']['type'] = 5;
         }
-        $array['resourceable']['data']['id']= hashid_encode(5);
-        $array['resourceable']['data']['nickname']= $task->resource_name;
+        $array['resource']['data']['resourceable']['data']['id']= hashid_encode(5);
+        $array['resource']['data']['resourceable']['data']['nickname']= $task->resource_name;
 
         return $array;
     }

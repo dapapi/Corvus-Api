@@ -12,6 +12,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
+        $api->get('/test/users', 'App\Http\Controllers\TestController@users');
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
@@ -700,7 +701,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*合同管理*/
         //项目合同
         $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
-        $api->post('/approvals_project/filter','App\Http\Controllers\ApprovalFormController@getFilter');
+        $api->post('/approvals_project/filter','App\Http\Controllers\ApprovalFormController@list');
 
         //经济合同
         $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');

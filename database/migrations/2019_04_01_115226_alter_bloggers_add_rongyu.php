@@ -19,7 +19,11 @@ class AlterBloggersAddRongyu extends Migration
             $table->dateTime("last_follow_up_at")->comment('最近跟进时间，同步于operate_logs表')->nullable();
 //            $table->dateTime('contract_end_date')->comment('合同开始时间')->nullable();
 //            $table->dateTime('contract_start_date')->comment('合同开始时间')->nullable();
-            $table->json("publicity")->comment("json数据，存储制作人")->nullable();
+//            $table->json("publicity")->comment("json数据，存储制作人")->nullable();
+            $table->string('publicity_deparment_ids')->comment('存储制作人部门id列表')->nullable();
+            $table->string('publicity_user_ids')->comment('存储制作人id列表')->nullable();
+            $table->string('publicity_user_names')->comment('存储制作人列表')->nullable();
+//            $table->json("publicity")->comment("json数据，存储制作人")->nullable();
         });
     }
     /**

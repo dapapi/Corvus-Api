@@ -1709,7 +1709,7 @@ class ProjectController extends Controller
             }
         }
         $query->whereRaw(DB::raw("1 = 1 $power"));
-        $paginator = $query->orderBy('last_follow_up_at', 'desc')->orderBy('t', 'desc')->paginate();
+        $paginator = $query->orderBy('t', 'desc')->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理

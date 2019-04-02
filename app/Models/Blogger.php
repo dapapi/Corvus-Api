@@ -17,7 +17,7 @@ class Blogger extends Model
 {
     use SoftDeletes;
     use OperateLogTrait;
-    private $model_dic_id = DataDictionarie::BLOGGER;//模型在数据字典中对应的id
+    protected static $model_dic_id = DataDictionarie::BLOGGER;//模型在数据字典中对应的id
     protected $fillable = [
         'nickname',
         'communication_status',//沟通状态
@@ -56,7 +56,7 @@ class Blogger extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
+        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from bloggers as b 
             left join module_users as mu on mu.moduleable_id = b.id and 
@@ -64,6 +64,25 @@ class Blogger extends Model
             "' left join users as u on u.id = mu.user_id where b.id = bloggers.id
         )");
     }
+
+    public static function powerConditionSql()
+    {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
+        $where = (new SearchDataScope())->getConditionSql($rules);
+        $where .= <<<AAA
+        or ({$userid} in (
+                select u.id from stars as s
+                left join module_users as mu on mu.moduleable_id = s.id and 
+                mu.moduleable_type='blogger' 
+                left join users as u on u.id = mu.user_id where s.id = bloggers.id
+            )
+        )
+AAA;
+        return $where;
+    }
+
     public function scopeCreateDesc($query)
     {
         return $query->orderBy('created_at', 'desc');

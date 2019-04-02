@@ -1082,4 +1082,54 @@ class BloggerController extends Controller
         $result->addMeta('count', $bloggerInfoArr);
         return $result;
     }
+
+    /**
+     * 博主列表--优化
+     * @param Request $request
+     */
+    public function bloggerList(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $condition = null;
+        if (isset($payload['conditions'])){
+            $condition = FilterReportRepository::getCondition($payload['conditions']);
+        }
+        $blogger_list =  BloggerRepository::getBloggerList($condition);
+        $res = [];
+        foreach ($blogger_list as $key => $star){
+            $temp['id'] = hashid_encode($star->id);
+            $temp['contracts']['data']['contract_start_date'] = $star->sign_contract_at;
+            $temp['contracts']['data']['contract_end_date'] = $star->terminate_agreement_at;
+            $temp['sign_contract_at'] = $star->sign_contract_at;
+            $temp['terminate_agreement_at'] = $star->terminate_agreement_at;
+            $temp['nickname'] = $star->nickname;
+            $temp['weibo_fans_num'] = $star->weibo_fans_num;
+//            $temp['source'] = $star->source;
+            $temp['created_at'] = $star->created_at;
+            $temp['last_follow_up_at'] = $star->last_follow_up_at;
+            $temp['sign_contract_status'] = $star->sign_contract_status;
+//            $temp['birthday'] = $star->birthday;
+            $temp['communication_status'] = $star->communication_status;
+            $res[] = $temp;
+        }
+        $meta = [
+            "pagination"=> [
+                "total"=> 576,
+                "count"=> 15,
+                "per_page"=> 15,
+                "current_page"=> 1,
+                "total_pages"=> 39,
+                "links"=> [
+                    "next"=> "http://corvus.cn/stars/filter?page=2"
+                ],
+            ]
+        ];
+        return [
+            "data" => $res,
+            "meta"  => $meta,
+            "status"    =>  "success"
+        ];
+    }
 }

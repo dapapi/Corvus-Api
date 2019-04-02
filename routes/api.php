@@ -56,7 +56,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
-        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
+//        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
+        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@list');
         $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -710,7 +711,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         /*合同管理*/
         //项目合同
         $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
-        $api->post('/approvals_project/filter','App\Http\Controllers\ApprovalFormController@list');
+        $api->post('/approvals_project/filter','App\Http\Controllers\ApprovalFormController@getFilter');
 
         //经济合同
         $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');

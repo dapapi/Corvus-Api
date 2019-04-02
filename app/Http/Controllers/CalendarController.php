@@ -208,7 +208,7 @@ class CalendarController extends Controller
         if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
             return $this->response->errorInternal("你没有查看该日历的权限");
         }
-        return $this->response->item($calendar, new CalendarTransformer());
+        return $this->response->item($calendar, new CalendarIndexTransformer());
     }
 
     public function delete(Request $request, Calendar $calendar)

@@ -12,6 +12,7 @@ use App\Http\Requests\Schedule\StoreScheduleRequest;
 use App\Http\Requests\Schedule\StoreScheduleTaskRequest;
 use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
+use App\Http\Transformers\ScheduleDetailTransformer;
 use App\Http\Transformers\ScheduleRelateTransformer;
 use App\Models\Blogger;
 use App\Models\Calendar;
@@ -290,7 +291,7 @@ class ScheduleController extends Controller
             // 开始时间   Ymd 格式
             $array['stime'] = date('Y-m-d', strtotime($payload['start_at']));
             $array['etime'] = date('Y-m-d', strtotime($payload['end_at']));
-            $array['$ntime'] = date('Y-m-d', strtotime(now()));
+            $array['ntime'] = date('Y-m-d', strtotime(now()));
 
         } else {
             $array['sstime'] = date('Y-m-d H:i:s', strtotime($payload['start_at']));
@@ -752,7 +753,7 @@ class ScheduleController extends Controller
         event(new OperateLogEvent([
             $operate
         ]));
-        return $this->response->item($schedule, new ScheduleTransformer());
+        return $this->response->item($schedule, new ScheduleDetailTransformer());
     }
 
     public function delete(Request $request, Schedule $schedule)

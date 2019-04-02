@@ -31,10 +31,10 @@ class CalendarIndexTransformer extends TransformerAbstract
 
         switch ($calendar->starable_type) {
             case ModuleableType::BLOGGER:
-                return $this->item($star, new BloggerTransformer(false));
+                return $this->item($star, new BloggerFilterTransformer(false));
                 break;
             case ModuleableType::STAR:
-                return $this->item($star, new StarTransformer(false));
+                return $this->item($star, new StarFilterTransformer(false));
                 break;
             default:
                 return null;
@@ -44,7 +44,7 @@ class CalendarIndexTransformer extends TransformerAbstract
     public function includeParticipants(Calendar $calendar)
     {
         $participants = $calendar->participants;
-        return $this->collection($participants, new UserTransformer());
+        return $this->collection($participants, new UserFilterTransformer());
     }
     public function includePrincipal(Calendar $calendar)
     {

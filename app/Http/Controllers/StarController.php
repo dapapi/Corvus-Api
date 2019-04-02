@@ -1050,7 +1050,6 @@ class StarController extends Controller
                     "next"=> "http://corvus.cn/stars/filter?page=2"
                 ],
             ]
-
         ];
         $res['status'] = "sucess";
         return [

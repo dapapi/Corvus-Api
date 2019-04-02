@@ -63,6 +63,7 @@ class BloggerRepository
             left join module_users on module_users.moduleable_id = bloggers.id and module_users.moduleable_type = :moduleable_type and module_users.type = :module_users_type
             left join department_user on department_user.user_id = module_users.user_id
             left join users on department_user.user_id = users.id
+            left join blogger_types on blogger_types.id = bloggers.type_id
                 where (1=1 {$where}) {$condition['where']} 
                 group by bloggers.id
             limit 0,10
@@ -74,6 +75,7 @@ AAA;
             select 
               bloggers.nickname,bloggers.id,bloggers.sign_contract_status,bloggers.weibo_fans_num,bloggers.type_id,bloggers.sign_contract_at,bloggers.terminate_agreement_at,bloggers.created_at,bloggers.last_follow_up_at,bloggers.communication_status
             from bloggers
+            left join blogger_types on blogger_types.id = bloggers.type_id
             where (1 = 1 {$where})  {$condition['where']} limit 0,10
 AAA;
         }

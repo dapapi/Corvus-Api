@@ -1011,6 +1011,7 @@ class BloggerController extends Controller
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $page = $request->get('page',1);
         $status = $request->get('status', config('app.status'));
         $where = "";//查询条件
         //合同
@@ -1052,7 +1053,7 @@ class BloggerController extends Controller
         }
         $condition['placeholder'] = array_merge($condition['placeholder'],$condition2['placeholder']);
         $condition['where'] .= $condition2['where'];
-        $blogger_list =  BloggerRepository::getBloggerList($condition,$search_field);
+        $blogger_list =  BloggerRepository::getBloggerList($condition,$search_field,$pageSize,$page);
         $res = [];
         foreach ($blogger_list as $key => $star){
             $temp['id'] = hashid_encode($star->id);

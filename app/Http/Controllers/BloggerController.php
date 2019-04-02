@@ -1030,6 +1030,7 @@ class BloggerController extends Controller
             $temp['sign_contract_status'] = $star->sign_contract_status;
 //            $temp['birthday'] = $star->birthday;
             $temp['communication_status'] = $star->communication_status;
+            $temp['publicity'] = $star->publicity;
             $res[] = $temp;
         }
         $meta = [

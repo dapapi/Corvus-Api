@@ -1091,11 +1091,39 @@ class BloggerController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $condition = null;
-        if (isset($payload['conditions'])){
-            $condition = FilterReportRepository::getCondition($payload['conditions']);
+        $status = $request->get('status', config('app.status'));
+        $where = "";//查询条件
+        //合同
+        $condition = [];
+        if ($request->has('status')){
+            $condition['where'] .= " and status = :status";
+            $condition['placeholder'][':status'] =  $status;
         }
+        if($request->has('sign_contract_status')){
+            $condition['where'] .= " and sign_contract_status = :sign_contract_status";
+            $condition['placeholder'][':sign_contract_status'] = $payload['sign_contract_status'];
+        }
+        if($request->has('name')){//姓名
+            $value = '%'.$payload['name'].'%';
+            $condition['where'] .= " and nickname like :nickname";
+            $condition['placeholder'][':nickname'] = $value;
+        }
+
+        if($request->has('type')){//类型
+            $value = hashid_decode($payload['type']);
+            $condition['where'] .= " and type_id = :type_id";
+            $condition['placeholder'][":type_id"] = $value;
+        }
+        if($request->has('communication_status')){//沟通状态
+            $condition['where'] .= " and communication_status :communication_status";
+            $condition['placeholder'][':communication_status'] = $payload['communication_status'];
+        }
+
+        if (isset($payload['conditions'])){
+            $condition2 = FilterReportRepository::getCondition($payload['conditions']);
+        }
+        $condition['placeholder'] = array_merge($condition['placeholder'],$condition2['placeholder']);
+        $condition['where'] = $condition2['where'];
         $blogger_list =  BloggerRepository::getBloggerList($condition);
         $res = [];
         foreach ($blogger_list as $key => $star){

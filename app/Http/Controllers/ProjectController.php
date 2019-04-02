@@ -28,6 +28,7 @@ use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ProjectAllTransformer;
 use App\Models\Blogger;
 use App\Models\FilterJoin;
 use App\Models\Client;
@@ -164,11 +165,10 @@ class ProjectController extends Controller
         $isAll = $request->get('all', false);
         $status = $request->get('status', null);
         if (is_null($status))
-            $projects = Project::orderBy('created_at', 'desc')->searchData()->get();
+            $projects = Project::orderBy('created_at', 'desc')->searchData()->select('id','title')->get();
         else
-            $projects = Project::orderBy('created_at', 'desc')->where('status', $status)->searchData()->get();
-
-        return $this->response->collection($projects, new ProjectTransformer($isAll));
+            $projects = Project::orderBy('created_at', 'desc')->where('status', $status)->searchData()->select('id','title')->get();
+        return $this->response->collection($projects, new ProjectAllTransformer($isAll));
     }
 
     public function myAll(Request $request)

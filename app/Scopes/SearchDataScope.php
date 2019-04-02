@@ -146,6 +146,7 @@ class SearchDataScope implements Scope
                                     $where .= " or {$value['field']} in (null)";
                                 } else {
 //                                    $condition[] = $query->orWhereIn($value['field'], $value['value']);
+                                    $value['value'] = implode(',',$value['value']);
                                     $where .= " or {$value['field']} in ({$value['value']})";
                                 }
                                 break;

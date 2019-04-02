@@ -50,7 +50,7 @@ class BloggerRepository
             $condition['placeholder'] = [];
         }
         $where = Blogger::powerConditionSql();
-        $placeholder = $condition['placeholder'];
+//        $placeholder = $condition['placeholder'];
         $sql = <<<AAA
             select 
               bloggers.nickname,bloggers.id,bloggers.sign_contract_status,bloggers.weibo_fans_num,bloggers.type_id,bloggers.sign_contract_at,bloggers.terminate_agreement_at,bloggers.created_at,bloggers.last_follow_up_at,bloggers.communication_status,publicity_user_names
@@ -66,7 +66,7 @@ class BloggerRepository
             limit 0,10
 AAA;
 //        dd($sql);
-        $placeholder = $condition['placeholder'];
+//        $placeholder = $condition['placeholder'];
         $placeholder[":moduleable_type"] = ModuleableType::BLOGGER;
 //        DB::connection()->enableQueryLog();
         return DB::select($sql,$placeholder);

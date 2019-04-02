@@ -1066,6 +1066,7 @@ class BloggerController extends Controller
             $temp['created_at'] = $star->created_at;
             $temp['last_follow_up_at'] = $star->last_follow_up_at;
             $temp['sign_contract_status'] = $star->sign_contract_status;
+            $temp['type'] = $star->type;
 //            $temp['birthday'] = $star->birthday;
             $temp['communication_status'] = $star->communication_status;
 //            if ($star->publicity_user_names != null){

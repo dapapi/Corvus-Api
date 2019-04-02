@@ -17,11 +17,11 @@ class AlterBloggersAddRongyu extends Migration
             $table->string('last_updated_user')->comment('最近更新人,同步于operate_logs表')->nullable();
             $table->dateTime("last_updated_at")->comment('最近更新时间，同步于operate_logs表')->nullable();
             $table->dateTime("last_follow_up_at")->comment('最近跟进时间，同步于operate_logs表')->nullable();
-            $table->dateTime('contract_end_date')->comment('合同开始时间')->nullable();
-            $table->dateTime('contract_start_date')->comment('合同开始时间')->nullable();
+//            $table->dateTime('contract_end_date')->comment('合同开始时间')->nullable();
+//            $table->dateTime('contract_start_date')->comment('合同开始时间')->nullable();
+            $table->json("publicity")->comment("json数据，存储制作人")->nullable();
         });
     }
-
     /**
      * Reverse the migrations.
      *

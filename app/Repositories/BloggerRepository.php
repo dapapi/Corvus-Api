@@ -53,23 +53,23 @@ class BloggerRepository
         $placeholder = $condition['placeholder'];
         $sql = <<<AAA
             select 
-              bloggers.nickname,bloggers.id,bloggers.sign_contract_status,bloggers.weibo_fans_num,bloggers.type_id,bloggers.sign_contract_at,bloggers.terminate_agreement_at,bloggers.created_at,bloggers.last_follow_up_at,bloggers.communication_status
+              bloggers.nickname,bloggers.id,bloggers.sign_contract_status,bloggers.weibo_fans_num,bloggers.type_id,bloggers.sign_contract_at,bloggers.terminate_agreement_at,bloggers.created_at,bloggers.last_follow_up_at,bloggers.communication_status,bloggers.publicity
 --               group_concat(users.name) as publicity 
             from bloggers
-            left join module_users on module_users.moduleable_id = bloggers.id 
-                      and module_users.moduleable_type = :moduleable_type 
-            left join department_user on department_user.user_id = module_users.user_id
+--             left join module_users on module_users.moduleable_id = bloggers.id 
+--                       and module_users.moduleable_type = :moduleable_type 
+--             left join department_user on department_user.user_id = module_users.user_id
 --             left join users on users.id = module_users.user_id
-            where 1 = 1 {$where}  {$condition['where']} 
-            group by bloggers.id
+--             where 1 = 1 {$where}  {$condition['where']} and bloggers.publicity->'$[*].department_id' = 159
+--             group by bloggers.id
             limit 0,10
 AAA;
 //        dd($sql);
         $placeholder = $condition['placeholder'];
         $placeholder[":moduleable_type"] = ModuleableType::BLOGGER;
-        DB::connection()->enableQueryLog();
-        DB::select($sql,$placeholder);
-        dd(DB::getQueryLog());
+//        DB::connection()->enableQueryLog();
+        return DB::select($sql,$placeholder);
+//        dd(DB::getQueryLog());
 
     }
 }

@@ -115,7 +115,6 @@ AAA;
                 ->leftJoin('blogger_types','blogger_types.id','bloggers.type_id')
                 ->leftJoin('module_users',function ($join){
                     $join->on('bloggers.id','module_users.moduleable_id');
-//                        ->where('module_users.moduleable_type',ModuleUserType::PUBLICITY);
                 })
                 ->leftJoin('users','users.id','module_users.user_id')
                 ->groupBy('bloggers.id');

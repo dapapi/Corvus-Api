@@ -1026,13 +1026,17 @@ class StarController extends Controller
         foreach ($star_list as $key => $star){
             $temp['id'] = hashid_encode($star->id);
             $temp['contracts']['data']['contract_start_date'] = $star->contract_start_date;
+            $temp['contracts']['data']['contract_end_date'] = $star->contract_end_date;
             $temp['contract_start_date'] = $star->contract_start_date;
+            $temp['contract_end_date'] = $star->contract_end_date;
             $temp['name'] = $star->name;
             $temp['weibo_fans_num'] = $star->weibo_fans_num;
             $temp['source'] = $star->source;
             $temp['created_at'] = $star->created_at;
             $temp['last_follow_up_at'] = $star->last_follow_up_at;
             $temp['sign_contract_status'] = $star->sign_contract_status;
+            $temp['birthday'] = $star->birthday;
+            $temp['communication_status'] = $star->communication_status;
             $res[] = $temp;
         }
         $res['meta'] = [
@@ -1049,7 +1053,10 @@ class StarController extends Controller
             ]
         ]
     ];
-        return ["data" => $res];
+        $res['status'] = "sucess";
+        return [
+            "data" => $res
+        ];
     }
     public function getStarById(Star $star)
     {

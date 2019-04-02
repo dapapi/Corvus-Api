@@ -12,6 +12,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
@@ -50,8 +51,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/trails/filter', 'App\Http\Controllers\TrailController@getFilter');
         $api->get('/stars/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
-//        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
-        $api->post('stars/filter',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
+        $api->post('/stars/filter', 'App\Http\Controllers\StarController@getFilter');
         $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');

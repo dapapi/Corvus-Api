@@ -53,8 +53,8 @@ class BloggerRepository
         $placeholder = $condition['placeholder'];
         $sql = <<<AAA
             select 
-              bloggers.nickname,bloggers.id,bloggers.sign_contract_status,bloggers.weibo_fans_num,bloggers.type_id,bloggers.sign_contract_at,bloggers.terminate_agreement_at,bloggers.created_at,bloggers.last_follow_up_at,bloggers.communication_status,
-              bloggers.publicity->'$[*].user_name' as publicity_name
+              bloggers.nickname,bloggers.id,bloggers.sign_contract_status,bloggers.weibo_fans_num,bloggers.type_id,bloggers.sign_contract_at,bloggers.terminate_agreement_at,bloggers.created_at,bloggers.last_follow_up_at,bloggers.communication_status,publicity_user_names
+--               bloggers.publicity->'$[*].user_name' as publicity_name
 --               group_concat(users.name) as publicity 
             from bloggers 
 --             left join module_users on module_users.moduleable_id = bloggers.id 

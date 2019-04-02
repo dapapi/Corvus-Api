@@ -48,18 +48,24 @@ class MakeBloggerData extends Command
 
             if (!$publicity_list->isEmpty()){
                 $blogger_publicity = [];
+                $user_id = [];
+                $user_name = [];
+                $deparment = [];
                 foreach ($publicity_list as $publicity){
-                    $temp['user_id'] = $publicity->id;
-                    $temp['user_name'] = $publicity->name;
-                    $deparment = DB::table("users")
+                    $user_id[] = $publicity->id;
+                    $user_name[] = $publicity->name;
+                    $deparment[] = DB::table("users")
                                             ->leftJoin("department_user","department_user.user_id","users.id")
                                             ->join("departments","departments.id",'department_user.department_id')
-                                            ->where('users.id',$publicity->id)->first();
-                    $temp['department_id'] = $deparment->id;
-                    $temp['department_name'] = $deparment->name;
-                    $blogger_publicity[] = $temp;
+                                            ->where('users.id',$publicity->id)->value('departments.id');
+//                    $publicity_deparment_ids = $deparment->id;
+//                    $temp['department_name'] = $deparment->name;
+//                    $blogger_publicity[] = $temp;
                 }
-                $blogger->publicity = json_encode($blogger_publicity);
+                $blogger->publicity_user_names = implode($user_name,",");
+                $blogger->publicity_user_ids = implode($user_id,",");
+                $blogger->publicity_deparment_ids = implode($deparment,",");
+//                $blogger->publicity = json_encode($blogger_publicity);
                 $blogger->save();
             }
         }

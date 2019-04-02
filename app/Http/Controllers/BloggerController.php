@@ -1205,7 +1205,7 @@ class BloggerController extends Controller
             $array[] = ['bloggers.sign_contract_status',$payload['sign_contract_status']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $bloggers = BloggerRepository::getBloggerList2($search_field)
+        $bloggers = BloggerRepository::getBloggerList2($search_field)->searchData()
             ->where(function ($query)use ($payload){
                 FilterReportRepository::getTableNameAndCondition($payload,$query);
             })->where($array)

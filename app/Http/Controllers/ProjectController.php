@@ -1697,10 +1697,11 @@ class ProjectController extends Controller
                     $query->where('principal_id', $user->id);
                     break;
                 case 'my_participant'://我参与
-                    $query->leftJoin("module_users as mu2",function ($join){
+                    $projectIds = DB::table('project_implode')->leftJoin("module_users as mu2",function ($join){
                         $join->on("mu2.moduleable_id","project_implode.id")
                             ->where('mu2.moduleable_type',ModuleableType::PROJECT);
-                    })->where('mu2.user_id',$user->id);
+                    })->where('mu2.user_id',$user->id)->pluck('project_implode.id')->toArray();
+                    $query->whereIn('id', $projectIds);
                     break;
                 case 'my_create'://我创建
                     $query->where('creator_id', $user->id);

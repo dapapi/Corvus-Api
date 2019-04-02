@@ -119,7 +119,7 @@ class OperateLogEventListener
                 $typeName = '任务';
             } else if ($operate->obj instanceof Project) {
                 $type = ModuleableType::PROJECT;
-//                $this->implodeModel = ProjectImplode::find($operate->obj->id);
+                $this->implodeModel = ProjectImplode::find($operate->obj->id);
                 $typeName = '项目';
             } else if ($operate->obj instanceof Star) {
                 $type = ModuleableType::STAR;

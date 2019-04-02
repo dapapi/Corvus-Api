@@ -13,6 +13,8 @@ class UserFilterTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($user->id),
             'name' => $user->name,
+            'user_url' => $user->user_url,
+            'icon_url' => $user->icon_url
         ];
         return $array;
     }

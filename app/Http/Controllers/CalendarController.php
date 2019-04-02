@@ -40,7 +40,7 @@ class CalendarController extends Controller
         if($request->has('title')){//姓名
             $array[] = ['title','like','%'.$payload['title'].'%'];
         }
-        $subquery = DB::table("calendars as s")->leftJoin('module_users as mu', function ($join) {
+        $subquery = DB::table("calendars as s")->Join('module_users as mu', function ($join) {
             $join->on('mu.moduleable_id', 's.id')
                 ->whereRaw("mu.moduleable_type='" . ModuleableType::CALENDAR . "'")
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
@@ -208,7 +208,7 @@ class CalendarController extends Controller
         if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
             return $this->response->errorInternal("你没有查看该日历的权限");
         }
-        return $this->response->item($calendar, new CalendarTransformer());
+        return $this->response->item($calendar, new CalendarIndexTransformer());
     }
 
     public function delete(Request $request, Calendar $calendar)

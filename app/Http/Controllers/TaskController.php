@@ -185,6 +185,22 @@ class TaskController extends Controller
 
         $query = Task::select('tasks.id','tasks.title as task_name','tasks.status','tasks.resource_name','tasks.resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id');
 
+        switch ($my) {
+            case 2://我参与
+                $query = $user->participantTasks();
+                break;
+            case 3://我负责
+                $query->where('principal_id', $user->id);
+                break;
+            case 4://我分配
+                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                break;
+            case 1://我创建
+                $query->where('creator_id', $user->id);
+                break;
+            default:
+                break;
+        }
 
         $tasks = $query->where(function($query) use ($request, $payload) {
             if ($request->has('keyword'))

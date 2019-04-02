@@ -1040,7 +1040,6 @@ class StarController extends Controller
             $res[] = $temp;
         }
         $res['meta'] = [
-        "meta"=> [
             "pagination"=> [
                 "total"=> 576,
                 "count"=> 15,
@@ -1051,8 +1050,8 @@ class StarController extends Controller
                     "next"=> "http://corvus.cn/stars/filter?page=2"
                 ],
             ]
-        ]
-    ];
+
+        ];
         $res['status'] = "sucess";
         return [
             "data" => $res

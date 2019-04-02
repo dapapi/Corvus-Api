@@ -1688,7 +1688,7 @@ class ProjectController extends Controller
 //        DB::table('module_users')->where('user_id', $id)->where('moduleable_type', ModuleableType::PROJECT)->pluck('moduleable_id')->toArray();
 //        $user = Auth::guard('api')->user();
 
-        $query = DB::table('project_implode')->select('*');
+        $query = DB::table('project_implode')->selectRaw("*, GREATEST(project_store_at, last_follow_up_at) as t");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
@@ -1697,10 +1697,11 @@ class ProjectController extends Controller
                     $query->where('principal_id', $user->id);
                     break;
                 case 'my_participant'://我参与
-                    $query->leftJoin("module_users as mu2",function ($join){
-                        $join->on("mu2.moduleable_id","projects.id")
+                    $projectIds = DB::table('project_implode')->leftJoin("module_users as mu2",function ($join){
+                        $join->on("mu2.moduleable_id","project_implode.id")
                             ->where('mu2.moduleable_type',ModuleableType::PROJECT);
-                    })->where('mu2.user_id',$user->id);
+                    })->where('mu2.user_id',$user->id)->pluck('project_implode.id')->toArray();
+                    $query->whereIn('id', $projectIds);
                     break;
                 case 'my_create'://我创建
                     $query->where('creator_id', $user->id);
@@ -1709,7 +1710,7 @@ class ProjectController extends Controller
             }
         }
         $query->whereRaw(DB::raw("1 = 1 $power"));
-        $paginator = $query->paginate();
+        $paginator = $query->orderBy('t', 'desc')->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理

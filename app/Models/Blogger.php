@@ -56,7 +56,7 @@ class Blogger extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers(self::model_dic_id);
+        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
         return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from bloggers as b 
             left join module_users as mu on mu.moduleable_id = b.id and 

@@ -339,8 +339,8 @@ class ApprovalFormController extends Controller
                 ->join('project_histories as ph', function ($join) {
                     $join->on('ph.project_number', '=', 'bu.form_instance_number');
                 })
-                ->join("data_dictionaries as dds",function ($join){
-                    $join->on("dds.id",'=','afe.flow_type_id');
+                ->join("data_dictionaries as dds", function ($join) {
+                    $join->on("dds.id", '=', 'afe.flow_type_id');
                 })
                 ->where(function ($query) use ($payload, $request) {
                     if ($request->has('keywords')) {

@@ -183,7 +183,7 @@ class TaskController extends Controller
         $my = $request->get('my',0);
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $query = Task::select('tasks.id','tasks.title as task_name','tasks.status','tasks.resource_name','tasks.resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id');
+        $query = Task::select('tasks.id','tasks.title','tasks.status','tasks.resource_name','tasks.resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id','tasks.end_at');
 
         switch ($my) {
             case 2://我参与
@@ -483,7 +483,9 @@ class TaskController extends Controller
         return $request;
     }
 
-    public function show(Task $task,TaskRepository $repository,ScopeRepository $scopeRepository)
+
+
+    public function showDemo(Task $task,ScopeRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -496,18 +498,42 @@ class TaskController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-
+            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $scopeRepository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
             $task->power = "true";
         }catch (Exception $exception){
             $task->power = "false";
         }
-        $task->powers = $repository->getPower($user,$task);
+        return $this->response()->item($task, new TaskTransformer());
+    }
+
+    public function show(Task $task,ScopeRepository $repository)
+    {
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
+        //登录用户对线索编辑权限验证
+        try{
+            $user = Auth::guard("api")->user();
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $task->power = "true";
+        }catch (Exception $exception){
+            $task->power = "false";
+        }
         return $this->response()->item($task, new TaskTransformer());
     }
 

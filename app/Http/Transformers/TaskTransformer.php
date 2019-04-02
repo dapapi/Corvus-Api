@@ -15,8 +15,8 @@ class TaskTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type','operateLogs',  'relate_tasks', 'relate_projects'];
 
-    protected $defaultIncludes = ['principal','type','resource'];
-
+    //protected $defaultIncludes = ['principal','type','resource'];
+    protected $defaultIncludes = ['affixes','tasks'];
     public function transform(Task $task)
     {
         $array = [
@@ -40,15 +40,12 @@ class TaskTransformer extends TransformerAbstract
             "power" =>  $task->power,
             "powers" => $task->powers,
             'adj_id' => $task->adj_id,
-
-
         ];
 
         $array['task_p'] = true;
         if ($task->task_pid) {
             $array['task_p'] = false;
         }
-
         $operate = DB::table('operate_logs as og')//
             ->join('users', function ($join) {
                 $join->on('users.id', '=', 'og.user_id');
@@ -60,24 +57,52 @@ class TaskTransformer extends TransformerAbstract
 
         $array['operate'] = $operate;
 
-        $user = Auth::guard('api')->user();
-
-        $adjId = $task->adj_id;
-
-        if($adjId !=="0"){
-            if($user->id == $task->creator_id && $user->id == $task->principal_id){
-                $array['private']=0;
-            }else{
-                $adjIdArr = explode(",", $adjId);
-                if(in_array($user->id,$adjIdArr)){
-
-                    $array['private']=0;
-                }else{
-                    $array['private']=1;
-                }
-            }
-
+        $array['principal']['data']['name'] = $task->principal_name;
+        $array['type']['data']['id'] = hashid_encode($task->type_id);
+        $array['type']['data']['title'] = $task->type_name;
+        $array['resource']['data']['title'] = $task->type_name;
+        if($task->resource_type=='博主'){
+            $array['resource']['data']['resource']['data']['id'] = hashid_encode(1);
+            $array['resource']['data']['resource']['data']['title'] = '博主';
+            $array['resource']['data']['resource']['data']['code'] = 'bloggers';
+            $array['resource']['data']['resource']['data']['type'] = 1;
+        }elseif($task->resource_type=='艺人'){
+            $array['resource']['data']['resource']['data']['id'] = hashid_encode(2);
+            $array['resource']['data']['resource']['data']['title'] = '艺人';
+            $array['resource']['data']['resource']['data']['code'] = 'stars';
+            $array['resource']['data']['resource']['data']['type'] = 2;
+        }elseif($task->resource_type=='项目'){
+            $array['resource']['data']['resource']['data']['id'] = hashid_encode(3);
+            $array['resource']['data']['resource']['data']['title'] = '项目';
+            $array['resource']['data']['resource']['data']['code'] = 'projects';
+            $array['resource']['data']['resource']['data']['type'] = 3;
+        }elseif($task->resource_type=='客户'){
+            $array['resource']['data']['resource']['data']['id'] = hashid_encode(4);
+            $array['resource']['data']['resource']['data']['title'] = '客户';
+            $array['resource']['data']['resource']['data']['code'] = 'clients';
+            $array['resource']['data']['resource']['data']['type'] = 4;
+        }elseif($task->resource_type=='销售线索'){
+            $array['resource']['data']['resource']['data']['id'] = hashid_encode(5);
+            $array['resource']['data']['resource']['data']['title'] = '博主';
+            $array['resource']['data']['resource']['data']['code'] = 'trails';
+            $array['resource']['data']['resource']['data']['type'] = 5;
         }
+        $array['resource']['data']['resourceable']['data']['id']= hashid_encode(5);
+        $array['resource']['data']['resourceable']['data']['nickname']= $task->resource_name;
+        //参与人
+        $participants = DB::table('module_users as mu')//
+        ->join('users', function ($join) {
+            $join->on('users.id', '=', 'mu.user_id');
+        })
+            ->where('mu.moduleable_id', $task->id)
+            ->where('mu.type', ModuleUserType::PARTICIPANT)
+            ->where('mu.moduleable_type', 'task')
+
+            ->select('users.id','users.name','users.icon_url')->get();
+        foreach ($participants as &$value){
+            $value->id = hashid_encode($value->id);
+        }
+        $array['participants']['data'] = $participants;
 
         return $array;
     }

@@ -3,10 +3,9 @@
 namespace App\Http\Transformers;
 
 use App\Models\Schedule;
-use function GuzzleHttp\Psr7\str;
 use League\Fractal\TransformerAbstract;
 
-class ScheduleTransformer extends TransformerAbstract
+class ScheduleDetailTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['calendar', 'material', 'creator', 'participants', 'affixes','task','project'];
 
@@ -36,7 +35,7 @@ class ScheduleTransformer extends TransformerAbstract
         if (!$calendar)
             return null;
 
-        return $this->item($calendar, new CalendarTransformer());
+        return $this->item($calendar, new CalendarIndexTransformer());
     }
 
     public function includeMaterial(Schedule $schedule)
@@ -53,20 +52,22 @@ class ScheduleTransformer extends TransformerAbstract
         $creator = $schedule->creator;
         if (!$creator)
             return null;
-
-        return $this->item($creator, new UserTransformer());
+        return $this->item($creator, new UserFilterTransformer());
     }
 
     public function includeAffixes(Schedule $schedule)
     {
-        $affixes = $schedule->affixes()->createDesc()->get();
+        $affixes = $schedule->affixes()->createDesc()->select('affixes.id','affixes.title',
+            'affixes.url','affixes.size','affixes.type','affixes.created_at');
+//        $sql_with_bindings = str_replace_array('?', $affixes->getBindings(), $affixes->toSql());
+//        dd($sql_with_bindings);
         return $this->collection($affixes, new AffixTransformer());
     }
     public function includeParticipants(Schedule $schedule)
     {
         $participants = $schedule->participants;
 
-        return $this->collection($participants, new UserTransformer());
+        return $this->collection($participants, new UserFilterTransformer());
     }
     public function includeTask(Schedule $schedule){
 

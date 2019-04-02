@@ -100,7 +100,7 @@ class OperateLogController extends Controller
 
         $operateLogs = $query->createDesc()->paginate($pageSize);
 //        DB::connection()->enableQueryLog();
-        $operateLogs = $query->createDesc()->get();
+//        $operateLogs = $query->createDesc()->get();
 //        dd($operateLogs);
 //        dd(DB::getQueryLog());
 

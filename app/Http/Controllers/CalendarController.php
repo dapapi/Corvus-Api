@@ -40,7 +40,7 @@ class CalendarController extends Controller
         if($request->has('title')){//姓名
             $array[] = ['title','like','%'.$payload['title'].'%'];
         }
-        $subquery = DB::table("calendars as s")->leftJoin('module_users as mu', function ($join) {
+        $subquery = DB::table("calendars as s")->Join('module_users as mu', function ($join) {
             $join->on('mu.moduleable_id', 's.id')
                 ->whereRaw("mu.moduleable_type='" . ModuleableType::CALENDAR . "'")
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");

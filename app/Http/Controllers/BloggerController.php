@@ -1000,4 +1000,20 @@ class BloggerController extends Controller
         $file = '当前博主导出' . date('YmdHis', time()) . '.xlsx';
         return (new BloggersExport($request))->download($file);
     }
+
+    /**
+     * 博主列表--优化
+     * @param Request $request
+     */
+    public function bloggerList(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $condition = null;
+        if (isset($payload['conditions'])){
+            $condition = FilterReportRepository::getCondition($payload['conditions']);
+        }
+        return BloggerRepository::getBloggerList($condition);
+    }
 }

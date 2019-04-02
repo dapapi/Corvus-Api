@@ -3,8 +3,10 @@
 namespace App\Repositories;
 
 use App\Models\Blogger;
+use App\ModuleableType;
 use App\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class BloggerRepository
 {
@@ -34,5 +36,31 @@ class BloggerRepository
         }
         Cache::put($cache_key,$power,1);
         return $power;
+    }
+
+    /**
+     * 博主列表
+     * @author lile
+     * @date 2019-04-02
+     */
+    public static function getBloggerList($condition)
+    {
+        if ($condition == null){
+            $condition['where'] = null;
+            $condition['placeholder'] = [];
+        }
+        $where = Blogger::powerConditionSql();
+        $placeholder = $condition['placeholder'];
+        $sql = <<<AAA
+            select bloggers.nickname,bloggers.weibo_fans_num,bloggers.type_id,bloggers.contract_start_date,bloggers.contract_end_date,bloggers.created_at,bloggers.last_follow_up_at from bloggers
+            left join module_users on module_users.moduleable_id = bloggers.id and module_users.moduleable_type = :moduleable_type 
+            left join department_user on department_user.user_id = module_users.user_id
+            where 1 = 1 {$where}  {$condition['where']} limit 0,10
+AAA;
+        $placeholder = $condition['placeholder'];
+        $placeholder[":moduleable_type"] = ModuleableType::BLOGGER;
+        return DB::select($sql,$placeholder);
+
+
     }
 }

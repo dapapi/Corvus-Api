@@ -36,7 +36,6 @@ use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScopeRepository;
 
 use App\Repositories\TaskRepository;
-
 use App\ResourceType;
 use App\TaskStatus;
 use App\TriggerPoint\TaskTriggerPoint;

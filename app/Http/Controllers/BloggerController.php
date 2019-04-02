@@ -1053,7 +1053,7 @@ class BloggerController extends Controller
         }
         $condition['placeholder'] = array_merge($condition['placeholder'],$condition2['placeholder']);
         $condition['where'] .= $condition2['where'];
-        $blogger_list =  BloggerRepository::getBloggerList($condition,$search_field,$pageSize,$page);
+        list($blogger_list,$meta) =  BloggerRepository::getBloggerList($condition,$search_field,$pageSize,$page);
         $res = [];
         foreach ($blogger_list as $key => $star){
             $temp['id'] = hashid_encode($star->id);

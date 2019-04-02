@@ -56,6 +56,7 @@ class BloggerRepository
 
         $offset = ($page-1) * $pageSize;
 
+
         //第一次进入时的sql
 
         if (in_array('module_users.user_id',$search_field) ||in_array('department_user.department_id',$search_field) ) {//根据经理人，部门查询的sql
@@ -69,8 +70,19 @@ class BloggerRepository
             left join blogger_types on blogger_types.id = bloggers.type_id
                 where (1=1 {$where}) {$condition['where']} 
                 group by bloggers.id
-            limit {$offset},{$pageSize}
 AAA;
+            $count_sql = <<<AAA
+            select
+                count(*)
+                from bloggers
+            left join module_users on module_users.moduleable_id = bloggers.id and module_users.moduleable_type = :moduleable_type and module_users.type = :module_users_type
+            left join department_user on department_user.user_id = module_users.user_id
+            left join users on department_user.user_id = users.id
+            left join blogger_types on blogger_types.id = bloggers.type_id
+                where (1=1 {$where}) {$condition['where']} 
+                group by bloggers.id
+AAA;
+
             $placeholder[":moduleable_type"] = ModuleableType::BLOGGER;
             $placeholder[":module_users_type"] = ModuleUserType::PUBLICITY;
         }else{
@@ -80,9 +92,31 @@ AAA;
             from bloggers
             left join blogger_types on blogger_types.id = bloggers.type_id
             where (1 = 1 {$where})  {$condition['where']}
-            limit {$offset},{$pageSize}
 AAA;
+            $count_sql = <<<AAA
+            select 
+              count(*)
+            from bloggers
+            left join blogger_types on blogger_types.id = bloggers.type_id
+            where (1 = 1 {$where})  {$condition['where']}
+AAA;
+
         }
-        return DB::select($sql,$placeholder);
+        $count = DB::select($count_sql);
+        $sql .= " limit {$offset},{$pageSize}";
+        $data = DB::select($sql,$placeholder);
+        $meta = [
+            "pagination"=> [
+                "total"=> $count,
+                "count"=> $count($data),
+                "per_page"=> $page - 1 == 0 ? 1: $page-1,
+                "current_page"=> $page,
+                "total_pages"=> ($count/$pageSize) + 1,
+                "links"=> [
+                    "next"=> "http://corvus.cn/stars/filter?page=2"
+                ],
+            ]
+        ];
+        return ['data'=>$data,"meta"=>$meta];
     }
 }

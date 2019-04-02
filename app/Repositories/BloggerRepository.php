@@ -52,7 +52,9 @@ class BloggerRepository
         $where = Blogger::powerConditionSql();
         $placeholder = $condition['placeholder'];
         $sql = <<<AAA
-            select bloggers.nickname,bloggers.weibo_fans_num,bloggers.type_id,bloggers.contract_start_date,bloggers.contract_end_date,bloggers.created_at,bloggers.last_follow_up_at from bloggers
+            select 
+              bloggers.nickname,bloggers.weibo_fans_num,bloggers.type_id,bloggers.contract_start_date,bloggers.contract_end_date,bloggers.created_at,bloggers.last_follow_up_at,bloggers.communication_status 
+            from bloggers
             left join module_users on module_users.moduleable_id = bloggers.id and module_users.moduleable_type = :moduleable_type 
             left join department_user on department_user.user_id = module_users.user_id
             where 1 = 1 {$where}  {$condition['where']} limit 0,10

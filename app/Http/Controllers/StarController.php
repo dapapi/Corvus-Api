@@ -942,7 +942,7 @@ class StarController extends Controller
             $temp['communication_status'] = $star->communication_status;
             $res[] = $temp;
         }
-        $res['meta'] = [
+        $meta = [
             "pagination"=> [
                 "total"=> 576,
                 "count"=> 15,
@@ -954,9 +954,10 @@ class StarController extends Controller
                 ],
             ]
         ];
-        $res['status'] = "sucess";
         return [
-            "data" => $res
+            "data" => $res,
+            "meta"  => $meta,
+            "status"    =>  "success"
         ];
     }
     public function getStarById(Star $star)

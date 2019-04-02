@@ -3,6 +3,7 @@
 namespace App\Http\Transformers;
 
 use App\Models\Task;
+use App\ModuleUserType;
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
 use League\Fractal\TransformerAbstract;

@@ -49,6 +49,7 @@ use App\Repositories\OperateLogRepository;
 use App\Repositories\FilterReportRepository;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\SignContractStatus;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use App\Whether;
@@ -932,7 +933,7 @@ class BloggerController extends Controller
         $array = [];//查询条件
         //合同
         if($request->has('status')){//姓名
-            $array[] = ['sign_contract_status',$status];
+            $array[] = ['bloggers.status',$status];
         }
         if($request->has('name')){//姓名
             $array[] = ['nickname','like','%'.$payload['name'].'%'];
@@ -1008,13 +1009,50 @@ class BloggerController extends Controller
     public function bloggerList(Request $request)
     {
         $payload = $request->all();
-        $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $condition = null;
-        if (isset($payload['conditions'])){
-            $condition = FilterReportRepository::getCondition($payload['conditions']);
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $status = $request->get('status', config('app.status'));
+        $where = "";//查询条件
+        //合同
+        $condition['where'] = "";
+        $condition['placeholder'] = [];
+        if ($request->has('status')){
+            $condition['where'] .= " and status = :status";
+            $condition['placeholder'][':status'] =  $status;
         }
-        $blogger_list =  BloggerRepository::getBloggerList($condition);
+        if($request->has('sign_contract_status')){
+            $condition['where'] .= " and sign_contract_status = :sign_contract_status";
+            $condition['placeholder'][':sign_contract_status'] = $payload['sign_contract_status'];
+        }
+        else{
+            $condition['where'] .= " and sign_contract_status = :sign_contract_status";
+            $condition['placeholder'][':sign_contract_status'] = SignContractStatus::ALREADY_SIGN_CONTRACT;
+        }
+        if($request->has('name')){//姓名
+            $value = '%'.$payload['name'].'%';
+            $condition['where'] .= " and nickname like :nickname";
+            $condition['placeholder'][':nickname'] = $value;
+        }
+
+        if($request->has('type')){//类型
+            $value = hashid_decode($payload['type']);
+            $condition['where'] .= " and type_id = :type_id";
+            $condition['placeholder'][":type_id"] = $value;
+        }
+        if($request->has('communication_status')){//沟通状态
+            $condition['where'] .= " and communication_status :communication_status";
+            $condition['placeholder'][':communication_status'] = $payload['communication_status'];
+        }
+        $condition2['where'] = "";
+        $condition2['placeholder'] = [];
+        $search_field = [];
+        if (isset($payload['conditions'])){
+            $condition2 = FilterReportRepository::getCondition($payload['conditions']);
+            $search_field = array_column($payload['conditions'],'field');
+        }
+        $condition['placeholder'] = array_merge($condition['placeholder'],$condition2['placeholder']);
+        $condition['where'] .= $condition2['where'];
+        $blogger_list =  BloggerRepository::getBloggerList($condition,$search_field);
         $res = [];
         foreach ($blogger_list as $key => $star){
             $temp['id'] = hashid_encode($star->id);
@@ -1031,7 +1069,7 @@ class BloggerController extends Controller
 //            $temp['birthday'] = $star->birthday;
             $temp['communication_status'] = $star->communication_status;
 //            if ($star->publicity_user_names != null){
-                $publicity_user_names = explode(",",$star->publicity_user_names);
+                $publicity_user_names = explode(",",isset($star->publicity_user_names)?$star->publicity_user_names:"");
                 $temp2 = [];
                 foreach ($publicity_user_names as $name){
                     $temp2[] = ["name"=>$name];

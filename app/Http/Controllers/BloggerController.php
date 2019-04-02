@@ -7,6 +7,7 @@ use App\CommunicationStatus;
 use App\Events\BloggerDataChangeEvent;
 use App\Events\TaskMessageEvent;
 use App\Gender;
+use App\Http\Transformers\BloggerListTransformer;
 use App\Models\TaskType;
 use App\Exports\BloggersExport;
 use App\Http\Requests\BloggerRequest;
@@ -1098,5 +1099,39 @@ class BloggerController extends Controller
             "meta"  => $meta,
             "status"    =>  "success"
         ];
+    }
+
+    public function bloggerList2(Request $request)
+    {
+        $payload = $request->all();
+        $search_field = [];
+        if (isset($payload['conditions'])){
+            $search_field = array_column($payload['conditions'],'field');
+        }
+        $array = [];//查询条件
+        //合同
+        if($request->has('status')){//姓名
+            $array[] = ['bloggers.status',$payload['status']];
+        }
+        if($request->has('name')){//姓名
+            $array[] = ['nickname','like','%'.$payload['name'].'%'];
+        }
+
+        if($request->has('type')){//类型
+            $array[] = ['type_id',hashid_decode($payload['type'])];
+        }
+        if($request->has('communication_status')){//沟通状态
+            $array[] = ['communication_status',$payload['communication_status']];
+        }
+        if($request->has('sign_contract_status')){//姓名
+            $array[] = ['bloggers.sign_contract_status',$payload['sign_contract_status']];
+        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $bloggers = BloggerRepository::getBloggerList2($search_field)
+            ->where(function ($query)use ($payload){
+                FilterReportRepository::getTableNameAndCondition($payload,$query);
+            })->where($array)
+            ->paginate($pageSize);
+        return $this->response()->paginator($bloggers,new BloggerListTransformer());
     }
 }

@@ -94,9 +94,11 @@ class OperateLogController extends Controller
         }
 
 
+
         $operateLogs = $query->createDesc()->paginate($pageSize);
 
 //        $operateLogs = $query->createDesc()->get();
+
 
 
         foreach ($operateLogs as $operateLog) {
@@ -106,8 +108,8 @@ class OperateLogController extends Controller
             }
         }
 
-        return $this->response->paginator($operateLogs, new OperateLogTransformer());
-//        return $this->response->collection($operateLogs,new OperateLogTransformer());
+//        return $this->response->paginator($operateLogs, new OperateLogTransformer());
+        return $this->response->collection($operateLogs,new OperateLogTransformer());
     }
     public function myIndex(Request $request, Issues $issues)
     {

@@ -7,6 +7,7 @@ use App\Http\Requests\Calendar\EditCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarRequest;
 use App\Http\Requests\Calendar\StoreCalendarTaskRequest;
 use App\Http\Transformers\CalendarTransformer;
+use App\Http\Transformers\CalendarIndexTransformer;
 use App\Models\Calendar;
 use App\Models\OperateEntity;
 use App\Models\Schedule;
@@ -30,7 +31,33 @@ class CalendarController extends Controller
     {
         $this->moduleUserRepository = $moduleUserRepository;
     }
+    public function index(Request $request)
+    {
+        // todo 按权限筛选
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        $array = [];//查询条件
+        if($request->has('title')){//姓名
+            $array[] = ['title','like','%'.$payload['title'].'%'];
+        }
+        $subquery = DB::table("calendars as s")->leftJoin('module_users as mu', function ($join) {
+            $join->on('mu.moduleable_id', 's.id')
+                ->whereRaw("mu.moduleable_type='" . ModuleableType::CALENDAR . "'")
+                ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
+        })->whereRaw("s.id=calendars.id")->select("mu.user_id");
 
+        $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.id','calendars.color','calendars.principal_id','calendars.privacy',
+            'calendars.starable_type','calendars.title')
+            ->where(function ($query)use ($user,$subquery){
+            $query->where('calendars.creator_id',$user->id)//创建人
+            ->orWhere(function ($query) use ($user, $subquery) {
+                     $query->whereRaw("$user->id in ({$subquery->toSql()})")
+                         ->where('calendars.privacy',Calendar::SECRET);//参与人
+                 })
+            ->orwhere('calendars.privacy',Calendar::OPEN);
+        })->where($array)->get();
+        return $this->response->collection($calendars, new CalendarIndexTransformer());
+    }
     public function all(Request $request)
     {
         // todo 按权限筛选

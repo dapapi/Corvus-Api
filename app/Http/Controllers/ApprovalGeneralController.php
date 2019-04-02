@@ -252,7 +252,7 @@ class ApprovalGeneralController extends Controller
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($resArr, $start, $pageSize);
 
-        $total = count($article);//总条数
+        $total = count($resArr);//总条数
         $totalPages = ceil($total / $pageSize);
 
         $arr = array();
@@ -439,8 +439,9 @@ class ApprovalGeneralController extends Controller
                 if ($form_group_id){
                     $query->where('afi.form_id',$form_group_id);
                 }
-            })->where('afi.form_status','232')
-            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)//->orwhere('afc.approver_type','!=',247)
+            })//->where('afi.form_status','232')
+
+              ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('afc.change_id', $userId)//->orwhere('afc.approver_type','!=',247)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
 
@@ -477,8 +478,8 @@ class ApprovalGeneralController extends Controller
                 if ($form_group_id){
                     $query->where('afi.form_id',$form_group_id);
                 }
-            })->where('afi.form_status','232')
-            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)
+            })//->where('afi.form_status','232')
+            ->where('afc.change_state', '!=', 237)->where('afc.change_state', '!=', 238)->where('role_users.role_id','!=',75)
             ->where('role_users.user_id',$userId)
             ->orderBy('afi.created_at', 'desc')
             ->select('afi.*', 'us.name', 'us.icon_url','afg.name as group_name', 'afg.id as group_id','dds.name as approval_status_name','dds.icon')->get()->toArray();
@@ -671,7 +672,7 @@ class ApprovalGeneralController extends Controller
         $start = ($payload['page'] - 1) * $pageSize;//偏移量，当前页-1乘以每页显示条数
         $article = array_slice($resArr, $start, $pageSize);
 
-        $total = count($article);//总条数
+        $total = count($resArr);//总条数
         $totalPages = ceil($total / $pageSize);
 
         $arr = array();

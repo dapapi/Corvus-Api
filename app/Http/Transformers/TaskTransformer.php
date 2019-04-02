@@ -3,6 +3,7 @@
 namespace App\Http\Transformers;
 
 use App\Models\Task;
+use App\ModuleUserType;
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
 use League\Fractal\TransformerAbstract;
@@ -16,7 +17,7 @@ class TaskTransformer extends TransformerAbstract
     protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type','operateLogs',  'relate_tasks', 'relate_projects'];
 
     //protected $defaultIncludes = ['principal','type','resource'];
-
+    protected $defaultIncludes = ['affixes','tasks'];
     public function transform(Task $task)
     {
         $array = [
@@ -87,8 +88,22 @@ class TaskTransformer extends TransformerAbstract
             $array['resource']['data']['resource']['data']['code'] = 'trails';
             $array['resource']['data']['resource']['data']['type'] = 5;
         }
-        $array['resourceable']['data']['id']= hashid_encode(5);
-        $array['resourceable']['data']['nickname']= $task->resource_name;
+        $array['resource']['data']['resourceable']['data']['id']= hashid_encode(5);
+        $array['resource']['data']['resourceable']['data']['nickname']= $task->resource_name;
+        //参与人
+        $participants = DB::table('module_users as mu')//
+        ->join('users', function ($join) {
+            $join->on('users.id', '=', 'mu.user_id');
+        })
+            ->where('mu.moduleable_id', $task->id)
+            ->where('mu.type', ModuleUserType::PARTICIPANT)
+            ->where('mu.moduleable_type', 'task')
+
+            ->select('users.id','users.name','users.icon_url')->get();
+        foreach ($participants as &$value){
+            $value->id = hashid_encode($value->id);
+        }
+        $array['participants']['data'] = $participants;
 
         return $array;
     }

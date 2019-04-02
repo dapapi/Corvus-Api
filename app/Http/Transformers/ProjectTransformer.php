@@ -26,43 +26,6 @@ class ProjectTransformer extends TransformerAbstract
     {
         $user = Auth::guard('api')->user();
 
-     //   $array['moduleable_type']= ModuleableType::PROJECT;
-    //    $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//        foreach ($project as  $value)
-//        {
-//            dd($project);
-//        }
-
-
-
-
-
-//        $setprivacy1 =array();
-//        $Viewprivacy2 =array();
-//        $array['moduleable_id']= $project->id;
-//        $array['moduleable_type']= ModuleableType::PROJECT;
-//        $array['is_privacy']=  PrivacyType::OTHER;
-//        $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//        foreach ($setprivacy as $key =>$v){
-//
-//            $setprivacy1[]=array_values($v)[0];
-//
-//        }
-//        if(!empty($setprivacy1) & count($setprivacy1) > 0 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
-//            $array['user_id']= $user->id;
-//            $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//            unset($array);
-//            if($Viewprivacy){
-//                foreach ($Viewprivacy as $key =>$v){
-//                    $Viewprivacy1[]=array_values($v)[0];
-//                }
-//                $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
-//            }else{
-//                $setprivacy1 = array();
-//            }
-//
-//        }
-
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
         if ($this->isAll) {

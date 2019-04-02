@@ -1030,7 +1030,15 @@ class BloggerController extends Controller
             $temp['sign_contract_status'] = $star->sign_contract_status;
 //            $temp['birthday'] = $star->birthday;
             $temp['communication_status'] = $star->communication_status;
-            $temp['publicity'] = $star->publicity;
+            if ($star->publicity_name != null){
+                $publicity_name = json_decode($star->publicity_name,true);
+                $temp2 = [];
+                foreach ($publicity_name as $name){
+                    $temp2[] = ["name"=>$name];
+                }
+                $temp['publicity']['data'] = $temp2;
+            }
+
             $res[] = $temp;
         }
         $meta = [

@@ -928,10 +928,10 @@ class StarController extends Controller
         $res = [];
         foreach ($star_list as $key => $star){
             $temp['id'] = hashid_encode($star->id);
-            $temp['contracts']['data']['contract_start_date'] = $star->contract_start_date;
-            $temp['contracts']['data']['contract_end_date'] = $star->contract_end_date;
-            $temp['contract_start_date'] = $star->contract_start_date;
-            $temp['contract_end_date'] = $star->contract_end_date;
+            $temp['contracts']['data']['contract_start_date'] = $star->sign_contract_at;
+            $temp['contracts']['data']['contract_end_date'] = $star->terminate_agreement_at;
+            $temp['sign_contract_at'] = $star->sign_contract_at;
+            $temp['terminate_agreement_at'] = $star->terminate_agreement_at;
             $temp['name'] = $star->name;
             $temp['weibo_fans_num'] = $star->weibo_fans_num;
             $temp['source'] = $star->source;

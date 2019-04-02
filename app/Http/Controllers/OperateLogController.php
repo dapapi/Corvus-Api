@@ -95,6 +95,7 @@ class OperateLogController extends Controller
 
 
         $operateLogs = $query->createDesc()->paginate($pageSize);
+
 //        $operateLogs = $query->createDesc()->get();
 
 

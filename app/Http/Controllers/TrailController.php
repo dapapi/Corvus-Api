@@ -1096,7 +1096,7 @@ class TrailController extends Controller
                 'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 
-        return $this->response->paginator($trails, new TrailFilterTransformer());
+        return $this->response->paginator($trails, new TrailTransformer());
     }
 
     public function import(ExcelImportRequest $request)

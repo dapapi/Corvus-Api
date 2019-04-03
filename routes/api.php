@@ -12,7 +12,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
         $api->get('/test/users', 'App\Http\Controllers\TestController@users');
         $api->get('/test/job', 'App\Http\Controllers\TestController@test');
     }
@@ -240,7 +240,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //导入 导出
         //->middleware('export')
-        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList');//测试博主列表优化
+        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2'); //测试博主列表优化
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger

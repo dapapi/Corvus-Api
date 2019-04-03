@@ -771,7 +771,17 @@ class ScheduleController extends Controller
         } else {
             $schedule->delete();
         }
-
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $schedule,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::DELETE,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         return $this->response->noContent();
     }
 

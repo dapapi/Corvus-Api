@@ -178,7 +178,6 @@ class CalendarController extends Controller
             $this->moduleUserRepository->addModuleUserss($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
             //更新之后的参与人
             $end_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
-
             ///记录日志
             // 操作日志
             $operate = new OperateEntity([
@@ -224,7 +223,17 @@ class CalendarController extends Controller
             $calendar->delete();
 
            Schedule::where('calendar_id',$calendar->id)->delete();
-
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $calendar,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DELETE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();

@@ -7,10 +7,7 @@ use App\CommunicationStatus;
 use App\Events\BloggerDataChangeEvent;
 use App\Events\TaskMessageEvent;
 use App\Gender;
-use App\Helper\Common;
-use App\Http\Transformers\DashboardModelTransformer;
-use App\Models\Department;
-use App\Models\Project;
+use App\Http\Transformers\BloggerListTransformer;
 use App\Models\TaskType;
 use App\Exports\BloggersExport;
 use App\Http\Requests\BloggerRequest;
@@ -55,6 +52,7 @@ use App\Repositories\OperateLogRepository;
 use App\Repositories\FilterReportRepository;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
+use App\SignContractStatus;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use App\Whether;
@@ -939,7 +937,7 @@ class BloggerController extends Controller
         $array = [];//查询条件
         //合同
         if($request->has('status')){//姓名
-            $array[] = ['sign_contract_status',$status];
+            $array[] = ['bloggers.status',$status];
         }
         if($request->has('name')){//姓名
             $array[] = ['nickname','like','%'.$payload['name'].'%'];
@@ -1089,12 +1087,16 @@ class BloggerController extends Controller
      */
     public function bloggerList(Request $request)
     {
+        profiler_start('my time metric name');
         $payload = $request->all();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $page = $request->get('page',1);
         $status = $request->get('status', config('app.status'));
         $where = "";//查询条件
         //合同
-        $condition = [];
+        $condition['where'] = "";
+        $condition['placeholder'] = [];
         if ($request->has('status')){
             $condition['where'] .= " and status = :status";
             $condition['placeholder'][':status'] =  $status;
@@ -1102,6 +1104,10 @@ class BloggerController extends Controller
         if($request->has('sign_contract_status')){
             $condition['where'] .= " and sign_contract_status = :sign_contract_status";
             $condition['placeholder'][':sign_contract_status'] = $payload['sign_contract_status'];
+        }
+        else{
+            $condition['where'] .= " and sign_contract_status = :sign_contract_status";
+            $condition['placeholder'][':sign_contract_status'] = SignContractStatus::ALREADY_SIGN_CONTRACT;
         }
         if($request->has('name')){//姓名
             $value = '%'.$payload['name'].'%';
@@ -1118,13 +1124,16 @@ class BloggerController extends Controller
             $condition['where'] .= " and communication_status :communication_status";
             $condition['placeholder'][':communication_status'] = $payload['communication_status'];
         }
-
+        $condition2['where'] = "";
+        $condition2['placeholder'] = [];
+        $search_field = [];
         if (isset($payload['conditions'])){
             $condition2 = FilterReportRepository::getCondition($payload['conditions']);
+            $search_field = array_column($payload['conditions'],'field');
         }
         $condition['placeholder'] = array_merge($condition['placeholder'],$condition2['placeholder']);
-        $condition['where'] = $condition2['where'];
-        $blogger_list =  BloggerRepository::getBloggerList($condition);
+        $condition['where'] .= $condition2['where'];
+        list($blogger_list,$meta) =  BloggerRepository::getBloggerList($condition,$search_field,$pageSize,$page);
         $res = [];
         foreach ($blogger_list as $key => $star){
             $temp['id'] = hashid_encode($star->id);
@@ -1138,10 +1147,11 @@ class BloggerController extends Controller
             $temp['created_at'] = $star->created_at;
             $temp['last_follow_up_at'] = $star->last_follow_up_at;
             $temp['sign_contract_status'] = $star->sign_contract_status;
+            $temp['type'] = $star->type;
 //            $temp['birthday'] = $star->birthday;
             $temp['communication_status'] = $star->communication_status;
 //            if ($star->publicity_user_names != null){
-                $publicity_user_names = explode(",",$star->publicity_user_names);
+                $publicity_user_names = explode(",",isset($star->publicity_user_names)?$star->publicity_user_names:"");
                 $temp2 = [];
                 foreach ($publicity_user_names as $name){
                     $temp2[] = ["name"=>$name];
@@ -1151,22 +1161,61 @@ class BloggerController extends Controller
 
             $res[] = $temp;
         }
-        $meta = [
-            "pagination"=> [
-                "total"=> 576,
-                "count"=> 15,
-                "per_page"=> 15,
-                "current_page"=> 1,
-                "total_pages"=> 39,
-                "links"=> [
-                    "next"=> "http://corvus.cn/stars/filter?page=2"
-                ],
-            ]
-        ];
+//        $meta = [
+//            "pagination"=> [
+//                "total"=> 576,
+//                "count"=> 15,
+//                "per_page"=> 15,
+//                "current_page"=> 1,
+//                "total_pages"=> 39,
+//                "links"=> [
+//                    "next"=> "http://corvus.cn/stars/filter?page=2"
+//                ],
+//            ]
+//        ];
+        profiler_finish("my time metric name");
         return [
             "data" => $res,
             "meta"  => $meta,
             "status"    =>  "success"
         ];
+    }
+
+    public function bloggerList2(Request $request)
+    {
+        $payload = $request->all();
+        $search_field = [];
+        if (isset($payload['conditions'])){
+            $search_field = array_column($payload['conditions'],'field');
+        }
+        $array = [];//查询条件
+        //合同
+        if($request->has('status')){//姓名
+            $array[] = ['bloggers.status',$payload['status']];
+        }
+        if($request->has('name')){//姓名
+            $array[] = ['nickname','like','%'.$payload['name'].'%'];
+        }
+
+        if($request->has('type')){//类型
+            $array[] = ['type_id',hashid_decode($payload['type'])];
+        }
+        if($request->has('communication_status')){//沟通状态
+            $array[] = ['communication_status',$payload['communication_status']];
+        }
+        if($request->has('sign_contract_status')){//姓名
+            $array[] = ['bloggers.sign_contract_status',$payload['sign_contract_status']];
+        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
+//        DB::connection()->enableQueryLog();
+        $bloggers = BloggerRepository::getBloggerList2($search_field)->searchData()
+            ->where(function ($query)use ($payload){
+                FilterReportRepository::getTableNameAndCondition($payload,$query);
+            })->where($array)
+//            ->offset(10)->limit(10)->get();
+            ->paginate($pageSize);
+//        dd(DB::getQueryLog());
+        return $bloggers;
+        return $this->response()->paginator($bloggers,new BloggerListTransformer());
     }
 }

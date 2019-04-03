@@ -1751,8 +1751,8 @@ class ProjectController extends Controller
                     ]
                 ],
                 "trail" => [
-                    "fee" => $item->trail_fee,
                     "data" => [
+                        "fee" => $item->trail_fee,
                         "expectations" => [
                             "data" => $expectations
                         ],

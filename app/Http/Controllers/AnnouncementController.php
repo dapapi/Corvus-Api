@@ -16,6 +16,7 @@ use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Transformers\DepartmentTransformer;
 use App\Http\Requests\AnnouncementClassifyUpdateRequest;
 use App\Http\Transformers\AnnouncementClassifyTransformer;
+use App\Http\Transformers\AnnouncementListTransformer;
 use App\Http\Requests\AnnouncementUpdateRequest;
 use App\Models\Announcement;
 use App\Models\Department;
@@ -143,7 +144,7 @@ class AnnouncementController extends Controller
                   $stars = null;
               }
         }
-        return $this->response->paginator($stars, new AnnouncementTransformer());
+        return $this->response->paginator($stars, new AnnouncementListTransformer());
     }
 //    public function generateTree($array,$pi){
 //        $items = array();

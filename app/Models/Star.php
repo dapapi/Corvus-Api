@@ -59,6 +59,10 @@ class Star extends Model
         'artist_scout_name',//星探
         'star_location',//地区
         'star_risk_point',//艺人风险点
+        'last_updated_user_id',
+        'last_updated_at',
+        'last_follow_up_at',
+        'last_updated_user'
     ];
 
 

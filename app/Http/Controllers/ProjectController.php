@@ -8,6 +8,7 @@ use App\Events\ProjectDataChangeEvent;
 
 use App\Models\Department;
 use App\Models\DepartmentUser;
+use App\Models\ProjectImplode;
 use App\Repositories\FilterReportRepository;
 
 use App\Events\TrailDataChangeEvent;
@@ -1684,11 +1685,11 @@ class ProjectController extends Controller
         # 权限|我负责的|我参与的|自定义筛选|整理数据格式
 
         # 我参与的
-        $power = Project::getConditionSql();
+        $power = ProjectImplode::getConditionSql();
 //        DB::table('module_users')->where('user_id', $id)->where('moduleable_type', ModuleableType::PROJECT)->pluck('moduleable_id')->toArray();
 //        $user = Auth::guard('api')->user();
 
-        $query = DB::table('project_implode')->selectRaw("*, GREATEST(project_store_at, last_follow_up_at) as t");
+        $query = DB::table('project_implode')->selectRaw("id, project_name, project_store_at, latest_time, principal_id, principal, trail_fee, stars, star_ids, bloggers, blogger_ids");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
@@ -1710,7 +1711,7 @@ class ProjectController extends Controller
             }
         }
         $query->whereRaw(DB::raw("1 = 1 $power"));
-        $paginator = $query->orderBy('t', 'desc')->paginate();
+        $paginator = $query->orderBy('latest_time')->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理
@@ -1741,65 +1742,22 @@ class ProjectController extends Controller
             return [
                 "id" => hashid_encode($item->id),
                 "title" => $item->project_name,
-                "type" => $item->project_type,
-                "priority" => $item->project_priority,
-                "start_at" => $item->project_start_at,
-                "end_at" => $item->project_end_at,
                 "created_at" => $item->project_store_at,
-                "status" => $item->project_status,
-                "last_follow_up_at" => $item->last_follow_up_at,
-                "last_updated_at" => $item->last_follow_up_at,
+                "last_follow_up_at" => $item->latest_time,
                 "principal" => [
                     'data' => [
                         'id' => hashid_encode($item->principal_id),
                         "name" => $item->principal,
-                        "department" => [
-                            "id" => hashid_encode($item->department_id),
-                            "name" => $item->department,
-                        ]
-                    ]
-                ],
-                "creator" => [
-                    'data' => [
-                        'id' => hashid_encode($item->creator_id),
-                        "name" => $item->creator,
                     ]
                 ],
                 "trail" => [
+                    "fee" => $item->trail_fee,
                     "data" => [
-                        "resource_type" => $item->resource_type,
-                        "fee" => $item->trail_fee,
-                        "cooperation_type" => $item->cooperation_type,
-                        "status" => $item->trail_status,
                         "expectations" => [
                             "data" => $expectations
                         ],
                     ]
                 ],
-//                "sign_at" => $item->sign_at,
-//                "launch_at" => $item->launch_at,
-//                "platforms" => $item->platforms,
-//                "show_type" => $item->show_type,
-//                "guest_type" => $item->guest_type,
-//                "record_at" => $item->record_at,
-//                "movie_type" => $item->movie_type,
-//                "theme" => $item->theme,
-//                "team_info" => $item->team_info,
-//                "follow_up" => $item->follow_up,
-//                "walk_through_at" => $item->walk_through_at,
-//                "walk_through_location" => $item->walk_through_location,
-//                "walk_through_feedback" => $item->walk_through_feedback,
-//                "follow_up_result" => $item->follow_up_result,
-//                "agreement_fee" => $item->agreement_fee,
-//                "multi_channel" => $item->multi_channel,
-
-                "client" => $item->client,
-                "last_follow_up_user_id" => $item->last_follow_up_user_id,
-                "last_follow_up_user_name" => $item->last_follow_up_user_name,
-
-                "projected_expenditure" => $item->projected_expenditure,
-                "expenditure" => $item->expenditure,
-                "revenue" => $item->revenue,
             ];
         });
         $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));

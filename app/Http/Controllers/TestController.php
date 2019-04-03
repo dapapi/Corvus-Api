@@ -211,15 +211,15 @@ class TestController extends Controller
         $manager = new Manager();
         return response($manager->createData($data)->toArray());
     }
-//
-//    public function test()
-//    {
-//        Project::orderBy('id')->chunk(10, function ($projects) {
-//            foreach ($projects as $project) {
-//                dispatch(new ProjectImplode($project));
-//            }
-//        });
-//    }
+
+    public function test()
+    {
+        Project::orderBy('id')->chunk(10, function ($projects) {
+            foreach ($projects as $project) {
+                dispatch(new ProjectImplode($project));
+            }
+        });
+    }
 
     public function task()
     {

@@ -80,6 +80,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks/recycle_bin', 'App\Http\Controllers\TaskController@recycleBin');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
+        $api->put('/tasks/edit/{task}', 'App\Http\Controllers\TaskController@taskEdit');
+
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove');
         $api->get('/tasksAll', 'App\Http\Controllers\TaskController@tasksAll');

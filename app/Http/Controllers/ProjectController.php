@@ -78,7 +78,7 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
-    protected $projectImplode;
+    protected $projectImplodeId;
 
     public function __construct(ModuleUserRepository $moduleUserRepository)
     {
@@ -1841,63 +1841,81 @@ class ProjectController extends Controller
         $arr['project_name'] = $payload['title'];
         $arr['project_type'] = $payload['type'];
         $arr['project_priority'] = $payload['priority'];
-        $arr['project_start_at'] = $payload['start_at'];
-        $arr['project_end_at'] = $payload['end_at'];
+        $arr['project_start_at'] = $payload['start_at'] . ' 00:00:00';
+        $arr['project_store_at'] = Carbon::now()->toDateTimeString();
+        $arr['latest_time'] = Carbon::now()->toDateTimeString();
+        $arr['last_follow_up_at'] = Carbon::now()->toDateTimeString();
+        $arr['project_end_at'] = $payload['end_at'] . ' 00:00:00';
         $arr['principal'] = User::find($payload['principal_id'])->name;
         $arr['creator'] = User::find($payload['creator_id'])->name;
-        if (array_key_exists('trail' ,$payload) && array_key_exists('id', $payload['trail']))
-            $arr['client'] = Trail::find($payload['trail'])->client->company;
+        if (array_key_exists('trail_id' ,$payload)) {
+            $trail = Trail::find($payload['trail_id']);
+            $arr['client'] = $trail->client->company;
+            $arr['resource_type'] = $trail->resource_type;
+            $arr['trail_fee'] = $trail->fee;
+            $arr['cooperation_type'] = $trail->cooperation_type;
+            $arr['trail_status'] = $trail->status;
+        }
 
-        $this->projectImplode = ProjectImplode::create($arr);
+        DB::beginTransaction();
+        try {
+            DB::table('project_implode')->insertGetId($arr);
+            $this->projectImplodeId = $id;
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+        }
+        DB::commit();
     }
 
     private function updateProjectImplodeTemplateField($key, $val)
     {
-        $projectImp = $this->projectImplode;
+        $arr = [];
+        $projectImpId = $this->projectImplodeId;
         switch ($key) {
             case 22:  # 签单时间
-                $projectImp->sign_at = $val;
+                $arr['sign_at'] = $val . ' 00:00:00';
                 break;
             case 52:  # 上线时间
-                $projectImp->launch_at= $val;
+                $arr['launch_at']= $val;
                 break;
             case 11:  # 播出平台
-                $projectImp->platforms = $val;
+                $arr['platforms'] = $val;
                 break;
             case 31:  # 综艺节目类型
-                $projectImp->show_type = $val;
+                $arr['show_type'] = $val;
                 break;
             case 32:  # 嘉宾类型
-                $projectImp->guest_type = $val;
+                $arr['guest_type'] = $val;
                 break;
             case 34:  # 录制时间
-                $projectImp->record_at = $val;
+                $arr['record_at'] = $val;
                 break;
             case 7:  # 影剧类型
-                $projectImp->movie_type = $val;
+                $arr['movie_type'] = $val;
                 break;
             case 9:  # 题材
-                $projectImp->theme = $val;
+                $arr['theme'] = $val;
                 break;
             case 23:  # 选角团队
-                $projectImp->team_info = $val;
+                $arr['team_info'] = $val;
                 break;
             case 25:  # 试戏时间
-                $projectImp->walk_through_at = $val;
+                $arr['walk_through_at'] = $val;
                 break;
             case 26:  # 试戏地点
-                $projectImp->walk_through_location = $val;
+                $arr['walk_through_location'] = $val . ' 00:00:00';
                 break;
             case 55:  # 合约费用(含税）
-                $projectImp->agreement_fee = $val;
+                $arr['agreement_fee'] = $val;
                 break;
             case 54:  # 签单时间
-                $projectImp->multi_channel = $val;
+                $arr['multi_channel'] = $val;
                 break;
             default:
                 break;
         }
-        $projectImp->save();
+        ProjectImplode::find($projectImpId)->update($arr);
     }
 }
 

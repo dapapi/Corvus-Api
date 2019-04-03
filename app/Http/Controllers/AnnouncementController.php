@@ -16,6 +16,7 @@ use App\Http\Transformers\AnnouncementTransformer;
 use App\Http\Transformers\DepartmentTransformer;
 use App\Http\Requests\AnnouncementClassifyUpdateRequest;
 use App\Http\Transformers\AnnouncementClassifyTransformer;
+use App\Http\Transformers\AnnouncementListTransformer;
 use App\Http\Requests\AnnouncementUpdateRequest;
 use App\Models\Announcement;
 use App\Models\Department;
@@ -78,18 +79,13 @@ class AnnouncementController extends Controller
                               ->where('logable_type',ModuleableType::ANNOUNCEMENT)
                               ->where('operate_logs.method',OperateLogMethod::LOOK);
                       });
-
-
                 if($status == 1){
                     if($readflag == 2){
                         $queryId =   Announcement::whereIn('announcement.id',$ar)
                             ->leftJoin('operate_logs',function($join) use($readflag,$userId){
                                 $join->on('announcement.id','operate_logs.logable_id')
                                     ->where('logable_type',ModuleableType::ANNOUNCEMENT)
-                                    ->where('operate_logs.method',OperateLogMethod::LOOK)
-
-                                ;
-
+                                    ->where('operate_logs.method',OperateLogMethod::LOOK);
                             })
                             ->where('operate_logs.status',1)
                             ->where('operate_logs.user_id',$userId)
@@ -97,7 +93,7 @@ class AnnouncementController extends Controller
                             ->select('announcement.id');
                         $stars = $query->whereNotIn('announcement.id',$queryId)->groupBy('announcement.id')
                             ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
-                                ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                                ,'announcement.is_accessory','announcement.creator_id','announcement.stick','announcement.created_at'
                                 ,'announcement.updated_at')
                          ->paginate($pageSize);
 //                    $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
@@ -107,7 +103,7 @@ class AnnouncementController extends Controller
                     }else{
                     $stars = $query->where('operate_logs.status',$readflag)->where('operate_logs.user_id',$userId)->groupBy('announcement.id')
                     ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
-                        ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                        ,'announcement.is_accessory','announcement.creator_id','announcement.stick','announcement.created_at'
                             ,'announcement.updated_at')
                         ->paginate($pageSize);
                     }
@@ -126,7 +122,7 @@ class AnnouncementController extends Controller
                                 ->where('operate_logs.method',OperateLogMethod::LOOK);
                         })->whereNotIn('announcement.id',$starsId)->where('announcement.creator_id',$userId)->groupBy('announcement.id')
                         ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
-                                ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                                ,'announcement.is_accessory','announcement.creator_id','announcement.stick','announcement.created_at'
                                 ,'announcement.updated_at')->paginate($pageSize);
                         //->where('operate_logs.user_id','<>',$userId)
 //                        $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
@@ -138,7 +134,7 @@ class AnnouncementController extends Controller
                             ->where('operate_logs.method',OperateLogMethod::LOOK);
                     })->where('operate_logs.status',$readflag)->where('operate_logs.user_id',$userId)->groupBy('announcement.id')->where('announcement.creator_id',$userId)
                         ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
-                            ,'announcement.is_accessory','announcement.accessory','announcement.accessory_name','announcement.creator_id','announcement.stick','announcement.created_at'
+                            ,'announcement.is_accessory','announcement.creator_id','announcement.stick','announcement.created_at'
                             ,'announcement.updated_at')->paginate($pageSize);
 //                         $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
@@ -148,7 +144,7 @@ class AnnouncementController extends Controller
                   $stars = null;
               }
         }
-        return $this->response->paginator($stars, new AnnouncementTransformer());
+        return $this->response->paginator($stars, new AnnouncementListTransformer());
     }
 //    public function generateTree($array,$pi){
 //        $items = array();

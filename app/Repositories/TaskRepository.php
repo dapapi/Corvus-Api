@@ -20,8 +20,8 @@ class TaskRepository
         $repository = new ScopeRepository();
         $api_list = [
             "edit_task" =>  ['uri'   =>  'tasks/{id}','method'   =>  'put'],//编辑任务
-            'del_task'  =>  ['url'  =>  'tasks/{id}','method'   =>  'delete'],//删除任务
-            'add_subtask'   =>  ['url'  =>'tasks/{task}/subtask','method'   =>  'post'],//添加子任务
+            'del_task'  =>  ['uri'  =>  'tasks/{id}','method'   =>  'delete'],//删除任务
+            'add_subtask'   =>  ['uri'  =>'tasks/{task}/subtask','method'   =>  'post'],//添加子任务
         ];
 
         //登录用户对线索编辑权限验证

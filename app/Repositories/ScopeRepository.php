@@ -255,11 +255,13 @@ class ScopeRepository
     public function checkPower($uri,$method,$role_ids,$model=null)
     {
         //1.获取接口在数据字典中的id
-        $resource= DataDictionarie::where('val', '/'.$uri)->where('code', $method)->first();//检查数据字典里是否配置了该权限，没有则放过该请求
+        $resource= DataDictionarie::where('val', '/'.$uri)->where('code', $method)->select('id','parent_id')->first();//检查数据字典里是否配置了该权限，没有则放过该请求
         if($resource != null){//请求地址在数据字典不存在则不进行权限控制
             $model_id = $resource->parent_id;
             //2.检查功能权限
-            $featureInfo = RoleResource::whereIn('role_id', $role_ids)->where('resouce_id', $resource->id)->get()->toArray();
+            $featureInfo = RoleResource::whereIn('role_id', $role_ids)
+                ->select('role_id','resouce_id')
+                ->where('resouce_id', $resource->id)->get()->toArray();
             if(count($featureInfo) == 0){//如果为空则表示没有权限
                 if($method == "GET"){
                     return [];
@@ -270,11 +272,11 @@ class ScopeRepository
             if($method == "GET"){
 
                 //检查访问模块是否在role_resource_view表中，只限制配置了查看范围的模块
-                $res = RoleResourceView::where('resource_id',$model_id)->first();
+                $res = RoleResourceView::select('resource_id','data_view_id')->where('resource_id',$model_id)->first();
                 if($res != null){//检查访问模块是否在role_resource_view表中，则进行权限限制
                     //检查role_data_view表中的权限
                     //用户和角色是多对多的关系，所以可能一个用户对同一个模块有多重权限
-                    $viewSql = RoleDataView::whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
+                    $viewSql = RoleDataView::select('role_id')->whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
 
                     if(count($viewSql) != 0){//没有对应模块的权限记录，则不进行权限控制
                         //如果接口中传进了模型，则对模型进行权限控制

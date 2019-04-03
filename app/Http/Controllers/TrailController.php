@@ -74,8 +74,13 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-            if($request->has('type') && $payload['type'])
-                $query->where('type',$payload['type']);
+            if ($request->has('type') && $payload['type'] <> '4' ){
+                $query->where('trails.type',$payload['type']);
+
+            }
+            if($request->has('type') && $payload['type'] == '4'){
+                $query->whereIn('trails.type',[3,4]);
+            }
 
         })
             ->searchData()->poolType()
@@ -485,7 +490,7 @@ class TrailController extends Controller
             $array['cooperation_type'] = $payload['cooperation_type'];
             if($payload['cooperation_type'] != $trail->cooperation_type){
 //                $curr_cooperation_type = (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
-                $cooperation_type =  (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$trail->cooperation_type);
+                $cooperation_type =  (new DataDictionarie())->getName(DataDictionarie::COOPERATION_TYPE,$payload['cooperation_type']);
                 if($cooperation_type == null){
                     return $this->response->errorBadRequest("合作类型错误");
                 }

@@ -46,24 +46,6 @@ class SearchDataScope implements Scope
         if(is_array($rules) && count($rules) == 0){
             return $query->whereRaw('1 = 1');
         }
-//        $op_list = ['>','>=','<','<=','like','in'];
-        //"{"rules":[{"field":"created_id","op":"in","value":[1,16,2]},{"field":"principal_id","op":"in","value":[1,16,2]}],"op":"or"}"
-
-
-//        foreach ($rules['rules'] as $key => $value){
-//            switch ($value['op']){
-//                case 'in':
-//                    $condition[] = $query->whereIn($value['field'],$value['value']);
-//                    break;
-//                case '>':
-//                case '>=':
-//                case '<':
-//                case '<=':
-//                case 'like':
-//                    $condition[] = $query->where($value['field'],$value['op'],$value['value']);
-//
-//            }
-//        }
 
         switch ($rules['op']){
             case 'or':
@@ -116,8 +98,97 @@ class SearchDataScope implements Scope
 //        拼接默认搜索条件
         return $query;
     }
-    public function getManageDataCondition()
+
+    /**
+     * sql 权限限制
+     * @param $rules
+     * @return string
+     * @author lile
+     * @date 2018-04-01
+     */
+    public function getDataViewConditionSql()
     {
-        $rules = (new ScopeRepository())->checkMangePower();
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $condition = [];
+        $rules = (new ScopeRepository())->getDataViewUsers();
+        if(count($rules) == 0){
+            return ;
+        }
+        $this->getConditionSql($rules);
+    }
+
+    /**
+     * sql 权限限制
+     * @param $rules
+     * @return string
+     * @author lile
+     * @date 2018-04-01
+     */
+    public function getConditionSql($rules)
+    {
+
+        if ($rules === null) {
+            return " and 0 = 1"; //不查询任何数据
+        }
+        if (is_array($rules) && count($rules) == 0) {
+            return " and 1 = 1";
+        }
+        $where = "";
+        switch ($rules['op']) {
+            case 'or':
+//                $query->where(function ($query) use ($rules,$where) {
+                    foreach ($rules['rules'] as $key => $value) {
+                        switch ($value['op']) {
+                            case 'in':
+                                if ($value['value'] == null) {
+//                                    $condition[] = $query->orWhereRaw("{$value['field']} in (null)");
+                                    $where .= " or {$value['field']} in (null)";
+                                } else {
+//                                    $condition[] = $query->orWhereIn($value['field'], $value['value']);
+                                    $value['value'] = implode(',',$value['value']);
+                                    $where .= " or {$value['field']} in ({$value['value']})";
+                                }
+                                break;
+                            case '>':
+                            case '>=':
+                            case '<':
+                            case '<=':
+                            case 'like':
+//                                $condition[] = $query->orWhere($value['field'], $value['op'], $value['value']);
+                                $where .= "or {$value['field']} {$value['op']} ({$value['value']})";
+                        }
+                    }
+//                });
+                break;
+            case 'and':
+//                $query->where(function ($query) use ($rules,$where){
+                    foreach ($rules['rules'] as $key => $value) {
+                        switch ($value['op']) {
+                            case 'in':
+                                if ($value['value'] == null) {
+//                                    $condition[] = $query->whereRaw("{$value['field']} in (null)");
+                                    $where .= " or {$value['field']} and (null)";
+                                } else {
+//                                    $condition[] = $query->whereIn($value['field'], $value['value']);
+                                    $value['value'] = implode(',',$value['value']);
+                                    $where .= " or {$value['field']} in ({$value['value']})";
+                                }
+                                break;
+                            case '>':
+                            case '>=':
+                            case '<':
+                            case '<=':
+                            case 'like':
+//                                $condition[] = $query->Where($value['field'], $value['op'], $value['value']);
+                            $where .= "or {$value['field']} {$value['op']} ({$value['value']})";
+                        }
+                    }
+//                });
+                break;
+            default:
+                break;
+        }
+        return $where;
     }
 }

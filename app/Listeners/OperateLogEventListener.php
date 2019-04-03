@@ -223,10 +223,12 @@ class OperateLogEventListener
                     $content = $this->create . '' . $typeName;
                     break;
                 case OperateLogMethod::UPDATE://修改
-                    $this->implodeModel->last_updated_user_id = $user->id;
-                    $this->implodeModel->last_updated_user = $user->name;
-                    $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
-                    $this->implodeModel->save();
+                    if ($this->implodeModel) {
+                        $this->implodeModel->last_updated_user_id = $user->id;
+                        $this->implodeModel->last_updated_user = $user->name;
+                        $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
+                        $this->implodeModel->save();
+                    }
                     if ($level == 0)
                         $level = OperateLogLevel::MIDDLE;
                 case OperateLogMethod::UPDATE_PRIVACY://修改隐私

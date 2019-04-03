@@ -1737,7 +1737,7 @@ class ProjectController extends Controller
         # 我参与的
         $power = ProjectImplode::getConditionSql();
 
-        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids");
+        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids, project_type");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
@@ -1758,12 +1758,7 @@ class ProjectController extends Controller
 
             }
         }
-        $query->whereRaw(DB::raw("1 = 1 $power"));
-        if ($request->has('project_type'))
-            $query->where('project_type', $payload['project_type']);
-
-        if ($request->has('keyword'))
-            $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
+        $query->whereRaw(DB::raw("(1 = 1 $power)"));
 
         if ($request->has('principal_ids') && $payload['principal_ids']) {
             $payload['principal_ids'] = explode(',', $payload['principal_ids']);
@@ -1773,6 +1768,13 @@ class ProjectController extends Controller
             unset($id);
             $query->whereIn('project_implode.principal_id', $payload['principal_ids']);
         }
+
+        if ($request->has('project_implode.project_type'))
+            $query->where('project_type', $payload['project_type']);
+
+
+        if ($request->has('keyword'))
+            $query->where('project_implode.project_name', 'LIKE', '%' . $payload['keyword'] . '%');
 
         $paginator = $query->orderBy('latest_time', 'desc')
 //            ->toSql();

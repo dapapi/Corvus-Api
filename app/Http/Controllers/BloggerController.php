@@ -7,6 +7,7 @@ use App\CommunicationStatus;
 use App\Events\BloggerDataChangeEvent;
 use App\Events\TaskMessageEvent;
 use App\Gender;
+use App\Http\Transformers\BloggerDetailTransformer;
 use App\Http\Transformers\BloggerListTransformer;
 use App\Models\TaskType;
 use App\Exports\BloggersExport;
@@ -1140,4 +1141,11 @@ class BloggerController extends Controller
 //        dd(DB::getQueryLog());
         return $this->response()->paginator($bloggers,new BloggerListTransformer());
     }
+
+
+//    public function getBloggerDetail(Blogger $blogger)
+//    {
+//        $creator_name =
+//        return $this->response()->item($blogger,new BloggerDetailTransformer());
+//    }
 }

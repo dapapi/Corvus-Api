@@ -18,6 +18,7 @@ use App\Http\Transformers\StarListTransformer;
 use App\Http\Transformers\StarTransformer;
 use App\Models\Affix;
 use App\Models\Blogger;
+use App\Models\Department;
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\Models\Star;
@@ -960,10 +961,7 @@ class StarController extends Controller
             "status"    =>  "success"
         ];
     }
-    public function getStarById(Star $star)
-    {
-        return $this->response()->item($star,new StarDeatilTransformer());
-    }
+
 
     public function getStarList2(Request $request)
     {
@@ -996,5 +994,20 @@ class StarController extends Controller
 //        dd(DB::getQueryLog());
 //        return DB::select("select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars ");
         return $this->response()->paginator($star_list,new StarListTransformer());
+    }
+
+
+    public function getStarDeatil(Star $star)
+    {
+        $creator = $star->creator()->select('id','name')->first();//创建人
+        $creator_department = $creator->department()->select('departments.id','departments.name')->first();//创建人部门
+        $publicity_list = $star->publicity()->select('users.id','users.name')->get();//宣传人
+        //获取宣传人的公司和部门
+        foreach ($publicity_list as $publicity){
+            $publicity->company = $publicity->department()->first() == null ? 0 : $publicity->department()->first()->company_id;
+            $publicity->department = $publicity->department()->select('departments.name')->first();
+        }
+
+        return $this->response()->item($star,new StarDeatilTransformer());
     }
 }

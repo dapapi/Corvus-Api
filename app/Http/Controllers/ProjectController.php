@@ -1758,6 +1758,7 @@ class ProjectController extends Controller
 
             }
         }
+        $query->whereRaw(DB::raw("1 = 1 $power"));
         if ($request->has('project_type'))
             $query->where('project_type', $payload['project_type']);
 
@@ -1773,9 +1774,10 @@ class ProjectController extends Controller
             $query->whereIn('project_implode.principal_id', $payload['principal_ids']);
         }
 
-        $query->whereRaw(DB::raw("1 = 1 $power"));
         $paginator = $query->orderBy('latest_time', 'desc')
-            ->paginate();
+            ->toSql();
+        dd($paginator);
+//            ->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理

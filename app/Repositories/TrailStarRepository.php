@@ -78,10 +78,10 @@ class TrailStarRepository
         array_walk($res, function (&$item) use ($starIdArr, $bloggerIdArr, $starNameArr, $bloggerNameArr) {
             if ($item['flag'] == 'star') {
                 $starIdArr[] = $item['id'];
-                $starNameArr[] = $item['name'];
+                $starNameArr[] = $item['nickname'];
             } else {
                 $bloggerIdArr[] = $item['id'];
-                $bloggerNameArr[] = $item['name'];
+                $bloggerNameArr[] = $item['nickname'];
             }
         });
         $starIds = implode(',', $starIdArr);

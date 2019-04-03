@@ -39,6 +39,7 @@ class ClientController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
+        $type = $request->get('project_type',null);
         $clients = Client::searchData()
             ->leftJoin('operate_logs',function($join){
                 $join->on('clients.id','operate_logs.logable_id')
@@ -46,7 +47,7 @@ class ClientController extends Controller
                     ->where('operate_logs.method','4');
 
             })
-            ->where(function ($query) use ($request, $payload) {
+            ->where(function ($query) use ($request, $payload,$type) {
                 if ($request->has('keyword'))
                     $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
                 if ($request->has('grade'))
@@ -58,8 +59,12 @@ class ClientController extends Controller
                     unset($id);
                     $query->whereIn('principal_id', $payload['principal_ids']);
                 }
-                if ($request->has('type')){
-                    $query->where('type',$payload['type']);
+                if ($request->has('type') && $type <> '3,4' ){
+                    $query->where('clients.type',$type);
+
+                }
+                if($request->has('type') && $type == '3,4'){
+                    $query->whereIn('clients.type',[3,4]);
                 }
             })
             ->groupBy('clients.id')

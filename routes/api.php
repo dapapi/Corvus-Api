@@ -300,6 +300,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/clients/import', 'App\Http\Controllers\ClientController@import');
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
+
         $api->get('/clients/list', 'App\Http\Controllers\ClientController@indexAll');
 
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');

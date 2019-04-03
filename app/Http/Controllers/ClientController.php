@@ -72,6 +72,54 @@ class ClientController extends Controller
         return $this->response->paginator($clients, new ClientTransformer());
     }
 
+    public function indexAll(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $clients = Client::searchData()
+            ->leftJoin('operate_logs',function($join){
+                $join->on('clients.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::CLIENT)
+                    ->where('operate_logs.method','4');
+
+            })
+            ->leftJoin('users',function($join){
+                $join->on('users.id','clients.principal_id')
+                    ->where('logable_type',ModuleableType::CLIENT)
+                    ->where('operate_logs.method','4');
+
+            })
+            ->where(function ($query) use ($request, $payload) {
+                if ($request->has('keyword'))
+                    $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
+                if ($request->has('grade'))
+                    $query->where('grade', $payload['grade']);
+                if ($request->has('principal_ids') && count($payload['principal_ids'])) {
+                    foreach ($payload['principal_ids'] as &$id) {
+                        $id = hashid_decode((int)$id);
+                    }
+                    unset($id);
+                    $query->whereIn('principal_id', $payload['principal_ids']);
+                }
+                if ($request->has('type')){
+                    $query->where('type',$payload['type']);
+                }
+            })
+
+            ->groupBy('clients.id')
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','clients.company','clients.type','clients.grade','clients.district'
+               ,'clients.status','principal_id','creator_id','client_rating','clients.created_at','clients.updated_at','protected_client_time','users.name',
+                DB::raw( "max(operate_logs.updated_at) as up_time")])
+
+            //->orderBy('clients.created_at', 'desc')
+            //->select(['clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','clients.updated_at',DB::raw( "max(operate_logs.updated_at) as up_time")])
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+
+        return $clients;
+        return $this->response->paginator($clients, new ClientTransformer());
+    }
+
     public function getClientRelated(Request $request){
 
         $clients = Client::searchData()->select('id','company')->get();

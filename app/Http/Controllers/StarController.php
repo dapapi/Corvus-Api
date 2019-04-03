@@ -844,14 +844,15 @@ class StarController extends Controller
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
-        $first = Star::select('name', 'id', 'sign_contract_status', DB::raw('\'star\''))->searchData()->where($array);
-        $stars = Blogger::select('nickname', 'id', 'sign_contract_status',
+
+        $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where('stars.id','>',0)->where($array);
+        $stars = Blogger::select('nickname','id','sign_contract_status',
             DB::raw('\'blogger\' as flag'))
             ->where($array)
+            ->where('bloggers.id','>',0)
             ->searchData()
             ->union($first)
             ->get();
-
 
         return $this->response->collection($stars, new StarAndBloggerTransfromer());
     }
@@ -1085,8 +1086,8 @@ class StarController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 //        DB::connection()->enableQueryLog();
         $star_list = StarRepository::getStarList2($search_field)->searchData()->where(function ($query) use ($payload) {
-                FilterReportRepository::getTableNameAndCondition($payload, $query);
-            })->where($array)
+            FilterReportRepository::getTableNameAndCondition($payload, $query);
+        })->where($array)
             ->paginate($pageSize);
 //            ->offset(10)->limit(10);
 //        return $star_list;

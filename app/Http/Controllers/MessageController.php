@@ -130,25 +130,6 @@ class MessageController extends Controller
     public function getModules(Request $request)
     {
         $user = Auth::guard('api')->user();
-//        //获取消息模块
-//        $subquery = DB::table(DB::raw('message_states as ms'))
-//            ->leftJoin('messages as m',function ($join){
-//                $join->on('m.id','ms.message_id')
-//                    ->where('ms.state',MessageState::UN_READ);
-//            })
-//            ->where('ms.user_id',$user->id)
-//            ->select("m.id",'m.module',DB::raw("count('DISTINCT ms.message_id') as un_read"),"m.title","m.created_at","ms.state")
-//            ->orderBy("m.created_at","desc")
-//            ->groupBy('m.module');
-//
-//        $result = (new DataDictionarie())->setTable('dd')->from('data_dictionaries as dd')
-//            ->leftJoin(DB::raw("({$subquery->toSql()}) as m"),'m.module','dd.id')
-//            ->mergeBindings($subquery)
-//            ->where('dd.parent_id',206)
-//            ->orderBy("m.created_at","desc")
-//            ->groupBy('dd.id')
-//            ->get(['dd.id','dd.val','dd.name','m.un_read',"m.title","m.created_at","m.state","m.id as m_id"]);
-//        return $result;
         $messageRepository = new MessageRepository();
         $modules = $messageRepository->getModules();
         foreach ($modules as &$module){

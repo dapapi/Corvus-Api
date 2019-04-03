@@ -115,8 +115,6 @@ class ClientController extends Controller
             //->select(['clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','clients.updated_at',DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
-
-
         foreach ($clients as &$value) {
             $value['id'] = hashid_encode($value['id']);
         }

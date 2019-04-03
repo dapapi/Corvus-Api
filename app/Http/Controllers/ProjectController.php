@@ -1770,7 +1770,7 @@ class ProjectController extends Controller
                 $id = hashid_decode((int)$id);
             }
             unset($id);
-            $query->whereIn('projects.principal_id', $payload['principal_ids']);
+            $query->whereIn('project_implode.principal_id', $payload['principal_ids']);
         }
 
         $query->whereRaw(DB::raw("1 = 1 $power"));

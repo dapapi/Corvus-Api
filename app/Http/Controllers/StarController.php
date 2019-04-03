@@ -837,6 +837,7 @@ class StarController extends Controller
         $stars = Blogger::select('nickname','id','sign_contract_status',
             DB::raw('\'blogger\' as flag'))
             ->where($array)
+            ->where('id','>',0)
             ->searchData()
             ->union($first)
             ->get();

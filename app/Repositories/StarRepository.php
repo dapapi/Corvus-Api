@@ -107,7 +107,6 @@ AAA;
                 ->leftJoin('users','users.id','module_users.user_id');
         }else{
             return Star::select('stars.id','stars.name','stars.weibo_fans_num','stars.source','stars.sign_contract_status','stars.created_at','stars.last_follow_up_at','stars.sign_contract_at','stars.birthday','stars.terminate_agreement_at','stars.communication_status');
-
         }
 
     }

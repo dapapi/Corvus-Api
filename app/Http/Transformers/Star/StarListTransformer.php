@@ -20,7 +20,7 @@ class StarListTransformer extends TransformerAbstract
             'sign_contract_at'  => $star->sign_contract_at,
             'terminate_agreement_at'    =>  $star->terminate_agreement_at,
             'sign_contract_status'  =>  $star->sign_contract_status,
-        ];
+            'communication_status'  =>  $star->communication_status,
 
     }
 //    public function includeContracts(Star $star)

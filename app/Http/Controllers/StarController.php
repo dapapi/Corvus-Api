@@ -1085,8 +1085,8 @@ class StarController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
 //        DB::connection()->enableQueryLog();
         $star_list = StarRepository::getStarList2($search_field)->searchData()->where(function ($query) use ($payload) {
-                FilterReportRepository::getTableNameAndCondition($payload, $query);
-            })->where($array)
+            FilterReportRepository::getTableNameAndCondition($payload, $query);
+        })->where($array)
             ->paginate($pageSize);
 //            ->offset(10)->limit(10);
 //        return $star_list;

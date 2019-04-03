@@ -1151,12 +1151,12 @@ class BloggerController extends Controller
 //            $temp['birthday'] = $star->birthday;
             $temp['communication_status'] = $star->communication_status;
 //            if ($star->publicity_user_names != null){
-                $publicity_user_names = explode(",",isset($star->publicity_user_names)?$star->publicity_user_names:"");
-                $temp2 = [];
-                foreach ($publicity_user_names as $name){
-                    $temp2[] = ["name"=>$name];
-                }
-                $temp['publicity']['data'] = $temp2;
+            $publicity_user_names = explode(",",isset($star->publicity_user_names)?$star->publicity_user_names:"");
+            $temp2 = [];
+            foreach ($publicity_user_names as $name){
+                $temp2[] = ["name"=>$name];
+            }
+            $temp['publicity']['data'] = $temp2;
 //            }
 
             $res[] = $temp;

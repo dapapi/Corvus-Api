@@ -10,7 +10,7 @@ class CalendarIndexTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['starable','principal','participants','schdule'];
 
-//    protected $defaultIncludes = [];
+    protected $defaultIncludes = ['principal'];
     public function transform(Calendar $calendar)
     {
         return [

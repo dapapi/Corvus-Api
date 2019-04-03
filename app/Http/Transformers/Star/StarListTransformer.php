@@ -16,8 +16,10 @@ class StarListTransformer extends TransformerAbstract
             'weibo_fans_num'    => $star->weibo_fans_num,
             'source' => $star->source,
             'created_at' => $star->created_at->toDatetimeString(),
-            'last_follow_up_at' =>  $star->last_follow_up_at,
-//            'contracts' => $this->includeContracts($star),
+            'last_follow_up_at' =>  $star->follow_up_at,
+            'sign_contract_at'  => $star->sign_contract_at,
+            'terminate_agreement_at'    =>  $star->terminate_agreement_at,
+            'sign_contract_status'  =>  $star->sign_contract_status,
         ];
 
     }

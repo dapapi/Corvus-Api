@@ -70,7 +70,7 @@ return [
     */
 
     'server_http' => [
-        'address' => 'http://localhost',
+        'address' => 'sandbox-corvus.papitube.com',
         'port' => '8099',
     ],
 

@@ -36,6 +36,11 @@ class Task extends Model
         'stop_at',
         'deleted_at',
         'adj_id',
+        'principal_name',
+        'resource_type_name',
+        'resource_id',
+        'resource_name',
+        'type_name'
     ];
     const PRIVACY = 1;//私密
     const OPEN = 0;//公开

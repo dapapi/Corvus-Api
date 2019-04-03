@@ -119,7 +119,7 @@ class OperateLogEventListener
                 $typeName = '任务';
             } else if ($operate->obj instanceof Project) {
                 $type = ModuleableType::PROJECT;
-                $this->implodeModel = ProjectImplode::find($operate->obj->id);
+//                $this->implodeModel = ProjectImplode::find($operate->obj->id);
                 $typeName = '项目';
             } else if ($operate->obj instanceof Star) {
                 $type = ModuleableType::STAR;
@@ -211,22 +211,26 @@ class OperateLogEventListener
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
-                    $this->implodeModel->last_follow_up_user_id = $user->id;
-                    $this->implodeModel->last_follow_up_user = $user->name;
-                    $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
+                    if ($this->implodeModel) {
+                        $this->implodeModel->last_follow_up_user_id = $user->id;
+                        $this->implodeModel->last_follow_up_user = $user->name;
+                        $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
 
-                    $this->implodeModel->last_updated_user_id = $user->id;
-                    $this->implodeModel->last_updated_user = $user->name;
-                    $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
-                    $this->implodeModel->save();
+                        $this->implodeModel->last_updated_user_id = $user->id;
+                        $this->implodeModel->last_updated_user = $user->name;
+                        $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
+                        $this->implodeModel->save();
+                    }
                     $level = OperateLogLevel::LOW;
                     $content = $this->create . '' . $typeName;
                     break;
                 case OperateLogMethod::UPDATE://修改
-                    $this->implodeModel->last_updated_user_id = $user->id;
-                    $this->implodeModel->last_updated_user = $user->name;
-                    $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
-                    $this->implodeModel->save();
+                    if ($this->implodeModel) {
+                        $this->implodeModel->last_updated_user_id = $user->id;
+                        $this->implodeModel->last_updated_user = $user->name;
+                        $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
+                        $this->implodeModel->save();
+                    }
                     if ($level == 0)
                         $level = OperateLogLevel::MIDDLE;
                 case OperateLogMethod::UPDATE_PRIVACY://修改隐私
@@ -253,10 +257,12 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
-                    $this->implodeModel->last_follow_up_user_id = $user->id;
-                    $this->implodeModel->last_follow_up_user = $user->name;
-                    $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
-                    $this->implodeModel->save();
+                    if ($this->implodeModel) {
+                        $this->implodeModel->last_follow_up_user_id = $user->id;
+                        $this->implodeModel->last_follow_up_user = $user->name;
+                        $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
+                        $this->implodeModel->save();
+                    }
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->follow_up, $start);
                     break;

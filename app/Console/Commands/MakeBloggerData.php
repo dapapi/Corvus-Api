@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Blogger;
+use App\OperateLogMethod;
 use Doctrine\Common\Collections\Collection;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -41,15 +42,16 @@ class MakeBloggerData extends Command
     public function handle()
     {
         //查找博主参与人并补充完整
-        $bloggers = Blogger::chunk(100,function($bloggerlist){
+        $bloggers = Blogger::chunk(10,function($bloggerlist){
             foreach ($bloggerlist as $blogger){
+                $last_updated_user = $blogger->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('operate_logs.created_at', 'desc')->first();
                 $data = [
-                    'last_updated_user_id'    =>  $blogger->last_updated_user->id,
+                    'last_updated_user_id'    =>  $last_updated_user ? $last_updated_user->id : null,
                     'last_updated_at'   =>  $blogger->last_updated_at,
-                    'last_follow_up_at' =>  $blogger->last_follow_up_at,
-                    'last_updated_user' => $blogger->last_updated_user->name,
+                    'last_follow_up_at' =>  $blogger->last_follow_up_at ? $blogger->last_follow_up_at : $blogger->created_at,
+                    'last_updated_user' => $last_updated_user ? $last_updated_user->name : null,
                 ];
-                $blogger->save($data);
+                $blogger->update($data);
             }
 
         });

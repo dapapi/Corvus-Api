@@ -166,9 +166,9 @@ class ProjectController extends Controller
         $isAll = $request->get('all', false);
         $status = $request->get('status', null);
         if (is_null($status))
-            $projects = Project::orderBy('created_at', 'desc')->searchData()->select('id','title')->get();
+            $projects = Project::orderBy('created_at', 'desc')->where('id','>',0)->searchData()->select('id','title')->get();
         else
-            $projects = Project::orderBy('created_at', 'desc')->where('status', $status)->searchData()->select('id','title')->get();
+            $projects = Project::orderBy('created_at', 'desc')->where('id','>',0)->where('status', $status)->searchData()->select('id','title')->get();
         return $this->response->collection($projects, new ProjectAllTransformer($isAll));
     }
 
@@ -549,7 +549,7 @@ class ProjectController extends Controller
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
                 if ($project->principal_id != $payload['principal_id']) {
-                    try {
+         //           try {
 //                        $curr_principal = User::find($project->principal_id)->name;
 //                        $principal = User::findOrFail($payload['principal_id'])->name;
 //
@@ -563,11 +563,11 @@ class ProjectController extends Controller
 //                        ]);
 //                        $arrayOperateLog[] = $operateName;
 
-                    } catch (Exception $e) {
-                        Log::error($e);
-                        DB::rollBack();
+//                    } catch (Exception $e) {
+//                        Log::error($e);
+//                        DB::rollBack();
                         return $this->response->errorInternal("负责人错误");
-                    }
+  //                  }
 
                 }
 

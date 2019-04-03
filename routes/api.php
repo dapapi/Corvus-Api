@@ -238,7 +238,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //分配经纪人
         $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //获取艺人和博主的联合列表
-        $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBlogger');
+        $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBloggergetStarAndBlogger');
         //为多个博主艺人分配多个经纪人宣传人制作人
         $api->post('/distribution/person', 'App\Http\Controllers\ModuleUserController@addMore');
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');

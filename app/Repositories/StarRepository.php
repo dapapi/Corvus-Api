@@ -84,6 +84,7 @@ class StarRepository
         }
         $where = Star::getConditionSql();//权限
         $sql = <<<AAA
+
         select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars 
         left join module_users on module_users.moduleable_id = stars.id and module_users.moduleable_type = :moduleable_type 
         left join department_user on department_user.user_id = module_users.user_id
@@ -92,5 +93,20 @@ AAA;
         $placeholder = $condition['placeholder'];
         $placeholder[":moduleable_type"] = ModuleableType::STAR;
         return DB::select($sql,$placeholder);
+    }
+
+    public static function getStarList2($search_field)
+    {
+        if (in_array('module_users.user_id',$search_field) ||in_array('department_user.department_id',$search_field) ) {//根据经理人，部门查询的sql
+            return Star::select('stars.id','stars.name','stars.weibo_fans_num','stars.source','stars.sign_contract_status','stars.created_at',DB::raw('stars.last_follow_up_at as follow_up_at'),'stars.sign_contract_at','stars.birthday','stars.terminate_agreement_at','stars.communication_status')
+                ->leftJoin('module_users',function ($join){
+                    $join->on('module_users.moduleable_id', '=' ,'stars.id')
+                        ->where("moduleable_type",ModuleableType::STAR);
+                })->leftJoin('department_user','department_user.user_id','module_users.user_id')
+                ->leftJoin('users','users.id','module_users.user_id');
+        }else{
+            return Star::select('stars.id','stars.name','stars.weibo_fans_num','stars.source','stars.sign_contract_status','stars.created_at',DB::raw('stars.last_follow_up_at as follow_up_at'),'stars.sign_contract_at','stars.birthday','stars.terminate_agreement_at','stars.communication_status');
+        }
+
     }
 }

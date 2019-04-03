@@ -62,7 +62,9 @@ class Star extends Model
         'last_updated_user_id',
         'last_updated_at',
         'last_follow_up_at',
-        'last_updated_user'
+        'last_updated_user',
+        'last_follow_up_user_id',
+        'last_follow_up_user',
     ];
 
 

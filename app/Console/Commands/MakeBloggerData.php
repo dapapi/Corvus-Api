@@ -45,11 +45,14 @@ class MakeBloggerData extends Command
         $bloggers = Blogger::chunk(10,function($bloggerlist){
             foreach ($bloggerlist as $blogger){
                 $last_updated_user = $blogger->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('operate_logs.created_at', 'desc')->first();
+                $last_follow_up_user = $blogger->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
                 $data = [
-                    'last_updated_user_id'    =>  $last_updated_user ? $last_updated_user->id : null,
+                    'last_updated_user_id'    =>  $last_updated_user ? $last_updated_user->user->id : null,
                     'last_updated_at'   =>  $blogger->last_updated_at,
                     'last_follow_up_at' =>  $blogger->last_follow_up_at ? $blogger->last_follow_up_at : $blogger->created_at,
-                    'last_updated_user' => $last_updated_user ? $last_updated_user->name : null,
+                    'last_updated_user' => $last_updated_user ? $last_updated_user->user->name : null,
+                    'last_follow_up_user_id'    =>  $last_follow_up_user ? $last_follow_up_user->user->id : null,
+                    'last_follow_up_user'   => $last_follow_up_user ? $last_follow_up_user->user->name : null,
                 ];
                 $blogger->update($data);
             }

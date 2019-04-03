@@ -6,6 +6,7 @@ use App\Models\Star;
 use App\OperateLogMethod;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class MakeStarData extends Command
 {
@@ -45,11 +46,14 @@ class MakeStarData extends Command
         $bloggers = Star::chunk(10,function($stars){
             foreach ($stars as $star){
                 $last_updated_user = $star->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('operate_logs.created_at', 'desc')->first();
+                $last_follow_up_user = $star->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
                 $data = [
-                    'last_updated_user_id'    =>  $last_updated_user ? $last_updated_user->id : null,
+                    'last_updated_user_id'    =>  $last_updated_user ? $last_updated_user->user->id : null,
                     'last_updated_at'   =>  $star->last_updated_at,
                     'last_follow_up_at' =>  $star->last_follow_up_at ? $star->last_follow_up_at : $star->created_at,
-                    'last_updated_user' => $last_updated_user ? $last_updated_user->name : null,
+                    'last_updated_user' => $last_updated_user ? $last_updated_user->user->name : null,
+                    'last_follow_up_user_id'    =>  $last_follow_up_user ? $last_follow_up_user->user->id : null,
+                    'last_follow_up_user'   => $last_follow_up_user ? $last_follow_up_user->user->name : null,
                 ];
                 $star->update($data);
             }

@@ -20,7 +20,7 @@ class BloggerListTransformer extends TransformerAbstract
             'created_at'    =>  $blogger->created_at->toDateTimeString(),
             'last_follow_up_at' =>  $blogger->follow_up_at,
             'communication_status'  =>  $blogger->communication_status,
-            'publicity_user_names'  =>  $blogger->publicity_user_names,
+            'publicity_user_names'  =>  explode(",",$blogger->publicity_user_names),
         ];
     }
 }

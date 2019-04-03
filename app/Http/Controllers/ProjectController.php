@@ -1689,7 +1689,7 @@ class ProjectController extends Controller
 //        DB::table('module_users')->where('user_id', $id)->where('moduleable_type', ModuleableType::PROJECT)->pluck('moduleable_id')->toArray();
 //        $user = Auth::guard('api')->user();
 
-        $query = DB::table('project_implode')->selectRaw("id, project_name, project_store_at, latest_time, principal_id, principal, trail_fee, stars, star_ids, bloggers, blogger_ids");
+        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
@@ -1711,7 +1711,7 @@ class ProjectController extends Controller
             }
         }
         $query->whereRaw(DB::raw("1 = 1 $power"));
-        $paginator = $query->orderBy('latest_time')->paginate();
+        $paginator = $query->orderBy('latest_time', 'desc')->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理

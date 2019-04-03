@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Blogger;
+use App\OperateLogMethod;
 use Doctrine\Common\Collections\Collection;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -41,33 +42,19 @@ class MakeBloggerData extends Command
     public function handle()
     {
         //查找博主参与人并补充完整
-        $bloggers = Blogger::all();
-        foreach ($bloggers as $blogger){
-            DB::connection()->enableQueryLog();
-            $publicity_list = $blogger->publicity()->get();
-
-            if (!$publicity_list->isEmpty()){
-                $blogger_publicity = [];
-                $user_id = [];
-                $user_name = [];
-                $deparment = [];
-                foreach ($publicity_list as $publicity){
-                    $user_id[] = $publicity->id;
-                    $user_name[] = $publicity->name;
-                    $deparment[] = DB::table("users")
-                                            ->leftJoin("department_user","department_user.user_id","users.id")
-                                            ->join("departments","departments.id",'department_user.department_id')
-                                            ->where('users.id',$publicity->id)->value('departments.id');
-//                    $publicity_deparment_ids = $deparment->id;
-//                    $temp['department_name'] = $deparment->name;
-//                    $blogger_publicity[] = $temp;
-                }
-                $blogger->publicity_user_names = implode($user_name,",");
-                $blogger->publicity_user_ids = implode($user_id,",");
-                $blogger->publicity_deparment_ids = implode($deparment,",");
-//                $blogger->publicity = json_encode($blogger_publicity);
-                $blogger->save();
+        $bloggers = Blogger::chunk(10,function($bloggerlist){
+            foreach ($bloggerlist as $blogger){
+                $last_updated_user = $blogger->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('operate_logs.created_at', 'desc')->first();
+                $data = [
+                    'last_updated_user_id'    =>  $last_updated_user ? $last_updated_user->id : null,
+                    'last_updated_at'   =>  $blogger->last_updated_at,
+                    'last_follow_up_at' =>  $blogger->last_follow_up_at ? $blogger->last_follow_up_at : $blogger->created_at,
+                    'last_updated_user' => $last_updated_user ? $last_updated_user->name : null,
+                ];
+                $blogger->update($data);
             }
-        }
+
+        });
+
     }
 }

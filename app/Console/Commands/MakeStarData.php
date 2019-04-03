@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Star;
+use App\OperateLogMethod;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -39,31 +40,22 @@ class MakeStarData extends Command
      */
     public function handle()
     {
-        $stars = Star::all();
-        foreach ($stars as $star){
-            if (!$star->created_at){
-                $star->created_at = Carbon::now()->toDateTimeString();
+
+        //查找博主参与人并补充完整
+        $bloggers = Star::chunk(10,function($stars){
+            foreach ($stars as $star){
+                $last_updated_user = $star->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('operate_logs.created_at', 'desc')->first();
+                $data = [
+                    'last_updated_user_id'    =>  $last_updated_user ? $last_updated_user->id : null,
+                    'last_updated_at'   =>  $star->last_updated_at,
+                    'last_follow_up_at' =>  $star->last_follow_up_at ? $star->last_follow_up_at : $star->created_at,
+                    'last_updated_user' => $last_updated_user ? $last_updated_user->name : null,
+                ];
+                $star->update($data);
             }
-            if (!$star->updated_at){
-                $star->updated_at = Carbon::now()->toDateTimeString();
-            }
-            if (!$star->last_updated_user){
-                $star->last_updated_user = "李乐";
-            }
-            if (!$star->last_updated_user_id){
-                $star->last_updated_user_id = 11;
-            }
-            if (!$star->last_updated_at){
-                $star->last_updated_at =  Carbon::now()->toDateTimeString();
-            }
-            if (!$star->last_follow_up_at){
-                $star->last_follow_up_at =  Carbon::now()->toDateTimeString();
-            }
-            if (!$star->contract_start_date){
-                $star->contract_start_date =  Carbon::now()->toDateTimeString();
-            }
-            $star->save();
-        }
+
+        });
+
 
 
     }

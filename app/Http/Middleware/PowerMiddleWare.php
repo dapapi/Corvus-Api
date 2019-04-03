@@ -24,7 +24,7 @@ class PowerMiddleWare
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //获取用户角色
-        $roleList = RoleUser::where('user_id',$userId)->select('id','role_id')->get();
+        $roleList = RoleUser::where('user_id',$userId)->select('role_id')->get();
         if(count($roleList->toArray()) == 0) {
             throw new NoRoleException("你没有角色，请联系管理员");
         }

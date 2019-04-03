@@ -1405,9 +1405,9 @@ class TaskController extends Controller
 
         DB::beginTransaction();
         try {
-            if (count($array) == 0)
-                return $this->response->noContent();
-
+//            if (count($array) == 0){
+//                return $this->response->noContent();
+//            }
 
             if($request->has('resourceable_id')){
                 $array['resource_id'] = hashid_decode($payload['resourceable_id']);
@@ -1446,6 +1446,7 @@ class TaskController extends Controller
 
                 }
             }
+
 
             $task->update($array);
 

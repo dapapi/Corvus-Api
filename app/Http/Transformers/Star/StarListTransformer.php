@@ -21,6 +21,7 @@ class StarListTransformer extends TransformerAbstract
             'terminate_agreement_at'    =>  $star->terminate_agreement_at,
             'sign_contract_status'  =>  $star->sign_contract_status,
             'communication_status'  =>  $star->communication_status,
+            'birthday'  =>  $star->birthday,
         ];
 
     }

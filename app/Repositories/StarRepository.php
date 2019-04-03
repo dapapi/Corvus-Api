@@ -102,8 +102,8 @@ AAA;
                 ->leftJoin('module_users',function ($join){
                     $join->on('module_users.moduleable_id', '=' ,'stars.id')
                         ->where("moduleable_type",ModuleableType::STAR);
-                })->leftJoin('department_user','department_user.user_id','module_users.user_id')
-                ->leftJoin('users','users.id','module_users.user_id');
+                })->leftJoin('department_user','department_user.user_id','module_users.user_id');
+//                ->leftJoin('users','users.id','module_users.user_id');
         }else{
             return Star::select('stars.id','stars.name','stars.birthday','stars.weibo_fans_num','stars.source','stars.sign_contract_status','stars.created_at',DB::raw('stars.last_follow_up_at as follow_up_at'),'stars.sign_contract_at','stars.birthday','stars.terminate_agreement_at','stars.communication_status');
         }

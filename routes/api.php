@@ -14,6 +14,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
         $api->post('stars/list',"App\Http\Controllers\StarController@getStarList");//测试艺人列表
         $api->get('/test/users', 'App\Http\Controllers\TestController@users');
+        $api->get('/test/job', 'App\Http\Controllers\TestController@test');
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 

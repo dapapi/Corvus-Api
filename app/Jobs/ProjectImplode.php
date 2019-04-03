@@ -77,11 +77,12 @@ class ProjectImplode implements ShouldQueue
             'movie_type' => DB::table('template_field_values')->where('field_id', 7)->where('project_id', $project->id)->value('value'),
             'theme' => DB::table('template_field_values')->where('field_id', 9)->where('project_id', $project->id)->value('value'),
             'team_info' => DB::table('template_field_values')->where('field_id', 23)->where('project_id', $project->id)->value('value'),
-            'follow_up' => DB::table('template_field_values')->where('field_id', 24)->where('project_id', $project->id)->value('value'),
+            // 去掉text类型字段
+//            'follow_up' => DB::table('template_field_values')->where('field_id', 24)->where('project_id', $project->id)->value('value'),
             'walk_through_at' => DB::table('template_field_values')->where('field_id', 25)->where('project_id', $project->id)->value('value'),
             'walk_through_location' => DB::table('template_field_values')->where('field_id', 26)->where('project_id', $project->id)->value('value'),
-            'walk_through_feedback' => DB::table('template_field_values')->where('field_id', 27)->where('project_id', $project->id)->value('value'),
-            'follow_up_result' => DB::table('template_field_values')->where('field_id', 28)->where('project_id', $project->id)->value('value'),
+//            'walk_through_feedback' => DB::table('template_field_values')->where('field_id', 27)->where('project_id', $project->id)->value('value'),
+//            'follow_up_result' => DB::table('template_field_values')->where('field_id', 28)->where('project_id', $project->id)->value('value'),
             'agreement_fee' => DB::table('template_field_values')->where('field_id', 55)->where('project_id', $project->id)->value('value'),
             'multi_channel' => DB::table('template_field_values')->where('field_id', 54)->where('project_id', $project->id)->value('value'),
             # trail 相关
@@ -92,6 +93,9 @@ class ProjectImplode implements ShouldQueue
         $implodeArr['revenue'] = DB::table('contracts')->where('project_id', $project->id)->where('type', '收入')->sum('contract_money') ?? null;
 
         $implodeArr['last_follow_up_at'] = $project->last_follow_up_at;
+        $implodeArr['latest_time'] = $project->created_at;
+        if ($project->last_follow_up_at)
+            $implodeArr['latest_time'] = $project->last_follow_up_at;
         $implodeArr['last_updated_at'] = $project->last_updated_at;
         $lastFollowUp = $project->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
         $implodeArr['last_follow_up_user_id'] = $lastFollowUp ? $lastFollowUp->user_id : null;

@@ -255,7 +255,7 @@ class ScopeRepository
     public function checkPower($uri,$method,$role_ids,$model=null)
     {
         //1.获取接口在数据字典中的id
-        $resource= DataDictionarie::where('val', '/'.$uri)->where('code', $method)->select('parent_id')->first();//检查数据字典里是否配置了该权限，没有则放过该请求
+        $resource= DataDictionarie::where('val', '/'.$uri)->where('code', $method)->select('id','parent_id')->first();//检查数据字典里是否配置了该权限，没有则放过该请求
         if($resource != null){//请求地址在数据字典不存在则不进行权限控制
             $model_id = $resource->parent_id;
             //2.检查功能权限

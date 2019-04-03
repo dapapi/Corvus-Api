@@ -1826,9 +1826,8 @@ class TaskController extends Controller
                             //TODO
                         }
 
-//
-                        //$task_resource = TaskResource::create($array);
-                        //dd($task_resource);
+                        $task_resource = TaskResource::create($array);
+
                         // 操作日志
                         if ($model != null){
                             $operate = new OperateEntity([

@@ -12,6 +12,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
+
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
+        $api->get('/test/users', 'App\Http\Controllers\TestController@users');
+        $api->get('/test/job', 'App\Http\Controllers\TestController@test');
     }
     $api->put('/users/telephone', 'App\Http\Controllers\UserController@telephone');
 
@@ -55,6 +59,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
+//        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@list');
         $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -66,6 +71,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
+        $api->post('/tasks/store', 'App\Http\Controllers\TaskController@taskStore');
+
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
         $api->get('/tasks/mylist', 'App\Http\Controllers\TaskController@myList');
@@ -74,6 +81,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/tasks/recycle_bin', 'App\Http\Controllers\TaskController@recycleBin');
         $api->get('/tasks/{task}', 'App\Http\Controllers\TaskController@show');
         $api->put('/tasks/{task}', 'App\Http\Controllers\TaskController@edit');
+        $api->put('/tasks/edit/{task}', 'App\Http\Controllers\TaskController@taskEdit');
+
         $api->post('/tasks/{task}/recover', 'App\Http\Controllers\TaskController@recoverRemove');
         $api->delete('/tasks/{task}', 'App\Http\Controllers\TaskController@remove');
         $api->get('/tasksAll', 'App\Http\Controllers\TaskController@tasksAll');
@@ -205,6 +214,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
+        $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");//测试艺人详情
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
@@ -213,6 +224,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
         $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
+//        $api->get('/stars/{star}', 'App\Http\Controllers\StarController@getStarById');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
         $api->get('/stars/{star}/gettaskandprojejct', 'App\Http\Controllers\StarController@getFiveTaskAndProjejct');
@@ -235,6 +247,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //导入 导出
         //->middleware('export')
+
+        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger
@@ -300,6 +314,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/clients/import', 'App\Http\Controllers\ClientController@import');
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
+
+        $api->get('/clients_list', 'App\Http\Controllers\ClientController@indexAll');
+
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
 //            ->middleware('can:create,App\Models\ClientProtected');

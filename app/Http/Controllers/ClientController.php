@@ -6,17 +6,23 @@ use App\Events\ClientDataChangeEvent;
 use App\Events\ClientMessageEvent;
 use App\Events\OperateLogEvent;
 use App\Exports\ClientsExport;
+use App\Helper\Common;
 use App\Http\Requests\Client\EditClientRequest;
 use App\Http\Requests\Client\FilterClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Transformers\ClientTransformer;
+use App\Http\Transformers\DashboardModelTransformer;
 use App\Imports\ClientsImport;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
+use App\Models\Project;
+use App\Models\Trail;
 use App\OperateLogMethod;
 use App\Repositories\ClientRepository;
 use App\Repositories\FilterReportRepository;
@@ -70,6 +76,54 @@ class ClientController extends Controller
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
 //        dd($sql_with_bindings);
         return $this->response->paginator($clients, new ClientTransformer());
+    }
+
+    public function indexAll(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $clients = Client::searchData()
+            ->leftJoin('operate_logs',function($join){
+                $join->on('clients.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::CLIENT)
+                    ->where('operate_logs.method','4');
+
+            })
+            ->leftJoin('users',function($join){
+                $join->on('users.id','clients.principal_id');
+            })
+            ->where(function ($query) use ($request, $payload) {
+                if ($request->has('keyword'))
+                    $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
+                if ($request->has('grade'))
+                    $query->where('grade', $payload['grade']);
+                if ($request->has('principal_ids') && count($payload['principal_ids'])) {
+                    foreach ($payload['principal_ids'] as &$id) {
+                        $id = hashid_decode((int)$id);
+                    }
+                    unset($id);
+                    $query->whereIn('principal_id', $payload['principal_ids']);
+                }
+                if ($request->has('type')){
+                    $query->where('type',$payload['type']);
+                }
+            })
+
+            ->groupBy('clients.id')
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','clients.company','clients.type','clients.grade','clients.district'
+               ,'clients.status','principal_id','creator_id','client_rating','clients.created_at','clients.updated_at','protected_client_time','users.name',
+                DB::raw( "max(operate_logs.updated_at) as up_time")])
+
+            //->orderBy('clients.created_at', 'desc')
+            //->select(['clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','clients.updated_at',DB::raw( "max(operate_logs.updated_at) as up_time")])
+            ->paginate($pageSize);
+
+//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
+        foreach ($clients as &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $clients;
+        //return $this->response->paginator($clients, new ClientTransformer());
     }
 
     public function getClientRelated(Request $request){
@@ -176,6 +230,7 @@ class ClientController extends Controller
         if ($request->has('principal_id') && !empty($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
+        DB::beginTransaction();
         try {
 //            foreach ($payload as $key => $value) {
 //                $lastValue = $client[$key];
@@ -197,9 +252,11 @@ class ClientController extends Controller
             event(new ClientDataChangeEvent($old_client,$client));//记录日志
 
         } catch (\Exception $exception) {
+            DB::rollBack();
             Log::error($exception);
             return $this->response->errorInternal('修改失败');
         }
+        DB::commit();
         return $this->response->accepted();
     }
 
@@ -226,7 +283,7 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
-    public function detail(Request $request, Client $client,ClientRepository $repository,ScopeRepository $scopeRepository)
+    public function detail(Request $request, Client $client,ScopeRepository $repository,ClientRepository $clientRepository)
     {
         $client = $client->searchData()->find($client->id);
         if($client == null){
@@ -243,18 +300,17 @@ class ClientController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-
+            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $scopeRepository->checkPower("clients/{id}",'put',$role_list,$client);
+            $repository->checkPower("clients/{id}",'put',$role_list,$client);
             $client->power = "true";
         }catch (Exception $exception){
             $client->power = "false";
         }
-        $client->powers = $repository->getPower($user,$client);
+        $client->powers = $clientRepository->getPower($user,$client);
         return $this->response->item($client, new ClientTransformer());
     }
 
@@ -361,7 +417,56 @@ class ClientController extends Controller
 
             ->select('clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
-//       dd(DB::getQueryLog());
+
         return $this->response->paginator($clients, new ClientTransformer(!$all));
+
+    }
+
+    public function dashboard(Request $request, Department $department)
+    {
+        $days = $request->get('days', 7);
+        $departmentId = $department->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
+
+
+        $clients = Client::select('clients.id as id', DB::raw('GREATEST(clients.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'clients.company as title')
+            ->whereIn('clients.principal_id', $userIds)
+            ->leftjoin('operate_logs', function ($join) {
+                $join->on('clients.id', '=', 'operate_logs.logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::CLIENT)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('clients.id')
+            ->orderBy('t', 'desc')
+            ->take(5)->get();
+
+        $result = $this->response->collection($clients, new DashboardModelTransformer());
+
+
+        $count = Client::whereIn('principal_id', $userIds)->count('id');
+
+        $timePoint = Carbon::today('PRC')->subDays($days);
+
+        $latestFollow = Client::whereIn('principal_id', $userIds)->join('operate_logs', function ($join) {
+            $join->on('clients.id', '=', 'operate_logs.logable_id')
+                ->where('operate_logs.logable_type', ModuleableType::CLIENT)
+                ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+        })->where('operate_logs.created_at', '>', $timePoint)->distinct('clients.id')->count('clients.id');
+
+        $clientIdArr = Client::whereIn('principal_id', $userIds)->pluck('id');
+
+        $withTrail = Trail::whereIn('client_id', $clientIdArr)->where('created_at', '>', $days)->distinct('client_id')->count('client_id');
+        $trailIdArr = Trail::whereIn('client_id', $clientIdArr)->where('created_at', '>', $days)->pluck('id');
+        $withProject = Project::whereIn('trail_id', $trailIdArr)->where('created_at', '>', $days)->distinct('trail_id')->count('trail_id');
+
+        $clientInfoArr = [
+            'total' => $count,
+            'latest_follow' => $latestFollow,
+            'with_trail' => $withTrail,
+            'with_project' => $withProject,
+        ];
+
+        $result->addMeta('count', $clientInfoArr);
+        return $result;
     }
 }

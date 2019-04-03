@@ -3,22 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\AffixType;
-use App\Events\dataChangeEvent;
-use App\Events\MessageEvent;
 use App\Events\OperateLogEvent;
 use App\Events\TaskDataChangeEvent;
 use App\Events\TaskMessageEvent;
-use App\Models\DataDictionarie;
-use App\Models\Message;
+use App\Helper\Common;
 use App\Http\Requests\Task\AddRelateTaskRequest;
 use App\Http\Requests\Task\FilterTaskRequest;
 use App\Http\Requests\TaskCancelTimeRequest;
 use App\Http\Requests\TaskRequest;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
+use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\TaskTransformer;
 use App\Models\Blogger;
 use App\Models\Client;
+use App\Models\Department;
+use App\Models\DepartmentUser;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Resource;
@@ -32,15 +32,13 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\AffixRepository;
-use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScopeRepository;
+
 use App\Repositories\TaskRepository;
 use App\ResourceType;
-use App\TaskPriorityStatus;
 use App\TaskStatus;
 use App\TriggerPoint\TaskTriggerPoint;
-use App\TriggerPoint;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -48,8 +46,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\URL;
-
 
 class TaskController extends Controller
 {
@@ -67,7 +63,7 @@ class TaskController extends Controller
     {
         $payload = $request->all();
         $user = Auth::guard("api")->user();
-        $my = $request->get('my',0);
+        $my = $request->get('my', 0);
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $query = Task::select('tasks.*');
@@ -79,7 +75,7 @@ class TaskController extends Controller
                 $query->where('principal_id', $user->id);
                 break;
             case 4://我分配
-                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                $query->where('creator_id', $user->id)->where('principal_id', '!=', $user->id);
                 break;
             case 1://我创建
                 $query->where('creator_id', $user->id);
@@ -87,7 +83,7 @@ class TaskController extends Controller
             default:
                 break;
         }
-        $tasks = $query->where(function($query) use ($request, $payload) {
+        $tasks = $query->where(function ($query) use ($request, $payload) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
@@ -110,7 +106,7 @@ class TaskController extends Controller
     }
 
 
-    public function indexAll(Request $request)
+    public function indexAllDemo(Request $request)
     {
         $payload = $request->all();
         $user = Auth::guard("api")->user();
@@ -178,6 +174,58 @@ class TaskController extends Controller
         return $tasks;
 
     }
+    public function indexAll(Request $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        $userId = $user->id;
+        $my = $request->get('my',0);
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $query = Task::select('tasks.id','tasks.title','tasks.status','tasks.resource_name','tasks.resource_type_name as resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id','tasks.end_at');
+
+        switch ($my) {
+            case 2://我参与
+                $query = $user->participantTasks();
+                break;
+            case 3://我负责
+                $query->where('principal_id', $user->id);
+                break;
+            case 4://我分配
+                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                break;
+            case 1://我创建
+                $query->where('creator_id', $user->id);
+                break;
+            default:
+                break;
+        }
+
+        $tasks = $query->where(function($query) use ($request, $payload) {
+            if ($request->has('keyword'))
+                $query->where('tasks.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('type_id'))
+                $query->where('type_id', hashid_decode($payload['type_id']));
+            if ($request->has('status'))
+                $query->where('tasks.status', $payload['status']);
+            if ($request->has('user')){
+                $userId = hashid_decode($payload['user']);
+                $query->where('tasks.principal_id', $userId);
+            }
+            if ($request->has('department')){
+                $userIds = array();
+                $userIds = $this->getDepartmentUserIds($payload['department']);
+                $query->whereIn('tasks.principal_id', $userIds);
+            }else{
+                $query->whereRaw('1=1');
+            }
+        })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+        foreach ($tasks as &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $tasks;
+
+    }
 
 
 
@@ -207,15 +255,15 @@ class TaskController extends Controller
             ->searchData()
             ->get()->toArray();
         $dataArr = array();
-        if(!empty($data)){
-            foreach ($data as $k=>$value){
+        if (!empty($data)) {
+            foreach ($data as $k => $value) {
                 $dataArr['id'] = hashid_encode($value['id']);
                 $dataArr['title'] = $value['title'];
                 $Arr['data'][] = $dataArr;
             }
-        }else{
+        } else {
             //$Arr['data'][]=$dataArr;
-            $Arr['data']=$dataArr;
+            $Arr['data'] = $dataArr;
         }
 
         return $Arr;
@@ -299,7 +347,7 @@ class TaskController extends Controller
                 $query->where('principal_id', $user->id);
                 break;
             case 4://我分配
-                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                $query->where('creator_id', $user->id)->where('principal_id', '!=', $user->id);
                 break;
             case 1://我创建
             default:
@@ -323,7 +371,7 @@ class TaskController extends Controller
         if ($request->has('keyword'))
             $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
         if ($request->has('type_id'))
-            $query->where('type_id',hashid_decode($payload['type_id']));
+            $query->where('type_id', hashid_decode($payload['type_id']));
 
 
         // $tasks = $query->createDesc()->paginate($pageSize);
@@ -382,7 +430,7 @@ class TaskController extends Controller
                 $query->where('principal_id', $user->id);
                 break;
             case 4://我分配
-                $query->where('creator_id', $user->id)->where('principal_id','!=',$user->id);
+                $query->where('creator_id', $user->id)->where('principal_id', '!=', $user->id);
                 break;
             case 1://我创建
             default:
@@ -402,7 +450,7 @@ class TaskController extends Controller
             default:
                 break;
         }
-        $tasks = $query->get();
+        $tasks = $query->paginate($pageSize);;
 
         return $this->response->paginator($tasks, new TaskTransformer());
     }
@@ -427,14 +475,16 @@ class TaskController extends Controller
         $tasks = $query->searchData()->where('privacy', false)->paginate($pageSize);
 
         //获取任务完成数量
-        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
+        $complete_count = $query->where('privacy', false)->where('status', TaskStatus::COMPLETE)->count();
 
         $request = $this->response->paginator($tasks, new TaskTransformer());
-        $request->addMeta("complete_count",$complete_count);
+        $request->addMeta("complete_count", $complete_count);
         return $request;
     }
 
-    public function show(Task $task,TaskRepository $repository,ScopeRepository $scopeRepository)
+
+
+    public function showDemo(Task $task,ScopeRepository $repository)
     {
         // 操作日志
         $operate = new OperateEntity([
@@ -447,18 +497,43 @@ class TaskController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-        $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{
-
+            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $scopeRepository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
             $task->power = "true";
         }catch (Exception $exception){
             $task->power = "false";
         }
-        $task->powers = $repository->getPower($user,$task);
+        return $this->response()->item($task, new TaskTransformer());
+    }
+
+    public function show(Task $task,ScopeRepository $repository,TaskRepository $taskRepository)
+    {
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $task,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
+        //登录用户对线索编辑权限验证
+        $user = Auth::guard("api")->user();
+        try{
+            //获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
+            $task->power = "true";
+        }catch (Exception $exception){
+            $task->power = "false";
+        }
+        $task->powers = $taskRepository->getPower($user,$task);
         return $this->response()->item($task, new TaskTransformer());
     }
 
@@ -516,10 +591,10 @@ class TaskController extends Controller
         }
         DB::commit();
 
-        if ($status == TaskStatus::COMPLETE){
+        if ($status == TaskStatus::COMPLETE) {
             $user = Auth::guard("api")->user();
             $authorization = $request->header()['authorization'][0];
-            event(new TaskMessageEvent($task,TaskTriggerPoint::COMPLETE_TSAK,$authorization,$user));
+            event(new TaskMessageEvent($task, TaskTriggerPoint::COMPLETE_TSAK, $authorization, $user));
         }
         //发送消息
 //        DB::beginTransaction();
@@ -1045,6 +1120,218 @@ class TaskController extends Controller
         if ($request->has('resource_type')) {
             $resourceableId = hashid_decode($payload['resourceable_id']);
             $resourceType = $payload['resource_type'];
+            $taskResource = TaskResource::where('task_id', $task->id)->first();
+            if ($payload['code'] == 'bloggers') {
+                $code = ModuleableType::BLOGGER;
+            } elseif ($payload['code'] == 'stars') {
+                $code = ModuleableType::STAR;
+            } elseif ($payload['code'] == 'projects') {
+                $code = ModuleableType::PROJECT;
+            } elseif ($payload['code'] == 'clients') {
+                $code = ModuleableType::CLIENT;
+            } elseif ($payload['code'] == 'trails') {
+                $code = ModuleableType::TRAIL;
+            } else {
+                return $this->response->errorInternal('上传类型不正确');
+            }
+            $resource = [
+                'resource_id' => $resourceType,
+                'resourceable_id' => $resourceableId,
+                'resourceable_type' => $code,
+            ];
+            $taskResource->update($resource);
+            unset($payload['code']);
+
+        }
+
+        if ($request->has('start_at')) {
+            $array['start_at'] = $payload['start_at'];
+            $start = $task->start_at;
+            $end = $array['start_at'];
+
+            if ($start != $end) {
+//                $operateStartAt = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '开始时间',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateStartAt;
+            } else {
+                unset($array['start_at']);
+            }
+        }
+
+        if ($request->has('end_at')) {
+            $array['end_at'] = $payload['end_at'];
+            $start = $task->end_at;
+            $end = $array['end_at'];
+            if ($start != $end) {
+//                $operateStartAt = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '结束时间',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateStartAt;
+                //修改日期 如果日期大于当前时间 状态为1正常 反之则状态为4 延期
+                $endAt = strtotime($payload['end_at']);
+                $currentAt = time();
+                if ($endAt > $currentAt) {
+                    $array['status'] = 1;
+
+                } else {
+                    $array['status'] = 4;
+                }
+
+            } else {
+                unset($array['end_at']);
+            }
+        }
+        DB::beginTransaction();
+        try {
+            if (count($array) == 0)
+                return $this->response->noContent();
+
+            $task->update($array);
+            // 操作日志
+//            event(new OperateLogEvent($arrayOperateLog));
+            event(new TaskDataChangeEvent($oldTask, $task));
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('修改失败');
+        }
+        DB::commit();
+//        event(new dataChangeEvent($oldTask,$task));
+        return $this->response->accepted();
+    }
+
+    //////////////////////
+    public function taskEdit(TaskUpdateRequest $request, Task $task)
+    {
+        $payload = $request->all();
+
+        $oldTask = clone $task;
+        $user = Auth::guard('api')->user();
+
+        $array = [];
+
+        $arrayOperateLog = [];
+
+        if ($request->has('title')) {
+            $array['title'] = $payload['title'];
+//            if ($array['title'] != $task->title) {
+//                $operateTitle = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '标题',
+//                    'start' => $task->title,
+//                    'end' => $array['title'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateTitle;
+//            }
+        }
+
+        if ($request->has('desc')) {
+            $array['desc'] = $payload['desc'];
+
+//            $operateDesc = new OperateEntity([
+//                'obj' => $task,
+//                'title' => '描述',
+//                'start' => $task->desc,
+//                'end' => $array['desc'],
+//                'method' => OperateLogMethod::UPDATE,
+//            ]);
+//            $arrayOperateLog[] = $operateDesc;
+        }
+
+        if ($request->has('type')) {
+            $departmentId = $user->department()->first()->id;
+            $typeId = hashid_decode($payload['type']);
+            $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
+            if ($taskType) {
+                $array['type_id'] = $taskType->id;
+//                $start = null;
+//                if ($task->type) {
+//                    $start = $task->type->title;
+//                }
+//                $end = $taskType->title;
+
+//                $operateType = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '类型',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+                if ($task->type && $task->type->id == $taskType->id) {
+                    unset($array['type_id']);
+                } else {
+//                    $arrayOperateLog[] = $operateType;
+                }
+            } else {
+                return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+            }
+        }
+
+        if ($request->has('principal_id')) {
+            try {
+                $currentPrincipalUser = User::find($task->principal_id);
+                $start = null;
+//                if ($currentPrincipalUser)
+//                    $start = $currentPrincipalUser->name;
+
+                $principalId = hashid_decode($payload['principal_id']);
+//                $principalUser = User::findOrFail($principalId);
+                $userName = DB::table('users')->where('users.id', $principalId)->select('name')->first();
+                $array['principal_name'] = $userName->name;
+                $array['principal_id'] = $principalId;
+
+                if ($currentPrincipalUser) {
+                    if ($currentPrincipalUser->id != $array['principal_id']) {
+//                        $operatePrincipal = new OperateEntity([
+//                            'obj' => $task,
+//                            'title' => '负责人',
+//                            'start' => $start,
+//                            'end' => $principalUser->name,
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operatePrincipal;
+                    } else {
+                        unset($arrayOperateLog['principal_id']);
+                    }
+                }
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest();
+            }
+        }
+
+        if ($request->has('priority')) {
+            $array['priority'] = $payload['priority'];
+            if ($array['priority'] != $task->priority) {
+//                $start = TaskPriorityStatus::getStr($task->priority);
+//                $end = TaskPriorityStatus::getStr($array['priority']);
+//
+//                $operatePriority = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '优先级',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operatePriority;
+            } else {
+                unset($array['priority']);
+            }
+        }
+
+        //修改关联资源
+        if ($request->has('resource_type')) {
+            $resourceableId = hashid_decode($payload['resourceable_id']);
+            $resourceType = $payload['resource_type'];
             $taskResource = TaskResource::where('task_id',$task->id)->first();
             if($payload['code'] == 'bloggers'){
                 $code = ModuleableType::BLOGGER;
@@ -1110,20 +1397,65 @@ class TaskController extends Controller
                 }else{
                     $array['status'] = 4;
                 }
-                
+
             } else {
                 unset($array['end_at']);
             }
         }
+
         DB::beginTransaction();
         try {
-            if (count($array) == 0)
-                return $this->response->noContent();
+//            if (count($array) == 0){
+//                return $this->response->noContent();
+//            }
+
+            if($request->has('resourceable_id')){
+                $array['resource_id'] = hashid_decode($payload['resourceable_id']);
+                $resourceable_id = hashid_decode($payload['resourceable_id']);
+
+            }
+
+            if($request->has('resource_type')) {
+                if ($payload['resource_type'] == 1) {
+
+                    $array['resource_type_name'] = '博主';
+                    $resource_name = DB::table('bloggers')->where('bloggers.id', $resourceable_id)->select('nickname as name')->first();
+                    $array['resource_name'] = $resource_name->name;
+
+                } elseif ($payload['resource_type'] == 2) {
+                    $array['resource_type_name'] = '艺人';
+                    $resource_name = DB::table('stars')->where('stars.id', $resourceable_id)->select('name')->first();
+                    $array['resource_name'] = $resource_name->name;
+
+                } elseif ($payload['resource_type'] == 3) {
+
+                    $array['resource_type_name'] = '项目';
+                    $resource_name = DB::table('projects')->where('projects.id', $resourceable_id)->select('title as name')->first();
+                    $array['resource_name'] = $resource_name->name;
+
+
+                } elseif ($payload['resource_type'] == 4) {
+                    $array['resource_type_name'] = '客户';
+                    $resource_name = DB::table('clients')->where('clients.id', $resourceable_id)->select('company as name')->first();
+                    $array['resource_name'] = $resource_name->name;
+
+                } elseif ($payload['resource_type'] == 5) {
+                    $array['resource_type_name'] = '销售线索';
+                    $resource_name = DB::table('trails')->where('trails.id', $resourceable_id)->select('title as name')->first();
+                    $array['resource_name'] = $resource_name->name;
+
+                }
+            }
+
 
             $task->update($array);
+
+            unset($array['resource_type_name']);
+            unset($array['resource_name']);
+
             // 操作日志
 //            event(new OperateLogEvent($arrayOperateLog));
-            event(new TaskDataChangeEvent($oldTask,$task));
+            //event(new TaskDataChangeEvent($oldTask,$task));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -1287,6 +1619,286 @@ class TaskController extends Controller
 
                         $task_resource = TaskResource::create($array);
                         // 操作日志
+                        if ($model != null) {
+                            $operate = new OperateEntity([
+                                'obj' => $model,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::ADD_TASK_RESOURCE,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
+                        $operate = new OperateEntity([
+                            'obj' => $task,
+                            'title' => null,
+                            'start' => null,
+                            'end' => null,
+                            'method' => OperateLogMethod::CREATE,
+                        ]);
+                        event(new OperateLogEvent([
+                            $operate,
+                        ]));
+
+                    } else {
+                        throw new Exception('没有这个类型');
+                    }
+                }
+            }
+
+            if ($request->has('affix') && count($request->get('affix'))) {
+                $affixes = $request->get('affix');
+                foreach ($affixes as $affix) {
+                    try {
+                        $this->affixRepository->addAffix($user, $task, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
+                        // 操作日志 ...
+                    } catch (Exception $e) {
+                    }
+                }
+            }
+
+            //    添加参与人
+            if ($request->has('participant_ids')) {
+
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败!');
+        }
+        DB::commit();
+        //发消息
+        $authorization = $request->header()['authorization'][0];
+        event(new TaskMessageEvent($task, TaskTriggerPoint::CRATE_TASK, $authorization, $user));
+
+//        DB::beginTransaction();
+//        try {
+//
+//            $user = Auth::guard('api')->user();
+//            $title = $user->name . "邀请你参与任务";  //通知消息的标题
+//            $subheading = $user->name . "邀请你参与任务";
+//            $module = Message::TASK;
+//            $link = URL::action("TaskController@show", ["task" => $task->id]);
+//            $data = [];
+//            $data[] = [
+//                "title" => '任务名称', //通知消息中的消息内容标题
+//                'value' => $task->title,  //通知消息内容对应的值
+//            ];
+//            $principal = User::findOrFail($task->principal_id);
+//            $data[] = [
+//                'title' => '负责人',
+//                'value' => $principal->name
+//            ];
+//
+//            $recives = array_column($task->participants()->get()->toArray(),'id');
+//            $recives[] = $payload['principal_id'];//负责人
+//            $authorization = $request->header()['authorization'][0];
+//            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
+//
+//            DB::commit();
+//        }catch (Exception $e){
+//            DB::rollBack();
+//            Log::error($e);
+//        }
+        return $this->response->item(Task::find($task->id), new TaskTransformer());
+//        return $this->response->created();
+    }
+
+
+    public function taskStore(TaskRequest $request, Task $pTask)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+
+        unset($payload['status']);
+        unset($payload['complete_at']);
+        unset($payload['stop_at']);
+        unset($payload['type_id']);
+
+        $payload['creator_id'] = $user->id;
+
+        if ($request->has('principal_id')) {
+            try {
+                $principalId = hashid_decode($payload['principal_id']);
+                User::findOrFail($principalId);
+                $payload['principal_id'] = $principalId;
+
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest('负责人错误');
+            }
+        }
+
+        if ($pTask->id) {
+            if ($pTask->task_pid)
+                return $this->response->errorBadRequest('子任务不支持多级子任务');
+            $payload['task_pid'] = $pTask->id;
+        }
+
+        //验证 type
+        if ($request->has('type') && $payload['type'] != 0) {
+            $departmentId = $user->department()->first()->id;
+            $typeId = hashid_decode($payload['type']);
+            $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
+            if ($taskType) {
+                $payload['type_id'] = $taskType->id;
+            } else {
+                return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+            }
+        }
+
+        if (!$request->has('privacy')) {
+            $payload['privacy'] = false;
+        }
+
+        DB::beginTransaction();
+        try {
+            if($request->has('resourceable_id')){
+                $payload['resource_id'] = hashid_decode($payload['resourceable_id']);
+                $resourceable_id = hashid_decode($payload['resourceable_id']);
+
+            }
+
+            if($payload['resource_type'] == 1){
+                $payload['resource_type_name'] = '博主';
+                $resource_name = DB::table('bloggers')->where('bloggers.id',$resourceable_id)->select('nickname as name')->first();
+                $payload['resource_name'] = $resource_name->name;
+
+            }elseif ($payload['resource_type'] == 2){
+                $payload['resource_type_name'] = '艺人';
+                $resource_name = DB::table('stars')->where('stars.id',$resourceable_id)->select('name')->first();
+                $payload['resource_name'] = $resource_name->name;
+
+            }elseif ($payload['resource_type'] == 3){
+                $payload['resource_type_name'] = '项目';
+                $resource_name = DB::table('projects')->where('projects.id',$resourceable_id)->select('title as name')->first();
+                $payload['resource_name'] = $resource_name->name;
+
+            }elseif ($payload['resource_type'] == 4){
+                $payload['resource_type_name'] = '客户';
+                $resource_name = DB::table('clients')->where('clients.id',$resourceable_id)->select('company as name')->first();
+                $payload['resource_name'] = $resource_name->name;
+
+            }elseif ($payload['resource_type'] == 5){
+                $payload['resource_type_name'] = '销售线索';
+                $resource_name = DB::table('trails')->where('trails.id',$resourceable_id)->select('title as name')->first();
+                $payload['resource_name'] = $resource_name->name;
+
+            }
+
+            $task = Task::create($payload);
+            unset($payload['type_name']);
+            unset($payload['resource_name']);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $task,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+
+            if (!$pTask->id) {//子任务不能关联资源
+
+                //关联资源
+                if ($request->has('resource_type') && $request->has('resourceable_id')) {
+                    $resourceType = $payload['resource_type'];
+                    $resourceableId = hashid_decode($payload['resourceable_id']);
+                    $resource = Resource::where('type', $resourceType)->first();
+                    if ($resource) {
+                        $array = [
+                            'task_id' => $task->id,
+                            'resource_id' => $resource->id,
+                        ];
+                        $model = null;
+
+                        switch ($resource->type) {
+                            case ResourceType::BLOGGER:
+                                $model = Blogger::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::BLOGGER;
+                                break;
+                            case ResourceType::STAR:
+
+                                $model = Star::findOrFail($resourceableId);
+
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::STAR;
+
+//                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $star,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_STAR_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+
+                                break;
+                            case ResourceType::PROJECT:
+                                $model = Project::findOrFail($resourceableId);
+
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::PROJECT;
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $project,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_PROJECT_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+                                break;
+                            case ResourceType::CLIENT:
+                                $model = Client::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::CLIENT;
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $client,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_CLIENT_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+
+                                break;
+                            case ResourceType::TRAIL:
+                                $model = Trail::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::TRAIL;
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $trail,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_TRAIL_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+                                break;
+                            //TODO
+                        }
+
+                        $task_resource = TaskResource::create($array);
+
+                        // 操作日志
                         if ($model != null){
                             $operate = new OperateEntity([
                                 'obj' => $model,
@@ -1327,7 +1939,7 @@ class TaskController extends Controller
                 }
             }
 
-        //    添加参与人
+            //    添加参与人
             if ($request->has('participant_ids')) {
 
                 $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
@@ -1339,8 +1951,8 @@ class TaskController extends Controller
         }
         DB::commit();
         //发消息
-        $authorization = $request->header()['authorization'][0];
-        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+//        $authorization = $request->header()['authorization'][0];
+//        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
 
 //        DB::beginTransaction();
 //        try {
@@ -1380,12 +1992,12 @@ class TaskController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $tasks = Task::where(function($query) use ($request, $payload) {
+        $tasks = Task::where(function ($query) use ($request, $payload) {
 
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
-                $query->where('type_id',hashid_decode($payload['type_id']));
+                $query->where('type_id', hashid_decode($payload['type_id']));
             if ($request->has('status'))
                 $query->where('status', $payload['status']);
 
@@ -1436,7 +2048,7 @@ class TaskController extends Controller
         return $this->response->accepted();
     }
 
-    public function secret(Request $request,Task $task)
+    public function secret(Request $request, Task $task)
     {
 
         $payload = $request->all();
@@ -1483,5 +2095,45 @@ class TaskController extends Controller
             return $this->response->errorInternal('修改失败');
         }
         DB::commit();
+    }
+
+    public function dashboard(Request $request, Department $department)
+    {
+        $days = $request->get('days', 7);
+        $departmentId = $department->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
+
+        $tasks = Task::select('tasks.id as id', DB::raw('GREATEST(tasks.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'tasks.title')
+            ->whereIn('tasks.principal_id', $userIds)
+            ->leftJoin('operate_logs', function ($join) {
+                $join->on('tasks.id', '=', 'operate_logs.logable_id')
+                    ->where('operate_logs.logable_type', ModuleableType::TASK)
+                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('tasks.id')
+            ->orderBy('t', 'desc')
+            ->take(5)->get();
+
+        $result = $this->response->collection($tasks, new DashboardModelTransformer());
+
+        $count = Task::whereIn('principal_id', $userIds)->count('id');
+        $delayCount = Task::whereIn('principal_id', $userIds)->where('status', TaskStatus::DELAY)->count('id');
+
+        $timePoint = Carbon::today('PRC')->subDays($days);
+        $newTasks = Task::whereIn('principal_id', $userIds)->where('created_at', '>', $timePoint)->count('id');
+
+        $completed = Task::whereIn('principal_id', $userIds)->where('status', TaskStatus::COMPLETE)->count('id');
+        $progressing = Task::whereIn('principal_id', $userIds)->where('status', TaskStatus::NORMAL)->count('id');
+
+        $taskInfoArr = [
+            'total' => $count,
+            'completed' => $completed,
+            'progressing' => $progressing,
+            'delayed' => $delayCount,
+            'latest' => $newTasks,
+        ];
+
+        $result->addMeta('count', $taskInfoArr);
+        return $result;
     }
 }

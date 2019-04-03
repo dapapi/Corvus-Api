@@ -30,7 +30,7 @@ class FilterTrailRequest extends FormRequest
             'keyword' => 'nullable',
             'status' => 'nullable',
             'principal_ids' => 'nullable',
-            'type'  => Rule::in([Trail::TYPE_BASE,Trail::TYPE_PAPI,Trail::TYPE_ENDORSEMENT,Trail::TYPE_VARIETY,Trail::TYPE_MOVIE])
+//            'type'  => Rule::in([Trail::TYPE_BASE,Trail::TYPE_PAPI,Trail::TYPE_ENDORSEMENT,Trail::TYPE_VARIETY,Trail::TYPE_MOVIE])
         ];
     }
 }

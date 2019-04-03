@@ -13,9 +13,12 @@ use App\Http\Requests\Filter\FilterRequest;
 use App\Http\Requests\StarRequest;
 use App\Http\Requests\StarUpdateRequest;
 use App\Http\Transformers\StarAndBloggerTransfromer;
+use App\Http\Transformers\StarDeatilTransformer;
+use App\Http\Transformers\StarListTransformer;
 use App\Http\Transformers\StarTransformer;
 use App\Models\Affix;
 use App\Models\Blogger;
+use App\Models\Department;
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\Models\Star;
@@ -831,14 +834,14 @@ class StarController extends Controller
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
-        $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where($array);
+        $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where('stars.id','>',0)->where($array);
         $stars = Blogger::select('nickname','id','sign_contract_status',
             DB::raw('\'blogger\' as flag'))
             ->where($array)
+            ->where('bloggers.id','>',0)
             ->searchData()
             ->union($first)
             ->get();
-
 
 
         return $this->response->collection($stars,new StarAndBloggerTransfromer());
@@ -873,6 +876,7 @@ class StarController extends Controller
 //        $query = Star::from(DB::raw($joinSql))->select("stars.*");
 
         $query =    $repository->starCustomSiftBuilder();
+//        $query = StarRepository::getStarList();
         $stars = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
@@ -910,5 +914,101 @@ class StarController extends Controller
     {
         $file = '当前艺人导出' . date('YmdHis', time()) . '.xlsx';
         return (new StarsExport($request))->download($file);
+    }
+
+    public function getStarList(Request $request)
+    {
+        $payload = $request->all();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $condition = null;
+        if (isset($payload['conditions'])){
+            $condition = FilterReportRepository::getCondition($payload['conditions']);
+        }
+        $star_list =  StarRepository::getStarList($condition);
+        $res = [];
+        foreach ($star_list as $key => $star){
+            $temp['id'] = hashid_encode($star->id);
+            $temp['contracts']['data']['contract_start_date'] = $star->sign_contract_at;
+            $temp['contracts']['data']['contract_end_date'] = $star->terminate_agreement_at;
+            $temp['sign_contract_at'] = $star->sign_contract_at;
+            $temp['terminate_agreement_at'] = $star->terminate_agreement_at;
+            $temp['name'] = $star->name;
+            $temp['weibo_fans_num'] = $star->weibo_fans_num;
+            $temp['source'] = $star->source;
+            $temp['created_at'] = $star->created_at;
+            $temp['last_follow_up_at'] = $star->last_follow_up_at;
+            $temp['sign_contract_status'] = $star->sign_contract_status;
+            $temp['birthday'] = $star->birthday;
+            $temp['communication_status'] = $star->communication_status;
+            $res[] = $temp;
+        }
+        $meta = [
+            "pagination"=> [
+                "total"=> 576,
+                "count"=> 15,
+                "per_page"=> 15,
+                "current_page"=> 1,
+                "total_pages"=> 39,
+                "links"=> [
+                    "next"=> "http://corvus.cn/stars/filter?page=2"
+                ],
+            ]
+        ];
+        return [
+            "data" => $res,
+            "meta"  => $meta,
+            "status"    =>  "success"
+        ];
+    }
+
+
+    public function getStarList2(Request $request)
+    {
+        $payload = $request->all();
+        $search_field = [];
+        if (isset($payload['conditions'])){
+            $search_field = array_column($payload['conditions'],'field');
+        }
+        $array = [];//查询条件
+        if ($request->has('name')) {//姓名
+            $array[] = ['stars.name', 'like', '%' . $payload['name'] . '%'];
+        }
+        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
+            $array[] = ['stars.sign_contract_status', $payload['sign_contract_status']];
+        }
+        if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
+            $array[] = ['stars.communication_status', $payload['communication_status']];
+        }
+        if ($request->has('source') && !empty($payload['source'])) {//艺人来源
+            $array[] = ['stars.source', $payload['source']];
+        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
+//        DB::connection()->enableQueryLog();
+        $star_list = StarRepository::getStarList2($search_field)->searchData()->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload, $query);
+        })->where($array)
+            ->orderBy('stars.last_follow_up_at','desc')
+            ->paginate($pageSize);
+//            ->offset(10)->limit(10);
+//        return $star_list;
+//        dd(DB::getQueryLog());
+//        return DB::select("select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars ");
+        return $this->response()->paginator($star_list,new StarListTransformer());
+    }
+
+
+    public function getStarDeatil(Star $star)
+    {
+        $creator = $star->creator()->select('id','name')->first();//创建人
+        $creator_department = $creator->department()->select('departments.id','departments.name')->first();//创建人部门
+        $publicity_list = $star->publicity()->select('users.id','users.name')->get();//宣传人
+        //获取宣传人的公司和部门
+        foreach ($publicity_list as $publicity){
+            $publicity->company = $publicity->department()->first() == null ? 0 : $publicity->department()->first()->company_id;
+            $publicity->department = $publicity->department()->select('departments.name')->first();
+        }
+
+        return $this->response()->item($star,new StarDeatilTransformer());
     }
 }

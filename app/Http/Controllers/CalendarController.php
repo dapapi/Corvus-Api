@@ -214,7 +214,7 @@ class CalendarController extends Controller
     public function delete(Request $request, Calendar $calendar)
     {
         $user = Auth::guard('api')->user();
-        if($calendar->creator_id != $user->id){
+        if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
             return $this->response->errorInternal("你没有该日历的权限");
         }
         DB::beginTransaction();

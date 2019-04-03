@@ -1407,7 +1407,7 @@ class TaskController extends Controller
 
 
             if($request->has('resourceable_id')){
-                $payload['resource_id'] = hashid_decode($payload['resourceable_id']);
+                //$payload['resource_id'] = hashid_decode($payload['resourceable_id']);
                 $resourceable_id = hashid_decode($payload['resourceable_id']);
 
             }

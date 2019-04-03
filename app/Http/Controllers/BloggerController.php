@@ -1214,8 +1214,8 @@ class BloggerController extends Controller
             })->where($array)
 //            ->offset(10)->limit(10)->get();
             ->paginate($pageSize);
+//        return $bloggers->toArray();
 //        dd(DB::getQueryLog());
-        return $bloggers;
         return $this->response()->paginator($bloggers,new BloggerListTransformer());
     }
 }

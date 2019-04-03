@@ -70,10 +70,9 @@ class BloggerRepository
             left join department_user on department_user.user_id = module_users.user_id
             left join users on department_user.user_id = users.id
             left join blogger_types on blogger_types.id = bloggers.type_id
-
+            where (1 = 1 {$where})  {$condition['where']}
                 group by bloggers.id
 AAA;
-
             $placeholder[":moduleable_type"] = ModuleableType::BLOGGER;
             $placeholder[":module_users_type"] = ModuleUserType::PUBLICITY;
         }else{
@@ -86,6 +85,7 @@ AAA;
 AAA;
 
         }
+
         $count = DB::select("select count(temp.id) as total from ({$sql}) as temp",$placeholder);
         $total = $count[0]->total;
         $sql .= " limit {$offset},{$pageSize}";
@@ -112,7 +112,7 @@ AAA;
     public static function getBloggerList2($search_field)
     {
         if (in_array('module_users.user_id',$search_field) ||in_array('department_user.department_id',$search_field) ) {//根据经理人，部门查询的sql
-            return Blogger::select('bloggers.nickname','bloggers.id',DB::raw('blogger_types.name as type'),'bloggers.sign_contract_status','bloggers.weibo_fans_num','bloggers.type_id','bloggers.sign_contract_at','bloggers.terminate_agreement_at','bloggers.created_at','bloggers.last_follow_up_at','bloggers.communication_status',DB::raw('group_concat(users.name) as publicity_user_names'))
+            return Blogger::select('bloggers.nickname','bloggers.id',DB::raw('blogger_types.name as type'),'bloggers.sign_contract_status','bloggers.weibo_fans_num','bloggers.type_id','bloggers.sign_contract_at','bloggers.terminate_agreement_at','bloggers.created_at',DB::raw('bloggers.last_follow_up_at as follow_up_at'),'bloggers.communication_status',DB::raw('group_concat(users.name) as publicity_user_names'))
                 ->leftJoin('blogger_types','blogger_types.id','bloggers.type_id')
                 ->leftJoin('module_users',function ($join){
                     $join->on('bloggers.id','module_users.moduleable_id');
@@ -122,7 +122,7 @@ AAA;
 
         }else{
 
-            return Blogger::select('bloggers.nickname', 'bloggers.id', DB::raw('blogger_types.name as type'), 'bloggers.sign_contract_status', 'bloggers.weibo_fans_num', 'bloggers.type_id', 'bloggers.sign_contract_at', 'bloggers.terminate_agreement_at', 'bloggers.created_at', 'bloggers.last_follow_up_at', 'bloggers.communication_status', DB::raw('publicity_user_names'))
+            return Blogger::select('bloggers.nickname', 'bloggers.id', DB::raw('blogger_types.name as type'), 'bloggers.sign_contract_status', 'bloggers.weibo_fans_num', 'bloggers.type_id', 'bloggers.sign_contract_at', 'bloggers.terminate_agreement_at', 'bloggers.created_at', DB::raw('bloggers.last_follow_up_at as follow_up_at'), 'bloggers.communication_status', DB::raw('publicity_user_names'))
                 ->leftJoin('blogger_types', 'blogger_types.id', 'bloggers.type_id');
         }
     }

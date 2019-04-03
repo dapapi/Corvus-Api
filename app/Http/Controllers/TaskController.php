@@ -1407,7 +1407,7 @@ class TaskController extends Controller
 
 
             if($request->has('resourceable_id')){
-                //$payload['resource_id'] = hashid_decode($payload['resourceable_id']);
+                $array['resource_id'] = hashid_decode($payload['resourceable_id']);
                 $resourceable_id = hashid_decode($payload['resourceable_id']);
 
             }
@@ -1427,7 +1427,6 @@ class TaskController extends Controller
 
                 $array['resource_type_name'] = '项目';
                 $resource_name = DB::table('projects')->where('projects.id',$resourceable_id)->select('title as name')->first();
-                dd($resource_name);
                 $array['resource_name'] = $resource_name->name;
 
 
@@ -1444,12 +1443,13 @@ class TaskController extends Controller
             }
 
             $task->update($array);
+
             unset($array['resource_type_name']);
             unset($array['resource_name']);
 
             // 操作日志
 //            event(new OperateLogEvent($arrayOperateLog));
-            event(new TaskDataChangeEvent($oldTask,$task));
+            //event(new TaskDataChangeEvent($oldTask,$task));
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);

@@ -39,7 +39,8 @@ class ClientController extends Controller
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $type = $request->get('project_type',null);
+        $type = $request->get('type',null);
+
         $clients = Client::searchData()
             ->leftJoin('operate_logs',function($join){
                 $join->on('clients.id','operate_logs.logable_id')

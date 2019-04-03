@@ -238,7 +238,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //分配经纪人
         $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //获取艺人和博主的联合列表
-        $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBlogger');
+        $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBloggergetStarAndBlogger');
         //为多个博主艺人分配多个经纪人宣传人制作人
         $api->post('/distribution/person', 'App\Http\Controllers\ModuleUserController@addMore');
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
@@ -310,6 +310,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/clients/import', 'App\Http\Controllers\ClientController@import');
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
+        $api->get('/clients/list', 'App\Http\Controllers\ClientController@indexAll');
+
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
 //            ->middleware('can:create,App\Models\ClientProtected');
@@ -458,8 +460,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
         // calendar
-        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@all');
-        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@index');
+        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
+        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
 
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');

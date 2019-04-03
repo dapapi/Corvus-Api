@@ -75,7 +75,7 @@ class TrailStarRepository
         $starNameArr = [];
         $bloggerIdArr = [];
         $bloggerNameArr = [];
-        array_walk($res, function (&$item) use ($starIdArr, $bloggerIdArr, $starNameArr, $bloggerNameArr) {
+        array_walk($res, function (&$item) use (&$starIdArr, &$bloggerIdArr, &$starNameArr, &$bloggerNameArr) {
             if ($item['flag'] == 'star') {
                 $starIdArr[] = $item['id'];
                 $starNameArr[] = $item['nickname'];
@@ -89,8 +89,7 @@ class TrailStarRepository
         $bloggerIds = implode(',', $bloggerIdArr);
         $bloggerName = implode(',', $bloggerNameArr);
         $project = Project::where('trail_id', $trail_id)->pluck('id')->toArray();
-        DB::table('project_implode')
-            ->whereIn('id', $project)
+        ProjectImplode::whereIn('id', $project)
             ->update([
                 'stars' => $starName,
                 'star_ids' => $starIds,

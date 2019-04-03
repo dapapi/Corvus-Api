@@ -92,10 +92,12 @@ class ProjectImplode implements ShouldQueue
         $implodeArr['expenditure'] = DB::table('project_bills')->where('project_kd_name', $project->title)->where('expense_type', '支出')->sum('money') ?? null;
         $implodeArr['revenue'] = DB::table('contracts')->where('project_id', $project->id)->where('type', '收入')->sum('contract_money') ?? null;
 
-        $implodeArr['last_follow_up_at'] = $project->last_follow_up_at;
+        $implodeArr['last_follow_up_at'] = $project->created_at;
         $implodeArr['latest_time'] = $project->created_at;
-        if ($project->last_follow_up_at)
+        if ($project->last_follow_up_at) {
             $implodeArr['latest_time'] = $project->last_follow_up_at;
+            $implodeArr['last_follow_up_at'] = $project->created_at;
+        }
         $implodeArr['last_updated_at'] = $project->last_updated_at;
         $lastFollowUp = $project->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
         $implodeArr['last_follow_up_user_id'] = $lastFollowUp ? $lastFollowUp->user_id : null;

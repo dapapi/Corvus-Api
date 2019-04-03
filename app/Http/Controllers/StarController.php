@@ -833,15 +833,16 @@ class StarController extends Controller
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
-        $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where($array);
+        DB::connection()->enableQueryLog();
+        $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where('stars.id','>',0)->where($array);
         $stars = Blogger::select('nickname','id','sign_contract_status',
             DB::raw('\'blogger\' as flag'))
             ->where($array)
-            ->where('id','>',0)
+            ->where('bloggers.id','>',0)
             ->searchData()
             ->union($first)
             ->get();
-
+        dd(DB::getQueryLog());
 
 
         return $this->response->collection($stars,new StarAndBloggerTransfromer());

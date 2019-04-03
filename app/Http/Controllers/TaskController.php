@@ -1725,27 +1725,27 @@ class TaskController extends Controller
             }
 
             if($payload['resource_type'] == 1){
-                $payload['type_name'] = '博主';
+                $payload['resource_type_name'] = '博主';
                 $resource_name = DB::table('bloggers')->where('bloggers.id',$resourceable_id)->select('nickname as name')->first();
                 $payload['resource_name'] = $resource_name->name;
 
             }elseif ($payload['resource_type'] == 2){
-                $payload['type_name'] = '艺人';
+                $payload['resource_type_name'] = '艺人';
                 $resource_name = DB::table('stars')->where('stars.id',$resourceable_id)->select('name')->first();
                 $payload['resource_name'] = $resource_name->name;
 
             }elseif ($payload['resource_type'] == 3){
-                $payload['type_name'] = '项目';
+                $payload['resource_type_name'] = '项目';
                 $resource_name = DB::table('projects')->where('projects.id',$resourceable_id)->select('title as name')->first();
                 $payload['resource_name'] = $resource_name->name;
 
             }elseif ($payload['resource_type'] == 4){
-                $payload['type_name'] = '客户';
+                $payload['resource_type_name'] = '客户';
                 $resource_name = DB::table('clients')->where('clients.id',$resourceable_id)->select('company as name')->first();
                 $payload['resource_name'] = $resource_name->name;
 
             }elseif ($payload['resource_type'] == 5){
-                $payload['type_name'] = '销售线索';
+                $payload['resource_type_name'] = '销售线索';
                 $resource_name = DB::table('trails')->where('trails.id',$resourceable_id)->select('title as name')->first();
                 $payload['resource_name'] = $resource_name->name;
 

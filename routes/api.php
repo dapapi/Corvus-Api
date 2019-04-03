@@ -70,6 +70,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //task
         $api->get('/tasks/filter', 'App\Http\Controllers\TaskController@filter');
         $api->post('/tasks', 'App\Http\Controllers\TaskController@store');
+        $api->post('/tasks/store', 'App\Http\Controllers\TaskController@taskStore');
+
         $api->get('/tasks', 'App\Http\Controllers\TaskController@index');
         $api->get('/tasks/my', 'App\Http\Controllers\TaskController@my');
         $api->get('/tasks/mylist', 'App\Http\Controllers\TaskController@myList');

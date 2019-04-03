@@ -91,8 +91,70 @@ class FilterReportRepository
               $query->whereRaw($relation_contidion);
           }
       }
-
       return $query;
+    }
+
+    //为原生sql生成查询条件
+    public static function getCondition($payload)
+    {
+        $where = "";
+        $placeholder = [];
+        foreach($payload as $k => $v) {
+
+            $field = $v['field'];
+            $operator = $v['operator'];
+            $value = $v['value'];
+            $type = $v['type'];
+            if (!empty($v['id'])) {
+                $id = hashid_decode($v['id']);
+            } else {
+                $id = Null;
+            }
+            if ($field){
+                $tmp = $tmp = str_replace('.','_',$field);
+                switch ($v['operator']) {
+                    case 'LIKE':
+                    case 'like':
+                        $value = '%' . $v['value'] . '%';
+                        $where .= " and {$field} like :{$field}";
+                        $placeholder[":{$field}"] = $value;
+                        break;
+                    case 'in':
+                        if ($type >= 5)#type = 5 type =6
+                            foreach ($value as &$v) {
+                                $v = hashid_decode($v);
+                            }
+                        unset($v);
+                        $value = implode($value,",");
+                        $placeholder[":{$tmp}"] = $value;
+                        $where .= " and {$field} in (:{$tmp})";
+                        break;
+                    case '>':
+                        $where .= " and {$field} > :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
+                        break;
+                    case '>=':
+                        $where .= " and {$field} >= :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
+                        break;
+                    case '<':
+                        $where .= " and {$field} < :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
+                        break;
+                    case '<=':
+                        $where .= " and {$field} <= :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
+                        break;
+
+                    default:
+                        $where .= " and {$field} {$operator} :{$tmp}";
+                        $placeholder[":{$tmp}"] = $value;
+                        break;
+                }
+            }
+
+        }
+        return ["where"=>$where,'placeholder'=>$placeholder];
     }
 
 }

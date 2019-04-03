@@ -964,4 +964,37 @@ class StarController extends Controller
     {
         return $this->response()->item($star,new StarDeatilTransformer());
     }
+
+    public function getStarList2(Request $request)
+    {
+        $payload = $request->all();
+        $search_field = [];
+        if (isset($payload['conditions'])){
+            $search_field = array_column($payload['conditions'],'field');
+        }
+        $array = [];//查询条件
+        if ($request->has('name')) {//姓名
+            $array[] = ['stars.name', 'like', '%' . $payload['name'] . '%'];
+        }
+        if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
+            $array[] = ['stars.sign_contract_status', $payload['sign_contract_status']];
+        }
+        if ($request->has('communication_status') && !empty($payload['communication_status'])) {//沟通状态
+            $array[] = ['stars.communication_status', $payload['communication_status']];
+        }
+        if ($request->has('source') && !empty($payload['source'])) {//艺人来源
+            $array[] = ['stars.source', $payload['source']];
+        }
+        $pageSize = $request->get('page_size', config('app.page_size'));
+//        DB::connection()->enableQueryLog();
+        $star_list = StarRepository::getStarList2($search_field)->searchData()->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload, $query);
+        })->where($array)
+            ->paginate($pageSize);
+//            ->offset(10)->limit(10);
+//        return $star_list;
+//        dd(DB::getQueryLog());
+//        return DB::select("select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars ");
+        return $this->response()->paginator($star_list,new StarListTransformer());
+    }
 }

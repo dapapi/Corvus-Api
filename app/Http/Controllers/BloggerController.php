@@ -1087,6 +1087,7 @@ class BloggerController extends Controller
      */
     public function bloggerList(Request $request)
     {
+        profiler_start('my time metric name');
         $payload = $request->all();
 
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -1160,18 +1161,19 @@ class BloggerController extends Controller
 
             $res[] = $temp;
         }
-        $meta = [
-            "pagination"=> [
-                "total"=> 576,
-                "count"=> 15,
-                "per_page"=> 15,
-                "current_page"=> 1,
-                "total_pages"=> 39,
-                "links"=> [
-                    "next"=> "http://corvus.cn/stars/filter?page=2"
-                ],
-            ]
-        ];
+//        $meta = [
+//            "pagination"=> [
+//                "total"=> 576,
+//                "count"=> 15,
+//                "per_page"=> 15,
+//                "current_page"=> 1,
+//                "total_pages"=> 39,
+//                "links"=> [
+//                    "next"=> "http://corvus.cn/stars/filter?page=2"
+//                ],
+//            ]
+//        ];
+        profiler_finish("my time metric name");
         return [
             "data" => $res,
             "meta"  => $meta,
@@ -1205,11 +1207,15 @@ class BloggerController extends Controller
             $array[] = ['bloggers.sign_contract_status',$payload['sign_contract_status']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
+//        DB::connection()->enableQueryLog();
         $bloggers = BloggerRepository::getBloggerList2($search_field)->searchData()
             ->where(function ($query)use ($payload){
                 FilterReportRepository::getTableNameAndCondition($payload,$query);
             })->where($array)
+//            ->offset(10)->limit(10)->get();
             ->paginate($pageSize);
+//        dd(DB::getQueryLog());
+        return $bloggers;
         return $this->response()->paginator($bloggers,new BloggerListTransformer());
     }
 }

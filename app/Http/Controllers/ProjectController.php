@@ -78,6 +78,7 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
+    protected $projectImplode;
 
     public function __construct(ModuleUserRepository $moduleUserRepository)
     {
@@ -166,9 +167,9 @@ class ProjectController extends Controller
         $isAll = $request->get('all', false);
         $status = $request->get('status', null);
         if (is_null($status))
-            $projects = Project::orderBy('created_at', 'desc')->searchData()->select('id','title')->get();
+            $projects = Project::orderBy('created_at', 'desc')->where('id','>',0)->searchData()->select('id','title')->get();
         else
-            $projects = Project::orderBy('created_at', 'desc')->where('status', $status)->searchData()->select('id','title')->get();
+            $projects = Project::orderBy('created_at', 'desc')->where('id','>',0)->where('status', $status)->searchData()->select('id','title')->get();
         return $this->response->collection($projects, new ProjectAllTransformer($isAll));
     }
 
@@ -318,23 +319,25 @@ class ProjectController extends Controller
         try {
             $project = Project::create($payload);
             $projectId = $project->id;
-
+            $this->createProjectImplode($payload, $projectId);
 
             if ($payload['type'] != 5) {
                 $projectHistorie = ProjectHistorie::create($payload);
                 $approvalForm = new ApprovalFormController();
                 $approvalForm->projectStore($request,$payload['type'], $payload['notice'], $payload['project_number']);
                 foreach ($payload['fields'] as $key => $val) {
+                    $key1 = hashid_decode((int)$key);
                     FieldValue::create([
-                        'field_id' => hashid_decode((int)$key),
+                        'field_id' => $key1,
                         'project_id' => $projectId,
                         'value' => $val,
                     ]);
                     FieldHistorie::create([
-                        'field_id' => hashid_decode((int)$key),
+                        'field_id' => $key1,
                         'project_id' => $projectHistorie->id,
                         'value' => $val,
                     ]);
+                    $this->updateProjectImplodeTemplateField($key1, $val, $projectId);
                 }
 
                 // todo 优化，这部分操作应该有对应仓库
@@ -540,16 +543,19 @@ class ProjectController extends Controller
         $old_project = clone $project;
         $trail = $project->trail;
 
+        $projectId = $project->id;
+
         if(!empty($trail))
         {
             $old_trail = clone $trail;
         }
         DB::beginTransaction();
         try {
+            $projectImp = ProjectImplode::find($projectId);
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
                 if ($project->principal_id != $payload['principal_id']) {
-                    try {
+         //           try {
 //                        $curr_principal = User::find($project->principal_id)->name;
 //                        $principal = User::findOrFail($payload['principal_id'])->name;
 //
@@ -563,11 +569,11 @@ class ProjectController extends Controller
 //                        ]);
 //                        $arrayOperateLog[] = $operateName;
 
-                    } catch (Exception $e) {
-                        Log::error($e);
-                        DB::rollBack();
+//                    } catch (Exception $e) {
+//                        Log::error($e);
+//                        DB::rollBack();
                         return $this->response->errorInternal("负责人错误");
-                    }
+  //                  }
 
                 }
 
@@ -595,7 +601,6 @@ class ProjectController extends Controller
             $last_participants = implode(",", array_column($project->participants()->get()->toArray(), 'name'));
             $project->update($payload);//更新项目
 
-            $projectId = $project->id;
 //            $trail = $project->trail;
             //只有新增或者要删除的参与人不为空是才更新
             if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids']) != 0) {
@@ -644,13 +649,58 @@ class ProjectController extends Controller
                         if ($fieldValue) {//存在保存，不存在新增
                             $fieldValue->value = $val;
                             $fieldValue->save();
+
                         } else {
-                            FieldValue::create([
+                            $fieldValue = FieldValue::create([
                                 'field_id' => $fieldId,
                                 'project_id' => $projectId,
                                 'value' => $val,
                             ]);
                         }
+                        switch ($fieldValue->field_id) {
+                            case 22:  # 签单时间
+                                $projectImp->sign_at = $val;
+                                break;
+                            case 52:  # 上线时间
+                                $projectImp->launch_at= $val;
+                                break;
+                            case 11:  # 播出平台
+                                $projectImp->platforms = $val;
+                                break;
+                            case 31:  # 综艺节目类型
+                                $projectImp->show_type = $val;
+                                break;
+                            case 32:  # 嘉宾类型
+                                $projectImp->guest_type = $val;
+                                break;
+                            case 34:  # 录制时间
+                                $projectImp->record_at = $val;
+                                break;
+                            case 7:  # 影剧类型
+                                $projectImp->movie_type = $val;
+                                break;
+                            case 9:  # 题材
+                                $projectImp->theme = $val;
+                                break;
+                            case 23:  # 选角团队
+                                $projectImp->team_info = $val;
+                                break;
+                            case 25:  # 试戏时间
+                                $projectImp->walk_through_at = $val;
+                                break;
+                            case 26:  # 试戏地点
+                                $projectImp->walk_through_location = $val;
+                                break;
+                            case 55:  # 合约费用(含税）
+                                $projectImp->agreement_fee = $val;
+                                break;
+                            case 54:  # 签单时间
+                                $projectImp->multi_channel = $val;
+                                break;
+                            default:
+                                break;
+                        }
+                        $projectImp->save();
                     }
 
                 }
@@ -1682,14 +1732,12 @@ class ProjectController extends Controller
 
     public function list(FilterRequest $request)
     {
-        # 权限|我负责的|我参与的|自定义筛选|整理数据格式
+        # |自定义筛选|整理数据格式
 
         # 我参与的
         $power = ProjectImplode::getConditionSql();
-//        DB::table('module_users')->where('user_id', $id)->where('moduleable_type', ModuleableType::PROJECT)->pluck('moduleable_id')->toArray();
-//        $user = Auth::guard('api')->user();
 
-        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids");
+        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids, project_type");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
@@ -1710,8 +1758,27 @@ class ProjectController extends Controller
 
             }
         }
-        $query->whereRaw(DB::raw("1 = 1 $power"));
-        $paginator = $query->orderBy('latest_time', 'desc')->paginate();
+        $query->whereRaw(DB::raw("(1 = 1 $power)"));
+
+        if ($request->has('principal_ids') && $payload['principal_ids']) {
+            $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+            foreach ($payload['principal_ids'] as &$id) {
+                $id = hashid_decode((int)$id);
+            }
+            unset($id);
+            $query->whereIn('project_implode.principal_id', $payload['principal_ids']);
+        }
+
+        if ($request->has('project_implode.project_type'))
+            $query->where('project_type', $payload['project_type']);
+
+
+        if ($request->has('keyword'))
+            $query->where('project_implode.project_name', 'LIKE', '%' . $payload['keyword'] . '%');
+
+        $paginator = $query->orderBy('latest_time', 'desc')
+//            ->toSql();
+            ->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理
@@ -1763,6 +1830,74 @@ class ProjectController extends Controller
         $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
         $manager = new Manager();
         return response($manager->createData($data)->toArray());
+    }
+
+    private function createProjectImplode($payload, $id)
+    {
+        $arr = [];
+        $arr['id'] = $id;
+        $arr['principal_id'] = $payload['principal_id'];
+        $arr['creator_id'] = $payload['creator_id'];
+        $arr['project_name'] = $payload['title'];
+        $arr['project_type'] = $payload['type'];
+        $arr['project_priority'] = $payload['priority'];
+        $arr['project_start_at'] = $payload['start_at'];
+        $arr['project_end_at'] = $payload['end_at'];
+        $arr['principal'] = User::find($payload['principal_id'])->name;
+        $arr['creator'] = User::find($payload['creator_id'])->name;
+        if (array_key_exists('trail' ,$payload) && array_key_exists('id', $payload['trail']))
+            $arr['client'] = Trail::find($payload['trail'])->client->company;
+
+        $this->projectImplode = ProjectImplode::create($arr);
+    }
+
+    private function updateProjectImplodeTemplateField($key, $val)
+    {
+        $projectImp = $this->projectImplode;
+        switch ($key) {
+            case 22:  # 签单时间
+                $projectImp->sign_at = $val;
+                break;
+            case 52:  # 上线时间
+                $projectImp->launch_at= $val;
+                break;
+            case 11:  # 播出平台
+                $projectImp->platforms = $val;
+                break;
+            case 31:  # 综艺节目类型
+                $projectImp->show_type = $val;
+                break;
+            case 32:  # 嘉宾类型
+                $projectImp->guest_type = $val;
+                break;
+            case 34:  # 录制时间
+                $projectImp->record_at = $val;
+                break;
+            case 7:  # 影剧类型
+                $projectImp->movie_type = $val;
+                break;
+            case 9:  # 题材
+                $projectImp->theme = $val;
+                break;
+            case 23:  # 选角团队
+                $projectImp->team_info = $val;
+                break;
+            case 25:  # 试戏时间
+                $projectImp->walk_through_at = $val;
+                break;
+            case 26:  # 试戏地点
+                $projectImp->walk_through_location = $val;
+                break;
+            case 55:  # 合约费用(含税）
+                $projectImp->agreement_fee = $val;
+                break;
+            case 54:  # 签单时间
+                $projectImp->multi_channel = $val;
+                break;
+            default:
+                break;
+        }
+        $projectImp->save();
     }
 }
 

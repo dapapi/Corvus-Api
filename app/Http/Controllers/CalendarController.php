@@ -46,7 +46,7 @@ class CalendarController extends Controller
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
         })->whereRaw("s.id=calendars.id")->select("mu.user_id");
 
-        $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.id','calendars.color','calendars.principal_id','calendars.privacy',
+        $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.color','calendars.principal_id','calendars.privacy',
             'calendars.starable_type','calendars.title')
             ->where(function ($query)use ($user,$subquery){
             $query->where('calendars.creator_id',$user->id)//创建人
@@ -55,7 +55,10 @@ class CalendarController extends Controller
                          ->where('calendars.privacy',Calendar::SECRET);//参与人
                  })
             ->orwhere('calendars.privacy',Calendar::OPEN);
-        })->where($array)->get();
+        })->where('id','>',0)->where($array)
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $calendars->getBindings(), $calendars->toSql());
+//                    dd($sql_with_bindings);
         return $this->response->collection($calendars, new CalendarIndexTransformer());
     }
     public function all(Request $request)
@@ -213,7 +216,8 @@ class CalendarController extends Controller
     public function delete(Request $request, Calendar $calendar)
     {
         $user = Auth::guard('api')->user();
-        if($calendar->creator_id != $user->id){
+        $participants = array_column($calendar->participants()->get()->toArray(),'id');
+        if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
             return $this->response->errorInternal("你没有该日历的权限");
         }
         DB::beginTransaction();

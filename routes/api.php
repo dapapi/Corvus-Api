@@ -57,8 +57,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
-//        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
-        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@list');
+        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
+        $api->post('/projects/web_filter', 'App\Http\Controllers\ProjectController@list');
         $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -310,6 +310,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/clients/import', 'App\Http\Controllers\ClientController@import');
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
+
+        $api->get('/clients_list', 'App\Http\Controllers\ClientController@indexAll');
+
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
 //            ->middleware('can:create,App\Models\ClientProtected');
@@ -458,8 +461,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
         // calendar
-        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@all');
-        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@index');
+        $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
+        $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
         $api->post('/calendars', 'App\Http\Controllers\CalendarController@store');
 
         $api->get('/calendars/{calendar}', 'App\Http\Controllers\CalendarController@detail');

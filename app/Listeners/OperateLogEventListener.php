@@ -15,6 +15,7 @@ use App\Models\Contract;
 use App\Models\OperateLog;
 use App\Models\Production;
 use App\Models\Project;
+use App\Models\ProjectImplode;
 use App\Models\Star;
 use App\Models\Report;
 use App\Models\Calendar;
@@ -39,10 +40,12 @@ use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
 use App\OperateLogMethod;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class OperateLogEventListener
 {
+    private $implodeModel;
     /**
      * Create the event listener.
      *
@@ -120,12 +123,15 @@ class OperateLogEventListener
                 $typeName = '任务';
             } else if ($operate->obj instanceof Project) {
                 $type = ModuleableType::PROJECT;
+                $this->implodeModel = ProjectImplode::find($operate->obj->id);
                 $typeName = '项目';
             } else if ($operate->obj instanceof Star) {
                 $type = ModuleableType::STAR;
+                $this->implodeModel = $operate->obj;
                 $typeName = '艺人';
             } else if ($operate->obj instanceof Blogger) {
                 $type = ModuleableType::BLOGGER;
+                $this->implodeModel = $operate->obj;
                 $typeName = '博主';
             }else if ($operate->obj instanceof User) {
                 $type = ModuleableType::USER;
@@ -245,6 +251,10 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
+                    $this->implodeModel->last_follow_up_user_id = $user->id;
+                    $this->implodeModel->last_follow_up_user_name = $user->name;
+                    $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
+                    $this->implodeModel->save();
                     $level = OperateLogLevel::LOW;
                     $content = sprintf($this->follow_up, $start);
                     break;

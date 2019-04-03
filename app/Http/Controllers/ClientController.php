@@ -90,10 +90,7 @@ class ClientController extends Controller
 
             })
             ->leftJoin('users',function($join){
-                $join->on('users.id','clients.principal_id')
-                    ->where('logable_type',ModuleableType::CLIENT)
-                    ->where('operate_logs.method','4');
-
+                $join->on('users.id','clients.principal_id');
             })
             ->where(function ($query) use ($request, $payload) {
                 if ($request->has('keyword'))
@@ -120,6 +117,7 @@ class ClientController extends Controller
             //->orderBy('clients.created_at', 'desc')
             //->select(['clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','clients.updated_at',DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
+
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
         foreach ($clients as &$value) {
             $value['id'] = hashid_encode($value['id']);

@@ -230,6 +230,7 @@ class ClientController extends Controller
         if ($request->has('principal_id') && !empty($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
+        DB::beginTransaction();
         try {
 //            foreach ($payload as $key => $value) {
 //                $lastValue = $client[$key];
@@ -251,9 +252,11 @@ class ClientController extends Controller
             event(new ClientDataChangeEvent($old_client,$client));//记录日志
 
         } catch (\Exception $exception) {
+            DB::rollBack();
             Log::error($exception);
             return $this->response->errorInternal('修改失败');
         }
+        DB::commit();
         return $this->response->accepted();
     }
 

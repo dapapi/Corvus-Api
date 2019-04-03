@@ -1086,8 +1086,9 @@ class StarController extends Controller
 //        DB::connection()->enableQueryLog();
         $star_list = StarRepository::getStarList2($search_field)->searchData()->where(function ($query) use ($payload) {
                 FilterReportRepository::getTableNameAndCondition($payload, $query);
-            })->where($array)->paginate($pageSize);
-//            ->offset(10)->limit(10);
+            })->where($array)
+//            ->paginate($pageSize);
+            ->offset(10)->limit(10);
 //        return $star_list;
 //        dd(DB::getQueryLog());
 //        return DB::select("select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars ");

@@ -1205,11 +1205,21 @@ class BloggerController extends Controller
             $array[] = ['bloggers.sign_contract_status',$payload['sign_contract_status']];
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $bloggers = BloggerRepository::getBloggerList2($search_field)->searchData()
-            ->where(function ($query)use ($payload){
-                FilterReportRepository::getTableNameAndCondition($payload,$query);
-            })->where($array)
-            ->paginate($pageSize);
-        return $this->response()->paginator($bloggers,new BloggerListTransformer());
+//        DB::connection()->enableQueryLog();
+//        $bloggers = BloggerRepository::getBloggerList2($search_field)->searchData()
+//            ->where(function ($query)use ($payload){
+//                FilterReportRepository::getTableNameAndCondition($payload,$query);
+//            })->where($array)
+//            ->offset(10)->limit(10)->get();
+//            ->paginate($pageSize);
+//        dd(DB::getQueryLog());
+//        return $bloggers;
+//        return $this->response()->paginator($bloggers,new BloggerListTransformer());
+        return DB::select("
+select `bloggers`.`nickname`, `bloggers`.`id`, blogger_types.name as type, `bloggers`.`sign_contract_status`, `bloggers`.`weibo_fans_num`, `bloggers`.`type_id`, `bloggers`.`sign_contract_at`, `bloggers`.`terminate_agreement_at`, `bloggers`.`created_at`, `bloggers`.`last_follow_up_at`, `bloggers`.`communication_status`, publicity_user_names from `bloggers` left join `blogger_types` on `blogger_types`.`id` = `bloggers`.`type_id` where (1 = 1 or 3 in (
+                  select u.id from bloggers as b
+                  left join module_users as mu on mu.moduleable_id = b.id and
+                  mu.moduleable_type='blogger' left join users as u on u.id = mu.user_id where b.id = bloggers.id
+              )) and (`bloggers`.`sign_contract_status` = 1) and `bloggers`.`deleted_at` is null limit 15 offset 0	");
     }
 }

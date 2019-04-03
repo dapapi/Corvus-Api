@@ -27,6 +27,8 @@ use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Bridge\PersonalAccessGrant;
+use League\OAuth2\Server\AuthorizationServer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -66,6 +68,9 @@ class AppServiceProvider extends ServiceProvider
 
             //TODO
         ]);
+        //token过期时间
+        $this->app->get(AuthorizationServer::class)
+            ->enableGrantType(new PersonalAccessGrant(), new \DateInterval('P1W'));
 
     }
 
@@ -79,5 +84,9 @@ class AppServiceProvider extends ServiceProvider
         if (! $this->app->environment('production')) {
             $this->app->register(\JKocik\Laravel\Profiler\ServiceProvider::class);
         }
+
+        $this->app->make('auth')->provider('redis', function ($app, $config) {
+            return new RedisUserProvider($app['hash'], $config['model']);
+        });
     }
 }

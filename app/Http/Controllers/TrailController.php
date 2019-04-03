@@ -74,11 +74,11 @@ class TrailController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-            if ($request->has('type') && $payload['type'] <> '3,4' ){
+            if ($request->has('type') && $payload['type'] <> '4' ){
                 $query->where('trails.type',$payload['type']);
 
             }
-            if($request->has('type') && $payload['type'] == '3,4'){
+            if($request->has('type') && $payload['type'] == '4'){
                 $query->whereIn('trails.type',[3,4]);
             }
 

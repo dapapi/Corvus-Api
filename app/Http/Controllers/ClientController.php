@@ -60,11 +60,11 @@ class ClientController extends Controller
                     unset($id);
                     $query->whereIn('principal_id', $payload['principal_ids']);
                 }
-                if ($request->has('type') && $type <> '3,4' ){
+                if ($request->has('type') && $type <> '4' ){
                     $query->where('clients.type',$type);
 
                 }
-                if($request->has('type') && $type == '3,4'){
+                if($request->has('type') && $type == '4'){
                     $query->whereIn('clients.type',[3,4]);
                 }
             })

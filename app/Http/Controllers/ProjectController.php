@@ -1732,12 +1732,10 @@ class ProjectController extends Controller
 
     public function list(FilterRequest $request)
     {
-        # 权限|我负责的|我参与的|自定义筛选|整理数据格式
+        # |自定义筛选|整理数据格式
 
         # 我参与的
-//        $power = ProjectImplode::getConditionSql();
-//        DB::table('module_users')->where('user_id', $id)->where('moduleable_type', ModuleableType::PROJECT)->pluck('moduleable_id')->toArray();
-//        $user = Auth::guard('api')->user();
+        $power = ProjectImplode::getConditionSql();
 
         $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids");
         $payload = $request->all();
@@ -1760,9 +1758,23 @@ class ProjectController extends Controller
 
             }
         }
-//        $query->whereRaw(DB::raw("1 = 1 $power"));
+        if ($request->has('project_type'))
+            $query->where('project_type', $payload['project_type']);
+
+        if ($request->has('keyword'))
+            $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
+
+        if ($request->has('principal_ids') && $payload['principal_ids']) {
+            $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+            foreach ($payload['principal_ids'] as &$id) {
+                $id = hashid_decode((int)$id);
+            }
+            unset($id);
+            $query->whereIn('projects.principal_id', $payload['principal_ids']);
+        }
+
+        $query->whereRaw(DB::raw("1 = 1 $power"));
         $paginator = $query->orderBy('latest_time', 'desc')
-//        dd($paginator);
             ->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {

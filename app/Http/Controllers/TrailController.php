@@ -16,6 +16,8 @@ use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
+use App\Http\Transformers\TrailFilterTransformer;
+use App\Http\Transformers\TrailIndexTransformer;
 use App\Imports\TrailsImport;
 use App\Models\DataDictionarie;
 use App\Models\Department;
@@ -85,13 +87,14 @@ class TrailController extends Controller
                     ->where('logable_type',ModuleableType::TRAIL)
                     ->where('operate_logs.method','4');
             })->groupBy('trails.id')
+            ->where('trails.id','>',0)
             ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
                 'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
-        return $this->response->paginator($trails, new TrailTransformer());
+        return $this->response->paginator($trails, new TrailIndexTransformer());
     }
 
 
@@ -1038,8 +1041,11 @@ class TrailController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $joinSql = FilterJoin::where('table_name', 'trails')->first()->join_sql;
+       // $joinSql = FilterJoin::where('table_name', 'trails')->first()->join_sql;
+        $joinSql = 'trails';
         $query = Trail::selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
+
+        //
         $trail = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
@@ -1089,52 +1095,8 @@ class TrailController extends Controller
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
                 'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
-//               $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
-//        dd($sql_with_bindings);
-//        $company = $user->company->name;
 
-//        $joinSql = FilterJoin::where('company', $company)->where('table_name', 'trails')->first()->join_sql;
-
-//        $query = DB::table('trails')->selectRaw('DISTINCT(trails.id) as ids')->from(DB::raw($joinSql));
-
-//        $keyword = $request->get('keyword', '');
-//        if ($keyword !== '') {
-//            // todo 本表中字符型字段模糊查询; 本表中枚举使用的字段也需要加入
-//            $query->whereRaw('CONCAT(`trails`.`title`,`trails`.`brand`,`trails`.`desc`) LIKE "%?%"', [$keyword]);
-//        }
-//        $query = Trail::query();
-//        $conditions = $request->get('conditions');
-//        foreach ($conditions as $condition) {
-//            $field = $condition['field'];
-//            $operator = $condition['operator'];
-//            $type = $condition['type'];
-//            if ($operator == 'LIKE') {
-//                $value = '%' . $condition['value'] . '%';
-//                $query->whereRaw("$field $operator ?", [$value]);
-//            } else if ($operator == 'in') {
-//                $value = $condition['value'];
-//                if ($type >= 5)
-//                    foreach ($value as &$v) {
-//                        $v = hashid_decode($v);
-//                    }
-//                unset($v);
-//                $query->whereIn($field, $value);
-//            } else {
-//                $value = $condition['value'];
-//                $query->whereRaw("$field $operator ?", [$value]);
-//            }
-//
-//        }
-
-        // 这句用来检查绑定的参数
- //       $sql_with_bindings = str_replace_array('?', $query->getBindings(), $query->toSql());
-//        dd($sql_with_bindings);
- //       $result = $query->pluck('ids')->toArray();
-
-//        $trails = Trail::whereIn('id', $result)->orderBy('created_at', 'desc')->paginate($pageSize);
-      //  $trails = $query->searchData()->poolType()->orderBy('created_at', 'desc')->paginate($pageSize);
-
-        return $this->response->paginator($trails, new TrailTransformer());
+        return $this->response->paginator($trails, new TrailFilterTransformer());
     }
 
     public function import(ExcelImportRequest $request)

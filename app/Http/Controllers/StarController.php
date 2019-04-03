@@ -988,6 +988,7 @@ class StarController extends Controller
         $star_list = StarRepository::getStarList2($search_field)->searchData()->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
         })->where($array)
+            ->orderBy('stars.last_follow_up_at','desc')
             ->paginate($pageSize);
 //            ->offset(10)->limit(10);
 //        return $star_list;

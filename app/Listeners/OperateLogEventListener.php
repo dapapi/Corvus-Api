@@ -211,6 +211,10 @@ class OperateLogEventListener
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
+                    $this->implodeModel->last_follow_up_user_id = $user->id;
+                    $this->implodeModel->last_follow_up_user_name = $user->name;
+                    $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
+                    $this->implodeModel->save();
                     $level = OperateLogLevel::LOW;
                     $content = $this->create . '' . $typeName;
                     break;

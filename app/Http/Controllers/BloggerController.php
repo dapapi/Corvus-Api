@@ -1135,6 +1135,7 @@ class BloggerController extends Controller
             ->where(function ($query)use ($payload){
                 FilterReportRepository::getTableNameAndCondition($payload,$query);
             })->where($array)
+            ->orderBy('bloggers.last_follow_up_at','desc')
 //            ->offset(10)->limit(10)->get();
             ->paginate($pageSize);
 //        return $bloggers->toArray();

@@ -1775,9 +1775,8 @@ class ProjectController extends Controller
         }
 
         $paginator = $query->orderBy('latest_time', 'desc')
-            ->toSql();
-        dd($paginator);
-//            ->paginate();
+//            ->toSql();
+            ->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理

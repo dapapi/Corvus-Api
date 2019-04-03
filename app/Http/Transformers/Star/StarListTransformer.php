@@ -16,22 +16,24 @@ class StarListTransformer extends TransformerAbstract
             'weibo_fans_num'    => $star->weibo_fans_num,
             'source' => $star->source,
             'created_at' => $star->created_at->toDatetimeString(),
-            'last_follow_up_at' =>  $star->last_follow_up_at,
-            'contracts' => $this->includeContracts($star),
+            'last_follow_up_at' =>  $star->follow_up_at,
+            'sign_contract_at'  => $star->sign_contract_at,
+            'terminate_agreement_at'    =>  $star->terminate_agreement_at,
+            'sign_contract_status'  =>  $star->sign_contract_status,
         ];
 
     }
-    public function includeContracts(Star $star)
-    {
-
-        $contracts = $star->contracts()
-            ->leftJoin('approval_form_business','approval_form_business.form_instance_number','contracts.form_instance_number')
-            ->where('form_id',7)
-            ->select('contract_start_date')->first();
-        if($contracts){
-            return $this->item($contracts, new ContractDateTransformer(false));
-        }else{
-            return $this->null();
-        }
-    }
+//    public function includeContracts(Star $star)
+//    {
+//
+//        $contracts = $star->contracts()
+//            ->leftJoin('approval_form_business','approval_form_business.form_instance_number','contracts.form_instance_number')
+//            ->where('form_id',7)
+//            ->select('contract_start_date')->first();
+//        if($contracts){
+//            return $this->item($contracts, new ContractDateTransformer(false));
+//        }else{
+//            return $this->null();
+//        }
+//    }
 }

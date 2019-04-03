@@ -53,7 +53,7 @@ class BloggerRepository
             $condition['placeholder'] = [];
         }
 
-//        $placeholder = $condition['placeholder'];
+        $placeholder = $condition['placeholder'];
         $where = Blogger::powerConditionSql();
 
         $offset = ($page-1) * $pageSize;
@@ -86,17 +86,18 @@ AAA;
 AAA;
 
         }
-        $count = DB::select("select count(temp.id) from ({$sql}) as temp");
-
+        $count = DB::select("select count(temp.id) as total from ({$sql}) as temp",$placeholder);
+        $total = $count[0]->total;
         $sql .= " limit {$offset},{$pageSize}";
         $data = DB::select($sql,$placeholder);
+        $total_page = ceil($total / $pageSize);
         $meta = [
             "pagination"=> [
-                "total"=> $count,
-                "count"=> $count($data),
+                "total"=> $total,
+                "count"=> count($data),
                 "per_page"=> $page - 1 == 0 ? 1: $page-1,
                 "current_page"=> $page,
-                "total_pages"=> ($count/$pageSize) + 1,
+                "total_pages"=> $total_page,
                 "links"=> [
                     "next"=> "http://corvus.cn/stars/filter?page=2"
                 ],
@@ -104,7 +105,7 @@ AAA;
         ];
         return [
             $data,
-            [],
+            $meta,
         ];
     }
 

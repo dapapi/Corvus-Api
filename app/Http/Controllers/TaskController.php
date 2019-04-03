@@ -1286,6 +1286,8 @@ class TaskController extends Controller
 
                 $principalId = hashid_decode($payload['principal_id']);
 //                $principalUser = User::findOrFail($principalId);
+                $userName = DB::table('users')->where('users.id', $principalId)->select('name')->first();
+                $array['principal_name'] = $userName->name;
                 $array['principal_id'] = $principalId;
 
                 if ($currentPrincipalUser) {

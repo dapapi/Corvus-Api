@@ -58,8 +58,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/bloggers/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
-//        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
-        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@list');
+        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
+//        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@list');
         $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -241,7 +241,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //分配经纪人
         $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
         //获取艺人和博主的联合列表
-        $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBloggergetStarAndBlogger');
+        $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBlogger');
         //为多个博主艺人分配多个经纪人宣传人制作人
         $api->post('/distribution/person', 'App\Http\Controllers\ModuleUserController@addMore');
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');

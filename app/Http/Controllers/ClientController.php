@@ -122,8 +122,12 @@ class ClientController extends Controller
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
 
+
+        foreach ($clients as &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
         return $clients;
-        return $this->response->paginator($clients, new ClientTransformer());
+        //return $this->response->paginator($clients, new ClientTransformer());
     }
 
     public function getClientRelated(Request $request){

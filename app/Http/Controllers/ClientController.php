@@ -106,7 +106,7 @@ class ClientController extends Controller
             ->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','clients.company','clients.type','clients.grade','clients.district'
                ,'clients.status','principal_id','creator_id','client_rating','clients.created_at','clients.updated_at','protected_client_time','users.name',
-                DB::raw( "max(operate_logs.updated_at) as up_time")])
+                DB::raw( "max(operate_logs.updated_at) as last_follow_up_at")])
 
             //->orderBy('clients.created_at', 'desc')
             //->select(['clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','clients.updated_at',DB::raw( "max(operate_logs.updated_at) as up_time")])

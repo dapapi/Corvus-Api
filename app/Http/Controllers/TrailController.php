@@ -16,6 +16,7 @@ use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
+use App\Http\Transformers\TrailDetailTransformer;
 use App\Http\Transformers\TrailFilterTransformer;
 use App\Http\Transformers\TrailIndexTransformer;
 use App\Imports\TrailsImport;
@@ -894,7 +895,36 @@ class TrailController extends Controller
         $trail->powers = $repository->getPower($user,$trail);
         return $this->response->item($trail, new TrailTransformer());
     }
-
+    public function detailAll(Request $request, Trail $trail,TrailRepository $repository,ScopeRepository $scopeRepository)
+    {
+//        $trail = $trail->searchData()->find($trail->id);
+        $trail = Trail::find($trail->id);
+//        $sql_with_bindings = str_replace_array('?', $trail->getBindings(), $trail->toSql());
+//               dd($sql_with_bindings);
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $trail,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
+//        $user = Auth::guard("api")->user();
+//        //登录用户对线索编辑权限验证
+//        try{
+////            获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $scopeRepository->checkPower("trails/{id}",'put',$role_list,$trail);
+//            $trail->power = "true";
+//        }catch (Exception $exception){
+//            $trail->power = "false";
+//        }
+//        $trail->powers = $repository->getPower($user,$trail);
+        return $this->response->item($trail, new TraildetailTransformer());
+    }
     public function forceDelete(Request $request, $trail)
     {
         $trail->forceDelete();

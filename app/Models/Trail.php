@@ -91,6 +91,8 @@ class Trail extends Model
         'receive',
         'fee',
         'desc',
+        'expectations',
+        'recommendations'
     ];
 
     protected $dates = ['deleted_at'];

@@ -388,7 +388,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
-
+        $api->get('/trailsAll/{trail}', 'App\Http\Controllers\TrailController@detailAll');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

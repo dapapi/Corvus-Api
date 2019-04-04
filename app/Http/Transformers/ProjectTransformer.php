@@ -179,13 +179,13 @@ class ProjectTransformer extends TransformerAbstract
             $array['trail']['data']['id'] = hashid_encode($trails->id);
             $array['trail']['data']['title'] = $trails->title;
 
-            $array['client']['data']['id'] = hashid_encode($trails->clients_id);
-            $array['client']['data']['company'] = $trails->company;
+            $array['trail']['data']['client']['data']['id'] = hashid_encode($trails->clients_id);
+            $array['trail']['data']['client']['data']['company'] = $trails->company;
         }else{
             $array['trail']['data']['id'] = '';
             $array['trail']['data']['title'] = '';
-            $array['client']['data']['id'] = '';
-            $array['client']['data']['company'] = '';
+            $array['trail']['data']['client']['data']['id'] = '';
+            $array['trail']['data']['client']['data']['company'] = '';
         }
 
 

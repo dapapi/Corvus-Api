@@ -1536,10 +1536,17 @@ class ApprovalFormController extends Controller
             $controlIdArr = explode(',', $controlIds);
             $valueArr = [];
             foreach ($controlIdArr as $controlId) {
-                $valueArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
+                $dataId = Control::where('form_control_id', $controlId)->value('control_id');
+                if ($dataId == 83) {
+                    $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
+                    $valueArr[] = $this->numberForCondition($formId, $value);
+                } else {
+                    $valueArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
+                }
             }
             $values = implode(',', $valueArr);
             $conditionId = Condition::where('form_id', $formId)->where('condition', $values)->value('flow_condition_id');
+
         } else {
             $conditionId = null;
         }
@@ -1720,5 +1727,19 @@ class ApprovalFormController extends Controller
         ];
 
         return $arr;
+    }
+
+    private function numberForCondition($formId, $value)
+    {
+        $result = 0;
+        foreach (Condition::where('form_id', $formId)->orderBy('sort_number', 'desc')->cursor() as $item) {
+            if ($value * 1 >= $item->condition * 1) {
+                $result = $item->condition;
+                break;
+            } else {
+                continue;
+            }
+        }
+        return $result;
     }
 }

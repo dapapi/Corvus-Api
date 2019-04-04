@@ -923,7 +923,7 @@ class TrailController extends Controller
             $trail->power = "false";
         }
         $trail->powers = $repository->getPower($user,$trail);
-        return $this->response->item($trail, new TraildetailTransformer());
+        return $this->response->item($trail, new TrailDetailTransformer());
     }
     public function forceDelete(Request $request, $trail)
     {

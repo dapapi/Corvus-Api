@@ -6,6 +6,7 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
+use App\Traits\PrivacyFieldTrait;
 use App\User;
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 class Blogger extends Model
 {
     use SoftDeletes;
+    use PrivacyFieldTrait;
 //    use OperateLogTrait;
     protected static $model_dic_id = DataDictionarie::BLOGGER;//模型在数据字典中对应的id
     protected $fillable = [

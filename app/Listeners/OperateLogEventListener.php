@@ -121,7 +121,7 @@ class OperateLogEventListener
                 $typeName = '任务';
             } else if ($operate->obj instanceof Project) {
                 $type = ModuleableType::PROJECT;
-//                $this->implodeModel = ProjectImplode::find($operate->obj->id);
+                $this->implodeModel = ProjectImplode::find($operate->obj->id);
                 $typeName = '项目';
             } else if ($operate->obj instanceof Star) {
                 $type = ModuleableType::STAR;
@@ -213,7 +213,7 @@ class OperateLogEventListener
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
-                    if ($this->implodeModel == null) {
+                    if ($this->implodeModel != null) {
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
@@ -226,7 +226,7 @@ class OperateLogEventListener
                     $content = $this->create . '' . $typeName;
                     break;
                 case OperateLogMethod::UPDATE://修改
-                    if ($this->implodeModel == null) {
+                    if ($this->implodeModel != null) {
                         $this->implodeModel->last_updated_user_id = $user->id;
                         $this->implodeModel->last_updated_user = $user->name;
                         $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
@@ -258,7 +258,7 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
-                    if ($this->implodeModel == null){
+                    if ($this->implodeModel != null){
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();

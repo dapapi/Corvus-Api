@@ -17,7 +17,7 @@ class TaskTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type','operateLogs',  'relate_tasks', 'relate_projects'];
 
-    protected $defaultIncludes = ['type','resource','affixesgit'];
+    protected $defaultIncludes = ['type','resource','affixes'];
     //protected $defaultIncludes = ['affixes','tasks'];
     public function transform(Task $task)
     {

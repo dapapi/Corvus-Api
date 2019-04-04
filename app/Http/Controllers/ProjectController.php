@@ -2028,7 +2028,7 @@ class ProjectController extends Controller
             else
             {
                 if (isset($expendituresum)) {
-                    $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+                    $result->addMeta('expendituresum', "".$expendituresum);
                 }
                 else
                 {
@@ -2046,7 +2046,7 @@ class ProjectController extends Controller
                 $result->addMeta('contractmoney', "".'0');
             }
             if (isset($expendituresum)) {
-                $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+                $result->addMeta('expendituresum', "".$expendituresum);
             }
             else
             {

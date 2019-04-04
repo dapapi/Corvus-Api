@@ -14,11 +14,7 @@ class BloggerDetailTransformer extends TransformerAbstract
     {
         return [
             'id' => hashid_encode($blogger->id),
-<<<<<<< HEAD
-            'type'  => $blogger->type_id,
-=======
             'type'  => hashid_encode($blogger->type_id),
->>>>>>> youhua
             'nickname' => $blogger->nickname,
             'platform_id' => $blogger->platform_id,    //平台
             'avatar' => $blogger->avatar,

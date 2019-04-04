@@ -57,7 +57,9 @@ class BloggerDetailTransformer extends TransformerAbstract
     }
     public function getCreator(Blogger $blogger)
     {
-        $user = $blogger->creator()->value('name');
+        $user = $blogger->creator()->select('id','name')->first();
+
+        $user->department = $user->department()->value('name');
         return $user;
 //        return $this->item($user,new UserTransformer());
     }

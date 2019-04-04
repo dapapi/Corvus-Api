@@ -44,7 +44,7 @@ use Illuminate\Support\Facades\Auth;
 
 class OperateLogEventListener
 {
-    use DispatchesJobs;
+//    use DispatchesJobs;
     private $implodeModel;
     /**
      * Create the event listener.
@@ -440,7 +440,7 @@ class OperateLogEventListener
                     break;
 
             }
-            $this->dispatch(new RecordOperateLog([
+            dispatch(new RecordOperateLog([
                 'user_id' => $user->id,
                 'logable_id' => $id,
                 'logable_type' => $type,
@@ -450,7 +450,7 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ]));
+            ]))->delay(Carbon::now()->addMinutes(10));
 //            OperateLog::create([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,

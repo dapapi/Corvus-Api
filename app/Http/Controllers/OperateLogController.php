@@ -98,11 +98,12 @@ class OperateLogController extends Controller
         }
 
 
+
         $operateLogs = $query->createDesc()->paginate($pageSize);
-//        DB::connection()->enableQueryLog();
 //        $operateLogs = $query->createDesc()->get();
 //        dd($operateLogs);
 //        dd(DB::getQueryLog());
+
 
 
 
@@ -140,16 +141,16 @@ class OperateLogController extends Controller
             default:
                 break;
         }
-//        $operateLogs = $query->createDesc()->paginate($pageSize);
-        $operateLogs = $query->createDesc()->get();
+        $operateLogs = $query->createDesc()->paginate($pageSize);
+//        $operateLogs = $query->createDesc()->get();
         foreach ($operateLogs as $operateLog) {
             if ($operateLog->method == OperateLogMethod::UPDATE_PRIVACY) {
                 $operateLog->content = '!!!!!!!';
                 //TODO 隐私字段裁切处理
             }
         }
-        return $this->response->collection($operateLogs, new OperateLogTransformer());
-//        return $this->response->paginator($operateLogs, new OperateLogTransformer());
+//        return $this->response->collection($operateLogs, new OperateLogTransformer());
+        return $this->response->paginator($operateLogs, new OperateLogTransformer());
     }
     public function addFollowUp(OperateLogFollowUpRequest $request, $model)
     {
@@ -169,6 +170,7 @@ class OperateLogController extends Controller
                 $operate,
             ]));
         } catch (Exception $e) {
+            dd($e);
             Log::error($e);
             return $this->response->errorInternal('跟进失败');
         }

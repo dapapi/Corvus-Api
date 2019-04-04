@@ -10,6 +10,8 @@ use App\PrivacyType;
 use App\TaskStatus;
 use Illuminate\Support\Facades\Auth;
 use League\Fractal\TransformerAbstract;
+use Illuminate\Support\Facades\DB;
+
 
 class ProjectTransformer extends TransformerAbstract
 {
@@ -118,6 +120,40 @@ class ProjectTransformer extends TransformerAbstract
                 'title' => $project->title,
             ];
         }
+
+//        //负责人
+        $participants = DB::table('users')//
+            ->where('users.id', $project->principal_id)
+            ->select('users.id','users.name')->first();
+        if($participants){
+            $array['principal']['data']['id'] = hashid_encode($participants->id);
+            $array['principal']['data']['name'] = $participants->name;
+        }else{
+            $array['principal']['data']['id'] = '';
+            $array['principal']['data']['name'] = '';
+        }
+
+        $trails = DB::table('trails')
+            ->join('clients', function ($join) {
+                $join->on('trails.id', '=', 'clients.id');
+            })
+        ->where('trails.id', $project->trail_id)
+            ->select('trails.id','trails.title','clients.id as clients_id','clients.company')->first();
+        if($trails){
+            $array['trail']['data']['id'] = hashid_encode($trails->id);
+            $array['trail']['data']['title'] = $trails->title;
+
+            $array['trail']['data']['client']['data']['id'] = hashid_encode($trails->clients_id);
+            $array['trail']['data']['client']['data']['company'] = $trails->company;
+        }else{
+            $array['trail']['data']['id'] = '';
+            $array['trail']['data']['title'] = '';
+            $array['trail']['data']['client']['data']['id'] = '';
+            $array['trail']['data']['client']['data']['company'] = '';
+        }
+
+
+
         return $array;
     }
 

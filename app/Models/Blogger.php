@@ -47,6 +47,12 @@ class Blogger extends Model
         'weibo_fans_num',//微博粉丝数
         'xiaohongshu_url',//微博url
         'xiaohongshu_fans_num',//微博粉丝数
+        'last_updated_user_id',
+        'last_updated_at',
+        'last_follow_up_at',
+        'last_updated_user',
+        'last_follow_up_user_id',
+        'last_follow_up_user'
 
     ];
 //隐藏字段

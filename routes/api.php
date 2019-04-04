@@ -12,7 +12,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
+        $api->post('stars/list','App\Http\Controllers\StarController@getStarList2');//测试艺人列表
         $api->get('/test/users', 'App\Http\Controllers\TestController@users');
         $api->get('/test/job', 'App\Http\Controllers\TestController@test');
     }
@@ -58,7 +58,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
-        $api->post('/projects/web_filter', 'App\Http\Controllers\ProjectController@list');
+        $api->post('/projects/web_filter', 'App\Http\Controllers\ProjectController@projectList');
         $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -213,6 +213,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
+
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
+        $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");//测试艺人详情
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
@@ -444,6 +447,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
+        $api->get('/projects/{project}/web', 'App\Http\Controllers\ProjectController@detail2');
         $api->get('/projects/{project}/course', 'App\Http\Controllers\ProjectController@allCourse');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
         $api->put('/projects/{project}/course', 'App\Http\Controllers\ProjectController@course');

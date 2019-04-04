@@ -1317,34 +1317,37 @@ class ApprovalFormController extends Controller
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $curr_user));
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $curr_user));
         // 发送消息
-        DB::beginTransaction();
-        try {
+        if ($project) {
+            DB::beginTransaction();
+            try {
 
-            $user = Auth::guard('api')->user();
-            $title = $project->title . "项目成单了";  //通知消息的标题
-            $subheading = $project->title . "项目成单了";
-            $module = Message::PROJECT;
-            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
-            $data = [];
-            $data[] = [
-                "title" => '项目名称', //通知消息中的消息内容标题
-                'value' => $project->title,  //通知消息内容对应的值
-            ];
-            $principal = User::findOrFail($project->principal_id);
-            $data[] = [
-                'title' => '项目负责人',
-                'value' => $principal->name
-            ];
-            //发送给创建人的直属领导
-            $department = DepartmentUser::where('user_id', $user->id)->first();
-            $leader = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
-            $send_user = [$leader->id];
-            $authorization = $request->header()['authorization'][0];
+                $user = Auth::guard('api')->user();
 
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user, $project->id);
-        } catch (Exception $e) {
-            Log::error($e);
-            DB::rollBack();
+                $title = $project->title . "项目成单了";  //通知消息的标题
+                $subheading = $project->title . "项目成单了";
+                $module = Message::PROJECT;
+                $link = URL::action("ProjectController@detail", ["project" => $project->id]);
+                $data = [];
+                $data[] = [
+                    "title" => '项目名称', //通知消息中的消息内容标题
+                    'value' => $project->title,  //通知消息内容对应的值
+                ];
+                $principal = User::findOrFail($project->principal_id);
+                $data[] = [
+                    'title' => '项目负责人',
+                    'value' => $principal->name
+                ];
+                //发送给创建人的直属领导
+                $department = DepartmentUser::where('user_id', $user->id)->first();
+                $leader = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
+                $send_user = [$leader->id];
+                $authorization = $request->header()['authorization'][0];
+
+                (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user, $project->id);
+            } catch (Exception $e) {
+                Log::error($e);
+                DB::rollBack();
+            }
         }
 
         return $this->response->item($instance, new ApprovalInstanceTransformer());

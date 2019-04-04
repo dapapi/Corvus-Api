@@ -123,8 +123,10 @@ class AnnouncementController extends Controller
                         })->whereNotIn('announcement.id',$starsId)->where('announcement.creator_id',$userId)->groupBy('announcement.id')
                         ->createDesc()->select('announcement.id','announcement.title','announcement.scope','announcement.classify','announcement.desc','announcement.readflag'
                                 ,'announcement.is_accessory','announcement.creator_id','announcement.stick','announcement.created_at'
+
                                 ,'announcement.updated_at')
                             ->paginate($pageSize);
+
                         //->where('operate_logs.user_id','<>',$userId)
 //                        $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //                        dd($sql_with_bindings);

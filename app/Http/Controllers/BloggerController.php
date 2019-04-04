@@ -7,6 +7,7 @@ use App\CommunicationStatus;
 use App\Events\BloggerDataChangeEvent;
 use App\Events\TaskMessageEvent;
 use App\Gender;
+use App\Http\Transformers\BloggerDetailTransformer;
 use App\Http\Transformers\BloggerListTransformer;
 use App\Models\TaskType;
 use App\Exports\BloggersExport;
@@ -1212,10 +1213,18 @@ class BloggerController extends Controller
             ->where(function ($query)use ($payload){
                 FilterReportRepository::getTableNameAndCondition($payload,$query);
             })->where($array)
+            ->orderBy('bloggers.last_follow_up_at','desc')
 //            ->offset(10)->limit(10)->get();
             ->paginate($pageSize);
 //        return $bloggers->toArray();
 //        dd(DB::getQueryLog());
         return $this->response()->paginator($bloggers,new BloggerListTransformer());
     }
+
+
+//    public function getBloggerDetail(Blogger $blogger)
+//    {
+//        $creator_name =
+//        return $this->response()->item($blogger,new BloggerDetailTransformer());
+//    }
 }

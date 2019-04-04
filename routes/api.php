@@ -213,6 +213,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
+
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
+        $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");//测试艺人详情
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
         $api->post('/stars', 'App\Http\Controllers\StarController@store');

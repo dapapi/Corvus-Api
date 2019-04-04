@@ -121,8 +121,7 @@ AAA;
                 ->groupBy('bloggers.id');
 
         }else{
-
-            return Blogger::select('bloggers.nickname', 'bloggers.id', DB::raw('blogger_types.name as type'), 'bloggers.sign_contract_status', 'bloggers.weibo_fans_num', 'bloggers.type_id', 'bloggers.sign_contract_at', 'bloggers.terminate_agreement_at', 'bloggers.created_at', DB::raw('bloggers.last_follow_up_at as follow_up_at'), 'bloggers.communication_status', DB::raw('publicity_user_names'))
+            return Blogger::select('bloggers.nickname', 'bloggers.id', DB::raw('blogger_types.name as type'), 'bloggers.sign_contract_status', 'bloggers.weibo_fans_num', 'bloggers.type_id', 'bloggers.sign_contract_at', 'bloggers.terminate_agreement_at', 'bloggers.created_at', DB::raw('bloggers.last_follow_up_at as follow_up_at'), 'bloggers.communication_status', DB::raw('\'publicity_user_names\''))
                 ->leftJoin('blogger_types', 'blogger_types.id', 'bloggers.type_id');
         }
     }

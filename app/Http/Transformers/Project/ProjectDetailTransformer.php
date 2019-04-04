@@ -30,7 +30,6 @@ class ProjectDetailTransformer extends TransformerAbstract
 
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
-        if ($this->isAll) {
             $array = [
                 'id' => hashid_encode($project->id),
                 'form_instance_number' => $project->project_number,
@@ -88,13 +87,6 @@ class ProjectDetailTransformer extends TransformerAbstract
                 $array['approval_begin'] = 1;
             else
                 $array['approval_begin'] = 0;
-
-        } else {
-            $array = [
-                'id' => hashid_encode($project->id),
-                'title' => $project->title,
-            ];
-        }
 
         $tasks = $project->relateTasks;
         if (!$tasks)

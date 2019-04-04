@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Jobs\RecordOperateLog;
 use App\Models\Announcement;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
@@ -37,6 +38,7 @@ use App\ModuleableType;
 use App\OperateLogLevel;
 use App\OperateLogMethod;
 use Carbon\Carbon;
+use Illuminate\Queue\Jobs\Job;
 use Illuminate\Support\Facades\Auth;
 
 class OperateLogEventListener
@@ -211,11 +213,10 @@ class OperateLogEventListener
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
-                    if ($this->implodeModel) {
+                    if ($this->implodeModel == null) {
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
-
                         $this->implodeModel->last_updated_user_id = $user->id;
                         $this->implodeModel->last_updated_user = $user->name;
                         $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
@@ -225,7 +226,7 @@ class OperateLogEventListener
                     $content = $this->create . '' . $typeName;
                     break;
                 case OperateLogMethod::UPDATE://修改
-                    if ($this->implodeModel) {
+                    if ($this->implodeModel == null) {
                         $this->implodeModel->last_updated_user_id = $user->id;
                         $this->implodeModel->last_updated_user = $user->name;
                         $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
@@ -257,7 +258,7 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
-                    if ($this->implodeModel) {
+                    if ($this->implodeModel == null){
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
@@ -437,8 +438,7 @@ class OperateLogEventListener
                     break;
 
             }
-
-            OperateLog::create([
+            dispatch(new RecordOperateLog([
                 'user_id' => $user->id,
                 'logable_id' => $id,
                 'logable_type' => $type,
@@ -448,7 +448,18 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ]);
+            ]));
+//            OperateLog::create([
+//                'user_id' => $user->id,
+//                'logable_id' => $id,
+//                'logable_type' => $type,
+//                'content' => $content,
+//                'method' => $operate->method,
+//                'level' => $level,
+//                'status' => 1,
+//                'field_name'    =>$field_name,
+//                'field_title' =>  $title
+//            ]);
 
         }
     }

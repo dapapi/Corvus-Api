@@ -1265,29 +1265,29 @@ class TaskController extends Controller
 
         if ($request->has('title')) {
             $array['title'] = $payload['title'];
-            if ($array['title'] != $task->title) {
-                $operateTitle = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '标题',
-                    'start' => $task->title,
-                    'end' => $array['title'],
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operateTitle;
-            }
+//            if ($array['title'] != $task->title) {
+//                $operateTitle = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '标题',
+//                    'start' => $task->title,
+//                    'end' => $array['title'],
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateTitle;
+//            }
         }
 
         if ($request->has('desc')) {
             $array['desc'] = $payload['desc'];
 
-            $operateDesc = new OperateEntity([
-                'obj' => $task,
-                'title' => '描述',
-                'start' => $task->desc,
-                'end' => $array['desc'],
-                'method' => OperateLogMethod::UPDATE,
-            ]);
-            $arrayOperateLog[] = $operateDesc;
+//            $operateDesc = new OperateEntity([
+//                'obj' => $task,
+//                'title' => '描述',
+//                'start' => $task->desc,
+//                'end' => $array['desc'],
+//                'method' => OperateLogMethod::UPDATE,
+//            ]);
+//            $arrayOperateLog[] = $operateDesc;
         }
 
         if ($request->has('type')) {
@@ -1302,13 +1302,13 @@ class TaskController extends Controller
                 }
                 $end = $taskType->title;
 
-                $operateType = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '类型',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-//                ]);
+//                $operateType = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '类型',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+////                ]);
                 if ($task->type && $task->type->id == $taskType->id) {
                     unset($array['type_id']);
                 } else {
@@ -1332,20 +1332,20 @@ class TaskController extends Controller
                 $array['principal_name'] = $userName->name;
                 $array['principal_id'] = $principalId;
 
-                if ($currentPrincipalUser) {
-                    if ($currentPrincipalUser->id != $array['principal_id']) {
-                        $operatePrincipal = new OperateEntity([
-                            'obj' => $task,
-                            'title' => '负责人',
-                            'start' => $start,
-                            'end' => $currentPrincipalUser->name,
-                            'method' => OperateLogMethod::UPDATE,
-                        ]);
-                        $arrayOperateLog[] = $operatePrincipal;
-                    } else {
-                        unset($arrayOperateLog['principal_id']);
-                    }
-                }
+//                if ($currentPrincipalUser) {
+//                    if ($currentPrincipalUser->id != $array['principal_id']) {
+//                        $operatePrincipal = new OperateEntity([
+//                            'obj' => $task,
+//                            'title' => '负责人',
+//                            'start' => $start,
+//                            'end' => $currentPrincipalUser->name,
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operatePrincipal;
+//                    } else {
+//                        unset($arrayOperateLog['principal_id']);
+//                    }
+//                }
             } catch (Exception $e) {
                 return $this->response->errorBadRequest();
             }
@@ -1353,21 +1353,21 @@ class TaskController extends Controller
 
         if ($request->has('priority')) {
             $array['priority'] = $payload['priority'];
-            if ($array['priority'] != $task->priority) {
-                $start = TaskPriorityStatus::getStr($task->priority);
-                $end = TaskPriorityStatus::getStr($array['priority']);
-
-                $operatePriority = new OperateEntity([
-                    'obj' => $task,
-                    'title' => '优先级',
-                    'start' => $start,
-                    'end' => $end,
-                    'method' => OperateLogMethod::UPDATE,
-                ]);
-                $arrayOperateLog[] = $operatePriority;
-            } else {
-                unset($array['priority']);
-            }
+//            if ($array['priority'] != $task->priority) {
+//                $start = TaskPriorityStatus::getStr($task->priority);
+//                $end = TaskPriorityStatus::getStr($array['priority']);
+//
+//                $operatePriority = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '优先级',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operatePriority;
+//            } else {
+//                unset($array['priority']);
+//            }
         }
 
         //修改关联资源
@@ -1496,7 +1496,7 @@ class TaskController extends Controller
             unset($array['resource_name']);
 
             // 操作日志
-            event(new OperateLogEvent($arrayOperateLog));
+            //event(new OperateLogEvent($arrayOperateLog));
             //event(new TaskDataChangeEvent($oldTask,$task));
         } catch (Exception $e) {
             DB::rollBack();

@@ -1183,12 +1183,15 @@ class ProjectController extends Controller
 
     public function getClientProjectNormalList(Request $request, Client $client)
     {
-        $now = Carbon::now()->toDateTimeString();
+g        $now = Carbon::now()->toDateTimeString();
 
-        $projects = Project::select('projects.id','projects.title','projects.status','projects.type','projects.created_at')
+        $projects = Project::select('projects.id','projects.title','projects.status','projects.type','projects.created_at','users.name')
             ->join('trails', function ($join) {
-            $join->on('projects.trail_id', '=', 'trails.id');
-        })->where('trails.client_id', '=', $client->id)->where('projects.status', 1)->orderBy('projects.created_at')->limit(3)->get()->toArray();
+                $join->on('projects.trail_id', '=', 'trails.id');
+            })
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'projects.principal_id');
+            })->where('trails.client_id', '=', $client->id)->where('projects.status', 1)->orderBy('projects.created_at')->limit(3)->get()->toArray();
         if($projects){
             foreach ($projects as &$value){
                 $value['id'] = hashid_encode($value['id']);

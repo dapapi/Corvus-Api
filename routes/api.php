@@ -12,10 +12,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
-<<<<<<< HEAD
-=======
-
->>>>>>> youhua
         $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
         $api->get('/test/users', 'App\Http\Controllers\TestController@users');
         $api->get('/test/job', 'App\Http\Controllers\TestController@test');
@@ -62,11 +58,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
-<<<<<<< HEAD
-        $api->post('/projects/web_filter', 'App\Http\Controllers\ProjectController@list');
-=======
-//        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@list');
->>>>>>> youhua
+//        $api->post('/projects/web_filter', 'App\Http\Controllers\ProjectController@list');
         $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -255,12 +247,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //导入 导出
         //->middleware('export')
-<<<<<<< HEAD
         $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2'); //测试博主列表优化
-=======
-
-        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
->>>>>>> youhua
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger

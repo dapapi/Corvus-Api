@@ -69,7 +69,11 @@ class Project extends Model
         'end_at',
         'complete_at',
         'stop_at',
-        'delete_at'
+        'delete_at',
+        # 冗余字段
+        'trail_name',
+        'principal_name',
+        'creator_name',
     ];
 
 //    protected static function boot()

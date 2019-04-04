@@ -1579,5 +1579,313 @@ class ProjectController extends Controller
         $result->addMeta('count', $projectInfoArr);
         return $result;
     }
+    public function projectList(FilterRequest $request)
+    {
+        # 我参与的
+        $power = ProjectImplode::getConditionSql();
+
+        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids, project_type");
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        if ($request->has('my')){
+            switch ($payload['my']){
+                case 'my_principal'://我负责
+                    $query->where('principal_id', $user->id);
+                    break;
+                case 'my_participant'://我参与
+                    $projectIds = DB::table('project_implode')->leftJoin("module_users as mu2",function ($join){
+                        $join->on("mu2.moduleable_id","project_implode.id")
+                            ->where('mu2.moduleable_type',ModuleableType::PROJECT);
+                    })->where('mu2.user_id',$user->id)->pluck('project_implode.id')->toArray();
+                    $query->whereIn('id', $projectIds);
+                    break;
+                case 'my_create'://我创建
+                    $query->where('creator_id', $user->id);
+                    break;
+
+            }
+        }
+        if ($request->has('project_type'))
+            $query->where('project_type', $payload['project_type']);
+
+        if ($request->has('keyword'))
+            $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
+
+        if ($request->has('principal_ids') && $payload['principal_ids']) {
+            $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+            foreach ($payload['principal_ids'] as &$id) {
+                $id = hashid_decode((int)$id);
+            }
+            unset($id);
+            $query->whereIn('project_implode.principal_id', $payload['principal_ids']);
+        }
+
+        $query->whereRaw(DB::raw("1 = 1 $power"));
+        if ($request->has('project_implode.project_type'))
+            $query->where('project_type', $payload['project_type']);
+
+        $paginator = $query->orderBy('latest_time', 'desc')
+            ->paginate();
+        $projects = $paginator->getCollection();
+        $resource = new Fractal\Resource\Collection($projects, function ($item) {
+            # 单独处理
+            $stars = [];
+            if ($item->stars) {
+
+                $arr["stars"] = explode(',',$item->stars);
+                $arr["star_ids"] = explode(',',$item->star_ids);
+                foreach ($arr['stars'] as $key1 => $val1) {
+                    $stars[] = [
+                        'id' => hashid_encode($arr['star_ids'][$key1]),
+                        'name' => $val1
+                    ];
+                }
+            }
+            $bloggers = [];
+            if ($item->bloggers) {
+                $arr["blogger_ids"] = explode(',',$item->blogger_ids);
+                $arr["bloggers"] = explode(',', $item->bloggers);
+                foreach ($arr['bloggers'] as $key2 => $val2) {
+                    $bloggers[] = [
+                        'id' => hashid_encode($arr['blogger_ids'][$key2]),
+                        'name' => $val2
+                    ];
+                }
+            }
+            $expectations = array_merge($stars, $bloggers);
+            return [
+                "id" => hashid_encode($item->id),
+                "title" => $item->project_name,
+                "created_at" => $item->project_store_at,
+                "last_follow_up_at" => $item->latest_time,
+                "principal" => [
+                    'data' => [
+                        'id' => hashid_encode($item->principal_id),
+                        "name" => $item->principal,
+                    ]
+                ],
+                "trail" => [
+                    "data" => [
+                        "fee" => $item->trail_fee,
+                        "expectations" => [
+                            "data" => $expectations
+                        ],
+                    ]
+                ],
+            ];
+        });
+        $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
+        $manager = new Manager();
+        return response($manager->createData($data)->toArray());
+    }
+
+    public function detail2(Request $request, Project $project, ProjectRepository $repository)
+    {
+        $type = $project->type;
+        $user = Auth::guard("api")->user();
+
+        $project->powers = $repository->getPower($user,$project);
+        $result = $this->response->item($project, new ProjectTransformer());
+        $data = TemplateField::where('module_type', $type)->get();
+        // 获取目标艺人 所在部门
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
+        return $result;
+    }
+    private function createProjectImplode($payload, $id)
+    {
+        $arr = [];
+        $arr['id'] = $id;
+        $arr['principal_id'] = $payload['principal_id'];
+        $arr['creator_id'] = $payload['creator_id'];
+        $arr['project_name'] = $payload['title'];
+        $arr['project_type'] = $payload['type'];
+        $arr['project_priority'] = $payload['priority'];
+        $arr['project_start_at'] = $payload['start_at'];
+        $arr['project_end_at'] = $payload['end_at'];
+        $arr['principal'] = User::find($payload['principal_id'])->name;
+        $arr['creator'] = User::find($payload['creator_id'])->name;
+        if (array_key_exists('trail' ,$payload) && array_key_exists('id', $payload['trail']))
+            $arr['client'] = Trail::find($payload['trail'])->client->company;
+
+        $this->projectImplode = ProjectImplode::create($arr);
+    }
+
+    private function updateProjectImplodeTemplateField($key, $val)
+    {
+        $projectImp = $this->projectImplode;
+        switch ($key) {
+            case 22:  # 签单时间
+                $projectImp->sign_at = $val;
+                break;
+            case 52:  # 上线时间
+                $projectImp->launch_at= $val;
+                break;
+            case 11:  # 播出平台
+                $projectImp->platforms = $val;
+                break;
+            case 31:  # 综艺节目类型
+                $projectImp->show_type = $val;
+                break;
+            case 32:  # 嘉宾类型
+                $projectImp->guest_type = $val;
+                break;
+            case 34:  # 录制时间
+                $projectImp->record_at = $val;
+                break;
+            case 7:  # 影剧类型
+                $projectImp->movie_type = $val;
+                break;
+            case 9:  # 题材
+                $projectImp->theme = $val;
+                break;
+            case 23:  # 选角团队
+                $projectImp->team_info = $val;
+                break;
+            case 25:  # 试戏时间
+                $projectImp->walk_through_at = $val;
+                break;
+            case 26:  # 试戏地点
+                $projectImp->walk_through_location = $val;
+                break;
+            case 55:  # 合约费用(含税）
+                $projectImp->agreement_fee = $val;
+                break;
+            case 54:  # 签单时间
+                $projectImp->multi_channel = $val;
+                break;
+            default:
+                break;
+        }
+        $projectImp->save();
+    }
+
+    public function detail3(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
+    {
+        $type = $project->type;
+        $user = Auth::guard("api")->user();
+
+        $project->powers = $repository->getPower($user,$project);
+        $result = $this->response->item($project, new ProjectTransformer());
+        $data = TemplateField::where('module_type', $type)->get();
+        $array['project_kd_name'] = $project->title;
+        $array['expense_type'] = '支出';
+        $approval  = (new ApprovalContractController())->projectList($request,$project);
+        $contractmoney = $approval['money'];
+        // 记住修改  收入
+        $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
+        // 获取目标艺人 所在部门
+        if($project->trail){
+            $expectations = $project->trail->bloggerExpectations;
+            if (count($expectations) <= 0) {
+                $expectations = $project->trail->expectations->first();
+                if(!$expectations) {
+                    return null;
+                }else{
+                    $expectations = $expectations->broker->toArray();
+//                ->broker;
+                    $department_name = [];
+                    if(!$expectations)
+                        return null;
+                    foreach ($expectations as $key => $val){
+                        $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+                    }
+                }
+
+            } else {
+                $expectations = $expectations->first()->publicity->toArray();
+                $department_name = [];
+                if(!$expectations)
+                    return null;
+                foreach ($expectations as $key => $val){
+                    $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+                }
+            }
+        }
+        unset($array);
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+        $user = Auth::guard('api')->user();
+        if($project->trail){
+            $result->addMeta('department_name',  $department_name);
+        }
+
+        if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('contractmoney', 'privacy');
+            }
+            else
+            {
+                if (isset($contractmoney)) {
+                    $result->addMeta('contractmoney', "".$contractmoney);
+                }
+                else
+                {
+                    $result->addMeta('contractmoney', "".'0');
+                }
+            }
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('expendituresum', 'privacy');
+            }
+            else
+            {
+                if (isset($expendituresum)) {
+                    $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+                }
+                else
+                {
+                    $result->addMeta('expendituresum', "".'0');
+                }
+            }
+        }
+        else
+        {
+            if (isset($contractmoney)) {
+                $result->addMeta('contractmoney', "".$contractmoney);
+            }
+            else
+            {
+                $result->addMeta('contractmoney', "".'0');
+            }
+            if (isset($expendituresum)) {
+                $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+            }
+            else
+            {
+                $result->addMeta('expendituresum',"".'0');
+            }
+        }
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
+        return $result;
+    }
 }
 

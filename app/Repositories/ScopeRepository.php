@@ -272,11 +272,11 @@ class ScopeRepository
             if($method == "GET"){
 
                 //检查访问模块是否在role_resource_view表中，只限制配置了查看范围的模块
-                $res = RoleResourceView::where('resource_id',$model_id)->first();
+                $res = RoleResourceView::select('resource_id','data_view_id')->where('resource_id',$model_id)->first();
                 if($res != null){//检查访问模块是否在role_resource_view表中，则进行权限限制
                     //检查role_data_view表中的权限
                     //用户和角色是多对多的关系，所以可能一个用户对同一个模块有多重权限
-                    $viewSql = RoleDataView::whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
+                    $viewSql = RoleDataView::select('role_id')->whereIn('role_id',$role_ids)->where('resource_id',$model_id)->get()->toArray();
 
                     if(count($viewSql) != 0){//没有对应模块的权限记录，则不进行权限控制
                         //如果接口中传进了模型，则对模型进行权限控制

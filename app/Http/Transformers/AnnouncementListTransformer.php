@@ -23,6 +23,7 @@ class AnnouncementListTransformer extends TransformerAbstract
             'id' => hashid_encode($announcement->id),
             'title' => $announcement->title,  //标题
             'classify' => hashid_encode($announcement->classify),  //分类  1 规则制度   2 内部公告
+            'readflag' => empty($announcement->look)? 0 :1, //默认 0  未读  1 读
             'created_at' => $announcement->created_at->toDatetimeString(),
             'updated_at' => $announcement->updated_at->toDatetimeString(),
         ];

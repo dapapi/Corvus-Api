@@ -22,6 +22,7 @@ use App\Models\Affix;
 use App\Models\Blogger;
 use App\Models\Department;
 use App\Models\DepartmentUser;
+
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\Models\Project;
@@ -844,7 +845,6 @@ class StarController extends Controller
         if ($request->has('sign_contract_status') && !empty($payload['sign_contract_status'])) {//签约状态
             $array[] = ['sign_contract_status', $payload['sign_contract_status']];
         }
-
         $first = Star::select('name','id','sign_contract_status',DB::raw('\'star\''))->searchData()->where('stars.id','>',0)->where($array);
         $stars = Blogger::select('nickname','id','sign_contract_status',
             DB::raw('\'blogger\' as flag'))
@@ -1058,10 +1058,7 @@ class StarController extends Controller
             "status"    =>  "success"
         ];
     }
-    public function getStarById(Star $star)
-    {
-        return $this->response()->item($star,new StarDeatilTransformer());
-    }
+
 
     public function getStarList2(Request $request)
     {
@@ -1088,11 +1085,18 @@ class StarController extends Controller
         $star_list = StarRepository::getStarList2($search_field)->searchData()->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
         })->where($array)
+            ->orderBy('stars.last_follow_up_at','desc')
             ->paginate($pageSize);
 //            ->offset(10)->limit(10);
 //        return $star_list;
 //        dd(DB::getQueryLog());
 //        return DB::select("select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars ");
         return $this->response()->paginator($star_list,new StarListTransformer());
+    }
+
+
+    public function getStarDeatil(Star $star)
+    {
+        return $this->response()->item($star,new StarDeatilTransformer());
     }
 }

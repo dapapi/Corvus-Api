@@ -42,6 +42,7 @@ use App\ModuleableType;
 use App\OperateLogLevel;
 use App\OperateLogMethod;
 use Carbon\Carbon;
+use Illuminate\Queue\Jobs\Job;
 use Illuminate\Support\Facades\Auth;
 
 class OperateLogEventListener
@@ -447,7 +448,7 @@ class OperateLogEventListener
                     break;
 
             }
-            $data = [
+            dispatch(new RecordOperateLog([
                 'user_id' => $user->id,
                 'logable_id' => $id,
                 'logable_type' => $type,
@@ -457,8 +458,7 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ];
-            dispatch(new RecordOperateLog($data));
+            ]));
 //            OperateLog::create([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,

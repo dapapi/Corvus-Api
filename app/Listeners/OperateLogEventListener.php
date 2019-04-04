@@ -448,7 +448,7 @@ class OperateLogEventListener
                     break;
 
             }
-            dispatch(new RecordOperateLog([
+            RecordOperateLog::dispatch([
                 'user_id' => $user->id,
                 'logable_id' => $id,
                 'logable_type' => $type,
@@ -458,7 +458,7 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ]));
+            ]);
 //            OperateLog::create([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,

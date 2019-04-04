@@ -28,6 +28,7 @@ use App\Models\Star;
 use App\Models\Task;
 use App\Models\TaskRelate;
 use App\Models\TaskResource;
+use App\Repositories\TaskRepository;
 
 use App\Models\TaskType;
 use App\Models\Trail;

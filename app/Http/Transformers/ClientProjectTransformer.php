@@ -13,7 +13,7 @@ use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
 
 
-class ProjectTransformer extends TransformerAbstract
+class ClientProjectTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['principal', 'creator', 'fields', 'trail', 'participants', 'relate_tasks', 'relate_projects','relate_project_courses','relate_project_bills_resource', 'tasks'];
 
@@ -28,45 +28,6 @@ class ProjectTransformer extends TransformerAbstract
     {
         $user = Auth::guard('api')->user();
 
-     //   $array['moduleable_type']= ModuleableType::PROJECT;
-    //    $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//        foreach ($project as  $value)
-//        {
-//            dd($project);
-//        }
-
-
-
-
-
-//        $setprivacy1 =array();
-//        $Viewprivacy2 =array();
-//        $array['moduleable_id']= $project->id;
-//        $array['moduleable_type']= ModuleableType::PROJECT;
-//        $array['is_privacy']=  PrivacyType::OTHER;
-//        $setprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//        foreach ($setprivacy as $key =>$v){
-//
-//            $setprivacy1[]=array_values($v)[0];
-//
-//        }
-//        if(!empty($setprivacy1) & count($setprivacy1) > 0 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
-//            $array['user_id']= $user->id;
-//            $Viewprivacy = PrivacyUser::where($array)->get(['moduleable_field'])->toArray();
-//            unset($array);
-//            if($Viewprivacy){
-//                foreach ($Viewprivacy as $key =>$v){
-//                    $Viewprivacy1[]=array_values($v)[0];
-//                }
-//                $setprivacy1  = array_diff($setprivacy1,$Viewprivacy1);
-//            }else{
-//                $setprivacy1 = array();
-//            }
-//
-//        }
-
-        $business = Business::where('form_instance_number', $project->project_number)->first();
-        $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
         if ($this->isAll) {
             $array = [
                 'id' => hashid_encode($project->id),
@@ -76,85 +37,11 @@ class ProjectTransformer extends TransformerAbstract
                 'privacy' => $project->privacy,
                 'priority' => $project->priority,
                 'status' => $project->status,
-                'projected_expenditure'=> "".$project->projected_expenditure,
-                'start_at' => $project->start_at,
-                'end_at' => $project->end_at,
                 'created_at' => $project->created_at->toDateTimeString(),
                 'updated_at' => $project->updated_at->toDateTimeString(),
                 'desc' => $project->desc,
                 // 日志内容
-                'last_follow_up_at' => $project->last_follow_up_at,
-                'last_updated_user' => $project->last_updated_user,
-                'last_updated_at' => $project->last_updated_at,
                 'power' =>  $project->power,
-                'powers'    =>  $project->powers
-
-            ];
-
-//            if(!empty($setprivacy1)&& count($setprivacy1) > 0 && $project ->creator_id != $user->id && $project->principal_id != $user->id){
-//               if(empty($setprivacy1)){
-
-//                   $array1['moduleable_id']= $project->id;
-//                   $array1['moduleable_type']= ModuleableType::PROJECT;
-//                   $array1['is_privacy']=  PrivacyType::OTHER;
-//                   $setprivacy = PrivacyUser::where($array1)->groupby('moduleable_field')->get(['moduleable_field'])->toArray();
-//                   foreach ($setprivacy as $key =>$v){
-//                       $setprivacy1[]=array_values($v)[0];
-//
-//                   }
-//                   $setprivacy1 =  PrivacyType::getProject();
-//               }
-//                foreach ($setprivacy1 as $key =>$v){
-//                    $Viewprivacy2[$v]=$key;
-//                };
-//            $array = array_merge($array,$Viewprivacy2);
-
-//             foreach ($array as $key1 => $val1)
-//             {
-//                 foreach ($Viewprivacy2 as $key2 => $val2)
-//                 {
-//
-//                     if($key1 === $key2 ){
-//
-//                         $array[$key1] ='privacy';
-//                        //      unset($array[$key1]);
-//
-//                     }
-//
-//
-//                 }
-//               }
-           // }
-
-
-            if($project ->creator_id != $user->id && $project->principal_id != $user->id)
-            {
-                  foreach ($array as $key => $value)
-                  {
-                      $result = PrivacyType::isPrivacy(ModuleableType::PROJECT,$key);
-                      if($result)
-                      {
-                          $result = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, $key);
-                          if(!$result)
-                          {
-                              $array[$key] = 'privacy';
-                          }
-                      }
-                  }
-            }
-
-            if ($business)
-                $array['approval_status'] = $business->status->id;
-
-            if ($count > 1)
-                $array['approval_begin'] = 1;
-            else
-                $array['approval_begin'] = 0;
-
-        } else {
-            $array = [
-                'id' => hashid_encode($project->id),
-                'title' => $project->title,
             ];
         }
 
@@ -170,21 +57,19 @@ class ProjectTransformer extends TransformerAbstract
             $array['principal']['data']['name'] = '';
         }
 
-        $trails = DB::table('trails')
-            ->join('clients', function ($join) {
-                $join->on('trails.id', '=', 'clients.id');
+        $trails = DB::table('projects')
+            ->join('trails', function ($join) {
+                $join->on('trails.id', '=', 'projects.trail_id');
             })
-        ->where('trails.id', $project->trail_id)
-            ->select('trails.id','trails.title','clients.id as clients_id','clients.company')->first();
+            ->join('clients', function ($join) {
+                $join->on('clients.id', '=', 'trails.client_id');
+            })
+        ->where('trails.id', $project->trail_id)->select('clients.id','clients.company')->first();
         if($trails){
-            $array['trail']['data']['id'] = hashid_encode($trails->id);
-            $array['trail']['data']['title'] = $trails->title;
-
-            $array['trail']['data']['client']['data']['id'] = hashid_encode($trails->clients_id);
+            $array['trail']['data']['client']['data']['id'] = hashid_encode($trails->id);
             $array['trail']['data']['client']['data']['company'] = $trails->company;
         }else{
-            $array['trail']['data']['id'] = '';
-            $array['trail']['data']['title'] = '';
+
             $array['trail']['data']['client']['data']['id'] = '';
             $array['trail']['data']['client']['data']['company'] = '';
         }

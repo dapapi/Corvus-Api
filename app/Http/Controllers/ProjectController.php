@@ -8,7 +8,6 @@ use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\ProjectImplode;
 use App\Repositories\FilterReportRepository;
-
 use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Helper\Common;
@@ -18,6 +17,7 @@ use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Transformers\Project\ProjectDetailTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -26,8 +26,14 @@ use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
+
+use App\Http\Transformers\ProjectAllTransformer;
+use App\Http\Transformers\ClientProjectTransformer;
+
 use App\Models\Blogger;
+use App\Models\FilterJoin;
 use App\Models\Client;
+
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
@@ -69,7 +75,7 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
-    protected $projectImplode;
+
     protected $projectRepository;
 
     protected $projectImplodeId;
@@ -162,11 +168,10 @@ class ProjectController extends Controller
         $isAll = $request->get('all', false);
         $status = $request->get('status', null);
         if (is_null($status))
-            $projects = Project::orderBy('created_at', 'desc')->searchData()->get();
+            $projects = Project::orderBy('created_at', 'desc')->where('id','>',0)->searchData()->select('id','title')->get();
         else
-            $projects = Project::orderBy('created_at', 'desc')->where('status', $status)->searchData()->get();
-
-        return $this->response->collection($projects, new ProjectTransformer($isAll));
+            $projects = Project::orderBy('created_at', 'desc')->where('id','>',0)->where('status', $status)->searchData()->select('id','title')->get();
+        return $this->response->collection($projects, new ProjectAllTransformer($isAll));
     }
 
     public function myAll(Request $request)
@@ -307,8 +312,10 @@ class ProjectController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
+        $payload['creator_name'] = $user->name;
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
+        $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
 
         DB::beginTransaction();
 
@@ -316,6 +323,7 @@ class ProjectController extends Controller
             $project = Project::create($payload);
             $projectId = $project->id;
             $this->createProjectImplode($payload, $projectId);
+
             if ($payload['type'] != 5) {
                 $projectHistorie = ProjectHistorie::create($payload);
                 $approvalForm = new ApprovalFormController();
@@ -549,8 +557,9 @@ class ProjectController extends Controller
             $projectImp = ProjectImplode::find($projectId);
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
+                $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
                 if ($project->principal_id != $payload['principal_id']) {
-                    try {
+         //           try {
 //                        $curr_principal = User::find($project->principal_id)->name;
 //                        $principal = User::findOrFail($payload['principal_id'])->name;
 //
@@ -564,11 +573,11 @@ class ProjectController extends Controller
 //                        ]);
 //                        $arrayOperateLog[] = $operateName;
 
-                    } catch (Exception $e) {
-                        Log::error($e);
-                        DB::rollBack();
+//                    } catch (Exception $e) {
+//                        Log::error($e);
+//                        DB::rollBack();
                         return $this->response->errorInternal("负责人错误");
-                    }
+  //                  }
 
                 }
 
@@ -875,14 +884,25 @@ class ProjectController extends Controller
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         // 获取目标艺人 所在部门
         if($project->trail){
-        $expectations = $project->trail->bloggerExpectations;
-        if (count($expectations) <= 0) {
-            $expectations = $project->trail->expectations->first();
-            if(!$expectations) {
-                return null;
-            }else{
-                $expectations = $expectations->broker->toArray();
+            $expectations = $project->trail->bloggerExpectations;
+            if (count($expectations) <= 0) {
+                $expectations = $project->trail->expectations->first();
+                if(!$expectations) {
+                    return null;
+                }else{
+                    $expectations = $expectations->broker->toArray();
+
 //                ->broker;
+                    $department_name = [];
+                    if(!$expectations)
+                        return null;
+                    foreach ($expectations as $key => $val){
+                        $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+                    }
+                }
+
+            } else {
+                $expectations = $expectations->first()->publicity->toArray();
                 $department_name = [];
                 if(!$expectations)
                     return null;
@@ -891,57 +911,23 @@ class ProjectController extends Controller
                 }
             }
 
-        } else {
-            $expectations = $expectations->first()->publicity->toArray();
-            $department_name = [];
-            if(!$expectations)
-                return null;
-            foreach ($expectations as $key => $val){
-                $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-            }
-         }
         }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-            $user = Auth::guard('api')->user();
-            if($project->trail){
-                $result->addMeta('department_name',  $department_name);
-            }
+        $user = Auth::guard('api')->user();
+        if($project->trail){
+            $result->addMeta('department_name',  $department_name);
+        }
 
-            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
-                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
-                if(!$contractMoneyResult)
-                {
-                    $result->addMeta('contractmoney', 'privacy');
-                }
-                else
-                {
-                    if (isset($contractmoney)) {
-                        $result->addMeta('contractmoney', "".$contractmoney);
-                    }
-                    else
-                    {
-                        $result->addMeta('contractmoney', "".'0');
-                    }
-                }
-                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
-                if(!$contractMoneyResult)
-                {
-                    $result->addMeta('expendituresum', 'privacy');
-                }
-                else
-                {
-                    if (isset($expendituresum)) {
-                        $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
-                    }
-                    else
-                    {
-                        $result->addMeta('expendituresum', "".'0');
-                    }
-                }
+        if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('contractmoney', 'privacy');
             }
             else
             {
@@ -952,14 +938,40 @@ class ProjectController extends Controller
                 {
                     $result->addMeta('contractmoney', "".'0');
                 }
+            }
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('expendituresum', 'privacy');
+            }
+            else
+            {
                 if (isset($expendituresum)) {
                     $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
                 }
                 else
                 {
-                    $result->addMeta('expendituresum',"".'0');
+                    $result->addMeta('expendituresum', "".'0');
                 }
             }
+        }
+        else
+        {
+            if (isset($contractmoney)) {
+                $result->addMeta('contractmoney', "".$contractmoney);
+            }
+            else
+            {
+                $result->addMeta('contractmoney', "".'0');
+            }
+            if (isset($expendituresum)) {
+                $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+            }
+            else
+            {
+                $result->addMeta('expendituresum',"".'0');
+            }
+        }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $operate = new OperateEntity([
             'obj' => $project,
@@ -1214,13 +1226,47 @@ class ProjectController extends Controller
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $projects = Project::select('projects.*')->join('trails', function ($join) {
+        $projects = Project::select('projects.id','projects.title','projects.principal_id','projects.creator_id','projects.trail_id','projects.status','projects.type','projects.priority','projects.created_at','projects.updated_at')->join('trails', function ($join) {
             $join->on('projects.trail_id', '=', 'trails.id');
         })->where('trails.client_id', '=', $client->id)
             ->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
     }
+
+    //客户任务
+
+    public function getClientProjectList(Request $request, Client $client)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $projects = Project::select('projects.id','projects.title','projects.principal_id','projects.creator_id','projects.trail_id','projects.status','projects.type','projects.priority','projects.created_at','projects.updated_at')->join('trails', function ($join) {
+            $join->on('projects.trail_id', '=', 'trails.id');
+        })->where('trails.client_id', '=', $client->id)
+            ->paginate($pageSize);
+
+        return $this->response->paginator($projects, new ClientProjectTransformer());
+    }
+
+    public function getClientProjectNormalList(Request $request, Client $client)
+    {
+        $now = Carbon::now()->toDateTimeString();
+
+        $projects = Project::select('projects.id','projects.title','projects.status','projects.type','projects.created_at','users.name')
+            ->join('trails', function ($join) {
+                $join->on('projects.trail_id', '=', 'trails.id');
+            })
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'projects.principal_id');
+            })->where('trails.client_id', '=', $client->id)->where('projects.status', 1)->orderBy('projects.created_at')->limit(3)->get()->toArray();
+        if($projects){
+            foreach ($projects as &$value){
+                $value['id'] = hashid_encode($value['id']);
+            }
+        }
+        return $projects;
+    }
+
 
     /**
      * 项目关联项目 关联任务
@@ -1485,7 +1531,19 @@ class ProjectController extends Controller
         return $this->response->collection($res,new simpleProjectTransformer());
     }
 
-
+    function str_insert($str, $i, $substr)
+    {
+        $startstr = [];
+        $laststr = [];
+        for($j=0; $j<$i; $j++){
+            $startstr .= $str[$j];
+        }
+        for ($j=$i; $j<strlen($str); $j++){
+            $laststr .= $str[$j];
+        }
+        $str = ($startstr . $substr . $laststr);
+        return $str;
+    }
     /**
      * 暂时不用列表了，逻辑要换
      * @param FilterRequest $request
@@ -1494,21 +1552,98 @@ class ProjectController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
+//        $joinSql = '`projects`';
+        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+        if($request->has('conditions')){
+            foreach ($payload['conditions'] as $v => $k){
+                if($k['type'] == 5);
+                {
+                    unset($payload['conditions'][$v]);
+                }
+                if($k['field'] == 'th.value'){
+                   $arr =  'left join `template_field_value_histories` as th on th.project_id = projects.id and th.field_id = 22';
+                   $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'cc.value'){
+                    $arr =  'left join `template_field_value_histories` as cc on cc.project_id = projects.id and cc.field_id = 52 ';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'clo.value'){
+                    $arr =  'left join `template_field_value_histories` as clo on clo.project_id = projects.id and clo.field_id = 11';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tcs.value'){
+                    $arr =  'left join `template_field_value_histories` as tcs on tcs.project_id = projects.id and tcs.field_id = 31';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tc.value'){
+                    $arr =  'left join `template_field_value_histories` as tc on tc.project_id = projects.id and tc.field_id = 32';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tl.value'){
+                    $arr =  'left join `template_field_value_histories` as tl on tl.project_id = projects.id and tl.field_id = 34';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tt.value'){
+                    $arr =  'left join `template_field_value_histories` as tt on tt.project_id = projects.id and tt.field_id = 7';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tq.value'){
+                    $arr =  'left join `template_field_value_histories` as tq on tq.project_id = projects.id and tq.field_id = 9';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tx.value'){
+                    $arr =  'left join `template_field_value_histories` as tx on tx.project_id = projects.id and tx.field_id = 23';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tg.value'){
+                    $arr =  'left join `template_field_value_histories` as tg on tg.project_id = projects.id and tg.field_id = 24';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'td.value'){
+                    $arr =  'left join `template_field_value_histories` as td on td.project_id = projects.id and td.field_id = 25';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'tr.value'){
+                    $arr =  'left join `template_field_value_histories` as tr on tr.project_id = projects.id and tr.field_id = 26';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'trd.value'){
+                    $arr =  'left join `template_field_value_histories` as trd on trd.project_id = projects.id and trd.field_id = 27';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'cl.value'){
+                    $arr =  'left join `template_field_value_histories` as cl on cl.project_id = projects.id and cl.field_id = 28';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'co.value'){
+                    $arr =  'left join `template_field_value_histories` as co on co.project_id = projects.id and co.field_id = 55';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'cp.value'){
+                    $arr =  'left join `template_field_value_histories` as cp on cp.project_id = projects.id and cp.field_id = 54';
+                    $joinSql = $joinSql."$arr";
+                }
+                if($k['field'] == 'mu.user_id'){
+                    $arr =  'left join `module_users` as mu on mu.moduleable_id = projects.id and mu.moduleable_type = \'project\' and mu.type = 1';
+                    $joinSql = $joinSql."$arr";
+                }
+            }
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        //  $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
-        $joinSql = '`projects`';
+      //  $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+
+
         $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-
         $all = $request->get('all', false);
         $user = Auth::guard('api')->user();
         $project_type = $request->get('project_type',null);
         $query =  $projects->where(function ($query) use ($request, $payload,$user,$project_type) {
             if ($request->has('keyword'))
                 $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
-
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -1517,10 +1652,8 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('projects.principal_id', $payload['principal_ids']);
             }
-
             if ($request->has('project_type') && $project_type <> '3,4' ){
                 $query->where('projects.type',$project_type);
-
             }
             if($request->has('project_type') && $project_type == '3,4'){
                 $query->whereIn('projects.type',[$project_type]);
@@ -1661,11 +1794,9 @@ class ProjectController extends Controller
 
             }
         }
-        if ($request->has('project_type'))
-            $query->where('project_type', $payload['project_type']);
 
-        if ($request->has('keyword'))
-            $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
+        $query->whereRaw(DB::raw("(1 = 1 $power)"));
+
 
         if ($request->has('principal_ids') && $payload['principal_ids']) {
             $payload['principal_ids'] = explode(',', $payload['principal_ids']);
@@ -1676,11 +1807,15 @@ class ProjectController extends Controller
             $query->whereIn('project_implode.principal_id', $payload['principal_ids']);
         }
 
-        $query->whereRaw(DB::raw("1 = 1 $power"));
         if ($request->has('project_implode.project_type'))
             $query->where('project_type', $payload['project_type']);
 
+
+        if ($request->has('keyword'))
+            $query->where('project_implode.project_name', 'LIKE', '%' . $payload['keyword'] . '%');
+
         $paginator = $query->orderBy('latest_time', 'desc')
+//            ->toSql();
             ->paginate();
         $projects = $paginator->getCollection();
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
@@ -1770,63 +1905,162 @@ class ProjectController extends Controller
         $arr['project_name'] = $payload['title'];
         $arr['project_type'] = $payload['type'];
         $arr['project_priority'] = $payload['priority'];
-        $arr['project_start_at'] = $payload['start_at'];
-        $arr['project_end_at'] = $payload['end_at'];
+        $arr['project_start_at'] = $payload['start_at'] . ' 00:00:00';
+        $arr['project_store_at'] = Carbon::now()->toDateTimeString();
+        $arr['latest_time'] = Carbon::now()->toDateTimeString();
+        $arr['last_follow_up_at'] = Carbon::now()->toDateTimeString();
+        $arr['project_end_at'] = $payload['end_at'] . ' 00:00:00';
         $arr['principal'] = User::find($payload['principal_id'])->name;
         $arr['creator'] = User::find($payload['creator_id'])->name;
-        if (array_key_exists('trail' ,$payload) && array_key_exists('id', $payload['trail']))
-            $arr['client'] = Trail::find($payload['trail'])->client->company;
+        if (array_key_exists('trail_id' ,$payload)) {
+            $trail = Trail::find($payload['trail_id']);
+            $arr['client'] = $trail->client->company;
+            $arr['resource_type'] = $trail->resource_type;
+            $arr['trail_fee'] = $trail->fee;
+            $arr['cooperation_type'] = $trail->cooperation_type;
+            $arr['trail_status'] = $trail->status;
+        }
 
-        $this->projectImplode = ProjectImplode::create($arr);
+        DB::beginTransaction();
+        try {
+            DB::table('project_implode')->insertGetId($arr);
+            $this->projectImplodeId = $id;
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+        }
+        DB::commit();
     }
 
     private function updateProjectImplodeTemplateField($key, $val)
     {
-        $projectImp = $this->projectImplode;
+        $arr = [];
+        $projectImpId = $this->projectImplodeId;
         switch ($key) {
             case 22:  # 签单时间
-                $projectImp->sign_at = $val;
+                $arr['sign_at'] = $val . ' 00:00:00';
                 break;
             case 52:  # 上线时间
-                $projectImp->launch_at= $val;
+                $arr['launch_at']= $val;
                 break;
             case 11:  # 播出平台
-                $projectImp->platforms = $val;
+                $arr['platforms'] = $val;
                 break;
             case 31:  # 综艺节目类型
-                $projectImp->show_type = $val;
+                $arr['show_type'] = $val;
                 break;
             case 32:  # 嘉宾类型
-                $projectImp->guest_type = $val;
+                $arr['guest_type'] = $val;
                 break;
             case 34:  # 录制时间
-                $projectImp->record_at = $val;
+                $arr['record_at'] = $val;
                 break;
             case 7:  # 影剧类型
-                $projectImp->movie_type = $val;
+                $arr['movie_type'] = $val;
                 break;
             case 9:  # 题材
-                $projectImp->theme = $val;
+                $arr['theme'] = $val;
                 break;
             case 23:  # 选角团队
-                $projectImp->team_info = $val;
+                $arr['team_info'] = $val;
                 break;
             case 25:  # 试戏时间
-                $projectImp->walk_through_at = $val;
+                $arr['walk_through_at'] = $val;
                 break;
             case 26:  # 试戏地点
-                $projectImp->walk_through_location = $val;
+                $arr['walk_through_location'] = $val . ' 00:00:00';
                 break;
             case 55:  # 合约费用(含税）
-                $projectImp->agreement_fee = $val;
+                $arr['agreement_fee'] = $val;
                 break;
             case 54:  # 签单时间
-                $projectImp->multi_channel = $val;
+                $arr['multi_channel'] = $val;
                 break;
             default:
                 break;
         }
-        $projectImp->save();
+        ProjectImplode::find($projectImpId)->update($arr);
+    }
+
+    public function detail3(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
+    {
+        $type = $project->type;
+        $user = Auth::guard("api")->user();
+
+        $project->powers = $repository->getPower($user,$project);
+        $result = $this->response->item($project, new ProjectDetailTransformer());
+        $data = TemplateField::where('module_type', $type)->get();
+        # 之后换nc暂时都是0
+        $contractmoney = 0;
+        $expendituresum = 0;
+
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+        $user = Auth::guard('api')->user();
+
+        if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('contractmoney', 'privacy');
+            }
+            else
+            {
+                if (isset($contractmoney)) {
+                    $result->addMeta('contractmoney', "".$contractmoney);
+                }
+                else
+                {
+                    $result->addMeta('contractmoney', "".'0');
+                }
+            }
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('expendituresum', 'privacy');
+            }
+            else
+            {
+                if (isset($expendituresum)) {
+                    $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+                }
+                else
+                {
+                    $result->addMeta('expendituresum', "".'0');
+                }
+            }
+        }
+        else
+        {
+            if (isset($contractmoney)) {
+                $result->addMeta('contractmoney', "".$contractmoney);
+            }
+            else
+            {
+                $result->addMeta('contractmoney', "".'0');
+            }
+            if (isset($expendituresum)) {
+                $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+            }
+            else
+            {
+                $result->addMeta('expendituresum',"".'0');
+            }
+        }
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
+        return $result;
     }
 }
 

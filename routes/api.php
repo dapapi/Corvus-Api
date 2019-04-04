@@ -330,9 +330,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}/contracts', 'App\Http\Controllers\ContractController@getClientContracts');
         //获取客户下销售线索
         $api->get('/clients_search', 'App\Http\Controllers\TrailController@getClient');
-        //获取客户下任务
+        //获取客户下项目
         $api->get('/clients_projects/{client}', 'App\Http\Controllers\ProjectController@getClientProjectList');
         $api->get('/clients_projects_norma/{client}', 'App\Http\Controllers\ProjectController@getClientProjectNormalList');
+        //获取客户下任务
+        $api->get('/clients_tasks/{client}', 'App\Http\Controllers\TaskController@getClientTaskList');
+        $api->get('/clients_tasks_norma/{client}', 'App\Http\Controllers\TaskController@getClientTaskNorma');
+
 
 
         //announcement

@@ -438,7 +438,7 @@ class OperateLogEventListener
                     break;
 
             }
-            dispatch(new RecordOperateLog([
+            RecordOperateLog::dispatch([
                 'user_id' => $user->id,
                 'logable_id' => $id,
                 'logable_type' => $type,
@@ -448,7 +448,7 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ]))->delay(Carbon::now()->addMinute(10));
+            ])->delay(Carbon::now()->addMinute(10))->onQueue("record:operatelog");
 //            OperateLog::create([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,

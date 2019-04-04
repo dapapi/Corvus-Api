@@ -1183,7 +1183,7 @@ class ProjectController extends Controller
 
     public function getClientProjectNormalList(Request $request, Client $client)
     {
-g        $now = Carbon::now()->toDateTimeString();
+        $now = Carbon::now()->toDateTimeString();
 
         $projects = Project::select('projects.id','projects.title','projects.status','projects.type','projects.created_at','users.name')
             ->join('trails', function ($join) {

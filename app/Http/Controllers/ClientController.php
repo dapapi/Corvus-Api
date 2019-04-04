@@ -281,16 +281,16 @@ class ClientController extends Controller
             return $this->response->errorInternal("你没有查看该数据的权限");
         }
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $client,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $client,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         //登录用户对线索编辑权限验证
         try{
             $user = Auth::guard("api")->user();

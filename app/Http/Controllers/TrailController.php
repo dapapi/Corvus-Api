@@ -869,16 +869,16 @@ class TrailController extends Controller
         $trail = $trail->searchData()->find($trail->id);
 
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $trail,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $trail,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         //登录用户对线索编辑权限验证
         try{
             $user = Auth::guard("api")->user();

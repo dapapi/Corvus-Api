@@ -73,7 +73,7 @@ class StarDeatilTransformer extends TransformerAbstract
     }
     public function getCreator(Star $star)
     {
-        $user = $star->creator()->select('id','name')->first();
+        $user = $star->creator()->select('id','name','icon_url')->first();
         $department = $user->department()->value('name') ;
         $user->department = $department;
         return $user;
@@ -85,7 +85,7 @@ class StarDeatilTransformer extends TransformerAbstract
         return ['data'=>$affixes];
     }
     public function getPublicity(Star $star){
-        $users = $star->publicity()->select('users.id','users.name')->get();
+        $users = $star->publicity()->select('users.id','users.name','icon_url')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
             $user->id = hashid_encode($user->id);
@@ -95,7 +95,7 @@ class StarDeatilTransformer extends TransformerAbstract
     }
     public function getBroker(Star $star)
     {
-        $users = $star->broker()->select('users.id','users.name')->get();
+        $users = $star->broker()->select('users.id','users.name','icon_url')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
             $user->id = hashid_encode($user->id);
@@ -109,6 +109,9 @@ class StarDeatilTransformer extends TransformerAbstract
             ->LeftJoin('users','tasks.principal_id','users.id')
             ->where('tasks.status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
+        foreach ($tasks as $task){
+            $tasks->id = hashid_encode($task->id);
+        }
         return $tasks;
     }
 

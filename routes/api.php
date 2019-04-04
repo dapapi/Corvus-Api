@@ -813,11 +813,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
 
-        //供应商管理
-        $api->get('/supplier','App\Http\Controllers\SupplierController@index');
-
-        $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
-        $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
+//        //供应商管理
+//        $api->get('/supplier','App\Http\Controllers\SupplierController@index');
+//
+//        $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
+//        $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
 
         // 仪表盘
         $api->get('/dashboards', 'App\Http\Controllers\DashboardController@index');
@@ -829,13 +829,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/stars', 'App\Http\Controllers\StarController@dashboard');
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
 //        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
-
-        // 供应商
-        $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
-        $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
-        $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
-        $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
-        $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
+//
+//        // 供应商
+//        $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
+//        $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
+//        $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
+//        $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
+//        $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
         //获取我的任务，我的审批，我的项目，待我审批的数量
         $api->get('/user/mynumber','App\Http\Controllers\UserController@getMyNumber');
         //获取各个模块列表里面按钮权限

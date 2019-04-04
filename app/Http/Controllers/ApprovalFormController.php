@@ -1255,6 +1255,7 @@ class ApprovalFormController extends Controller
             }
             //记录日志
             //泰洋项目合同，papi醒目合同
+            $project = null;
             if ($approval->form_id == 9 || $approval->form_id == 10) {
                 foreach ($controlValues as $value) {
                     if ($value['type'] == "project_id") {
@@ -1310,34 +1311,37 @@ class ApprovalFormController extends Controller
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $curr_user));
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $curr_user));
         // 发送消息
-        DB::beginTransaction();
-        try {
+        if (!is_null($project)) {
+            DB::beginTransaction();
+            try {
 
-            $user = Auth::guard('api')->user();
-            $title = $project->title . "项目成单了";  //通知消息的标题
-            $subheading = $project->title . "项目成单了";
-            $module = Message::PROJECT;
-            $link = URL::action("ProjectController@detail", ["project" => $project->id]);
-            $data = [];
-            $data[] = [
-                "title" => '项目名称', //通知消息中的消息内容标题
-                'value' => $project->title,  //通知消息内容对应的值
-            ];
-            $principal = User::findOrFail($project->principal_id);
-            $data[] = [
-                'title' => '项目负责人',
-                'value' => $principal->name
-            ];
-            //发送给创建人的直属领导
-            $department = DepartmentUser::where('user_id', $user->id)->first();
-            $leader = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
-            $send_user = [$leader->id];
-            $authorization = $request->header()['authorization'][0];
+                $user = Auth::guard('api')->user();
 
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user, $project->id);
-        } catch (Exception $e) {
-            Log::error($e);
-            DB::rollBack();
+                $title = $project->title . "项目成单了";  //通知消息的标题
+                $subheading = $project->title . "项目成单了";
+                $module = Message::PROJECT;
+                $link = URL::action("ProjectController@detail", ["project" => $project->id]);
+                $data = [];
+                $data[] = [
+                    "title" => '项目名称', //通知消息中的消息内容标题
+                    'value' => $project->title,  //通知消息内容对应的值
+                ];
+                $principal = User::findOrFail($project->principal_id);
+                $data[] = [
+                    'title' => '项目负责人',
+                    'value' => $principal->name
+                ];
+                //发送给创建人的直属领导
+                $department = DepartmentUser::where('user_id', $user->id)->first();
+                $leader = DepartmentUser::where('department_id', $department->id)->where('type', 1)->first();
+                $send_user = [$leader->id];
+                $authorization = $request->header()['authorization'][0];
+
+                (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $send_user, $project->id);
+            } catch (Exception $e) {
+                Log::error($e);
+                DB::rollBack();
+            }
         }
 
         return $this->response->item($instance, new ApprovalInstanceTransformer());
@@ -1520,16 +1524,23 @@ class ApprovalFormController extends Controller
     private function instanceStoreInit($formId, $num, $userId)
     {
         $form = ApprovalForm::where('form_id', $formId)->first();
-        if ($form->change_type == 224) {
+        if ($form->change_type != 222) {
             // 分支流程去找对应value
             $controlIds = Condition::where('form_id', $formId)->value('form_control_id');
             $controlIdArr = explode(',', $controlIds);
             $valueArr = [];
             foreach ($controlIdArr as $controlId) {
-                $valueArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
+                $dataId = Control::where('form_control_id', $controlId)->value('control_id');
+                if ($dataId == 83) {
+                    $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
+                    $valueArr[] = $this->numberForCondition($formId, $value);
+                } else {
+                    $valueArr[] = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $controlId)->value('form_control_value');
+                }
             }
             $values = implode(',', $valueArr);
             $conditionId = Condition::where('form_id', $formId)->where('condition', $values)->value('flow_condition_id');
+
         } else {
             $conditionId = null;
         }
@@ -1710,5 +1721,19 @@ class ApprovalFormController extends Controller
         ];
 
         return $arr;
+    }
+
+    private function numberForCondition($formId, $value)
+    {
+        $result = 0;
+        foreach (Condition::where('form_id', $formId)->orderBy('sort_number', 'desc')->cursor() as $item) {
+            if ($value * 1 >= $item->condition * 1) {
+                $result = $item->condition;
+                break;
+            } else {
+                continue;
+            }
+        }
+        return $result;
     }
 }

@@ -160,6 +160,10 @@ class ApprovalFlowController extends Controller
             // todo 拼value
             $formControlId = Condition::where('form_id', $formId)->first()->form_control_id;
             $value = $this->getValuesForCondition($formControlId, $num);
+            $dataId = Control::where('form_control_id', $formControlId)->value('control_id');
+            if ($dataId == 83) {
+                $value = $this->numberForCondition($formId, $value);
+            }
             $condition = $this->getCondition($formId, $value);
         }
 
@@ -884,7 +888,7 @@ class ApprovalFlowController extends Controller
         if (count($formControlIdArr) == 1) {
             $control = Control::where('form_control_id', $formControlIdArr[0])->first();
             $value = InstanceValue::where('form_instance_number', $num)->where('form_control_id', $control->form_control_id)->value('form_control_value');
-            if ($control->form_control_id == 83)
+            if ($control->control_id == 83)
                 return $this->numberForCondition($control->form_id, $value);
         }
 

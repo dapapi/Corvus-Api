@@ -17,7 +17,6 @@ use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -52,7 +51,6 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\PrivacyType;
-
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
@@ -74,6 +72,7 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
+
     protected $projectRepository;
 
     protected $projectImplodeId;
@@ -1789,7 +1788,9 @@ g        $now = Carbon::now()->toDateTimeString();
 
             }
         }
+
         $query->whereRaw(DB::raw("(1 = 1 $power)"));
+
 
         if ($request->has('principal_ids') && $payload['principal_ids']) {
             $payload['principal_ids'] = explode(',', $payload['principal_ids']);

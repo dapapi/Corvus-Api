@@ -14,6 +14,7 @@ class BloggerDetailTransformer extends TransformerAbstract
     {
         return [
             'id' => hashid_encode($blogger->id),
+            'type'  => hashid_encode($blogger->type_id),
             'nickname' => $blogger->nickname,
             'platform_id' => $blogger->platform_id,    //平台
             'avatar' => $blogger->avatar,
@@ -50,16 +51,15 @@ class BloggerDetailTransformer extends TransformerAbstract
             'tasks' => $this->getTasks($blogger),
             'affixes'   =>  $this->includeAffixes($blogger),
             'creator'   =>  $this->getCreator($blogger),
-            'broker'    =>  $this->getBroker($blogger),
-            'publicity' =>  $this->getPublicity($blogger),
+            'produser'  =>  $this->getProducer($blogger),
         ];
 
     }
     public function getCreator(Blogger $blogger)
     {
-        $user = $blogger->creator()->select('id','name')->first();
-
-        $user->department = $user->department()->value('name');
+        $user = $blogger->creator()->select('id','name','icon_url')->first();
+        $department = $user->department()->value('name') ;
+        $user->department = $department;
         return $user;
 //        return $this->item($user,new UserTransformer());
     }
@@ -68,21 +68,11 @@ class BloggerDetailTransformer extends TransformerAbstract
         $affixes = $blogger->affixes()->createDesc()->get();
         return ['data'=>$affixes];
     }
-    public function getPublicity(Blogger $blogger){
-        $users = $blogger->publicity()->select('users.id','users.name')->get();
+    public function getProducer(Blogger $blogger){
+        $users = $blogger->publicity()->select('users.id','users.name','icon_url')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
-            $user->department = $department;
-        }
-        return $users;
-    }
-    public function getBroker(Blogger $blogger)
-    {
-        DB::connection()->enableQueryLog();
-        $users = $blogger->publicity()->select('users.id','users.name')->get();
-//        dd(DB::getQueryLog());
-        foreach ($users as $user){
-            $department = $user->department()->value('name') ;
+            $user->id = hashid_encode($user->id);
             $user->department = $department;
         }
         return $users;
@@ -93,6 +83,9 @@ class BloggerDetailTransformer extends TransformerAbstract
             ->LeftJoin('users','tasks.principal_id','users.id')
             ->where('tasks.status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
+        foreach ($tasks as $task){
+            $task->id = hashid_encode($task->id);
+        }
         return $tasks;
     }
 }

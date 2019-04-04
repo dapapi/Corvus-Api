@@ -219,6 +219,7 @@ class TestController extends Controller
                 dispatch(new ProjectImplode($project));
             }
         });
+
     }
 
     public function task()

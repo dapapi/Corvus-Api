@@ -1291,6 +1291,7 @@ class TaskController extends Controller
     }
 
     //////////////////////
+    //////////////////////
     public function taskEdit(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
@@ -1433,77 +1434,6 @@ class TaskController extends Controller
             ];
             $taskResource->update($resource);
             unset($payload['code']);
-
-                $principalId = hashid_decode($payload['principal_id']);
-//                $principalUser = User::findOrFail($principalId);
-                $userName = DB::table('users')->where('users.id', $principalId)->select('name')->first();
-                $array['principal_name'] = $userName->name;
-                $array['principal_id'] = $principalId;
-
-                if ($currentPrincipalUser) {
-                    if ($currentPrincipalUser->id != $array['principal_id']) {
-//                        $operatePrincipal = new OperateEntity([
-//                            'obj' => $task,
-//                            'title' => '负责人',
-//                            'start' => $start,
-//                            'end' => $principalUser->name,
-//                            'method' => OperateLogMethod::UPDATE,
-//                        ]);
-//                        $arrayOperateLog[] = $operatePrincipal;
-                    } else {
-                        unset($arrayOperateLog['principal_id']);
-                    }
-                }
-            } catch (Exception $e) {
-                return $this->response->errorBadRequest();
-            }
-        }
-
-        if ($request->has('priority')) {
-            $array['priority'] = $payload['priority'];
-            if ($array['priority'] != $task->priority) {
-//                $start = TaskPriorityStatus::getStr($task->priority);
-//                $end = TaskPriorityStatus::getStr($array['priority']);
-//
-//                $operatePriority = new OperateEntity([
-//                    'obj' => $task,
-//                    'title' => '优先级',
-//                    'start' => $start,
-//                    'end' => $end,
-//                    'method' => OperateLogMethod::UPDATE,
-//                ]);
-//                $arrayOperateLog[] = $operatePriority;
-            } else {
-                unset($array['priority']);
-            }
-        }
-
-        //修改关联资源
-        if ($request->has('resource_type')) {
-            $resourceableId = hashid_decode($payload['resourceable_id']);
-            $resourceType = $payload['resource_type'];
-            $taskResource = TaskResource::where('task_id',$task->id)->first();
-            if($payload['code'] == 'bloggers'){
-                $code = ModuleableType::BLOGGER;
-            }elseif($payload['code'] == 'stars'){
-                $code = ModuleableType::STAR;
-            }elseif($payload['code'] == 'projects'){
-                $code = ModuleableType::PROJECT;
-            }elseif($payload['code'] == 'clients'){
-                $code = ModuleableType::CLIENT;
-            }elseif($payload['code'] == 'trails'){
-                $code = ModuleableType::TRAIL;
-            }else{
-                return $this->response->errorInternal('上传类型不正确');
-            }
-            $resource = [
-                'resource_id' => $resourceType,
-                'resourceable_id' =>$resourceableId,
-                'resourceable_type' =>$code,
-            ];
-            $taskResource->update($resource);
-            unset($payload['code']);
-
 
         }
 

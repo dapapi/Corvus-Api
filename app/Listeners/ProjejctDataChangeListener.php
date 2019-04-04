@@ -77,7 +77,7 @@ class ProjejctDataChangeListener
             case 'principal_id':
                 $arr['principal_id'] = $value;
                 $arr['principal'] = User::find($value)->name;
-                $departmentId = DepartmentUser::where('user_id', $value)->department_id;
+                $departmentId = DepartmentUser::where('user_id', $value)->value('department_id');
                 $arr['department_id'] = $departmentId;
                 $arr['department'] = Department::find($departmentId)->name;
                 break;

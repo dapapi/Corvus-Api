@@ -314,6 +314,8 @@ class ProjectController extends Controller
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
         $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
+        $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
+        $payload['department_name'] = Department::where('id', $departmentId)->value('name');
 
         DB::beginTransaction();
 
@@ -556,6 +558,8 @@ class ProjectController extends Controller
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
                 $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
+                $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
+                $payload['department_name'] = Department::where('id', $departmentId)->value('name');
                 if ($project->principal_id != $payload['principal_id']) {
          //           try {
 //                        $curr_principal = User::find($project->principal_id)->name;

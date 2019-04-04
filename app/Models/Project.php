@@ -58,6 +58,7 @@ class Project extends Model
         'project_number',
         'principal_id',
         'principal_name',
+        'department_name',
         'creator_id',
         'creator_name',
         'trail_id',

@@ -912,17 +912,17 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-//        $user = Auth::guard("api")->user();
-//        //登录用户对线索编辑权限验证
-//        try{
-////            获取用户角色
-//            $role_list = $user->roles()->pluck('id')->all();
-//            $scopeRepository->checkPower("trails/{id}",'put',$role_list,$trail);
-//            $trail->power = "true";
-//        }catch (Exception $exception){
-//            $trail->power = "false";
-//        }
-//        $trail->powers = $repository->getPower($user,$trail);
+        $user = Auth::guard("api")->user();
+        //登录用户对线索编辑权限验证
+        try{
+//            获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $scopeRepository->checkPower("trails/{id}",'put',$role_list,$trail);
+            $trail->power = "true";
+        }catch (Exception $exception){
+            $trail->power = "false";
+        }
+        $trail->powers = $repository->getPower($user,$trail);
         return $this->response->item($trail, new TraildetailTransformer());
     }
     public function forceDelete(Request $request, $trail)

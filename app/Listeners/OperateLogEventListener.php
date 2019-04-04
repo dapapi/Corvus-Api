@@ -221,7 +221,7 @@ class OperateLogEventListener
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
-                    if ($this->implodeModel == null) {
+                    if($this->implodeModel != null) {
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
@@ -234,7 +234,7 @@ class OperateLogEventListener
                     $content = $this->create . '' . $typeName;
                     break;
                 case OperateLogMethod::UPDATE://修改
-                    if ($this->implodeModel == null) {
+                    if($this->implodeModel != null) {
                         $this->implodeModel->last_updated_user_id = $user->id;
                         $this->implodeModel->last_updated_user = $user->name;
                         $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
@@ -266,7 +266,11 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
+<<<<<<< HEAD
                     if ($this->implodeModel == null){
+=======
+                    if($this->implodeModel != null) {
+>>>>>>> 5ce8758926832d7222139b269ce2f2448f8b7256
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();

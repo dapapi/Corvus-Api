@@ -316,7 +316,6 @@ class ProjectController extends Controller
             $project = Project::create($payload);
             $projectId = $project->id;
             $this->createProjectImplode($payload, $projectId);
-
             if ($payload['type'] != 5) {
                 $projectHistorie = ProjectHistorie::create($payload);
                 $approvalForm = new ApprovalFormController();

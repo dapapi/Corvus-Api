@@ -86,6 +86,7 @@ class StarDeatilTransformer extends TransformerAbstract
         $users = $star->publicity()->select('users.id','users.name')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
+            $user->id = hashid_encode($user->id);
             $user->department = $department;
         }
         return $users;
@@ -95,6 +96,7 @@ class StarDeatilTransformer extends TransformerAbstract
         $users = $star->publicity()->select('users.id','users.name')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
+            $user->id = hashid_encode($user->id);
             $user->department = $department;
         }
         return $users;

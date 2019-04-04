@@ -14,6 +14,7 @@ use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Transformers\DashboardModelTransformer;
+use App\Http\Transformers\Project\ProjectDetailTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -33,6 +34,7 @@ use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\ProjectBill;
 use App\Models\ProjectHistorie;
+use App\Models\ProjectImplode;
 use App\Models\ProjectRelate;
 use App\Models\ProjectReturnedMoney;
 use App\Models\ProjectReturnedMoneyType;
@@ -1779,50 +1781,16 @@ class ProjectController extends Controller
         $user = Auth::guard("api")->user();
 
         $project->powers = $repository->getPower($user,$project);
-        $result = $this->response->item($project, new ProjectTransformer());
+        $result = $this->response->item($project, new ProjectDetailTransformer());
         $data = TemplateField::where('module_type', $type)->get();
-        $array['project_kd_name'] = $project->title;
-        $array['expense_type'] = '支出';
-        $approval  = (new ApprovalContractController())->projectList($request,$project);
-        $contractmoney = $approval['money'];
-        // 记住修改  收入
-        $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
-        // 获取目标艺人 所在部门
-        if($project->trail){
-            $expectations = $project->trail->bloggerExpectations;
-            if (count($expectations) <= 0) {
-                $expectations = $project->trail->expectations->first();
-                if(!$expectations) {
-                    return null;
-                }else{
-                    $expectations = $expectations->broker->toArray();
-//                ->broker;
-                    $department_name = [];
-                    if(!$expectations)
-                        return null;
-                    foreach ($expectations as $key => $val){
-                        $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-                    }
-                }
+        # 之后换nc暂时都是0
+        $contractmoney = 0;
+        $expendituresum = 0;
 
-            } else {
-                $expectations = $expectations->first()->publicity->toArray();
-                $department_name = [];
-                if(!$expectations)
-                    return null;
-                foreach ($expectations as $key => $val){
-                    $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-                }
-            }
-        }
-        unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
         $user = Auth::guard('api')->user();
-        if($project->trail){
-            $result->addMeta('department_name',  $department_name);
-        }
 
         if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 

@@ -57,7 +57,9 @@ class Project extends Model
         'title',
         'project_number',
         'principal_id',
+        'principal_name',
         'creator_id',
+        'creator_name',
         'trail_id',
         'privacy',
         'priority',
@@ -71,7 +73,6 @@ class Project extends Model
         'stop_at',
         'delete_at',
         # 冗余字段
-        'trail_name',
         'principal_name',
         'creator_name',
     ];

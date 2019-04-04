@@ -448,6 +448,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
+        $api->get('/projects/{project}/web', 'App\Http\Controllers\ProjectController@detail3');
         $api->get('/projects/{project}/course', 'App\Http\Controllers\ProjectController@allCourse');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
         $api->put('/projects/{project}/course', 'App\Http\Controllers\ProjectController@course');

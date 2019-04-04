@@ -440,18 +440,7 @@ class OperateLogEventListener
                     break;
 
             }
-            $this->dispatch(new RecordOperateLog([
-                'user_id' => $user->id,
-                'logable_id' => $id,
-                'logable_type' => $type,
-                'content' => $content,
-                'method' => $operate->method,
-                'level' => $level,
-                'status' => 1,
-                'field_name'    =>$field_name,
-                'field_title' =>  $title
-            ]));
-//            OperateLog::create([
+//            $this->dispatch(new RecordOperateLog([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,
 //                'logable_type' => $type,
@@ -461,7 +450,18 @@ class OperateLogEventListener
 //                'status' => 1,
 //                'field_name'    =>$field_name,
 //                'field_title' =>  $title
-//            ]);
+//            ]));
+            OperateLog::create([
+                'user_id' => $user->id,
+                'logable_id' => $id,
+                'logable_type' => $type,
+                'content' => $content,
+                'method' => $operate->method,
+                'level' => $level,
+                'status' => 1,
+                'field_name'    =>$field_name,
+                'field_title' =>  $title
+            ]);
 
         }
     }

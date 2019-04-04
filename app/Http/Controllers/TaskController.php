@@ -15,6 +15,8 @@ use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\TaskTransformer;
+use App\Http\Transformers\ClientTaskTransformer;
+
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Department;
@@ -26,6 +28,7 @@ use App\Models\Star;
 use App\Models\Task;
 use App\Models\TaskRelate;
 use App\Models\TaskResource;
+
 use App\Models\TaskType;
 use App\Models\Trail;
 use App\ModuleableType;
@@ -480,6 +483,42 @@ class TaskController extends Controller
         $request = $this->response->paginator($tasks, new TaskTransformer());
         $request->addMeta("complete_count", $complete_count);
         return $request;
+    }
+
+    public function getClientTaskList(Request $request,Client $client)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+        $query = $client->tasks();
+
+        $tasks = $query->searchData()->where('privacy', false)->paginate($pageSize);
+        //获取任务完成数量
+        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
+
+        $request = $this->response->paginator($tasks, new ClientTaskTransformer());
+        $request->addMeta("complete_count",$complete_count);
+        return $request;
+    }
+
+    public function getClientTaskNorma(Request $request,Client $client)
+    {
+        $task = DB::table('task_resources as ts')
+            ->join('tasks', function ($join) {
+                $join->on('ts.task_id', '=', 'tasks.id');
+            })
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'tasks.creator_id');
+            })
+            ->where('ts.resourceable_id', $client->id)->where('ts.resourceable_type', 'client')->where('tasks.status',1)->orderBy('tasks.created_at')
+            ->select('tasks.id','tasks.title','tasks.status','tasks.end_at','users.name')
+            ->limit(3)->get()->toArray();
+
+        if($task){
+            foreach ($task as &$value){
+                $value->id = hashid_encode($value->id);
+            }
+        }
+        return $task;
+
     }
 
 
@@ -1759,33 +1798,32 @@ class TaskController extends Controller
                 $payload['resource_id'] = hashid_decode($payload['resourceable_id']);
                 $resourceable_id = hashid_decode($payload['resourceable_id']);
 
-            }
+                if($payload['resource_type'] == 1){
+                    $payload['resource_type_name'] = '博主';
+                    $resource_name = DB::table('bloggers')->where('bloggers.id',$resourceable_id)->select('nickname as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
 
-            if($payload['resource_type'] == 1){
-                $payload['resource_type_name'] = '博主';
-                $resource_name = DB::table('bloggers')->where('bloggers.id',$resourceable_id)->select('nickname as name')->first();
-                $payload['resource_name'] = $resource_name->name;
+                }elseif ($payload['resource_type'] == 2){
+                    $payload['resource_type_name'] = '艺人';
+                    $resource_name = DB::table('stars')->where('stars.id',$resourceable_id)->select('name')->first();
+                    $payload['resource_name'] = $resource_name->name;
 
-            }elseif ($payload['resource_type'] == 2){
-                $payload['resource_type_name'] = '艺人';
-                $resource_name = DB::table('stars')->where('stars.id',$resourceable_id)->select('name')->first();
-                $payload['resource_name'] = $resource_name->name;
+                }elseif ($payload['resource_type'] == 3){
+                    $payload['resource_type_name'] = '项目';
+                    $resource_name = DB::table('projects')->where('projects.id',$resourceable_id)->select('title as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
 
-            }elseif ($payload['resource_type'] == 3){
-                $payload['resource_type_name'] = '项目';
-                $resource_name = DB::table('projects')->where('projects.id',$resourceable_id)->select('title as name')->first();
-                $payload['resource_name'] = $resource_name->name;
+                }elseif ($payload['resource_type'] == 4){
+                    $payload['resource_type_name'] = '客户';
+                    $resource_name = DB::table('clients')->where('clients.id',$resourceable_id)->select('company as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
 
-            }elseif ($payload['resource_type'] == 4){
-                $payload['resource_type_name'] = '客户';
-                $resource_name = DB::table('clients')->where('clients.id',$resourceable_id)->select('company as name')->first();
-                $payload['resource_name'] = $resource_name->name;
+                }elseif ($payload['resource_type'] == 5){
+                    $payload['resource_type_name'] = '销售线索';
+                    $resource_name = DB::table('trails')->where('trails.id',$resourceable_id)->select('title as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
 
-            }elseif ($payload['resource_type'] == 5){
-                $payload['resource_type_name'] = '销售线索';
-                $resource_name = DB::table('trails')->where('trails.id',$resourceable_id)->select('title as name')->first();
-                $payload['resource_name'] = $resource_name->name;
-
+                }
             }
 
             $task = Task::create($payload);

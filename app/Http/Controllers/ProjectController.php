@@ -1222,7 +1222,7 @@ class ProjectController extends Controller
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $projects = Project::select('projects.*')->join('trails', function ($join) {
+        $projects = Project::select('projects.id','projects.title','projects.principal_id','projects.creator_id','projects.trail_id','projects.status','projects.type','projects.priority','projects.created_at','projects.updated_at')->join('trails', function ($join) {
             $join->on('projects.trail_id', '=', 'trails.id');
         })->where('trails.client_id', '=', $client->id)
             ->paginate($pageSize);

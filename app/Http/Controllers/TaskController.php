@@ -28,6 +28,7 @@ use App\Models\Star;
 use App\Models\Task;
 use App\Models\TaskRelate;
 use App\Models\TaskResource;
+use App\Repositories\TaskRepository;
 
 use App\Models\TaskType;
 use App\Models\Trail;
@@ -552,7 +553,7 @@ class TaskController extends Controller
         return $this->response()->item($task, new TaskTransformer());
     }
 
-    public function show(Task $task,ScopeRepository $repository)
+    public function show(Task $task,ScopeRepository $repository,TaskRepository $taskRepository)
     {
         // 操作日志
 //        $operate = new OperateEntity([
@@ -566,8 +567,8 @@ class TaskController extends Controller
 //            $operate,
 //        ]));
         //登录用户对线索编辑权限验证
+        $user = Auth::guard("api")->user();
         try{
-            $user = Auth::guard("api")->user();
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
             $repository->checkPower("tasks/{id}",'put',$role_list,$task);
@@ -575,6 +576,7 @@ class TaskController extends Controller
         }catch (Exception $exception){
             $task->power = "false";
         }
+        $task->powers = $taskRepository->getPower($user,$task);
         return $this->response()->item($task, new TaskTransformer());
     }
 

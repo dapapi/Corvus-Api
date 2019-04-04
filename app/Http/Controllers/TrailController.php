@@ -875,7 +875,8 @@ class TrailController extends Controller
     {
         $trail = $trail->searchData()->find($trail->id);
 
-        // 操作日志
+        $user = Auth::guard("api")->user();
+
 //        $operate = new OperateEntity([
 //            'obj' => $trail,
 //            'title' => null,
@@ -886,7 +887,7 @@ class TrailController extends Controller
 //        event(new OperateLogEvent([
 //            $operate,
 //        ]));
-        $user = Auth::guard("api")->user();
+
         //登录用户对线索编辑权限验证
         try{
 //            获取用户角色

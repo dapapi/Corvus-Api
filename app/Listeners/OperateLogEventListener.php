@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Jobs\RecordOperateLog;
 use App\Models\Announcement;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
@@ -446,8 +447,7 @@ class OperateLogEventListener
                     break;
 
             }
-
-            OperateLog::create([
+            $data = [
                 'user_id' => $user->id,
                 'logable_id' => $id,
                 'logable_type' => $type,
@@ -457,7 +457,19 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ]);
+            ];
+            dispatch(new RecordOperateLog($data));
+//            OperateLog::create([
+//                'user_id' => $user->id,
+//                'logable_id' => $id,
+//                'logable_type' => $type,
+//                'content' => $content,
+//                'method' => $operate->method,
+//                'level' => $level,
+//                'status' => 1,
+//                'field_name'    =>$field_name,
+//                'field_title' =>  $title
+//            ]);
 
         }
     }

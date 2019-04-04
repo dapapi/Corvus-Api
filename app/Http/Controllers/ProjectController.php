@@ -562,28 +562,6 @@ class ProjectController extends Controller
                 $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
                 $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
                 $payload['department_name'] = Department::where('id', $departmentId)->value('name');
-                if ($project->principal_id != $payload['principal_id']) {
-         //           try {
-//                        $curr_principal = User::find($project->principal_id)->name;
-//                        $principal = User::findOrFail($payload['principal_id'])->name;
-//
-//                        //操作日志
-//                        $operateName = new OperateEntity([
-//                            'obj' => $project,
-//                            'title' => "负责人",
-//                            'start' => $curr_principal,
-//                            'end' => $principal,
-//                            'method' => OperateLogMethod::UPDATE,
-//                        ]);
-//                        $arrayOperateLog[] = $operateName;
-
-//                    } catch (Exception $e) {
-//                        Log::error($e);
-//                        DB::rollBack();
-                        return $this->response->errorInternal("负责人错误");
-  //                  }
-
-                }
 
             }
             if (!$request->has('type') || $payload['type'] == '')

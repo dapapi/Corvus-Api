@@ -99,7 +99,7 @@ class ProjectDetailTransformer extends TransformerAbstract
                     'title' => $task->title,
                 ];
             }
-            $array['relate_tasks'] = $taskArr;
+            $array['relate_tasks'] = ['data' => $taskArr];
         }
         $projects = $project->relateProjects;
         if (!$projects)
@@ -112,7 +112,7 @@ class ProjectDetailTransformer extends TransformerAbstract
                     'title' => $item->title,
                 ];
             }
-            $array['relate_projects'] = $projectArr;
+            $array['relate_projects'] = ['data' => $projectArr];
         }
         return $array;
     }

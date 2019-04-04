@@ -167,7 +167,7 @@ class TrailTransformer extends TransformerAbstract
     {
         $recommendations = $trail->bloggerRecommendations;
         if (count($recommendations) <= 0) {
-            $recommendations = $trail->recommendations;
+            $recommendations = $trail->starRecommendations;
             if (is_null($recommendations))
                 return $this->null();
             return $this->collection($recommendations, new StarTransformer());
@@ -181,7 +181,7 @@ class TrailTransformer extends TransformerAbstract
     {
         $expectations = $trail->bloggerExpectations;
         if (count($expectations) <= 0) {
-            $expectations = $trail->expectations;
+            $expectations = $trail->starExpectations;
             if (is_null($expectations))
                 return $this->null();
             return $this->collection($expectations, new StarTransformer());

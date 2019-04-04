@@ -1527,7 +1527,7 @@ class ApprovalFormController extends Controller
     private function instanceStoreInit($formId, $num, $userId)
     {
         $form = ApprovalForm::where('form_id', $formId)->first();
-        if ($form->change_type == 224) {
+        if ($form->change_type != 222) {
             // 分支流程去找对应value
             $controlIds = Condition::where('form_id', $formId)->value('form_control_id');
             $controlIdArr = explode(',', $controlIds);

@@ -6,6 +6,8 @@ use App\Models\Client;
 use App\Models\Contract;
 use App\TaskStatus;
 use DemeterChain\C;
+use Illuminate\Support\Facades\DB;
+
 use League\Fractal\TransformerAbstract;
 
 class ClientTransformer extends TransformerAbstract
@@ -52,6 +54,17 @@ class ClientTransformer extends TransformerAbstract
                 'ketman' => $client->keyman,
             ];
 
+        }
+
+        $clientUser = DB::table('users')//
+        ->where('users.id', $client->principal_id)
+            ->select('users.id','users.name')->first();
+        if($clientUser){
+            $array['principal']['data']['id'] = hashid_encode($clientUser->id);
+            $array['principal']['data']['name'] = $clientUser->name;
+        }else{
+            $array['principal']['data']['id'] = '';
+            $array['principal']['data']['name'] = '';
         }
 
 

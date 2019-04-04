@@ -499,6 +499,22 @@ class TaskController extends Controller
         return $request;
     }
 
+
+//    public function getClientTaskList(Request $request,Client $client)
+//    {
+//        $pageSize = $request->get('page_size', config('app.page_size'));
+//        $query = $client->tasks();
+//
+//        $tasks = $query->searchData()->where('privacy', false)->paginate($pageSize);
+//        //获取任务完成数量
+//        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
+//
+//        $request = $this->response->paginator($tasks, new ClientTaskTransformer());
+//        $request->addMeta("complete_count",$complete_count);
+//        return $request;
+//    }
+
+
     public function getClientTaskNorma(Request $request,Client $client)
     {
         $task = DB::table('task_resources as ts')
@@ -548,6 +564,32 @@ class TaskController extends Controller
         }
         return $this->response()->item($task, new TaskTransformer());
     }
+
+//    public function show(Task $task,ScopeRepository $repository)
+//    {
+//        // 操作日志
+//        $operate = new OperateEntity([
+//            'obj' => $task,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
+//        //登录用户对线索编辑权限验证
+//        try{
+//            $user = Auth::guard("api")->user();
+//            //获取用户角色
+//            $role_list = $user->roles()->pluck('id')->all();
+//            $repository->checkPower("tasks/{id}",'put',$role_list,$task);
+//            $task->power = "true";
+//        }catch (Exception $exception){
+//            $task->power = "false";
+//        }
+//        return $this->response()->item($task, new TaskTransformer());
+//    }
 
     public function show(Task $task,ScopeRepository $repository,TaskRepository $taskRepository)
     {
@@ -1393,6 +1435,77 @@ class TaskController extends Controller
             $taskResource->update($resource);
             unset($payload['code']);
 
+                $principalId = hashid_decode($payload['principal_id']);
+//                $principalUser = User::findOrFail($principalId);
+                $userName = DB::table('users')->where('users.id', $principalId)->select('name')->first();
+                $array['principal_name'] = $userName->name;
+                $array['principal_id'] = $principalId;
+
+                if ($currentPrincipalUser) {
+                    if ($currentPrincipalUser->id != $array['principal_id']) {
+//                        $operatePrincipal = new OperateEntity([
+//                            'obj' => $task,
+//                            'title' => '负责人',
+//                            'start' => $start,
+//                            'end' => $principalUser->name,
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operatePrincipal;
+                    } else {
+                        unset($arrayOperateLog['principal_id']);
+                    }
+                }
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest();
+            }
+        }
+
+        if ($request->has('priority')) {
+            $array['priority'] = $payload['priority'];
+            if ($array['priority'] != $task->priority) {
+//                $start = TaskPriorityStatus::getStr($task->priority);
+//                $end = TaskPriorityStatus::getStr($array['priority']);
+//
+//                $operatePriority = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '优先级',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operatePriority;
+            } else {
+                unset($array['priority']);
+            }
+        }
+
+        //修改关联资源
+        if ($request->has('resource_type')) {
+            $resourceableId = hashid_decode($payload['resourceable_id']);
+            $resourceType = $payload['resource_type'];
+            $taskResource = TaskResource::where('task_id',$task->id)->first();
+            if($payload['code'] == 'bloggers'){
+                $code = ModuleableType::BLOGGER;
+            }elseif($payload['code'] == 'stars'){
+                $code = ModuleableType::STAR;
+            }elseif($payload['code'] == 'projects'){
+                $code = ModuleableType::PROJECT;
+            }elseif($payload['code'] == 'clients'){
+                $code = ModuleableType::CLIENT;
+            }elseif($payload['code'] == 'trails'){
+                $code = ModuleableType::TRAIL;
+            }else{
+                return $this->response->errorInternal('上传类型不正确');
+            }
+            $resource = [
+                'resource_id' => $resourceType,
+                'resourceable_id' =>$resourceableId,
+                'resourceable_type' =>$code,
+            ];
+            $taskResource->update($resource);
+            unset($payload['code']);
+
+>>>>>>> yc
         }
 
         if ($request->has('start_at')) {
@@ -1712,6 +1825,285 @@ class TaskController extends Controller
         //发消息
         $authorization = $request->header()['authorization'][0];
         event(new TaskMessageEvent($task, TaskTriggerPoint::CRATE_TASK, $authorization, $user));
+
+//        DB::beginTransaction();
+//        try {
+//
+//            $user = Auth::guard('api')->user();
+//            $title = $user->name . "邀请你参与任务";  //通知消息的标题
+//            $subheading = $user->name . "邀请你参与任务";
+//            $module = Message::TASK;
+//            $link = URL::action("TaskController@show", ["task" => $task->id]);
+//            $data = [];
+//            $data[] = [
+//                "title" => '任务名称', //通知消息中的消息内容标题
+//                'value' => $task->title,  //通知消息内容对应的值
+//            ];
+//            $principal = User::findOrFail($task->principal_id);
+//            $data[] = [
+//                'title' => '负责人',
+//                'value' => $principal->name
+//            ];
+//
+//            $recives = array_column($task->participants()->get()->toArray(),'id');
+//            $recives[] = $payload['principal_id'];//负责人
+//            $authorization = $request->header()['authorization'][0];
+//            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $recives,$task->id);
+//
+//            DB::commit();
+//        }catch (Exception $e){
+//            DB::rollBack();
+//            Log::error($e);
+//        }
+        return $this->response->item(Task::find($task->id), new TaskTransformer());
+//        return $this->response->created();
+    }
+
+
+    public function taskStore(TaskRequest $request, Task $pTask)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+
+        unset($payload['status']);
+        unset($payload['complete_at']);
+        unset($payload['stop_at']);
+        unset($payload['type_id']);
+
+        $payload['creator_id'] = $user->id;
+
+        if ($request->has('principal_id')) {
+            try {
+                $principalId = hashid_decode($payload['principal_id']);
+                User::findOrFail($principalId);
+                $payload['principal_id'] = $principalId;
+
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest('负责人错误');
+            }
+        }
+
+        if ($pTask->id) {
+            if ($pTask->task_pid)
+                return $this->response->errorBadRequest('子任务不支持多级子任务');
+            $payload['task_pid'] = $pTask->id;
+        }
+
+        //验证 type
+        if ($request->has('type') && $payload['type'] != 0) {
+            $departmentId = $user->department()->first()->id;
+            $typeId = hashid_decode($payload['type']);
+            $taskType = TaskType::where('id', $typeId)->where('department_id', $departmentId)->first();
+            if ($taskType) {
+                $payload['type_id'] = $taskType->id;
+            } else {
+                return $this->response->errorBadRequest('你所在的部门下没有这个类型');
+            }
+        }
+
+        if (!$request->has('privacy')) {
+            $payload['privacy'] = false;
+        }
+
+        DB::beginTransaction();
+        try {
+            if($request->has('resourceable_id')){
+                $payload['resource_id'] = hashid_decode($payload['resourceable_id']);
+                $resourceable_id = hashid_decode($payload['resourceable_id']);
+
+                if($payload['resource_type'] == 1){
+                    $payload['resource_type_name'] = '博主';
+                    $resource_name = DB::table('bloggers')->where('bloggers.id',$resourceable_id)->select('nickname as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
+
+                }elseif ($payload['resource_type'] == 2){
+                    $payload['resource_type_name'] = '艺人';
+                    $resource_name = DB::table('stars')->where('stars.id',$resourceable_id)->select('name')->first();
+                    $payload['resource_name'] = $resource_name->name;
+
+                }elseif ($payload['resource_type'] == 3){
+                    $payload['resource_type_name'] = '项目';
+                    $resource_name = DB::table('projects')->where('projects.id',$resourceable_id)->select('title as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
+
+                }elseif ($payload['resource_type'] == 4){
+                    $payload['resource_type_name'] = '客户';
+                    $resource_name = DB::table('clients')->where('clients.id',$resourceable_id)->select('company as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
+
+                }elseif ($payload['resource_type'] == 5){
+                    $payload['resource_type_name'] = '销售线索';
+                    $resource_name = DB::table('trails')->where('trails.id',$resourceable_id)->select('title as name')->first();
+                    $payload['resource_name'] = $resource_name->name;
+
+                }
+            }
+
+            $task = Task::create($payload);
+            unset($payload['type_name']);
+            unset($payload['resource_name']);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $task,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+
+            if (!$pTask->id) {//子任务不能关联资源
+
+                //关联资源
+                if ($request->has('resource_type') && $request->has('resourceable_id')) {
+                    $resourceType = $payload['resource_type'];
+                    $resourceableId = hashid_decode($payload['resourceable_id']);
+                    $resource = Resource::where('type', $resourceType)->first();
+                    if ($resource) {
+                        $array = [
+                            'task_id' => $task->id,
+                            'resource_id' => $resource->id,
+                        ];
+                        $model = null;
+
+                        switch ($resource->type) {
+                            case ResourceType::BLOGGER:
+                                $model = Blogger::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::BLOGGER;
+                                break;
+                            case ResourceType::STAR:
+
+                                $model = Star::findOrFail($resourceableId);
+
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::STAR;
+
+//                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $star,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_STAR_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+
+                                break;
+                            case ResourceType::PROJECT:
+                                $model = Project::findOrFail($resourceableId);
+
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::PROJECT;
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $project,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_PROJECT_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+                                break;
+                            case ResourceType::CLIENT:
+                                $model = Client::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::CLIENT;
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $client,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_CLIENT_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+
+                                break;
+                            case ResourceType::TRAIL:
+                                $model = Trail::findOrFail($resourceableId);
+                                $array['resourceable_id'] = $model->id;
+                                $array['resourceable_type'] = ModuleableType::TRAIL;
+                                //操作日志
+//                                $operate = new OperateEntity([
+//                                    'obj' => $trail,
+//                                    'title' => null,
+//                                    'start' => null,
+//                                    'end' => null,
+//                                    'method' => OperateLogMethod::ADD_TRAIL_TASK,
+//                                ]);
+//                                event(new OperateLogEvent([
+//                                    $operate,
+//                                ]));
+                                break;
+                            //TODO
+                        }
+
+                        $task_resource = TaskResource::create($array);
+
+                        // 操作日志
+                        if ($model != null){
+                            $operate = new OperateEntity([
+                                'obj' => $model,
+                                'title' => null,
+                                'start' => null,
+                                'end' => null,
+                                'method' => OperateLogMethod::ADD_TASK_RESOURCE,
+                            ]);
+                            event(new OperateLogEvent([
+                                $operate,
+                            ]));
+                        }
+                        $operate = new OperateEntity([
+                            'obj' => $task,
+                            'title' => null,
+                            'start' => null,
+                            'end' => null,
+                            'method' => OperateLogMethod::CREATE,
+                        ]);
+                        event(new OperateLogEvent([
+                            $operate,
+                        ]));
+
+                    } else {
+                        throw new Exception('没有这个类型');
+                    }
+                }
+            }
+
+            if ($request->has('affix') && count($request->get('affix'))) {
+                $affixes = $request->get('affix');
+                foreach ($affixes as $affix) {
+                    try {
+                        $this->affixRepository->addAffix($user, $task, $affix['title'], $affix['url'], $affix['size'], AffixType::DEFAULT);
+                        // 操作日志 ...
+                    } catch (Exception $e) {
+                    }
+                }
+            }
+
+            //    添加参与人
+            if ($request->has('participant_ids')) {
+
+                $this->moduleUserRepository->addModuleUser($payload['participant_ids'], [], $task, ModuleUserType::PARTICIPANT);
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return $this->response->errorInternal('创建失败!');
+        }
+        DB::commit();
+        //发消息
+//        $authorization = $request->header()['authorization'][0];
+//        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
 
 //        DB::beginTransaction();
 //        try {

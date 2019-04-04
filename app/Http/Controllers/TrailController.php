@@ -17,10 +17,12 @@ use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
 
+
 use App\Http\Transformers\TrailDetailTransformer;
 use App\Http\Transformers\TrailFilterTransformer;
 use App\Http\Transformers\TrailIndexTransformer;
 use App\Http\Transformers\TrailClientTransformer;
+
 use App\Imports\TrailsImport;
 use App\Models\DataDictionarie;
 use App\Models\Department;

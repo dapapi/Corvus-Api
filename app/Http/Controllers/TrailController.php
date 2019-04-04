@@ -16,9 +16,11 @@ use App\Http\Requests\Trail\StoreTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
+
 use App\Http\Transformers\TrailDetailTransformer;
 use App\Http\Transformers\TrailFilterTransformer;
 use App\Http\Transformers\TrailIndexTransformer;
+use App\Http\Transformers\TrailClientTransformer;
 use App\Imports\TrailsImport;
 use App\Models\DataDictionarie;
 use App\Models\Department;
@@ -912,17 +914,17 @@ class TrailController extends Controller
         event(new OperateLogEvent([
             $operate,
         ]));
-//        $user = Auth::guard("api")->user();
-//        //登录用户对线索编辑权限验证
-//        try{
-////            获取用户角色
-//            $role_list = $user->roles()->pluck('id')->all();
-//            $scopeRepository->checkPower("trails/{id}",'put',$role_list,$trail);
-//            $trail->power = "true";
-//        }catch (Exception $exception){
-//            $trail->power = "false";
-//        }
-//        $trail->powers = $repository->getPower($user,$trail);
+        $user = Auth::guard("api")->user();
+        //登录用户对线索编辑权限验证
+        try{
+//            获取用户角色
+            $role_list = $user->roles()->pluck('id')->all();
+            $scopeRepository->checkPower("trails/{id}",'put',$role_list,$trail);
+            $trail->power = "true";
+        }catch (Exception $exception){
+            $trail->power = "false";
+        }
+        $trail->powers = $repository->getPower($user,$trail);
         return $this->response->item($trail, new TraildetailTransformer());
     }
     public function forceDelete(Request $request, $trail)
@@ -1151,5 +1153,27 @@ class TrailController extends Controller
 
         $file = '当前线索导出' . date('YmdHis', time()) . '.xlsx';
         return (new TrailsExport($request))->download($file);
+    }
+
+
+    public function getClient(SearchTrailRequest $request)
+    {
+        $type = $request->get('type');
+        $id = hashid_decode($request->get('id'));
+
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        switch ($type) {
+            case 'clients':
+                $trails = Trail::where('client_id', $id)
+                    ->searchData()->poolType()
+                    ->paginate($pageSize);
+                break;
+            default:
+                return $this->response->noContent();
+                break;
+        }
+
+        return $this->response->paginator($trails, new TrailClientTransformer());
     }
 }

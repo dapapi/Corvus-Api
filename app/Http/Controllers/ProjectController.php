@@ -18,6 +18,7 @@ use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Transformers\Project\ProjectDetailTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -1827,6 +1828,87 @@ class ProjectController extends Controller
                 break;
         }
         $projectImp->save();
+    }
+
+    public function detail3(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
+    {
+        $type = $project->type;
+        $user = Auth::guard("api")->user();
+
+        $project->powers = $repository->getPower($user,$project);
+        $result = $this->response->item($project, new ProjectDetailTransformer());
+        $data = TemplateField::where('module_type', $type)->get();
+        # 之后换nc暂时都是0
+        $contractmoney = 0;
+        $expendituresum = 0;
+
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+        $user = Auth::guard('api')->user();
+
+        if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('contractmoney', 'privacy');
+            }
+            else
+            {
+                if (isset($contractmoney)) {
+                    $result->addMeta('contractmoney', "".$contractmoney);
+                }
+                else
+                {
+                    $result->addMeta('contractmoney', "".'0');
+                }
+            }
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
+            if(!$contractMoneyResult)
+            {
+                $result->addMeta('expendituresum', 'privacy');
+            }
+            else
+            {
+                if (isset($expendituresum)) {
+                    $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+                }
+                else
+                {
+                    $result->addMeta('expendituresum', "".'0');
+                }
+            }
+        }
+        else
+        {
+            if (isset($contractmoney)) {
+                $result->addMeta('contractmoney', "".$contractmoney);
+            }
+            else
+            {
+                $result->addMeta('contractmoney', "".'0');
+            }
+            if (isset($expendituresum)) {
+                $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+            }
+            else
+            {
+                $result->addMeta('expendituresum',"".'0');
+            }
+        }
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
+        return $result;
     }
 }
 

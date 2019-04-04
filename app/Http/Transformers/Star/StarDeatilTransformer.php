@@ -4,6 +4,9 @@ namespace App\Http\Transformers;
 
 use App\Models\Star;
 use App\TaskStatus;
+use App\User;
+use Illuminate\Support\Facades\DB;
+use League\Fractal\Resource\Collection;
 use League\Fractal\TransformerAbstract;
 class StarDeatilTransformer extends TransformerAbstract
 {
@@ -59,42 +62,49 @@ class StarDeatilTransformer extends TransformerAbstract
             'star_risk_point'   =>  $star->star_risk_point,
             'power' =>  $star->power,
             'powers'    =>  $star->powers,
-            'tasks' => $this->includeTasks($star),
+            'tasks' => $this->getTasks($star),
             'affixes'   =>  $this->includeAffixes($star),
             'creator'   =>  $this->getCreator($star),
-            'broker'    =>  $this->includeBroker($star),
-            'publicity' =>  $this->includePublicity($star),
+            'broker'    =>  $this->getBroker($star),
+            'publicity' =>  $this->getPublicity($star),
         ];
     }
     public function getCreator(Star $star)
     {
-        $user = $star->creator()->select('name')->first();
-        return ['data'=>$user];
-//        return $this->item($user, new UserTransformer());
+        $user = $star->creator()->value('name');
+        return $user;
+//        return $this->item($user,new UserTransformer());
     }
     public function includeAffixes(Star $star)
     {
         $affixes = $star->affixes()->createDesc()->get();
         return ['data'=>$affixes];
-//        return $this->collection($affixes, new AffixTransformer());
     }
-    public function includePublicity(Star $star){
-        $users = $star->publicity()->select('name')->get();
-        return ['data'=>$users];
-//        return $this->collection($users,new UserTransformer());
+    public function getPublicity(Star $star){
+        $users = $star->publicity()->select('users.id','users.name')->get();
+        foreach ($users as $user){
+            $department = $user->department()->value('name') ;
+            $user->department = $department;
+        }
+        return $users;
     }
-    public function includeBroker(Star $star)
+    public function getBroker(Star $star)
     {
-        $users = $star->broker()->select('name')->get();
-        return ['data'=>$users];
-//        return $this->collection($users, new UserTransformer());
+        $users = $star->publicity()->select('users.id','users.name')->get();
+        foreach ($users as $user){
+            $department = $user->department()->value('name') ;
+            $user->department = $department;
+        }
+        return $users;
     }
-    public function includeTasks(Star $star)
+    public function getTasks(Star $star)
     {
-        $tasks = $star->tasks()->stopAsc()
-            ->where('status',TaskStatus::NORMAL)->searchData()
+        $tasks = $star->tasks()->select('tasks.id','tasks.status','tasks.title','tasks.end_at',DB::raw('users.name as principal_name'))->stopAsc()
+            ->LeftJoin('users','tasks.principal_id','users.id')
+            ->where('tasks.status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
-        return $this->collection($tasks, new TaskTransformer());
+        return $tasks;
     }
 
 }
+

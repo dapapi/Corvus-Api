@@ -316,6 +316,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
 
+
         $api->get('/clients_list', 'App\Http\Controllers\ClientController@indexAll');
 
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
@@ -327,6 +328,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
         $api->get('/clients/{client}/projects', 'App\Http\Controllers\ProjectController@getClientProject');
         $api->get('/clients/{client}/contracts', 'App\Http\Controllers\ContractController@getClientContracts');
+        //获取客户下销售线索
+        $api->get('/clients_search', 'App\Http\Controllers\TrailController@getClient');
+
         //announcement
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
         $api->get('/announcements/Classify', 'App\Http\Controllers\AnnouncementController@getClassify');
@@ -394,6 +398,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
         $api->get('/trailsAll/{trail}', 'App\Http\Controllers\TrailController@detailAll');
+
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');

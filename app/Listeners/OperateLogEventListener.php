@@ -258,11 +258,7 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
-<<<<<<< HEAD
                     if ($this->implodeModel == null){
-=======
-                    if ($this->implodeModel) {
->>>>>>> 6b1d6b9b2845fae405d4fe26bce4667249ca7133
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();

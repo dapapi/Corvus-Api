@@ -14,7 +14,7 @@ class BloggerDetailTransformer extends TransformerAbstract
     {
         return [
             'id' => hashid_encode($blogger->id),
-            'type'  => $this->getType($blogger),
+            'type'  => hashid_encode($blogger->type_id),
             'nickname' => $blogger->nickname,
             'platform_id' => $blogger->platform_id,    //平台
             'avatar' => $blogger->avatar,
@@ -83,10 +83,7 @@ class BloggerDetailTransformer extends TransformerAbstract
             ->LeftJoin('users','tasks.principal_id','users.id')
             ->where('tasks.status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
+        $tasks->id = hashid_encode($tasks->id);
         return $tasks;
-    }
-    public function getType(Blogger $blogger)
-    {
-         return $blogger->type()->value('name');
     }
 }

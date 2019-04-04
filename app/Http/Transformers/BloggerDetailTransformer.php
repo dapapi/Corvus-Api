@@ -69,7 +69,7 @@ class BloggerDetailTransformer extends TransformerAbstract
         return ['data'=>$affixes];
     }
     public function getProducer(Blogger $blogger){
-        $users = $blogger->producer()->select('users.id','users.name')->get();
+        $users = $blogger->publicity()->select('users.id','users.name')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
             $user->id = hashid_encode($user->id);

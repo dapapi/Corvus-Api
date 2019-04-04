@@ -1252,7 +1252,6 @@ class TaskController extends Controller
     public function taskEdit(TaskUpdateRequest $request, Task $task)
     {
         $payload = $request->all();
-
         $oldTask = clone $task;
         $user = Auth::guard('api')->user();
 

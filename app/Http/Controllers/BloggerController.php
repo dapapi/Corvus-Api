@@ -1223,6 +1223,17 @@ class BloggerController extends Controller
 
     public function getBloggerDetail(Blogger $blogger,BloggerRepository $bloggerRepository)
     {
+        // 操作日志
+        $operate = new OperateEntity([
+            'obj' => $blogger,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         $user = Auth::guard("api")->user();
         $blogger->powers = $bloggerRepository->getPower($user,$blogger);
         return $this->response()->item($blogger,new BloggerDetailTransformer());

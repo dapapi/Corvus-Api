@@ -54,9 +54,9 @@ class BloggerDetailTransformer extends TransformerAbstract
         ];
 
     }
-    public function getCreator(Star $star)
+    public function getCreator(Blogger $blogger)
     {
-        $user = $star->creator()->select('id','name')->first();
+        $user = $blogger->creator()->select('id','name')->first();
         $department = $user->department()->value('name') ;
         $user->department = $department;
         return $user;

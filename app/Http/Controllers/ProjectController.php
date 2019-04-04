@@ -33,6 +33,7 @@ use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\ProjectBill;
 use App\Models\ProjectHistorie;
+use App\Models\ProjectImplode;
 use App\Models\ProjectRelate;
 use App\Models\ProjectReturnedMoney;
 use App\Models\ProjectReturnedMoneyType;
@@ -308,8 +309,7 @@ class ProjectController extends Controller
         try {
             $project = Project::create($payload);
             $projectId = $project->id;
-
-
+            $this->createProjectImplode($payload, $projectId);
             if ($payload['type'] != 5) {
                 $projectHistorie = ProjectHistorie::create($payload);
                 $approvalForm = new ApprovalFormController();

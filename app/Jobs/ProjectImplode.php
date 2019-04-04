@@ -101,7 +101,7 @@ class ProjectImplode implements ShouldQueue
         $lastFollowUp = $project->operateLogs()->where('method', OperateLogMethod::FOLLOW_UP)->orderBy('created_at', 'desc')->first();
         $implodeArr['last_follow_up_user_id'] = $lastFollowUp ? $lastFollowUp->user_id : null;
         if ($implodeArr['last_follow_up_user_id'])
-            $implodeArr['last_follow_up_user_name'] = DB::table('users')->where('id', $implodeArr['last_follow_up_user_id'])->value('name');
+            $implodeArr['last_follow_up_user'] = DB::table('users')->where('id', $implodeArr['last_follow_up_user_id'])->value('name');
 
         $trail = $project->trail;
         if ($trail) {

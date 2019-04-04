@@ -30,18 +30,24 @@ class ProjectDetailTransformer extends TransformerAbstract
 
         $business = Business::where('form_instance_number', $project->project_number)->first();
         $count = Change::where('form_instance_number', $project->project_numer)->count('form_instance_number');
-        if ($this->isAll) {
             $array = [
                 'id' => hashid_encode($project->id),
                 'form_instance_number' => $project->project_number,
                 'title' => $project->title,
                 'principal' => [
-                    'id' => hashid_encode($project->principal_id),
-                    'name' => $project->principal_name,
+                    'data' => [
+                        'id' => hashid_encode($project->principal_id),
+                        'name' => $project->principal_name,
+                        'department' => [
+                            'name' => $project->department_name
+                        ],
+                    ]
                 ],
                 'creator' => [
-                    'id' => hashid_encode($project->creator_id),
-                    'name' => $project->creator_name,
+                    'data' => [
+                        'id' => hashid_encode($project->creator_id),
+                        'name' => $project->creator_name,
+                    ]
                 ],
                 'type' => $project->type,
                 'privacy' => $project->privacy,
@@ -82,12 +88,6 @@ class ProjectDetailTransformer extends TransformerAbstract
             else
                 $array['approval_begin'] = 0;
 
-        } else {
-            $array = [
-                'id' => hashid_encode($project->id),
-                'title' => $project->title,
-            ];
-        }
         $tasks = $project->relateTasks;
         if (!$tasks)
             $array['relate_tasks'] = [];
@@ -99,7 +99,7 @@ class ProjectDetailTransformer extends TransformerAbstract
                     'title' => $task->title,
                 ];
             }
-            $array['relate_tasks'] = $taskArr;
+            $array['relate_tasks'] = ['data' => $taskArr];
         }
         $projects = $project->relateProjects;
         if (!$projects)
@@ -112,12 +112,13 @@ class ProjectDetailTransformer extends TransformerAbstract
                     'title' => $item->title,
                 ];
             }
-            $array['relate_projects'] = $projectArr;
+            $array['relate_projects'] = ['data' => $projectArr];
         }
         return $array;
     }
 
-    public function includeTrail(Project $project)
+    public
+    function includeTrail(Project $project)
     {
         $trail = $project->trail;
         if (!$trail)
@@ -132,7 +133,8 @@ class ProjectDetailTransformer extends TransformerAbstract
 
     }
 
-    public function includeParticipants(Project $project)
+    public
+    function includeParticipants(Project $project)
     {
         $participants = $project->participants;
         if (!$participants)

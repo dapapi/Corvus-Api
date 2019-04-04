@@ -78,11 +78,14 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
+    protected $projectRepository;
+
     protected $projectImplodeId;
 
-    public function __construct(ModuleUserRepository $moduleUserRepository)
+    public function __construct(ModuleUserRepository $moduleUserRepository, ProjectRepository $projectRepository)
     {
         $this->moduleUserRepository = $moduleUserRepository;
+        $this->projectRepository = $projectRepository;
     }
 
     // 项目列表
@@ -1730,7 +1733,7 @@ class ProjectController extends Controller
         return $result;
     }
 
-    public function list(FilterRequest $request)
+    public function projectList(FilterRequest $request)
     {
         # |自定义筛选|整理数据格式
 
@@ -1832,6 +1835,33 @@ class ProjectController extends Controller
         return response($manager->createData($data)->toArray());
     }
 
+    public function detail2(Request $request, Project $project, ProjectRepository $repository)
+    {
+        $type = $project->type;
+        $user = Auth::guard("api")->user();
+
+        $project->powers = $repository->getPower($user,$project);
+        $result = new Fractal\Resource\Item($project, new ProjectTransformer());
+        $data = TemplateField::where('module_type', $type)->get();
+        // 获取目标艺人 所在部门
+        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
+        $manager = new Manager();
+        $manager->setSerializer(new DataArraySerializer());
+
+
+        $result->addMeta('fields', $manager->createData($resource)->toArray());
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
+        return $result;
+    }
     private function createProjectImplode($payload, $id)
     {
         $arr = [];

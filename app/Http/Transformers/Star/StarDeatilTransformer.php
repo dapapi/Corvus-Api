@@ -3,6 +3,8 @@
 namespace App\Http\Transformers;
 
 use App\Models\Star;
+use App\ModuleableType;
+use App\ModuleUserType;
 use App\TaskStatus;
 use App\User;
 use Illuminate\Support\Facades\DB;
@@ -93,7 +95,7 @@ class StarDeatilTransformer extends TransformerAbstract
     }
     public function getBroker(Star $star)
     {
-        $users = $star->publicity()->select('users.id','users.name')->get();
+        $users = $star->broker()->select('users.id','users.name')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
             $user->id = hashid_encode($user->id);

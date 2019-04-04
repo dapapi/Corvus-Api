@@ -16,9 +16,11 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+
 use League\Fractal;
 use League\Fractal\Manager;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
+
 
 class TestController extends Controller
 {
@@ -219,6 +221,11 @@ class TestController extends Controller
                 dispatch(new ProjectImplode($project));
             }
         });
+    }
+
+    public function task()
+    {
+
     }
 
 }

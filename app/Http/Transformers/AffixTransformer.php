@@ -15,11 +15,12 @@ class AffixTransformer extends TransformerAbstract
         return [
             'id' => hashid_encode($affix->id),
             'title' => $affix->title,
-            'url' => $affix->url,
+            'url' => $affix->url.'?attname='.$affix->title,
             'size' => $affix->size,
             'type' => $affix->type,
             'created_at' => $affix->created_at->toDateTimeString(),//时间去掉秒,,
 //            'updated_at' => $affix->updated_at->toDatetimeString(),
+
         ];
     }
 

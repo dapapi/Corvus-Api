@@ -316,6 +316,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/filter', 'App\Http\Controllers\ClientController@filter');
         $api->get('/clients', 'App\Http\Controllers\ClientController@index');
 
+
         $api->get('/clients_list', 'App\Http\Controllers\ClientController@indexAll');
 
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
@@ -327,6 +328,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/{client}', 'App\Http\Controllers\ClientController@detail');
         $api->get('/clients/{client}/projects', 'App\Http\Controllers\ProjectController@getClientProject');
         $api->get('/clients/{client}/contracts', 'App\Http\Controllers\ContractController@getClientContracts');
+        //获取客户下销售线索
+        $api->get('/clients_search', 'App\Http\Controllers\TrailController@getClient');
+        //获取客户下项目
+        $api->get('/clients_projects/{client}', 'App\Http\Controllers\ProjectController@getClientProjectList');
+        $api->get('/clients_projects_norma/{client}', 'App\Http\Controllers\ProjectController@getClientProjectNormalList');
+        //获取客户下任务
+        $api->get('/clients_tasks/{client}', 'App\Http\Controllers\TaskController@getClientTaskList');
+        $api->get('/clients_tasks_norma/{client}', 'App\Http\Controllers\TaskController@getClientTaskNorma');
+
+
+
         //announcement
         $api->get('/announcements', 'App\Http\Controllers\AnnouncementController@index');
         $api->get('/announcements/Classify', 'App\Http\Controllers\AnnouncementController@getClassify');
@@ -395,6 +407,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
         $api->get('/trailsAll/{trail}', 'App\Http\Controllers\TrailController@detailAll');
 
+
+
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
@@ -449,7 +463,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
-        $api->get('/projects/{project}/web', 'App\Http\Controllers\ProjectController@detail3');
+        $api->get('/projects/{project}/web', 'App\Http\Controllers\ProjectController@detail2');
         $api->get('/projects/{project}/course', 'App\Http\Controllers\ProjectController@allCourse');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
         $api->put('/projects/{project}/course', 'App\Http\Controllers\ProjectController@course');
@@ -814,6 +828,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
+        $api->get('/test/task', 'App\Http\Controllers\TestController@task');
 
         //供应商管理
         $api->get('/supplier','App\Http\Controllers\SupplierController@index');

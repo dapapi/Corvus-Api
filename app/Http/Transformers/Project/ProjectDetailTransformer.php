@@ -36,17 +36,21 @@ class ProjectDetailTransformer extends TransformerAbstract
                 'form_instance_number' => $project->project_number,
                 'title' => $project->title,
                 'principal' => [
-                    'id' => hashid_encode($project->principal_id),
-                    'name' => $project->principal_name,
-                    'department' => [
-                        'data' => [
-                            'name' => $project->department
-                        ]
-                    ],
+                    'data' => [
+                        'id' => hashid_encode($project->principal_id),
+                        'name' => $project->principal_name,
+                        'department' => [
+                            'data' => [
+                                'name' => $project->department
+                            ]
+                        ],
+                    ]
                 ],
                 'creator' => [
-                    'id' => hashid_encode($project->creator_id),
-                    'name' => $project->creator_name,
+                    'data' => [
+                        'id' => hashid_encode($project->creator_id),
+                        'name' => $project->creator_name,
+                    ]
                 ],
                 'type' => $project->type,
                 'privacy' => $project->privacy,
@@ -93,6 +97,7 @@ class ProjectDetailTransformer extends TransformerAbstract
                 'title' => $project->title,
             ];
         }
+
         $tasks = $project->relateTasks;
         if (!$tasks)
             $array['relate_tasks'] = [];
@@ -122,7 +127,8 @@ class ProjectDetailTransformer extends TransformerAbstract
         return $array;
     }
 
-    public function includeTrail(Project $project)
+    public
+    function includeTrail(Project $project)
     {
         $trail = $project->trail;
         if (!$trail)
@@ -137,7 +143,8 @@ class ProjectDetailTransformer extends TransformerAbstract
 
     }
 
-    public function includeParticipants(Project $project)
+    public
+    function includeParticipants(Project $project)
     {
         $participants = $project->participants;
         if (!$participants)

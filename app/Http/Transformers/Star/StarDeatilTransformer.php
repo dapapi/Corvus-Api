@@ -109,6 +109,9 @@ class StarDeatilTransformer extends TransformerAbstract
             ->LeftJoin('users','tasks.principal_id','users.id')
             ->where('tasks.status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
+        foreach ($tasks as $task){
+            $tasks->id = hashid_encode($tasks->id);
+        }
         return $tasks;
     }
 

@@ -54,6 +54,14 @@ class BloggerDetailTransformer extends TransformerAbstract
         ];
 
     }
+    public function getCreator(Star $star)
+    {
+        $user = $star->creator()->select('id','name')->first();
+        $department = $user->department()->value('name') ;
+        $user->department = $department;
+        return $user;
+//        return $this->item($user,new UserTransformer());
+    }
     public function includeAffixes(Blogger $blogger)
     {
         $affixes = $blogger->affixes()->createDesc()->get();

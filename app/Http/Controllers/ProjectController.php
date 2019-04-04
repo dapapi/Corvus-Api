@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
 
-
 use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\ProjectImplode;
@@ -20,7 +19,6 @@ use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -33,8 +31,6 @@ use App\Http\Transformers\ProjectAllTransformer;
 use App\Models\Blogger;
 use App\Models\FilterJoin;
 use App\Models\Client;
-
-
 
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
@@ -56,7 +52,6 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\PrivacyType;
-
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
@@ -78,6 +73,7 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
+
     protected $projectRepository;
 
     protected $projectImplodeId;
@@ -1759,7 +1755,9 @@ class ProjectController extends Controller
 
             }
         }
+
         $query->whereRaw(DB::raw("(1 = 1 $power)"));
+
 
         if ($request->has('principal_ids') && $payload['principal_ids']) {
             $payload['principal_ids'] = explode(',', $payload['principal_ids']);

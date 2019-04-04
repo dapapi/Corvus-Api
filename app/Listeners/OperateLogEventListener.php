@@ -42,11 +42,13 @@ use App\ModuleableType;
 use App\OperateLogLevel;
 use App\OperateLogMethod;
 use Carbon\Carbon;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Queue\Jobs\Job;
 use Illuminate\Support\Facades\Auth;
 
 class OperateLogEventListener
 {
+//    use DispatchesJobs;
     private $implodeModel;
     /**
      * Create the event listener.
@@ -223,7 +225,7 @@ class OperateLogEventListener
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
-                    if($this->implodeModel != null) {
+                    if ($this->implodeModel != null) {
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
@@ -236,7 +238,7 @@ class OperateLogEventListener
                     $content = $this->create . '' . $typeName;
                     break;
                 case OperateLogMethod::UPDATE://修改
-                    if($this->implodeModel != null) {
+                    if ($this->implodeModel != null) {
                         $this->implodeModel->last_updated_user_id = $user->id;
                         $this->implodeModel->last_updated_user = $user->name;
                         $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
@@ -458,7 +460,7 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ]);
+            ])->delay(Carbon::now()->addMinutes(10));
 //            OperateLog::create([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,

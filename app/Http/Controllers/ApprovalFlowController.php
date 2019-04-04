@@ -194,7 +194,7 @@ class ApprovalFlowController extends Controller
                     return $this->response->errorNotFound('没有找到对应主管，请联系管理员或人事');
 
                 $array[] = [
-                    'id' => hashid_decode($person->id),
+                    'id' => hashid_encode($person->id),
                     'name' => $person->name,
                     'icon_url' => $person->icon_url,
                     'change_state_obj' => [

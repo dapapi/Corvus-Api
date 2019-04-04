@@ -973,16 +973,16 @@ class ProjectController extends Controller
             }
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $operate = new OperateEntity([
-            'obj' => $project,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $project,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
         return $result;
     }
 
@@ -1884,16 +1884,16 @@ class ProjectController extends Controller
         $manager->setSerializer(new DataArraySerializer());
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $operate = new OperateEntity([
-            'obj' => $project,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $project,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
         return $result;
     }
     private function createProjectImplode($payload, $id)
@@ -2050,16 +2050,16 @@ class ProjectController extends Controller
             }
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $operate = new OperateEntity([
-            'obj' => $project,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $project,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
         return $result;
     }
 }

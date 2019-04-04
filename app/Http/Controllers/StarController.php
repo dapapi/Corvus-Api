@@ -112,16 +112,16 @@ class StarController extends Controller
     public function show(Star $star,StarRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $star,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $star,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         $user = Auth::guard("api")->user();
 //        //登录用户对艺人编辑权限验证
         try{

@@ -47,6 +47,7 @@ use App\Models\Task;
 use App\Models\Trail;
 use App\User;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -206,7 +207,9 @@ class RouteServiceProvider extends ServiceProvider
         Route::bind('star', function ($value) {
             try {
                 $id = hashid_decode($value);
-                $entity = Star::withTrashed()->findOrFail($id);
+                $entity = Cache::remember("star:{$id}",20,function ()use ($id){
+                    return Star::withTrashed()->findOrFail($id);
+                });
             } catch (Exception $exception) {
                 abort(404);
             }
@@ -309,7 +312,9 @@ class RouteServiceProvider extends ServiceProvider
         Route::bind('blogger', function ($value) {
             try {
                 $id = hashid_decode($value);
-                $entity = Blogger::withTrashed()->findOrFail($id);
+                $entity = Cache::remember("star:{$id}",20,function ()use ($id){
+                    return Blogger::withTrashed()->findOrFail($id);
+                });
             } catch (Exception $exception) {
                 abort(404);
             }

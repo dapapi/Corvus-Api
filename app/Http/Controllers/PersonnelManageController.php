@@ -350,16 +350,16 @@ class PersonnelManageController extends Controller
         $result = $this->response->item($user, new UserTransformer());
         $result->addMeta('detail', $detail);
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $user,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $user,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
         return $result;
     }
 

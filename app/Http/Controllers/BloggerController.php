@@ -128,16 +128,16 @@ class BloggerController extends Controller
     public function show(Blogger $blogger,BloggerRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $blogger,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $blogger,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
 
         $user = Auth::guard("api")->user();
         //登录用户对博主编辑权限验证

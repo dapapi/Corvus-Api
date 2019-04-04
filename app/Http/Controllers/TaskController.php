@@ -529,16 +529,16 @@ class TaskController extends Controller
     public function showDemo(Task $task,ScopeRepository $repository)
     {
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $task,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $task,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         //登录用户对线索编辑权限验证
         try{
             $user = Auth::guard("api")->user();
@@ -555,16 +555,16 @@ class TaskController extends Controller
     public function show(Task $task,ScopeRepository $repository)
     {
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $task,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $task,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         //登录用户对线索编辑权限验证
         try{
             $user = Auth::guard("api")->user();

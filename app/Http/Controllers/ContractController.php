@@ -70,16 +70,16 @@ class ContractController extends Controller
     {
 
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $blogger,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $blogger,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         return $this->response->item($blogger, new BloggerTransformer());
     }
     public function recycleBin(Request $request)

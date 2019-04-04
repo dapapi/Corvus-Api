@@ -1174,7 +1174,6 @@ class BloggerController extends Controller
 //                ],
 //            ]
 //        ];
-        profiler_finish("my time metric name");
         return [
             "data" => $res,
             "meta"  => $meta,
@@ -1222,9 +1221,10 @@ class BloggerController extends Controller
     }
 
 
-//    public function getBloggerDetail(Blogger $blogger)
-//    {
-//        $creator_name =
-//        return $this->response()->item($blogger,new BloggerDetailTransformer());
-//    }
+    public function getBloggerDetail(Blogger $blogger,BloggerRepository $bloggerRepository)
+    {
+        $user = Auth::guard("api")->user();
+        $blogger->powers = $bloggerRepository->getPower($user,$blogger);
+        return $this->response()->item($blogger,new BloggerDetailTransformer());
+    }
 }

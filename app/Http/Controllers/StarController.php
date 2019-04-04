@@ -1095,8 +1095,10 @@ class StarController extends Controller
     }
 
 
-    public function getStarDeatil(Star $star)
+    public function getStarDeatil(Star $star,StarRepository $starRepository)
     {
+        $user = Auth::guard("api")->user();
+        $star->powers = $starRepository->getPower($user,$star);
         return $this->response()->item($star,new StarDeatilTransformer());
     }
 }

@@ -14,7 +14,7 @@ class BloggerDetailTransformer extends TransformerAbstract
     {
         return [
             'id' => hashid_encode($blogger->id),
-            'type'  => $this->getType($blogger),
+            'type'  => $blogger->type_id,
             'nickname' => $blogger->nickname,
             'platform_id' => $blogger->platform_id,    //平台
             'avatar' => $blogger->avatar,
@@ -57,7 +57,7 @@ class BloggerDetailTransformer extends TransformerAbstract
     }
     public function getCreator(Blogger $blogger)
     {
-        $user = $blogger->creator()->select('id','name')->first();
+        $user = $blogger->creator()->select('id','name','avatar')->first();
         $department = $user->department()->value('name') ;
         $user->department = $department;
         return $user;
@@ -69,7 +69,7 @@ class BloggerDetailTransformer extends TransformerAbstract
         return ['data'=>$affixes];
     }
     public function getProducer(Blogger $blogger){
-        $users = $blogger->publicity()->select('users.id','users.name')->get();
+        $users = $blogger->publicity()->select('users.id','users.name','avatar')->get();
         foreach ($users as $user){
             $department = $user->department()->value('name') ;
             $user->id = hashid_encode($user->id);
@@ -84,9 +84,5 @@ class BloggerDetailTransformer extends TransformerAbstract
             ->where('tasks.status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
         return $tasks;
-    }
-    public function getType(Blogger $blogger)
-    {
-         return $blogger->type()->value('name');
     }
 }

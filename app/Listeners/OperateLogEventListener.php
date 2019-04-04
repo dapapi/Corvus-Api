@@ -448,7 +448,7 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ]))->delay(Carbon::now()->addMinutes(10))->onQueue("record:operatelog");
+            ]))->delay(Carbon::now()->addMinutes(1))->onQueue("record:operatelog");
 //            OperateLog::create([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,

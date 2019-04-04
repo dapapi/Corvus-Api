@@ -12,8 +12,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
-
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
+        $api->post('stars/list','App\Http\Controllers\StarController@getStarList2');//测试艺人列表
         $api->get('/test/users', 'App\Http\Controllers\TestController@users');
         $api->get('/test/job', 'App\Http\Controllers\TestController@test');
     }
@@ -59,7 +58,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/bloggers/filter', 'App\Http\Controllers\BloggerController@getFilter');
         $api->get('/projects/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@getFilter');
-//        $api->post('/projects/filter', 'App\Http\Controllers\ProjectController@list');
+        $api->post('/projects/web_filter', 'App\Http\Controllers\ProjectController@projectList');
         $api->get('/clients/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
         $api->post('/clients/filter', 'App\Http\Controllers\ClientController@getFilter');
         $api->get('/pool/filter_fields', 'App\Http\Controllers\FilterFieldController@index');
@@ -214,6 +213,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
+
         $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
         $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");//测试艺人详情
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
@@ -249,6 +249,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //->middleware('export')
 
         $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+        $api->get('/bloggers/detail/{blogger}','App\Http\Controllers\BloggerController@getBloggerDetail');
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger
@@ -392,7 +393,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
         $api->delete('/trails/{trail}', 'App\Http\Controllers\TrailController@delete');
         $api->get('/trails/{trail}', 'App\Http\Controllers\TrailController@detail');
-
+        $api->get('/trailsAll/{trail}', 'App\Http\Controllers\TrailController@detailAll');
 
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
@@ -448,6 +449,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
+        $api->get('/projects/{project}/web', 'App\Http\Controllers\ProjectController@detail2');
         $api->get('/projects/{project}/course', 'App\Http\Controllers\ProjectController@allCourse');
         $api->put('/projects/{project}', 'App\Http\Controllers\ProjectController@edit');
         $api->put('/projects/{project}/course', 'App\Http\Controllers\ProjectController@course');
@@ -813,11 +815,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
 
-//        //供应商管理
-//        $api->get('/supplier','App\Http\Controllers\SupplierController@index');
-//
-//        $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
-//        $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
+        //供应商管理
+        $api->get('/supplier','App\Http\Controllers\SupplierController@index');
+
+        $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
+        $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
 
         // 仪表盘
         $api->get('/dashboards', 'App\Http\Controllers\DashboardController@index');
@@ -829,13 +831,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/stars', 'App\Http\Controllers\StarController@dashboard');
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
 //        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
-//
-//        // 供应商
-//        $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
-//        $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
-//        $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
-//        $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
-//        $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
+
+        // 供应商
+        $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
+        $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
+        $api->put('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@editContact');
+        $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
+        $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
         //获取我的任务，我的审批，我的项目，待我审批的数量
         $api->get('/user/mynumber','App\Http\Controllers\UserController@getMyNumber');
         //获取各个模块列表里面按钮权限

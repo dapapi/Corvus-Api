@@ -40,7 +40,7 @@ class ProjectDetailTransformer extends TransformerAbstract
                         'id' => hashid_encode($project->principal_id),
                         'name' => $project->principal_name,
                         'department' => [
-                            'name' => $project->department
+                            'name' => $project->department_name
                         ],
                     ]
                 ],

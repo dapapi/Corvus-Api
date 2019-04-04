@@ -22,6 +22,8 @@ use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ClientProjectTransformer;
+
 use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\Department;
@@ -1164,6 +1166,37 @@ class ProjectController extends Controller
 
         return $this->response->paginator($projects, new ProjectTransformer());
     }
+
+    //客户任务
+
+    public function getClientProjectList(Request $request, Client $client)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $projects = Project::select('projects.id','projects.title','projects.principal_id','projects.creator_id','projects.trail_id','projects.status','projects.type','projects.priority','projects.created_at','projects.updated_at')->join('trails', function ($join) {
+            $join->on('projects.trail_id', '=', 'trails.id');
+        })->where('trails.client_id', '=', $client->id)
+            ->paginate($pageSize);
+
+        return $this->response->paginator($projects, new ClientProjectTransformer());
+    }
+
+    public function getClientProjectNormalList(Request $request, Client $client)
+    {
+        $now = Carbon::now()->toDateTimeString();
+
+        $projects = Project::select('projects.id','projects.title','projects.status','projects.type','projects.created_at')
+            ->join('trails', function ($join) {
+            $join->on('projects.trail_id', '=', 'trails.id');
+        })->where('trails.client_id', '=', $client->id)->orderBy('projects.created_at')->limit(3)->get()->toArray();
+        if($projects){
+            foreach ($projects as &$value){
+                $value['id'] = hashid_encode($value['id']);
+            }
+        }
+        return $projects;
+    }
+
 
     /**
      * 项目关联项目 关联任务

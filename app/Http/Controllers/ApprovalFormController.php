@@ -1462,7 +1462,7 @@ class ApprovalFormController extends Controller
         if (array_key_exists('fileUrl', $value[0])) {
             $str = '';
             foreach ($value as $item) {
-                $str .= $item['fileUrl'] . ',';
+                $str .= $item['fileUrl'] . '?attname=' . $item['fileName'] .  ',';
             }
             $value = rtrim($str, ',');
             return [$value, ''];

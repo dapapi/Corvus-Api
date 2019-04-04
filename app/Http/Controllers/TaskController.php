@@ -1505,7 +1505,7 @@ class TaskController extends Controller
             $taskResource->update($resource);
             unset($payload['code']);
 
->>>>>>> yc
+
         }
 
         if ($request->has('start_at')) {

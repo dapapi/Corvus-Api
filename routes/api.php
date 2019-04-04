@@ -247,7 +247,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //导入 导出
         //->middleware('export')
-        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2'); //测试博主列表优化
+
+        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+        $api->get('/bloggers/detail/{blogger}','App\Http\Controllers\BloggerController@getBloggerDetail');
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger

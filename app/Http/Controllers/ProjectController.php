@@ -1735,8 +1735,6 @@ class ProjectController extends Controller
 
     public function projectList(FilterRequest $request)
     {
-        # |自定义筛选|整理数据格式
-
         # 我参与的
         $power = ProjectImplode::getConditionSql();
 
@@ -1841,13 +1839,12 @@ class ProjectController extends Controller
         $user = Auth::guard("api")->user();
 
         $project->powers = $repository->getPower($user,$project);
-        $result = new Fractal\Resource\Item($project, new ProjectTransformer());
+        $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         // 获取目标艺人 所在部门
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $operate = new OperateEntity([

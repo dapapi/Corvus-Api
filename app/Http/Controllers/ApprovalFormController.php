@@ -1262,6 +1262,7 @@ class ApprovalFormController extends Controller
             }
             //记录日志
             //泰洋项目合同，papi醒目合同
+            $project = null;
             if ($approval->form_id == 9 || $approval->form_id == 10) {
                 foreach ($controlValues as $value) {
                     if ($value['type'] == "project_id") {
@@ -1317,7 +1318,7 @@ class ApprovalFormController extends Controller
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $curr_user));
         event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $curr_user));
         // 发送消息
-        if ($project) {
+        if (!is_null($project)) {
             DB::beginTransaction();
             try {
 

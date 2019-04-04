@@ -110,12 +110,21 @@ class TrailDetailTransformer extends TransformerAbstract
         $principal = DB::table('users')//
         ->where('users.id', $trail->principal_id)
             ->select('users.name')->first();
-        $array['principal']['data']['name'] = $principal->name;
+        if(!$principal){
+            $array['principal']['data']['name'] = '';
+        }else{
+            $array['principal']['data']['name'] = $principal->name;
+        }
         //查询项目title
         $principal = DB::table('projects')//
         ->where('projects.trail_id', $trail->id)
             ->select('projects.title')->first();
-        $array['project']['data']['title'] = $principal->title;
+        if(!$principal){
+            $array['project']['data']['title'] = '';
+        }else{
+            $array['project']['data']['title'] = $principal->title;
+        }
+
 
 
 //        //查询客户title

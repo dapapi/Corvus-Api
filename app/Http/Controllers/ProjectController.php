@@ -308,8 +308,10 @@ class ProjectController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
+        $payload['creator_name'] = $user->name;
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
+        $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
 
         DB::beginTransaction();
 
@@ -550,6 +552,7 @@ class ProjectController extends Controller
             $projectImp = ProjectImplode::find($projectId);
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
+                $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
                 if ($project->principal_id != $payload['principal_id']) {
                     try {
 //                        $curr_principal = User::find($project->principal_id)->name;

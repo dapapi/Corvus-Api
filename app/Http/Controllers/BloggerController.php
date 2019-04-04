@@ -52,6 +52,7 @@ use App\Repositories\FilterReportRepository;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\SignContractStatus;
+use App\Traits\PrivacyFieldTrait;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use App\Whether;
@@ -63,7 +64,6 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 class BloggerController extends Controller
 {
-
 
     protected $filterReportRepository;
     public function __construct(OperateLogRepository $operateLogRepository)

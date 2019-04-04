@@ -3,11 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
-<<<<<<< HEAD
-=======
 use App\Helper\Common;
 use App\Jobs\ProjectImplode;
->>>>>>> df000d53... test project list api update
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Task;

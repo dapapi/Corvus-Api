@@ -3,6 +3,7 @@
 namespace App\Models;
 use App\ModuleableType;
 use App\ModuleUserType;
+use App\OperateLogMethod;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
 use App\User;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class Blogger extends Model
 {
     use SoftDeletes;
-    use OperateLogTrait;
+//    use OperateLogTrait;
     protected static $model_dic_id = DataDictionarie::BLOGGER;//模型在数据字典中对应的id
     protected $fillable = [
         'nickname',

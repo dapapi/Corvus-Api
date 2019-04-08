@@ -51,6 +51,7 @@ class ContactController extends Controller
         $dataArray = [];
         $dataArray['client_id'] = $client->id;
         $dataArray['name'] = $payload['name'];
+        $dataArray['position'] = $payload['position'];
         if($request->has("phone")){
             $dataArray['phone'] = $payload['phone'];
         }

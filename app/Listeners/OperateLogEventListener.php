@@ -33,6 +33,10 @@ use App\Models\GroupRoles;
 use App\Models\ProjectBillsResource;
 use App\Models\Role;
 use App\ModuleUserType;
+use App\Models\Supplier;
+use App\Models\SupplierRelate;
+
+
 use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
@@ -44,7 +48,7 @@ use Illuminate\Support\Facades\Auth;
 
 class OperateLogEventListener
 {
-    use DispatchesJobs;
+//    use DispatchesJobs;
     private $implodeModel;
     /**
      * Create the event listener.
@@ -204,6 +208,12 @@ class OperateLogEventListener
                     $typeName = "合同审批";
                 }
                 $type = ModuleableType::BUSINESS;
+            }else if($operate->obj instanceof Supplier){
+                $type = ModuleableType::SUPPLIER;
+                $typeName = "供应商";
+            }else if($operate->obj instanceof SupplierRelate){
+                $type = ModuleableType::SUPPLIERRELATE;
+                $typeName = "供应商联系人";
             }
             //TODO
             $id = $operate->obj->id;
@@ -260,7 +270,7 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
-                    if ($this->implodeModel != null){
+                    if($this->implodeModel != null) {
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
@@ -440,7 +450,7 @@ class OperateLogEventListener
                     break;
 
             }
-//            $this->dispatch(new RecordOperateLog([
+//            RecordOperateLog::dispatch([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,
 //                'logable_type' => $type,
@@ -450,7 +460,7 @@ class OperateLogEventListener
 //                'status' => 1,
 //                'field_name'    =>$field_name,
 //                'field_title' =>  $title
-//            ]));
+//            ])->delay(Carbon::now()->addMinutes(10));
             OperateLog::create([
                 'user_id' => $user->id,
                 'logable_id' => $id,

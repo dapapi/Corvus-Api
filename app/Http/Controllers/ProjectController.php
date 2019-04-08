@@ -17,7 +17,6 @@ use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Transformers\Project\ProjectDetailTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -26,10 +25,8 @@ use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
-
 use App\Http\Transformers\ProjectAllTransformer;
 use App\Http\Transformers\ClientProjectTransformer;
-
 use App\Models\Blogger;
 use App\Models\FilterJoin;
 use App\Models\Client;
@@ -312,12 +309,8 @@ class ProjectController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
-        $payload['creator_name'] = $user->name;
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
-        $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
-        $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
-        $payload['department_name'] = Department::where('id', $departmentId)->value('name');
 
         DB::beginTransaction();
 
@@ -559,9 +552,28 @@ class ProjectController extends Controller
             $projectImp = ProjectImplode::find($projectId);
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
-                $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
-                $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
-                $payload['department_name'] = Department::where('id', $departmentId)->value('name');
+                if ($project->principal_id != $payload['principal_id']) {
+         //           try {
+//                        $curr_principal = User::find($project->principal_id)->name;
+//                        $principal = User::findOrFail($payload['principal_id'])->name;
+//
+//                        //操作日志
+//                        $operateName = new OperateEntity([
+//                            'obj' => $project,
+//                            'title' => "负责人",
+//                            'start' => $curr_principal,
+//                            'end' => $principal,
+//                            'method' => OperateLogMethod::UPDATE,
+//                        ]);
+//                        $arrayOperateLog[] = $operateName;
+
+//                    } catch (Exception $e) {
+//                        Log::error($e);
+//                        DB::rollBack();
+                        return $this->response->errorInternal("负责人错误");
+  //                  }
+
+                }
 
             }
             if (!$request->has('type') || $payload['type'] == '')
@@ -955,16 +967,16 @@ class ProjectController extends Controller
             }
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-//        $operate = new OperateEntity([
-//            'obj' => $project,
-//            'title' => null,
-//            'start' => null,
-//            'end' => null,
-//            'method' => OperateLogMethod::LOOK,
-//        ]);
-//        event(new OperateLogEvent([
-//            $operate
-//        ]));
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
         return $result;
     }
 
@@ -1755,7 +1767,7 @@ class ProjectController extends Controller
         # 我参与的
         $power = ProjectImplode::getConditionSql();
 
-        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids, project_type");
+        $query = DB::table('project_implode')->selectRaw("id, principal_id,creator_id, project_name, principal, latest_time, project_store_at, trail_fee as fee, stars, star_ids, bloggers, blogger_ids, project_type");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
@@ -1800,6 +1812,22 @@ class ProjectController extends Controller
 //            ->toSql();
             ->paginate();
         $projects = $paginator->getCollection();
+        foreach ($projects as $key => $val)
+        {
+              if($val->creator_id != $user->id && $val->principal_id != $user->id)
+            {
+                foreach ($val as $key1 => $value1) {
+                    $result = PrivacyType::isPrivacy(ModuleableType::PROJECT, $key1);
+                    if ($result) {
+                        $result = PrivacyType::excludePrivacy($user->id, $val->id, ModuleableType::PROJECT, $key1);
+                        if (!$result) {
+                            $projects[$key]->$key1 = 'privacy';
+                        }
+                    }
+                }
+            }
+
+        }
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理
             $stars = [];
@@ -1826,6 +1854,21 @@ class ProjectController extends Controller
                 }
             }
             $expectations = array_merge($stars, $bloggers);
+//                    if($project ->creator_id != $user->id && $project->principal_id != $user->id)
+//        {
+//            foreach ($array as $key => $value)
+//            {
+//                $result = PrivacyType::isPrivacy(ModuleableType::PROJECT,$key);
+//                if($result)
+//                {
+//                    $result = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, $key);
+//                    if(!$result)
+//                    {
+//                        $array[$key] = 'privacy';
+//                    }
+//                }
+//            }
+//        }
             return [
                 "id" => hashid_encode($item->id),
                 "title" => $item->project_name,
@@ -1839,7 +1882,7 @@ class ProjectController extends Controller
                 ],
                 "trail" => [
                     "data" => [
-                        "fee" => $item->trail_fee,
+                        "fee" => $item->fee,
                         "expectations" => [
                             "data" => $expectations
                         ],
@@ -1847,6 +1890,7 @@ class ProjectController extends Controller
                 ],
             ];
         });
+
         $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
         $manager = new Manager();
         return response($manager->createData($data)->toArray());
@@ -1866,16 +1910,16 @@ class ProjectController extends Controller
         $manager->setSerializer(new DataArraySerializer());
 
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-//        $operate = new OperateEntity([
-//            'obj' => $project,
-//            'title' => null,
-//            'start' => null,
-//            'end' => null,
-//            'method' => OperateLogMethod::LOOK,
-//        ]);
-//        event(new OperateLogEvent([
-//            $operate
-//        ]));
+        $operate = new OperateEntity([
+            'obj' => $project,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate
+        ]));
         return $result;
     }
     private function createProjectImplode($payload, $id)
@@ -1962,87 +2006,6 @@ class ProjectController extends Controller
                 break;
         }
         ProjectImplode::find($projectImpId)->update($arr);
-    }
-
-    public function detail3(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
-    {
-        $type = $project->type;
-        $user = Auth::guard("api")->user();
-
-        $project->powers = $repository->getPower($user,$project);
-        $result = $this->response->item($project, new ProjectDetailTransformer());
-        $data = TemplateField::where('module_type', $type)->get();
-        # 之后换nc暂时都是0
-        $contractmoney = 0;
-        $expendituresum = 0;
-
-        $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
-        $manager = new Manager();
-        $manager->setSerializer(new DataArraySerializer());
-        $user = Auth::guard('api')->user();
-
-        if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
-
-            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
-            if(!$contractMoneyResult)
-            {
-                $result->addMeta('contractmoney', 'privacy');
-            }
-            else
-            {
-                if (isset($contractmoney)) {
-                    $result->addMeta('contractmoney', "".$contractmoney);
-                }
-                else
-                {
-                    $result->addMeta('contractmoney', "".'0');
-                }
-            }
-            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
-            if(!$contractMoneyResult)
-            {
-                $result->addMeta('expendituresum', 'privacy');
-            }
-            else
-            {
-                if (isset($expendituresum)) {
-                    $result->addMeta('expendituresum', "".$expendituresum);
-                }
-                else
-                {
-                    $result->addMeta('expendituresum', "".'0');
-                }
-            }
-        }
-        else
-        {
-            if (isset($contractmoney)) {
-                $result->addMeta('contractmoney', "".$contractmoney);
-            }
-            else
-            {
-                $result->addMeta('contractmoney', "".'0');
-            }
-            if (isset($expendituresum)) {
-                $result->addMeta('expendituresum', "".$expendituresum);
-            }
-            else
-            {
-                $result->addMeta('expendituresum',"".'0');
-            }
-        }
-        $result->addMeta('fields', $manager->createData($resource)->toArray());
-//        $operate = new OperateEntity([
-//            'obj' => $project,
-//            'title' => null,
-//            'start' => null,
-//            'end' => null,
-//            'method' => OperateLogMethod::LOOK,
-//        ]);
-//        event(new OperateLogEvent([
-//            $operate
-//        ]));
-        return $result;
     }
 }
 

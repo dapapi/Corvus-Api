@@ -36,6 +36,7 @@ class DepartmentController extends Controller
 
         // 直接从缓存拿数组
         if (Cache::has(config('app.departments'))) {
+
             return response(Cache::get(config('app.departments')));
         }
 
@@ -49,7 +50,8 @@ class DepartmentController extends Controller
         }
 
         $departmentsArr = $manager->createData($data)->toArray();
-        Cache::put(config('app.departments'), $departmentsArr, 30);
+        Cache::put(config('app.departments'), $departmentsArr, 5);
+
 
         return response($departmentsArr);
     }

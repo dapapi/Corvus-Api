@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Jobs\ProjectImplode as Implode;
+use App\Models\Project;
 
 class ProjectImplode extends Command
 {

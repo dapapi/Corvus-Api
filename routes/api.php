@@ -95,6 +95,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/task_types', 'App\Http\Controllers\TaskTypeController@index');
         $api->get('/task_types/all', 'App\Http\Controllers\TaskTypeController@all');
         $api->get('/task/all', 'App\Http\Controllers\TaskController@indexall');
+        //获取子任务
+        $api->get('/child_tasks/{task}', 'App\Http\Controllers\TaskController@getChildTasks');
 
         //关联任务查询
         $api->get('/projects/{project}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');

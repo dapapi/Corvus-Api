@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
+use App\Http\Transformers\Project\ProjectDetailTransformer;
 use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\ProjectImplode;

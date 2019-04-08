@@ -1731,7 +1731,7 @@ class ProjectController extends Controller
         # 我参与的
         $power = ProjectImplode::getConditionSql();
 
-        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids, project_type");
+        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids, project_type, creator_id");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){

@@ -74,10 +74,7 @@ class Project extends Model
         'stop_at',
         'delete_at',
         # 冗余字段
-<<<<<<< HEAD
         'trail_name',
-=======
->>>>>>> test
         'principal_name',
         'creator_name',
     ];

@@ -234,6 +234,29 @@ class TaskController extends Controller
 
     }
 
+    //获取子任务
+    public function getChildTasks(Request $request,Task $task)
+    {
+        $payload = $request->all();
+        $user = Auth::guard("api")->user();
+        $userId = $user->id;
+        $my = $request->get('my',0);
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $query = Task::select('tasks.id','tasks.title','tasks.status','tasks.principal_name','tasks.type_name','tasks.end_at');
+
+        $tasks = $query->where(function($query) use ($request, $payload,$task) {
+
+                 $query->where('task_pid',$task->id);
+
+        })->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+        foreach ($tasks as &$value) {
+            $value['id'] = hashid_encode($value['id']);
+        }
+        return $tasks;
+
+    }
+
 
 
 

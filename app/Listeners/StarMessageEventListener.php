@@ -3,7 +3,10 @@
 namespace App\Listeners;
 
 use App\Events\StarMessageEvent;
+use App\Models\DataDictionarie;
 use App\Models\Message;
+use App\Models\RoleResource;
+use App\Models\RoleUser;
 use App\Models\Star;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\StarTriggerPoint;
@@ -57,15 +60,20 @@ class StarMessageEventListener
     }
 
     /**
-     * 艺人签约通过时向全员发消息
+     * 艺人签约通过时向有查看艺人详情功能权限的人发消息
      */
     public function sendMessageWhenSigning()
     {
         //获取全部艺人
         $star_name_arr = array_column(Star::select("name")->whereIn('id',$this->star_arr)->get()->toArray(),"name");
         $star_names = implode(",",$star_name_arr);
+        //获取有查看艺人详情的功能权限的角色
+        $resource_list = DataDictionarie::where(['val'=>'/stars/detail/{id}','code'=>'get'])->orWhere(['val'=>'/stars/{id}','code'=>'get'])->pluck('id');
+        $role_list = RoleResource::whereIn('resource_id',$resource_list)->pluck('role_id');
+        //获取对应角色的用户
+        $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('role_id');
         $subheading = $title = $star_names."签约";
-        $send_to = null;//全员
+        $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -77,11 +85,15 @@ class StarMessageEventListener
         //获取全部艺人
         $star_name_arr = array_column(Star::select("name")->whereIn('id',$this->star_arr)->get()->toArray(),"name");
         $star_names = implode(",",$star_name_arr);
+        //获取有查看艺人详情的功能权限的角色
+        $resource_list = DataDictionarie::where(['val'=>'/stars/detail/{id}','code'=>'get'])->orWhere(['val'=>'/stars/{id}','code'=>'get'])->pluck('id');
+        $role_list = RoleResource::whereIn('resource_id',$resource_list)->pluck('role_id');
+        //获取对应角色的用户
+        $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('role_id');
         $subheading = $title = $star_names."解约";
-        $send_to = null;//全员
+        $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
-
 
     //最终发送消息方法调用
     public function sendMessage($title,$subheading,$send_to)

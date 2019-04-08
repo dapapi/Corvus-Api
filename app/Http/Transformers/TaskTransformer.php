@@ -25,6 +25,7 @@ class TaskTransformer extends TransformerAbstract
             'title' => $task->title,
             'status' => $task->status,
             'priority' => $task->priority,
+            'task_pid' => $task->task_pid,
             'desc' => $task->desc,
             'privacy' => boolval($task->privacy),
             'start_at' => $task->start_at,

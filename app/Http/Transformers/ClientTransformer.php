@@ -41,7 +41,7 @@ class ClientTransformer extends TransformerAbstract
                 'created_at' => $client->created_at->toDateTimeString(),
                 'updated_at' => $client->updated_at->toDateTimeString(),
                 // 日志内容
-                'last_follow_up_at' => $client->last_follow_up_at,
+                'up_time' => $client->last_follow_up_at,
                 'last_updated_user' => $client->last_updated_user,
                 'last_updated_at' => $client->last_updated_at,
                 'power' =>  $client->power,//对客户编辑权限
@@ -61,11 +61,13 @@ class ClientTransformer extends TransformerAbstract
         ->where('users.id', $client->principal_id)
             ->select('users.id','users.name')->first();
         if($clientUser){
-            $array['principal']['data']['id'] = hashid_encode($clientUser->id);
-            $array['principal']['data']['name'] = $clientUser->name;
+           // $array['principal']['data']['id'] = hashid_encode($clientUser->id);
+            //$array['principal']['data']['name'] = $clientUser->name;
+            $array['name'] = $clientUser->name;
+
         }else{
-            $array['principal']['data']['id'] = '';
-            $array['principal']['data']['name'] = '';
+            //$array['principal']['id'] = '';
+            $array['name'] = '';
         }
 
 

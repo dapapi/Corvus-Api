@@ -108,20 +108,17 @@ class ClientController extends Controller
                     $query->where('type',$payload['type']);
                 }
             })
-
             ->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','clients.company','clients.type','clients.grade','clients.district'
                ,'clients.status','principal_id','creator_id','client_rating','clients.created_at','clients.updated_at','protected_client_time','users.name',
                 DB::raw( "max(operate_logs.updated_at) as up_time")])
 
-            //->orderBy('clients.created_at', 'desc')
-            //->select(['clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','clients.updated_at',DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 
-//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
         foreach ($clients as &$value) {
             $value['id'] = hashid_encode($value['id']);
         }
+
         return $clients;
         //return $this->response->paginator($clients, new ClientTransformer());
     }
@@ -400,7 +397,9 @@ class ClientController extends Controller
                 $id = hashid_decode((int)$id);
             }
             unset($id);
+
             $array[] = ['clients.principal_id', $payload['principal_ids']];
+            dd($array);
         }
 
         $pageSize = $request->get('page_size', config('app.page_size'));

@@ -90,7 +90,7 @@ class Trail extends Model
         'pool_type',
         'receive',
         'fee',
-        'desc',
+        'desc'
     ];
 
     protected $dates = ['deleted_at'];

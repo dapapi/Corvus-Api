@@ -907,16 +907,16 @@ class TrailController extends Controller
 //        $sql_with_bindings = str_replace_array('?', $trail->getBindings(), $trail->toSql());
 //               dd($sql_with_bindings);
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $trail,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $trail,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         $user = Auth::guard("api")->user();
         //登录用户对线索编辑权限验证
         try{

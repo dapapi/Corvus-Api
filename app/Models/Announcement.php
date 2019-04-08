@@ -39,7 +39,10 @@ class Announcement extends Model
     {
         return $this->belongsTo(User::class, 'creator_id', 'id');
     }
-
+    public function classify()
+    {
+        return $this->hasOne(AnnouncementClassify::class, 'id', 'classify')->first(['name']);
+    }
     public function affixes()
     {
         return $this->morphMany(Affix::class, 'affixable');

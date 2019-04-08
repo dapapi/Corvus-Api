@@ -29,7 +29,7 @@ class ClientTaskTransformer extends TransformerAbstract
             ->where('users.id', $task->creator_id)
             ->select('users.name')->first();
         $array['principal']['data']['id'] = hashid_encode($task->principal_id);
-        $array['principal']['data']['name'] = $task->principal_name;
+        $array['principal']['data']['name'] = !$userInfo ? '':$userInfo->name;
         return $array;
 
 

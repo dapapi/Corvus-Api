@@ -1784,9 +1784,9 @@ class TaskController extends Controller
         unset($payload['type_id']);
 
         $payload['creator_id'] = $user->id;
-        if($payload['task_pid'] == 0)
-        $payload['task_pid'] = hashid_decode($payload['task_pid']);
-
+        if($payload['task_pid'] != 0){
+            $payload['task_pid'] = hashid_decode($payload['task_pid']);
+        }
         if ($request->has('principal_id')) {
             try {
                 $principalId = hashid_decode($payload['principal_id']);

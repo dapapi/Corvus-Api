@@ -17,7 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Rafrsr\LibArray2Object\Array2ObjectBuilder;
 
-class ProjejctDataChangeListener
+class ProjectDataChangeListener
 {
     /**
      * Create the event listener.
@@ -58,7 +58,7 @@ class ProjejctDataChangeListener
                     'field_name' =>  $key
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
-                $this->updateProjectImplode($key, $value, $oldModel->id);
+                $this->updateProjectImplode($key, $new_task->$key, $oldModel->id);
             }
         }
         event(new OperateLogEvent($arrayOperateLog));
@@ -93,7 +93,9 @@ class ProjejctDataChangeListener
             default:
                 break;
         }
-        ProjectImplode::find($id)->update($arr);
+        $model = ProjectImplode::find($id);
+        $model->update($arr);
+        $model->save();
         return ;
     }
 }

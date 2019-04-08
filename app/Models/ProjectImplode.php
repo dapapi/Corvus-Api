@@ -17,6 +17,7 @@ class ProjectImplode extends Model
         # project
         'id',
         'principal_id',
+        'form_instance_number',
         'creator_id',
         'project_name',
         'project_type',

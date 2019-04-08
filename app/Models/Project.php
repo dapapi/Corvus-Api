@@ -57,7 +57,10 @@ class Project extends Model
         'title',
         'project_number',
         'principal_id',
+        'principal_name',
+        'department_name',
         'creator_id',
+        'creator_name',
         'trail_id',
         'privacy',
         'priority',
@@ -69,7 +72,10 @@ class Project extends Model
         'end_at',
         'complete_at',
         'stop_at',
-        'delete_at'
+        'delete_at',
+        # 冗余字段
+        'principal_name',
+        'creator_name',
     ];
 
 //    protected static function boot()

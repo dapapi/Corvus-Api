@@ -1246,10 +1246,13 @@ class ProjectController extends Controller
     {
         $now = Carbon::now()->toDateTimeString();
 
-        $projects = Project::select('projects.id','projects.title','projects.status','projects.type','projects.created_at')
+        $projects = Project::select('projects.id','projects.title','projects.status','projects.type','projects.created_at','users.name')
             ->join('trails', function ($join) {
-            $join->on('projects.trail_id', '=', 'trails.id');
-        })->where('trails.client_id', '=', $client->id)->where('projects.status', 1)->orderBy('projects.created_at')->limit(3)->get()->toArray();
+                $join->on('projects.trail_id', '=', 'trails.id');
+            })
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'projects.principal_id');
+            })->where('trails.client_id', '=', $client->id)->where('projects.status', 1)->orderBy('projects.created_at')->limit(3)->get()->toArray();
         if($projects){
             foreach ($projects as &$value){
                 $value['id'] = hashid_encode($value['id']);
@@ -1764,7 +1767,7 @@ class ProjectController extends Controller
         # 我参与的
         $power = ProjectImplode::getConditionSql();
 
-        $query = DB::table('project_implode')->selectRaw("id, principal_id, project_name, principal, latest_time, project_store_at, trail_fee, stars, star_ids, bloggers, blogger_ids, project_type");
+        $query = DB::table('project_implode')->selectRaw("id, principal_id,creator_id, project_name, principal, latest_time, project_store_at, trail_fee as fee, stars, star_ids, bloggers, blogger_ids, project_type");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
@@ -1809,6 +1812,22 @@ class ProjectController extends Controller
 //            ->toSql();
             ->paginate();
         $projects = $paginator->getCollection();
+        foreach ($projects as $key => $val)
+        {
+              if($val->creator_id != $user->id && $val->principal_id != $user->id)
+            {
+                foreach ($val as $key1 => $value1) {
+                    $result = PrivacyType::isPrivacy(ModuleableType::PROJECT, $key1);
+                    if ($result) {
+                        $result = PrivacyType::excludePrivacy($user->id, $val->id, ModuleableType::PROJECT, $key1);
+                        if (!$result) {
+                            $projects[$key]->$key1 = 'privacy';
+                        }
+                    }
+                }
+            }
+
+        }
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理
             $stars = [];
@@ -1835,6 +1854,21 @@ class ProjectController extends Controller
                 }
             }
             $expectations = array_merge($stars, $bloggers);
+//                    if($project ->creator_id != $user->id && $project->principal_id != $user->id)
+//        {
+//            foreach ($array as $key => $value)
+//            {
+//                $result = PrivacyType::isPrivacy(ModuleableType::PROJECT,$key);
+//                if($result)
+//                {
+//                    $result = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, $key);
+//                    if(!$result)
+//                    {
+//                        $array[$key] = 'privacy';
+//                    }
+//                }
+//            }
+//        }
             return [
                 "id" => hashid_encode($item->id),
                 "title" => $item->project_name,
@@ -1848,7 +1882,7 @@ class ProjectController extends Controller
                 ],
                 "trail" => [
                     "data" => [
-                        "fee" => $item->trail_fee,
+                        "fee" => $item->fee,
                         "expectations" => [
                             "data" => $expectations
                         ],
@@ -1856,6 +1890,7 @@ class ProjectController extends Controller
                 ],
             ];
         });
+
         $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
         $manager = new Manager();
         return response($manager->createData($data)->toArray());

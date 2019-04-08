@@ -58,7 +58,7 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\ClientDataChangeListener',
         ],
         'App\Events\ProjectDataChangeEvent'    =>  [//监听客户修改，增加操作日志
-            'App\Listeners\ProjejctDataChangeListener',
+            'App\Listeners\ProjectDataChangeListener',
         ],
         'App\Events\StarDataChangeEvent'    =>  [//监听艺人修改，增加操作日志
             'App\Listeners\StarDataChangeListener',

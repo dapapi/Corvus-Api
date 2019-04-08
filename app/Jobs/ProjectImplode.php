@@ -52,6 +52,7 @@ class ProjectImplode implements ShouldQueue
 
         $implodeArr = [
             'id' => $project->id,
+            'form_instance_number' => $project->project_number,
             'project_name' => $project->title,
             'project_type' => $project->type,
             'project_priority' => $project->priority,

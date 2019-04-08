@@ -250,16 +250,16 @@ class ApprovalFormController extends Controller
         }
 
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $instance,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $instance,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
 
         return $result;
     }

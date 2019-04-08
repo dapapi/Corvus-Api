@@ -60,7 +60,7 @@ class TrailDataChangeListener
                     'field_name' => $key
                 ]);
                 $arrayOperateLog[] = $operateStartAt;
-                $this->updateProjectImplode($key, $value);
+                $this->updateProjectImplode($key, $new_trail->$key);
             }
         }
         if ($this->projectImp)

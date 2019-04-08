@@ -195,9 +195,7 @@ class AnnouncementController extends Controller
         DB::beginTransaction();
         try {
             $id = $announcementClassify->id;
-            $isdata = Announcement::where('classify',$id)->get();
-            if(count($isdata)>0)
-                return $this->response->errorInternal('删除失败');
+            Announcement::where('classify',$id)->delete();
             $announcementClassify->delete();
 
         }catch (\Exception $e) {

@@ -79,7 +79,7 @@ class BloggerMessageEventListener
         //获取对应角色的用户
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id');
         $subheading = $title = $blogger_names."签约";
-        $send_to = null;//全员
+        $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -103,7 +103,7 @@ class BloggerMessageEventListener
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id');
 
         $subheading = $title = $blogger_names."解约";
-        $send_to = null;//全员
+        $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
 

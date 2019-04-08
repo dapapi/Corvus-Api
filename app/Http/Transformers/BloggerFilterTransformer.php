@@ -32,12 +32,14 @@ class BloggerFilterTransformer extends TransformerAbstract
 
         $array = [
             'id' => hashid_encode($blogger->id),
+            'flag'   =>  ModuleableType::BLOGGER,
             'nickname' => $blogger->nickname,
 
         ];
 
         $arraySimple = [
             'id' => hashid_encode($blogger->id),
+            'flag'   =>  ModuleableType::BLOGGER,
             'nickname' => $blogger->nickname,
 
         ];

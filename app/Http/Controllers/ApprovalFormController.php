@@ -1685,7 +1685,7 @@ class ApprovalFormController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
-        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+        $joinSql = FilterJoin::where('table_name', 'project')->first()->join_sql;
         $query = Contract::selectRaw('DISTINCT(ps.id) as ids')->from(DB::raw($joinSql));
         $contracts = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);

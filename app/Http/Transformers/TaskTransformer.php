@@ -47,6 +47,10 @@ class TaskTransformer extends TransformerAbstract
         if ($task->task_pid) {
             $array['task_p'] = false;
         }
+        if($task->task_pid != null){
+            $array['task_pid'] = hashid_encode($task->task_pid);
+        }
+
         $operate = DB::table('operate_logs as og')//
             ->join('users', function ($join) {
                 $join->on('users.id', '=', 'og.user_id');

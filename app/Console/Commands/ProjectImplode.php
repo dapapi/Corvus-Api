@@ -12,7 +12,7 @@ class ProjectImplode extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'project-implode';
 
     /**
      * The console command description.

@@ -52,6 +52,7 @@ use App\Repositories\FilterReportRepository;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
 use App\SignContractStatus;
+use App\Traits\PrivacyFieldTrait;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use App\Whether;
@@ -63,7 +64,6 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 class BloggerController extends Controller
 {
-
 
     protected $filterReportRepository;
     public function __construct(OperateLogRepository $operateLogRepository)
@@ -128,16 +128,16 @@ class BloggerController extends Controller
     public function show(Blogger $blogger,BloggerRepository $repository,ScopeRepository $scopeRepository)
     {
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $blogger,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $blogger,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
 
         $user = Auth::guard("api")->user();
         //登录用户对博主编辑权限验证
@@ -1096,7 +1096,6 @@ class BloggerController extends Controller
 //                ],
 //            ]
 //        ];
-        profiler_finish("my time metric name");
         return [
             "data" => $res,
             "meta"  => $meta,
@@ -1144,9 +1143,21 @@ class BloggerController extends Controller
     }
 
 
-//    public function getBloggerDetail(Blogger $blogger)
-//    {
-//        $creator_name =
-//        return $this->response()->item($blogger,new BloggerDetailTransformer());
-//    }
+    public function getBloggerDetail(Blogger $blogger,BloggerRepository $bloggerRepository)
+    {
+//        // 操作日志
+//        $operate = new OperateEntity([
+//            'obj' => $blogger,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
+        $user = Auth::guard("api")->user();
+        $blogger->powers = $bloggerRepository->getPower($user,$blogger);
+        return $this->response()->item($blogger,new BloggerDetailTransformer());
+    }
 }

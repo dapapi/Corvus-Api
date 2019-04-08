@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
+use App\Jobs\RecordOperateLog;
 use App\Models\Announcement;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
@@ -32,15 +33,22 @@ use App\Models\GroupRoles;
 use App\Models\ProjectBillsResource;
 use App\Models\Role;
 use App\ModuleUserType;
+use App\Models\Supplier;
+use App\Models\SupplierRelate;
+
+
 use App\User;
 use App\ModuleableType;
 use App\OperateLogLevel;
 use App\OperateLogMethod;
 use Carbon\Carbon;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Queue\Jobs\Job;
 use Illuminate\Support\Facades\Auth;
 
 class OperateLogEventListener
 {
+//    use DispatchesJobs;
     private $implodeModel;
     /**
      * Create the event listener.
@@ -119,7 +127,7 @@ class OperateLogEventListener
                 $typeName = '任务';
             } else if ($operate->obj instanceof Project) {
                 $type = ModuleableType::PROJECT;
-//                $this->implodeModel = ProjectImplode::find($operate->obj->id);
+                $this->implodeModel = ProjectImplode::find($operate->obj->id);
                 $typeName = '项目';
             } else if ($operate->obj instanceof Star) {
                 $type = ModuleableType::STAR;
@@ -200,6 +208,12 @@ class OperateLogEventListener
                     $typeName = "合同审批";
                 }
                 $type = ModuleableType::BUSINESS;
+            }else if($operate->obj instanceof Supplier){
+                $type = ModuleableType::SUPPLIER;
+                $typeName = "供应商";
+            }else if($operate->obj instanceof SupplierRelate){
+                $type = ModuleableType::SUPPLIERRELATE;
+                $typeName = "供应商联系人";
             }
             //TODO
             $id = $operate->obj->id;
@@ -211,11 +225,10 @@ class OperateLogEventListener
             $content = null;
             switch ($operate->method) {
                 case OperateLogMethod::CREATE://创建
-                    if ($this->implodeModel) {
+                    if ($this->implodeModel != null) {
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
-
                         $this->implodeModel->last_updated_user_id = $user->id;
                         $this->implodeModel->last_updated_user = $user->name;
                         $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
@@ -225,7 +238,7 @@ class OperateLogEventListener
                     $content = $this->create . '' . $typeName;
                     break;
                 case OperateLogMethod::UPDATE://修改
-                    if ($this->implodeModel) {
+                    if ($this->implodeModel != null) {
                         $this->implodeModel->last_updated_user_id = $user->id;
                         $this->implodeModel->last_updated_user = $user->name;
                         $this->implodeModel->last_updated_at = Carbon::now()->toDateTimeString();
@@ -257,7 +270,7 @@ class OperateLogEventListener
                     $content = $this->delete . '' . $title;
                     break;
                 case OperateLogMethod::FOLLOW_UP://跟进
-                    if ($this->implodeModel) {
+                    if($this->implodeModel != null) {
                         $this->implodeModel->last_follow_up_user_id = $user->id;
                         $this->implodeModel->last_follow_up_user = $user->name;
                         $this->implodeModel->last_follow_up_at = Carbon::now()->toDateTimeString();
@@ -437,7 +450,17 @@ class OperateLogEventListener
                     break;
 
             }
-
+//            RecordOperateLog::dispatch([
+//                'user_id' => $user->id,
+//                'logable_id' => $id,
+//                'logable_type' => $type,
+//                'content' => $content,
+//                'method' => $operate->method,
+//                'level' => $level,
+//                'status' => 1,
+//                'field_name'    =>$field_name,
+//                'field_title' =>  $title
+//            ])->delay(Carbon::now()->addMinutes(10));
             OperateLog::create([
                 'user_id' => $user->id,
                 'logable_id' => $id,

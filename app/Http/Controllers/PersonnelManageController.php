@@ -350,16 +350,16 @@ class PersonnelManageController extends Controller
         $result = $this->response->item($user, new UserTransformer());
         $result->addMeta('detail', $detail);
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $user,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $user,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
         return $result;
     }
 
@@ -1080,6 +1080,20 @@ class PersonnelManageController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
+    }
+
+    public function setImage(Request $request)
+    {
+        $users = DB::table("users")->select('name','id')->get()->toArray();
+        $usersArr = json_decode(json_encode($users), true);
+        foreach ($usersArr as $value){
+            $userInfo = $this->getColorName($value['name']);
+            $snum = DB::table('users')
+                ->where('id',$value['id'])
+                ->update(['user_url'=>$userInfo]);
+        }
+        dd($snum);
+
     }
 
 }

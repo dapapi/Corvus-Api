@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
+use App\Http\Transformers\Project\ProjectDetailTransformer;
+use App\Models\Department;
+use App\Models\DepartmentUser;
+use App\Models\ProjectImplode;
+use App\Repositories\FilterReportRepository;
 use App\Events\TrailDataChangeEvent;
 use App\Exports\ProjectsExport;
 use App\Helper\Common;
@@ -13,7 +18,6 @@ use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -22,10 +26,12 @@ use App\Http\Transformers\ProjectTransformer;
 use App\Http\Transformers\simpleProjectTransformer;
 use App\Http\Transformers\StarProjectTransformer;
 use App\Http\Transformers\TemplateFieldTransformer;
+use App\Http\Transformers\ProjectAllTransformer;
+use App\Http\Transformers\ClientProjectTransformer;
 use App\Models\Blogger;
+use App\Models\FilterJoin;
 use App\Models\Client;
-use App\Models\Department;
-use App\Models\DepartmentUser;
+
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
@@ -33,7 +39,6 @@ use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\ProjectBill;
 use App\Models\ProjectHistorie;
-use App\Models\ProjectImplode;
 use App\Models\ProjectRelate;
 use App\Models\ProjectReturnedMoney;
 use App\Models\ProjectReturnedMoneyType;
@@ -47,7 +52,6 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\PrivacyType;
-use App\Repositories\FilterReportRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
@@ -63,15 +67,21 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use League\Fractal;
 use League\Fractal\Manager;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use League\Fractal\Serializer\DataArraySerializer;
 
 class ProjectController extends Controller
 {
     protected $moduleUserRepository;
 
-    public function __construct(ModuleUserRepository $moduleUserRepository)
+    protected $projectRepository;
+
+    protected $projectImplodeId;
+
+    public function __construct(ModuleUserRepository $moduleUserRepository, ProjectRepository $projectRepository)
     {
         $this->moduleUserRepository = $moduleUserRepository;
+        $this->projectRepository = $projectRepository;
     }
 
     // 项目列表
@@ -80,8 +90,8 @@ class ProjectController extends Controller
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $user = Auth::guard('api')->user();
-        $project_type = $request->get('project_type',null);
-        $query =  Project::where(function ($query) use ($request, $payload,$user,$project_type) {
+        $project_type = $request->get('project_type', null);
+        $query = Project::where(function ($query) use ($request, $payload, $user, $project_type) {
             if ($request->has('keyword'))
                 $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
 
@@ -94,26 +104,26 @@ class ProjectController extends Controller
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
 
-            if ($request->has('project_type') && $project_type <> '3,4' ){
-                $query->where('projects.type',$project_type);
+            if ($request->has('project_type') && $project_type <> '3,4') {
+                $query->where('projects.type', $project_type);
 
             }
-            if($request->has('project_type') && $project_type == '3,4'){
-                $query->whereIn('projects.type',[$project_type]);
+            if ($request->has('project_type') && $project_type == '3,4') {
+                $query->whereIn('projects.type', [$project_type]);
             }
             if ($request->has('status'))#项目状态
                 $query->where('status', $payload['status']);
         });
-        if ($request->has('my')){
-            switch ($payload['my']){
+        if ($request->has('my')) {
+            switch ($payload['my']) {
                 case 'my_principal'://我负责
                     $query->where('principal_id', $user->id);
                     break;
                 case 'my_participant'://我参与
-                    $query->leftJoin("module_users as mu2",function ($join){
-                        $join->on("mu2.moduleable_id","projects.id")
-                            ->where('mu2.moduleable_type',ModuleableType::PROJECT);
-                    })->where('mu2.user_id',$user->id);
+                    $query->leftJoin("module_users as mu2", function ($join) {
+                        $join->on("mu2.moduleable_id", "projects.id")
+                            ->where('mu2.moduleable_type', ModuleableType::PROJECT);
+                    })->where('mu2.user_id', $user->id);
                     break;
                 case 'my_create'://我创建
                     $query->where('projects.creator_id', $user->id);
@@ -121,26 +131,27 @@ class ProjectController extends Controller
 
             }
         }
-            //$projects = $query->orderBy('projects.created_at', 'desc')->paginate($pageSize);
+        //$projects = $query->orderBy('projects.created_at', 'desc')->paginate($pageSize);
         $projects = $query->searchData()
-        ->leftJoin('operate_logs',function($join){
-            $join->on('projects.id','operate_logs.logable_id')
-                ->where('logable_type',ModuleableType::PROJECT)
-                ->where('operate_logs.method','4');
-        })->groupBy('projects.id')
-        ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
-            'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
+            ->leftJoin('operate_logs', function ($join) {
+                $join->on('projects.id', 'operate_logs.logable_id')
+                    ->where('logable_type', ModuleableType::PROJECT)
+                    ->where('operate_logs.method', '4');
+            })->groupBy('projects.id')
+            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id', 'creator_id', 'project_number', 'trail_id', 'title', 'projects.type', 'privacy', 'projects.status',
+                'principal_id', 'projected_expenditure', 'priority', 'start_at', 'end_at', 'projects.created_at', 'projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"), 'desc'])
 //        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
 ////
 //        dd($sql_with_bindings);
-        ->paginate($pageSize);
+            ->paginate($pageSize);
         //  修改项目排序   按跟进时间  和 创建时间排序
         return $this->response->paginator($projects, new ProjectTransformer());
     }
 
-    public function getProjectRelated(Request $request){
+    public function getProjectRelated(Request $request)
+    {
 
-        $projects =  Project::searchData()->select('id','title')->get();
+        $projects = Project::searchData()->select('id', 'title')->get();
         $data = array();
         $data['data'] = $projects;
         foreach ($data['data'] as $key => &$value) {
@@ -156,11 +167,10 @@ class ProjectController extends Controller
         $isAll = $request->get('all', false);
         $status = $request->get('status', null);
         if (is_null($status))
-            $projects = Project::orderBy('created_at', 'desc')->searchData()->get();
+            $projects = Project::orderBy('created_at', 'desc')->where('id', '>', 0)->searchData()->select('id', 'title')->get();
         else
-            $projects = Project::orderBy('created_at', 'desc')->where('status', $status)->searchData()->get();
-
-        return $this->response->collection($projects, new ProjectTransformer($isAll));
+            $projects = Project::orderBy('created_at', 'desc')->where('id', '>', 0)->where('status', $status)->searchData()->select('id', 'title')->get();
+        return $this->response->collection($projects, new ProjectAllTransformer($isAll));
     }
 
     public function myAll(Request $request)
@@ -237,7 +247,7 @@ class ProjectController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', 0);
         $type = $request->get('type', 1);
-        $project_type = $request->get('project_type',null);
+        $project_type = $request->get('project_type', null);
         $query = Project::select('projects.*');
 
         switch ($type) {
@@ -265,12 +275,12 @@ class ProjectController extends Controller
             default:
                 break;
         }
-        if ($request->has('project_type') && $project_type <> '3,4' ){
-            $query->where('type',$project_type);
+        if ($request->has('project_type') && $project_type <> '3,4') {
+            $query->where('type', $project_type);
 
         }
-        if($request->has('project_type') && $project_type == '3,4'){
-            $query->whereIn('type',[$project_type]);
+        if ($request->has('project_type') && $project_type == '3,4') {
+            $query->whereIn('type', [$project_type]);
         }
         $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
 
@@ -313,18 +323,20 @@ class ProjectController extends Controller
             if ($payload['type'] != 5) {
                 $projectHistorie = ProjectHistorie::create($payload);
                 $approvalForm = new ApprovalFormController();
-                $approvalForm->projectStore($request,$payload['type'], $payload['notice'], $payload['project_number']);
+                $approvalForm->projectStore($request, $payload['type'], $payload['notice'], $payload['project_number']);
                 foreach ($payload['fields'] as $key => $val) {
+                    $key1 = hashid_decode((int)$key);
                     FieldValue::create([
-                        'field_id' => hashid_decode((int)$key),
+                        'field_id' => $key1,
                         'project_id' => $projectId,
                         'value' => $val,
                     ]);
                     FieldHistorie::create([
-                        'field_id' => hashid_decode((int)$key),
+                        'field_id' => $key1,
                         'project_id' => $projectHistorie->id,
                         'value' => $val,
                     ]);
+                    $this->updateProjectImplodeTemplateField($key1, $val, $projectId);
                 }
 
                 // todo 优化，这部分操作应该有对应仓库
@@ -343,11 +355,11 @@ class ProjectController extends Controller
                     if ($key == 'expectations') {
                         $repository = new TrailStarRepository();
                         //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
-                        $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
-                        $repository->store($trail,$payload['trail']['expectations'],TrailStar::EXPECTATION);
+                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
+                        $repository->deleteTrailStar($trail->id, TrailStar::EXPECTATION);
+                        $repository->store($trail, $payload['trail']['expectations'], TrailStar::EXPECTATION);
                         //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
 //                        $start = null;
 //                        $end = null;
 //                        if ($trail->type == Trail::TYPE_PAPI) {
@@ -419,11 +431,11 @@ class ProjectController extends Controller
                     if ($key == 'recommendations') {
                         $repository = new TrailStarRepository();
                         //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
-                        $repository->deleteTrailStar($trail->id,TrailStar::RECOMMENDATION);
-                        $repository->store($trail,$payload['trail']['recommendations'],TrailStar::RECOMMENDATION);
+                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
+                        $repository->deleteTrailStar($trail->id, TrailStar::RECOMMENDATION);
+                        $repository->store($trail, $payload['trail']['recommendations'], TrailStar::RECOMMENDATION);
                         //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
+                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
 //                        $start = null;
 //                        $end = null;
 //                        if ($trail->type == Trail::TYPE_PAPI) {
@@ -530,36 +542,19 @@ class ProjectController extends Controller
         $old_project = clone $project;
         $trail = $project->trail;
 
-        if(!empty($trail))
-        {
+        $projectId = $project->id;
+
+        if (!empty($trail)) {
             $old_trail = clone $trail;
         }
         DB::beginTransaction();
         try {
+            $projectImp = ProjectImplode::find($projectId);
             if ($request->has('principal_id')) {//负责人
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
-                if ($project->principal_id != $payload['principal_id']) {
-                    try {
-//                        $curr_principal = User::find($project->principal_id)->name;
-//                        $principal = User::findOrFail($payload['principal_id'])->name;
-//
-//                        //操作日志
-//                        $operateName = new OperateEntity([
-//                            'obj' => $project,
-//                            'title' => "负责人",
-//                            'start' => $curr_principal,
-//                            'end' => $principal,
-//                            'method' => OperateLogMethod::UPDATE,
-//                        ]);
-//                        $arrayOperateLog[] = $operateName;
-
-                    } catch (Exception $e) {
-                        Log::error($e);
-                        DB::rollBack();
-                        return $this->response->errorInternal("负责人错误");
-                    }
-
-                }
+                $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
+                $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
+                $payload['department_name'] = Department::where('id', $departmentId)->value('name');
 
             }
             if (!$request->has('type') || $payload['type'] == '')
@@ -585,7 +580,6 @@ class ProjectController extends Controller
             $last_participants = implode(",", array_column($project->participants()->get()->toArray(), 'name'));
             $project->update($payload);//更新项目
 
-            $projectId = $project->id;
 //            $trail = $project->trail;
             //只有新增或者要删除的参与人不为空是才更新
             if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids']) != 0) {
@@ -634,13 +628,58 @@ class ProjectController extends Controller
                         if ($fieldValue) {//存在保存，不存在新增
                             $fieldValue->value = $val;
                             $fieldValue->save();
+
                         } else {
-                            FieldValue::create([
+                            $fieldValue = FieldValue::create([
                                 'field_id' => $fieldId,
                                 'project_id' => $projectId,
                                 'value' => $val,
                             ]);
                         }
+                        switch ($fieldValue->field_id) {
+                            case 22:  # 签单时间
+                                $projectImp->sign_at = $val;
+                                break;
+                            case 52:  # 上线时间
+                                $projectImp->launch_at = $val;
+                                break;
+                            case 11:  # 播出平台
+                                $projectImp->platforms = $val;
+                                break;
+                            case 31:  # 综艺节目类型
+                                $projectImp->show_type = $val;
+                                break;
+                            case 32:  # 嘉宾类型
+                                $projectImp->guest_type = $val;
+                                break;
+                            case 34:  # 录制时间
+                                $projectImp->record_at = $val;
+                                break;
+                            case 7:  # 影剧类型
+                                $projectImp->movie_type = $val;
+                                break;
+                            case 9:  # 题材
+                                $projectImp->theme = $val;
+                                break;
+                            case 23:  # 选角团队
+                                $projectImp->team_info = $val;
+                                break;
+                            case 25:  # 试戏时间
+                                $projectImp->walk_through_at = $val;
+                                break;
+                            case 26:  # 试戏地点
+                                $projectImp->walk_through_location = $val;
+                                break;
+                            case 55:  # 合约费用(含税）
+                                $projectImp->agreement_fee = $val;
+                                break;
+                            case 54:  # 签单时间
+                                $projectImp->multi_channel = $val;
+                                break;
+                            default:
+                                break;
+                        }
+                        $projectImp->save();
                     }
 
                 }
@@ -699,11 +738,11 @@ class ProjectController extends Controller
                     if ($key == 'expectations') {
                         $repository = new TrailStarRepository();
                         //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
-                        $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
-                        $repository->store($trail,$payload['trail']['expectations'],TrailStar::EXPECTATION);
+                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
+                        $repository->deleteTrailStar($trail->id, TrailStar::EXPECTATION);
+                        $repository->store($trail, $payload['trail']['expectations'], TrailStar::EXPECTATION);
                         //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
+                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
 
                         $title = "关联目标艺人";
                         if (!empty($start) || !empty($end)) {
@@ -723,11 +762,11 @@ class ProjectController extends Controller
                     if ($key == 'recommendations') {
                         $repository = new TrailStarRepository();
                         //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
-                        $repository->deleteTrailStar($trail->id,TrailStar::RECOMMENDATION);
-                        $repository->store($trail,$payload['trail']['recommendations'],TrailStar::RECOMMENDATION);
+                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
+                        $repository->deleteTrailStar($trail->id, TrailStar::RECOMMENDATION);
+                        $repository->store($trail, $payload['trail']['recommendations'], TrailStar::RECOMMENDATION);
                         //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id,TrailStar::RECOMMENDATION);
+                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
 
                         $title = "关联推荐艺人";
                         if (!empty($start) || !empty($end)) {
@@ -751,11 +790,10 @@ class ProjectController extends Controller
             }
 
             event(new OperateLogEvent($arrayOperateLog));//更新日志
-            event(new ProjectDataChangeEvent($old_project,$project));//更新项目操作日志
+            event(new ProjectDataChangeEvent($old_project, $project));//更新项目操作日志
 
-            if(!empty($trail))
-            {
-            event(new TrailDataChangeEvent($old_trail,$trail));//更新线索操作日志
+            if (!empty($trail)) {
+                event(new TrailDataChangeEvent($old_trail, $trail));//更新线索操作日志
             }
         } catch (Exception $exception) {
             Log::error($exception);
@@ -782,9 +820,9 @@ class ProjectController extends Controller
                 'title' => '项目负责人',
                 'value' => $principal->name
             ];
-            $participant_ids = array_column($project->participants()->select('user_id')->get()->toArray(),'user_id');
+            $participant_ids = array_column($project->participants()->select('user_id')->get()->toArray(), 'user_id');
             $authorization = $request->header()['authorization'][0];
-            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids,$project->id);
+            (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids, $project->id);
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
@@ -795,116 +833,103 @@ class ProjectController extends Controller
         return $this->response->accepted();
     }
 
-    public function detail(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
+    public function detail(Request $request, $project, ProjectRepository $repository, ScopeRepository $scopeRepository)
     {
         $type = $project->type;
         $user = Auth::guard("api")->user();
         //登录用户对艺人编辑权限验证
-        try{
+        try {
             //获取用户角色
             $role_list = $user->roles()->pluck('id')->all();
-            $scopeRepository->checkPower("projects/{id}",'put',$role_list,$project);
+            $scopeRepository->checkPower("projects/{id}", 'put', $role_list, $project);
             $project->power = "true";
-        }catch (Exception $exception){
+        } catch (Exception $exception) {
             $project->power = "false";
         }
 
-        $project->powers = $repository->getPower($user,$project);
+        $project->powers = $repository->getPower($user, $project);
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         $array['project_kd_name'] = $project->title;
         $array['expense_type'] = '支出';
-        $approval  = (new ApprovalContractController())->projectList($request,$project);
+        $approval = (new ApprovalContractController())->projectList($request, $project);
         $contractmoney = $approval['money'];
         // 记住修改  收入
         $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
         // 获取目标艺人 所在部门
-        if($project->trail){
-        $expectations = $project->trail->bloggerExpectations;
-        if (count($expectations) <= 0) {
-            $expectations = $project->trail->expectations->first();
-            if(!$expectations) {
-                return null;
-            }else{
-                $expectations = $expectations->broker->toArray();
-//                ->broker;
-                $department_name = [];
-                if(!$expectations)
+        if ($project->trail) {
+            $expectations = $project->trail->bloggerExpectations;
+            if (count($expectations) <= 0) {
+                $expectations = $project->trail->expectations->first();
+                if (!$expectations) {
                     return null;
-                foreach ($expectations as $key => $val){
-                    $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
+                } else {
+                    $expectations = $expectations->broker->toArray();
+
+//                ->broker;
+                    $department_name = [];
+                    if (!$expectations)
+                        return null;
+                    foreach ($expectations as $key => $val) {
+                        $department_name[$key] = DepartmentUser::where('user_id', $val['id'])->first()->department['name'];
+                    }
+                }
+
+            } else {
+                $expectations = $expectations->first()->publicity->toArray();
+                $department_name = [];
+                if (!$expectations)
+                    return null;
+                foreach ($expectations as $key => $val) {
+                    $department_name[$key] = DepartmentUser::where('user_id', $val['id'])->first()->department['name'];
                 }
             }
 
-        } else {
-            $expectations = $expectations->first()->publicity->toArray();
-            $department_name = [];
-            if(!$expectations)
-                return null;
-            foreach ($expectations as $key => $val){
-                $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-            }
-         }
         }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-            $user = Auth::guard('api')->user();
-            if($project->trail){
-                $result->addMeta('department_name',  $department_name);
-            }
+        $user = Auth::guard('api')->user();
+        if ($project->trail) {
+            $result->addMeta('department_name', $department_name);
+        }
 
-            if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
-                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
-                if(!$contractMoneyResult)
-                {
-                    $result->addMeta('contractmoney', 'privacy');
-                }
-                else
-                {
-                    if (isset($contractmoney)) {
-                        $result->addMeta('contractmoney', "".$contractmoney);
-                    }
-                    else
-                    {
-                        $result->addMeta('contractmoney', "".'0');
-                    }
-                }
-                $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
-                if(!$contractMoneyResult)
-                {
-                    $result->addMeta('expendituresum', 'privacy');
-                }
-                else
-                {
-                    if (isset($expendituresum)) {
-                        $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
-                    }
-                    else
-                    {
-                        $result->addMeta('expendituresum', "".'0');
-                    }
-                }
-            }
-            else
-            {
+        if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
+
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id, $project->id, ModuleableType::PROJECT, 'contractmoney');
+            if (!$contractMoneyResult) {
+                $result->addMeta('contractmoney', 'privacy');
+            } else {
                 if (isset($contractmoney)) {
-                    $result->addMeta('contractmoney', "".$contractmoney);
-                }
-                else
-                {
-                    $result->addMeta('contractmoney', "".'0');
-                }
-                if (isset($expendituresum)) {
-                    $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
-                }
-                else
-                {
-                    $result->addMeta('expendituresum',"".'0');
+                    $result->addMeta('contractmoney', "" . $contractmoney);
+                } else {
+                    $result->addMeta('contractmoney', "" . '0');
                 }
             }
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id, $project->id, ModuleableType::PROJECT, 'expendituresum');
+            if (!$contractMoneyResult) {
+                $result->addMeta('expendituresum', 'privacy');
+            } else {
+                if (isset($expendituresum)) {
+                    $result->addMeta('expendituresum', "" . $expendituresum->expendituresum);
+                } else {
+                    $result->addMeta('expendituresum', "" . '0');
+                }
+            }
+        } else {
+            if (isset($contractmoney)) {
+                $result->addMeta('contractmoney', "" . $contractmoney);
+            } else {
+                $result->addMeta('contractmoney', "" . '0');
+            }
+            if (isset($expendituresum)) {
+                $result->addMeta('expendituresum', "" . $expendituresum->expendituresum);
+            } else {
+                $result->addMeta('expendituresum', "" . '0');
+            }
+        }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
         $operate = new OperateEntity([
             'obj' => $project,
@@ -1022,7 +1047,7 @@ class ProjectController extends Controller
         $projects = ProjectStatusLogs::where('logable_id', $project->id)->CreateDesc()->get();
         $count = count($projects->toArray());
         //meta内是项目进度百分比，目前就8步所以除以八
-        return $this->response->collection($projects, new ProjectCourseTransformer())->addMeta("progress",$count/(8));
+        return $this->response->collection($projects, new ProjectCourseTransformer())->addMeta("progress", $count / (8));
     }
 
     public function changeStatus(Request $request, Project $project)
@@ -1082,7 +1107,7 @@ class ProjectController extends Controller
         $user = Auth::guard("api")->user();
         $userid = $user->id;
 
-        $projects = Project::where(function ($query) use ($request, $payload,$userid) {
+        $projects = Project::where(function ($query) use ($request, $payload, $userid) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('principal_ids') && $payload['principal_ids']) {
@@ -1093,30 +1118,30 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('principal_id', $payload['principal_ids']);
             }
-            if($request->has('administration'))
-                $query->where('principal_id','<>' ,$userid);
-            if($request->has('principal_id'))
-                $query->where('principal_id',$userid);
+            if ($request->has('administration'))
+                $query->where('principal_id', '<>', $userid);
+            if ($request->has('principal_id'))
+                $query->where('principal_id', $userid);
 
-            if ($request->has('type') && $payload['type'] <> '3,4'){
+            if ($request->has('type') && $payload['type'] <> '3,4') {
                 $query->where('type', $payload['type']);
             }
-            if($request->has('type') && $payload['type'] == '3,4'){
-                $query->whereIn('type',[3,4]);
+            if ($request->has('type') && $payload['type'] == '3,4') {
+                $query->whereIn('type', [3, 4]);
             }
             if ($request->has('status'))
                 $query->where('projects.status', $payload['status']);
 
         })->searchData()
-            ->leftJoin('operate_logs',function($join){
-            $join->on('projects.id','operate_logs.logable_id')
-            ->where('logable_type',ModuleableType::PROJECT)
-            ->where('operate_logs.method','2');
-        })->groupBy('projects.id')
-            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','creator_id','project_number','trail_id','title','projects.type','privacy','projects.status',
-                'principal_id','projected_expenditure','priority','start_at','end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
+            ->leftJoin('operate_logs', function ($join) {
+                $join->on('projects.id', 'operate_logs.logable_id')
+                    ->where('logable_type', ModuleableType::PROJECT)
+                    ->where('operate_logs.method', '2');
+            })->groupBy('projects.id')
+            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id', 'creator_id', 'project_number', 'trail_id', 'title', 'projects.type', 'privacy', 'projects.status',
+                'principal_id', 'projected_expenditure', 'priority', 'start_at', 'end_at', 'projects.created_at', 'projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"), 'desc'])
             ->paginate($pageSize);
-               //  修改项目排序   按跟进时间  和 创建时间排序
+        //  修改项目排序   按跟进时间  和 创建时间排序
         return $this->response->paginator($projects, new ProjectTransformer());
 
     }
@@ -1159,13 +1184,47 @@ class ProjectController extends Controller
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $projects = Project::select('projects.*')->join('trails', function ($join) {
+        $projects = Project::select('projects.id', 'projects.title', 'projects.principal_id', 'projects.creator_id', 'projects.trail_id', 'projects.status', 'projects.type', 'projects.priority', 'projects.created_at', 'projects.updated_at')->join('trails', function ($join) {
             $join->on('projects.trail_id', '=', 'trails.id');
         })->where('trails.client_id', '=', $client->id)
             ->paginate($pageSize);
 
         return $this->response->paginator($projects, new ProjectTransformer());
     }
+
+    //客户任务
+
+    public function getClientProjectList(Request $request, Client $client)
+    {
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $projects = Project::select('projects.id', 'projects.title', 'projects.principal_id', 'projects.creator_id', 'projects.trail_id', 'projects.status', 'projects.type', 'projects.priority', 'projects.created_at', 'projects.updated_at')->join('trails', function ($join) {
+            $join->on('projects.trail_id', '=', 'trails.id');
+        })->where('trails.client_id', '=', $client->id)
+            ->paginate($pageSize);
+
+        return $this->response->paginator($projects, new ClientProjectTransformer());
+    }
+
+    public function getClientProjectNormalList(Request $request, Client $client)
+    {
+        $now = Carbon::now()->toDateTimeString();
+
+        $projects = Project::select('projects.id', 'projects.title', 'projects.status', 'projects.type', 'projects.created_at', 'users.name')
+            ->join('trails', function ($join) {
+                $join->on('projects.trail_id', '=', 'trails.id');
+            })
+            ->join('users', function ($join) {
+                $join->on('users.id', '=', 'projects.principal_id');
+            })->where('trails.client_id', '=', $client->id)->where('projects.status', 1)->orderBy('projects.created_at')->limit(3)->get()->toArray();
+        if ($projects) {
+            foreach ($projects as &$value) {
+                $value['id'] = hashid_encode($value['id']);
+            }
+        }
+        return $projects;
+    }
+
 
     /**
      * 项目关联项目 关联任务
@@ -1255,7 +1314,7 @@ class ProjectController extends Controller
     public function indexReturnedMoney(Request $request, Project $project)
     {
         $ploay = $request;
-        $approval  = (new ApprovalContractController())->projectList($request,$project);
+        $approval = (new ApprovalContractController())->projectList($request, $project);
         $contract_id = $ploay['contract_id'];
 //        $contract_id = '20190118274451221';
         $project_id = $project->id;
@@ -1351,10 +1410,10 @@ class ProjectController extends Controller
     {
 
         try {
-            $id = ProjectReturnedMoney::where('p_id',$projectReturnedMoney->id)->get(['id'])->toArray();
-            if($id){
-                ProjectReturnedMoney::whereIn('id',$id)->delete();
-            }else{
+            $id = ProjectReturnedMoney::where('p_id', $projectReturnedMoney->id)->get(['id'])->toArray();
+            if ($id) {
+                ProjectReturnedMoney::whereIn('id', $id)->delete();
+            } else {
                 $projectReturnedMoney->delete();
             }
         } catch (Exception $exception) {
@@ -1423,13 +1482,26 @@ class ProjectController extends Controller
      */
     public function getHasApprovalProject()
     {
-        $res = Project::select('projects.id','projects.title')->Join('approval_form_business','projects.project_number','approval_form_business.form_instance_number')
+        $res = Project::select('projects.id', 'projects.title')->Join('approval_form_business', 'projects.project_number', 'approval_form_business.form_instance_number')
             ->searchData()
-            ->where('form_status',232)//232 签约通过
+            ->where('form_status', 232)//232 签约通过
             ->get();
-        return $this->response->collection($res,new simpleProjectTransformer());
+        return $this->response->collection($res, new simpleProjectTransformer());
     }
 
+    function str_insert($str, $i, $substr)
+    {
+        $startstr = [];
+        $laststr = [];
+        for ($j = 0; $j < $i; $j++) {
+            $startstr .= $str[$j];
+        }
+        for ($j = $i; $j < strlen($str); $j++) {
+            $laststr .= $str[$j];
+        }
+        $str = ($startstr . $substr . $laststr);
+        return $str;
+    }
 
     /**
      * 暂时不用列表了，逻辑要换
@@ -1439,21 +1511,98 @@ class ProjectController extends Controller
     public function getFilter(FilterRequest $request)
     {
         $payload = $request->all();
+//        $joinSql = '`projects`';
+        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+        if ($request->has('conditions')) {
+            foreach ($payload['conditions'] as $v => $k) {
+                if ($k['type'] == 5) ;
+                {
+                    unset($payload['conditions'][$v]);
+                }
+                if ($k['field'] == 'th.value') {
+                    $arr = 'left join `template_field_value_histories` as th on th.project_id = projects.id and th.field_id = 22';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'cc.value') {
+                    $arr = 'left join `template_field_value_histories` as cc on cc.project_id = projects.id and cc.field_id = 52 ';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'clo.value') {
+                    $arr = 'left join `template_field_value_histories` as clo on clo.project_id = projects.id and clo.field_id = 11';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tcs.value') {
+                    $arr = 'left join `template_field_value_histories` as tcs on tcs.project_id = projects.id and tcs.field_id = 31';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tc.value') {
+                    $arr = 'left join `template_field_value_histories` as tc on tc.project_id = projects.id and tc.field_id = 32';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tl.value') {
+                    $arr = 'left join `template_field_value_histories` as tl on tl.project_id = projects.id and tl.field_id = 34';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tt.value') {
+                    $arr = 'left join `template_field_value_histories` as tt on tt.project_id = projects.id and tt.field_id = 7';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tq.value') {
+                    $arr = 'left join `template_field_value_histories` as tq on tq.project_id = projects.id and tq.field_id = 9';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tx.value') {
+                    $arr = 'left join `template_field_value_histories` as tx on tx.project_id = projects.id and tx.field_id = 23';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tg.value') {
+                    $arr = 'left join `template_field_value_histories` as tg on tg.project_id = projects.id and tg.field_id = 24';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'td.value') {
+                    $arr = 'left join `template_field_value_histories` as td on td.project_id = projects.id and td.field_id = 25';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'tr.value') {
+                    $arr = 'left join `template_field_value_histories` as tr on tr.project_id = projects.id and tr.field_id = 26';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'trd.value') {
+                    $arr = 'left join `template_field_value_histories` as trd on trd.project_id = projects.id and trd.field_id = 27';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'cl.value') {
+                    $arr = 'left join `template_field_value_histories` as cl on cl.project_id = projects.id and cl.field_id = 28';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'co.value') {
+                    $arr = 'left join `template_field_value_histories` as co on co.project_id = projects.id and co.field_id = 55';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'cp.value') {
+                    $arr = 'left join `template_field_value_histories` as cp on cp.project_id = projects.id and cp.field_id = 54';
+                    $joinSql = $joinSql . "$arr";
+                }
+                if ($k['field'] == 'mu.user_id') {
+                    $arr = 'left join `module_users` as mu on mu.moduleable_id = projects.id and mu.moduleable_type = \'project\' and mu.type = 1';
+                    $joinSql = $joinSql . "$arr";
+                }
+            }
+        }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        //  $joinSql = FilterJoin::where('table_name', 'bloggers')->first()->join_sql;
-        $joinSql = '`projects`';
+        //  $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+
+
         $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
-            FilterReportRepository::getTableNameAndCondition($payload,$query);
+            FilterReportRepository::getTableNameAndCondition($payload, $query);
         });
-
         $all = $request->get('all', false);
         $user = Auth::guard('api')->user();
-        $project_type = $request->get('project_type',null);
-        $query =  $projects->where(function ($query) use ($request, $payload,$user,$project_type) {
+        $project_type = $request->get('project_type', null);
+        $query = $projects->where(function ($query) use ($request, $payload, $user, $project_type) {
             if ($request->has('keyword'))
                 $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
-
             if ($request->has('principal_ids') && $payload['principal_ids']) {
                 $payload['principal_ids'] = explode(',', $payload['principal_ids']);
                 foreach ($payload['principal_ids'] as &$id) {
@@ -1462,27 +1611,25 @@ class ProjectController extends Controller
                 unset($id);
                 $query->whereIn('projects.principal_id', $payload['principal_ids']);
             }
-
-            if ($request->has('project_type') && $project_type <> '3,4' ){
-                $query->where('projects.type',$project_type);
-
+            if ($request->has('project_type') && $project_type <> '3,4') {
+                $query->where('projects.type', $project_type);
             }
-            if($request->has('project_type') && $project_type == '3,4'){
-                $query->whereIn('projects.type',[$project_type]);
+            if ($request->has('project_type') && $project_type == '3,4') {
+                $query->whereIn('projects.type', [$project_type]);
             }
             if ($request->has('status'))#项目状态
                 $query->where('projects.status', $payload['status']);
         });
-        if ($request->has('my')){
-            switch ($payload['my']){
+        if ($request->has('my')) {
+            switch ($payload['my']) {
                 case 'my_principal'://我负责
                     $query->where('projects.principal_id', $user->id);
                     break;
                 case 'my_participant'://我参与
-                    $query->leftJoin("module_users as mu2",function ($join){
-                        $join->on("mu2.moduleable_id","projects.id")
-                            ->where('mu2.moduleable_type',ModuleableType::PROJECT);
-                    })->where('mu2.user_id',$user->id);
+                    $query->leftJoin("module_users as mu2", function ($join) {
+                        $join->on("mu2.moduleable_id", "projects.id")
+                            ->where('mu2.moduleable_type', ModuleableType::PROJECT);
+                    })->where('mu2.user_id', $user->id);
                     break;
                 case 'my_create'://我创建
                     $query->where('projects.creator_id', $user->id);
@@ -1493,35 +1640,35 @@ class ProjectController extends Controller
         $projects = $query->searchData()->groupBy('projects.id')
             ->get();
         $projects = Project::whereIn('projects.id', $projects)
-        ->leftJoin('operate_logs',function($join){
-            $join->on('projects.id','operate_logs.logable_id')
-                ->where('logable_type',ModuleableType::PROJECT)
-                ->where('operate_logs.method','4');
-        })->groupBy('projects.id')
-        ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id','projects.creator_id','projects.project_number','projects.trail_id','projects.title','projects.type','projects.privacy','projects.status',
-            'projects.principal_id','projected_expenditure','projects.priority','projects.start_at','projects.end_at','projects.created_at','projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"),'desc'])
+            ->leftJoin('operate_logs', function ($join) {
+                $join->on('projects.id', 'operate_logs.logable_id')
+                    ->where('logable_type', ModuleableType::PROJECT)
+                    ->where('operate_logs.method', '4');
+            })->groupBy('projects.id')
+            ->orderBy('up_time', 'desc')->orderBy('projects.created_at', 'desc')->select(['projects.id', 'projects.creator_id', 'projects.project_number', 'projects.trail_id', 'projects.title', 'projects.type', 'projects.privacy', 'projects.status',
+                'projects.principal_id', 'projected_expenditure', 'projects.priority', 'projects.start_at', 'projects.end_at', 'projects.created_at', 'projects.updated_at', DB::raw("max(operate_logs.updated_at) as up_time"), 'desc'])
 //// 这句用来检查绑定的参数
 //        $sql_with_bindings = str_replace_array('?', $projects->getBindings(), $projects->toSql());
 ////
 //        dd($sql_with_bindings);
-        ->paginate($pageSize);
+            ->paginate($pageSize);
         return $this->response->paginator($projects, new ProjectTransformer(!$all));
     }
 
-    public function getProjectList(Request $request,Star $star,Blogger $blogger)
+    public function getProjectList(Request $request, Star $star, Blogger $blogger)
     {
-        if ($star->id){
+        if ($star->id) {
             $star_type = "stars";
             $id = $star->id;
             $name = $star->name;
-        }else{
+        } else {
             $star_type = "bloggers";
             $id = $blogger->id;
             $name = $star->nickname;
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $projects = ProjectRepository::getSignContractProjectBySatr($id,$name,$star_type,$pageSize);
-        return $this->response->paginator($projects,new StarProjectTransformer());
+        $projects = ProjectRepository::getSignContractProjectBySatr($id, $name, $star_type, $pageSize);
+        return $this->response->paginator($projects, new StarProjectTransformer());
     }
 
     public function export(Request $request)
@@ -1589,6 +1736,7 @@ class ProjectController extends Controller
         $user = Auth::guard('api')->user();
         if ($request->has('my')){
             switch ($payload['my']){
+
                 case 'my_principal'://我负责
                     $query->where('principal_id', $user->id);
                     break;
@@ -1597,6 +1745,7 @@ class ProjectController extends Controller
                         $join->on("mu2.moduleable_id","project_implode.id")
                             ->where('mu2.moduleable_type',ModuleableType::PROJECT);
                     })->where('mu2.user_id',$user->id)->pluck('project_implode.id')->toArray();
+
                     $query->whereIn('id', $projectIds);
                     break;
                 case 'my_create'://我创建
@@ -1605,11 +1754,9 @@ class ProjectController extends Controller
 
             }
         }
-        if ($request->has('project_type'))
-            $query->where('project_type', $payload['project_type']);
 
-        if ($request->has('keyword'))
-            $query->where('projects.title', 'LIKE', '%' . $payload['keyword'] . '%');
+        $query->whereRaw(DB::raw("(1 = 1 $power)"));
+
 
         if ($request->has('principal_ids') && $payload['principal_ids']) {
             $payload['principal_ids'] = explode(',', $payload['principal_ids']);
@@ -1620,20 +1767,40 @@ class ProjectController extends Controller
             $query->whereIn('project_implode.principal_id', $payload['principal_ids']);
         }
 
-        $query->whereRaw(DB::raw("1 = 1 $power"));
-        if ($request->has('project_implode.project_type'))
+        if ($request->has('project_type'))
             $query->where('project_type', $payload['project_type']);
 
+        if ($request->has('keyword'))
+            $query->where('project_implode.project_name', 'LIKE', '%' . $payload['keyword'] . '%');
+
+        $query->where(function ($query) use ($payload) {
+            FilterReportRepository::getTableNameAndCondition($payload, $query);
+        });
+
         $paginator = $query->orderBy('latest_time', 'desc')
+//            ->toSql();
             ->paginate();
         $projects = $paginator->getCollection();
+        foreach ($projects as $key => $val) {
+            if ($val->creator_id != $user->id && $val->principal_id != $user->id) {
+                foreach ($val as $key1 => $value1) {
+                    $result = PrivacyType::isPrivacy(ModuleableType::PROJECT, $key1);
+                    if ($result) {
+                        $result = PrivacyType::excludePrivacy($user->id, $val->id, ModuleableType::PROJECT, $key1);
+                        if (!$result) {
+                            $projects[$key]->$key1 = 'privacy';
+                        }
+                    }
+                }
+            }
+
+        }
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理
             $stars = [];
             if ($item->stars) {
-
-                $arr["stars"] = explode(',',$item->stars);
-                $arr["star_ids"] = explode(',',$item->star_ids);
+                $arr["stars"] = explode(',', $item->stars);
+                $arr["star_ids"] = explode(',', $item->star_ids);
                 foreach ($arr['stars'] as $key1 => $val1) {
                     $stars[] = [
                         'id' => hashid_encode($arr['star_ids'][$key1]),
@@ -1643,7 +1810,7 @@ class ProjectController extends Controller
             }
             $bloggers = [];
             if ($item->bloggers) {
-                $arr["blogger_ids"] = explode(',',$item->blogger_ids);
+                $arr["blogger_ids"] = explode(',', $item->blogger_ids);
                 $arr["bloggers"] = explode(',', $item->bloggers);
                 foreach ($arr['bloggers'] as $key2 => $val2) {
                     $bloggers[] = [
@@ -1684,7 +1851,7 @@ class ProjectController extends Controller
         $type = $project->type;
         $user = Auth::guard("api")->user();
 
-        $project->powers = $repository->getPower($user,$project);
+        $project->powers = $repository->getPower($user, $project);
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         // 获取目标艺人 所在部门
@@ -1779,50 +1946,18 @@ class ProjectController extends Controller
         $user = Auth::guard("api")->user();
 
         $project->powers = $repository->getPower($user,$project);
-        $result = $this->response->item($project, new ProjectTransformer());
-        $data = TemplateField::where('module_type', $type)->get();
-        $array['project_kd_name'] = $project->title;
-        $array['expense_type'] = '支出';
-        $approval  = (new ApprovalContractController())->projectList($request,$project);
-        $contractmoney = $approval['money'];
-        // 记住修改  收入
-        $expendituresum = ProjectBill::where($array)->select(DB::raw('sum(money) as expendituresum'))->groupby('expense_type')->first();
-        // 获取目标艺人 所在部门
-        if($project->trail){
-            $expectations = $project->trail->bloggerExpectations;
-            if (count($expectations) <= 0) {
-                $expectations = $project->trail->expectations->first();
-                if(!$expectations) {
-                    return null;
-                }else{
-                    $expectations = $expectations->broker->toArray();
-//                ->broker;
-                    $department_name = [];
-                    if(!$expectations)
-                        return null;
-                    foreach ($expectations as $key => $val){
-                        $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-                    }
-                }
 
-            } else {
-                $expectations = $expectations->first()->publicity->toArray();
-                $department_name = [];
-                if(!$expectations)
-                    return null;
-                foreach ($expectations as $key => $val){
-                    $department_name[$key] = DepartmentUser::where('user_id',$val['id'])->first()->department['name'];
-                }
-            }
-        }
-        unset($array);
+        $result = $this->response->item($project, new ProjectDetailTransformer());
+        $data = TemplateField::where('module_type', $type)->get();
+        # 之后换nc暂时都是0
+        $contractmoney = 0;
+        $expendituresum = 0;
+
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
         $user = Auth::guard('api')->user();
-        if($project->trail){
-            $result->addMeta('department_name',  $department_name);
-        }
+
 
         if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
@@ -1849,7 +1984,7 @@ class ProjectController extends Controller
             else
             {
                 if (isset($expendituresum)) {
-                    $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+                    $result->addMeta('expendituresum', "".$expendituresum);
                 }
                 else
                 {
@@ -1867,7 +2002,7 @@ class ProjectController extends Controller
                 $result->addMeta('contractmoney', "".'0');
             }
             if (isset($expendituresum)) {
-                $result->addMeta('expendituresum', "".$expendituresum->expendituresum);
+                $result->addMeta('expendituresum', "".$expendituresum);
             }
             else
             {
@@ -1875,16 +2010,6 @@ class ProjectController extends Controller
             }
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $operate = new OperateEntity([
-            'obj' => $project,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
         return $result;
     }
 }

@@ -118,8 +118,6 @@ class ModuleUserRepository
         }
 
 
-
-
         //TODO 还有其他类型
         foreach ($particalendarsIds as $key => $value)
         {

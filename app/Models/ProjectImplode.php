@@ -61,6 +61,9 @@ class ProjectImplode extends Model
         'latest_time',
         'last_updated_user_id',
         'last_updated_user',
+        'last_follow_up_user_name',
+        'last_follow_up_at',
+        'latest_time',
         'last_updated_at',
         # 艺人
         'team_m',

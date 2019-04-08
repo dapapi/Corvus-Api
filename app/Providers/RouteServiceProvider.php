@@ -47,6 +47,7 @@ use App\Models\Task;
 use App\Models\Trail;
 use App\User;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 

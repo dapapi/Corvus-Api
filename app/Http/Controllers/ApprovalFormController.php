@@ -250,16 +250,16 @@ class ApprovalFormController extends Controller
         }
 
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $instance,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $instance,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
 
         return $result;
     }
@@ -1463,7 +1463,7 @@ class ApprovalFormController extends Controller
         if (array_key_exists('fileUrl', $value[0])) {
             $str = '';
             foreach ($value as $item) {
-                $str .= $item['fileUrl'] . ',';
+                $str .= $item['fileUrl'] . '?attname=' . $item['fileName'] .  ',';
             }
             $value = rtrim($str, ',');
             return [$value, ''];
@@ -1692,7 +1692,7 @@ class ApprovalFormController extends Controller
         $pageSize = $request->get('page_size', config('app.page_size'));
         $status = $request->get('status', config('app.status'));
         $payload['page'] = isset($payload['page']) ? $payload['page'] : 1;
-        $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
+        $joinSql = FilterJoin::where('table_name', 'project')->first()->join_sql;
         $query = Contract::selectRaw('DISTINCT(ps.id) as ids')->from(DB::raw($joinSql));
         $contracts = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);

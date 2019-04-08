@@ -108,20 +108,17 @@ class ClientController extends Controller
                     $query->where('type',$payload['type']);
                 }
             })
-
             ->groupBy('clients.id')
             ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','clients.company','clients.type','clients.grade','clients.district'
                ,'clients.status','principal_id','creator_id','client_rating','clients.created_at','clients.updated_at','protected_client_time','users.name',
                 DB::raw( "max(operate_logs.updated_at) as up_time")])
 
-            //->orderBy('clients.created_at', 'desc')
-            //->select(['clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','clients.updated_at',DB::raw( "max(operate_logs.updated_at) as up_time")])
             ->paginate($pageSize);
 
-//        $sql_with_bindings = str_replace_array('?', $clients->getBindings(), $clients->toSql());
         foreach ($clients as &$value) {
             $value['id'] = hashid_encode($value['id']);
         }
+
         return $clients;
         //return $this->response->paginator($clients, new ClientTransformer());
     }
@@ -290,16 +287,16 @@ class ClientController extends Controller
             return $this->response->errorInternal("你没有查看该数据的权限");
         }
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $client,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $client,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate,
+//        ]));
         //登录用户对线索编辑权限验证
         try{
             $user = Auth::guard("api")->user();
@@ -399,8 +396,11 @@ class ClientController extends Controller
             foreach ($payload['principal_ids'] as &$id) {
                 $id = hashid_decode((int)$id);
             }
+
             unset($id);
+
             $array[] = ['clients.principal_id', $payload['principal_ids']];
+
         }
 
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -412,10 +412,10 @@ class ClientController extends Controller
         $clients = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
+
 //        DB::connection()->enableQueryLog();
         $clients = $clients->where($array)
-
-            ->select('clients.id','clients.company','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
+            ->select('clients.id','clients.company','clients.creator_id','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')
             ->orderBy('clients.created_at', 'desc')->groupBy('clients.id')->paginate($pageSize);
 
         return $this->response->paginator($clients, new ClientTransformer(!$all));

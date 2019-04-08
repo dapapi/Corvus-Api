@@ -3,6 +3,8 @@
 namespace App\Http\Transformers;
 
 use App\Models\Task;
+use App\ModuleUserType;
+
 use App\TaskStatus;
 use App\Traits\OperateLogTrait;
 use League\Fractal\TransformerAbstract;
@@ -15,8 +17,8 @@ class TaskTransformer extends TransformerAbstract
 {
     protected $availableIncludes = ['creator', 'pTask', 'tasks', 'resource', 'affixes', 'participants', 'type','operateLogs',  'relate_tasks', 'relate_projects'];
 
-    protected $defaultIncludes = ['principal','type','resource'];
-
+    protected $defaultIncludes = ['type','resource','affixes'];
+    //protected $defaultIncludes = ['affixes','tasks'];
     public function transform(Task $task)
     {
         $array = [
@@ -40,13 +42,14 @@ class TaskTransformer extends TransformerAbstract
             "power" =>  $task->power,
             "powers" => $task->powers,
             'adj_id' => $task->adj_id,
-
-
         ];
 
         $array['task_p'] = true;
         if ($task->task_pid) {
             $array['task_p'] = false;
+        }
+        if($task->task_pid != null){
+            $array['task_pid'] = hashid_encode($task->task_pid);
         }
 
         $operate = DB::table('operate_logs as og')//
@@ -58,28 +61,35 @@ class TaskTransformer extends TransformerAbstract
             ->where('og.method', 2)
             ->select('og.created_at','users.name')->orderBy('created_at','desc')->first();
 
+        $userInfo = DB::table('users')//
+            ->where('users.id', $task->creator_id)
+            ->select('users.name')->first();
+
+        $array['principal']['data']['id'] = hashid_encode($task->principal_id);
+        $array['principal']['data']['name'] = $task->principal_name;
+
+        $array['creator']['data']['id'] = hashid_encode($task->creator_id);
+        $array['creator']['data']['name'] = $userInfo->name;
         $array['operate'] = $operate;
 
-        $user = Auth::guard('api')->user();
+        //参与人
+        $participants = DB::table('module_users as mu')//
+        ->join('users', function ($join) {
+            $join->on('users.id', '=', 'mu.user_id');
+        })
+            ->where('mu.moduleable_id', $task->id)
+            ->where('mu.type', ModuleUserType::PARTICIPANT)
+            ->where('mu.moduleable_type', 'task')
 
-        $adjId = $task->adj_id;
-
-        if($adjId !=="0"){
-            if($user->id == $task->creator_id && $user->id == $task->principal_id){
-                $array['private']=0;
-            }else{
-                $adjIdArr = explode(",", $adjId);
-                if(in_array($user->id,$adjIdArr)){
-
-                    $array['private']=0;
-                }else{
-                    $array['private']=1;
-                }
-            }
-
+            ->select('users.id','users.name','users.icon_url')->get();
+        foreach ($participants as &$value){
+            $value->id = hashid_encode($value->id);
         }
+        $array['participants']['data'] = $participants;
 
         return $array;
+
+
     }
 
     public function includeParticipants(Task $task)

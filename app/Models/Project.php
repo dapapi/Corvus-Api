@@ -23,7 +23,7 @@ class Project extends Model
     }
     use OperateLogTrait;
 
-    private $model_dic_id = DataDictionarie::PROJECT;
+    private static $model_dic_id = DataDictionarie::PROJECT;
 
     const TYPE_MOVIE = 1; // 影视项目
     const TYPE_VARIETY = 2; // 综艺项目
@@ -57,7 +57,10 @@ class Project extends Model
         'title',
         'project_number',
         'principal_id',
+        'principal_name',
+        'department_name',
         'creator_id',
+        'creator_name',
         'trail_id',
         'privacy',
         'priority',
@@ -71,7 +74,10 @@ class Project extends Model
         'stop_at',
         'delete_at',
         # 冗余字段
+<<<<<<< HEAD
         'trail_name',
+=======
+>>>>>>> test
         'principal_name',
         'creator_name',
     ];
@@ -90,7 +96,7 @@ class Project extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
+        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
         return (new SearchDataScope())->getCondition($query, $rules, $userid)->orWhereRaw("{$userid} in (
             select mu.user_id from projects as p
             left join module_users as mu on mu.moduleable_id = p.id and
@@ -104,6 +110,25 @@ class Project extends Model
 //            $join->on('mu.moduleable_id','projects.id')
 //                ->where('mu.moduleable_type',ModuleableType::PROJECT);
 //        })->orWhere('mu.user_id',$user->id);
+    }
+
+    public static function getConditionSql()
+    {
+        $user = Auth::guard("api")->user();
+        $userid = $user->id;
+        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
+        $where = (new SearchDataScope())->getConditionSql($rules);
+        $where .= <<<AAA
+        or ({$userid} in (
+                select u.id from project_implode as s
+                left join module_users as mu on mu.moduleable_id = s.id and 
+                mu.moduleable_type='project' 
+                left join users as u on u.id = mu.user_id where s.id = project_implode.id
+            )
+        )
+AAA;
+        return $where;
+
     }
 
     public function principal()

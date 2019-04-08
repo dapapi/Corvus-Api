@@ -194,6 +194,9 @@ class ApprovalFlowController extends Controller
                 if ($now->current_handler_type == 246) {
                     $person = User::find($now->principal_uid);
                 }
+                if (is_null($person))
+                    return $this->response->errorNotFound('没有找到对应主管，请联系管理员或人事');
+
                 $array[] = [
                     'id' => hashid_encode($person->id),
                     'name' => $person->name,

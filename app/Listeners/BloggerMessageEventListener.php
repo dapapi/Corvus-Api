@@ -4,7 +4,10 @@ namespace App\Listeners;
 
 use App\Events\BloggerMessageEvent;
 use App\Models\Blogger;
+use App\Models\DataDictionarie;
 use App\Models\Message;
+use App\Models\RoleResource;
+use App\Models\RoleUser;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\BloggerTriggerPoint;
 use DemeterChain\B;
@@ -67,8 +70,19 @@ class BloggerMessageEventListener
         //获取全部博主
         $blogger_arr = array_column(Blogger::select("nickname")->whereIn('id',$this->blogger_arr)->get()->toArray(),"nickname");
         $blogger_names = implode(",",$blogger_arr);
+        //获取有查看艺人详情的功能权限的角色
+        $resource_list = DataDictionarie::where(function($query){
+            $query->where('val','/stars/detail/{id}')
+                ->where('code','get');
+        })->orWhere(function ($query){
+            $query->where('val','/stars/{id}')
+                ->where('code','get');
+        })->pluck('id');
+        $role_list = RoleResource::whereIn('resouce_id',$resource_list)->pluck('role_id');
+        //获取对应角色的用户
+        $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
         $subheading = $title = $blogger_names."签约";
-        $send_to = null;//全员
+        $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -79,8 +93,20 @@ class BloggerMessageEventListener
         //获取全部博主
         $blogger_arr = array_column(Blogger::select("nickname")->whereIn('id',$this->blogger_arr)->get()->toArray(),"nickname");
         $blogger_names = implode(",",$blogger_arr);
+        //获取有查看艺人详情的功能权限的角色
+        $resource_list = DataDictionarie::where(function($query){
+            $query->where('val','/stars/detail/{id}')
+                ->where('code','get');
+        })->orWhere(function ($query){
+            $query->where('val','/stars/{id}')
+                ->where('code','get');
+        })->pluck('id');
+        $role_list = RoleResource::whereIn('resouce_id',$resource_list)->pluck('role_id');
+        //获取对应角色的用户
+        $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
+
         $subheading = $title = $blogger_names."解约";
-        $send_to = null;//全员
+        $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
 

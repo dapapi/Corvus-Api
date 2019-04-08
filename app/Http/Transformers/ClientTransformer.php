@@ -70,6 +70,17 @@ class ClientTransformer extends TransformerAbstract
             $array['name'] = '';
         }
 
+        $clientUserName = DB::table('users')//
+        ->where('users.id', $client->creator_id)
+            ->select('users.id','users.name')->first();
+        if($clientUser){
+            $array['creator_name'] = $clientUserName->name;
+
+        }else{
+            //$array['principal']['id'] = '';
+            $array['creator_name'] = '';
+        }
+
 
         return $array;
     }

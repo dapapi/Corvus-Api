@@ -504,7 +504,7 @@ class TaskController extends Controller
         //获取任务完成数量
         $complete_count = $query->where('privacy', false)->where('status', TaskStatus::COMPLETE)->count();
 
-        $request = $this->response->paginator($tasks, new TaskTransformer());
+        $request = $this->response->paginator($tasks, new ClientTaskTransformer());
         $request->addMeta("complete_count", $complete_count);
         return $request;
     }

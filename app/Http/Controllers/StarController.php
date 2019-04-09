@@ -1001,16 +1001,16 @@ class StarController extends Controller
     public function getStarDeatil(Star $star,StarRepository $starRepository)
     {
         // 操作日志
-//        $operate = new OperateEntity([
-//            'obj' => $star,
-//            'title' => null,
-//            'start' => null,
-//            'end' => null,
-//            'method' => OperateLogMethod::LOOK,
-//        ]);
-//        event(new OperateLogEvent([
-//            $operate,
-//        ]));
+        $operate = new OperateEntity([
+            'obj' => $star,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         $user = Auth::guard("api")->user();
         $star->powers = $starRepository->getPower($user,$star);
         return $this->response()->item($star,new StarDeatilTransformer());

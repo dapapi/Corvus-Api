@@ -205,6 +205,8 @@ return [
          */
 //        Overtrue\LaravelLang\TranslationServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
+        //友盟推送
+        UmengPusher\Umeng\UmengServiceProvider::class,
 
 
     ],
@@ -256,6 +258,7 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+        'Umeng' => UmengPusher\Umeng\Facades\Umeng::class,//友盟推送
     ],
 
 ];

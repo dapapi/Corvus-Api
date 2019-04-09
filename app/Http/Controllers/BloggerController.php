@@ -266,7 +266,7 @@ class BloggerController extends Controller
                     unset($array['type_id']);
                 }
             } catch (Exception $e) {
-                return $this->response->errorBadRequest('类型错误');
+                return $this->response->errorBadRequest('博主类型错误');
             }
         }
         if ($request->has('communication_status')) {

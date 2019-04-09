@@ -71,6 +71,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+//        $this->app->make('auth')->provider('redis', function ($app, $config) {
+//            return new RedisUserProvider($app['hash'], $config['model']);
+//        });
     }
 }

@@ -875,6 +875,7 @@ class StarController extends Controller
 //        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
 //        $query = Star::from(DB::raw($joinSql))->select("stars.*");
 
+
         $query =    $repository->starCustomSiftBuilder();
 //        $query = StarRepository::getStarList();
         $stars = $query->where(function ($query) use ($payload) {

@@ -6,6 +6,7 @@ use UmengPusher\Umeng\Facades\Umeng;
 
 class UmengRepository
 {
+
     function sendMsgToAndriodTest()
     {
         $device_token = 'xxxx';

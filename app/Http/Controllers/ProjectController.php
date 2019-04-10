@@ -1755,7 +1755,7 @@ class ProjectController extends Controller
             }
         }
 
-        $query->whereRaw(DB::raw("(1 = 1 $power)"));
+        $query->whereRaw(DB::raw("($power)"));
 
 
         if ($request->has('principal_ids') && $payload['principal_ids']) {

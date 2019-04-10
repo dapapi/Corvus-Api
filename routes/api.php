@@ -863,6 +863,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/task', 'App\Http\Controllers\TestController@task');
 
         $api->post('umeng/send','App\Http\Controllers\UmengController@sendMsg');
+        $api->post('umeng/sendtoios','App\Http\Controllers\UmengController@sendMsgToIos');
         $api->post('umeng/find_tsak_message','App\Http\Controllers\UmengController@findTaskMesg');
     });
 });

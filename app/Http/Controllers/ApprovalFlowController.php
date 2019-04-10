@@ -1026,11 +1026,8 @@ class ApprovalFlowController extends Controller
                 $this->createOrUpdateHandler($this->num, $this->userId, $currentHandlerType, $principalLevel, null, 232);
             }
         } else {
-            if ($currentHandlerId)
-                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null);
-            else
+            if ($currentHandlerId == 0)
                 $this->createOrUpdateHandler($this->num, $this->userId, $currentHandlerType, $principalLevel, null, 232);
-
             return [$currentHandlerId, $currentHandlerType, $principalLevel];
         }
     }

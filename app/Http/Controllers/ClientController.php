@@ -221,6 +221,139 @@ class ClientController extends Controller
         if ($request->has('principal_id') && !empty($payload['principal_id']))
             $payload['principal_id'] = hashid_decode($payload['principal_id']);
 
+        $array = [];
+        $arrayOperateLog = [];
+        if ($request->has('company')) {
+            $array['company'] = $payload['company'];
+            if ($array['company'] != $old_client->company) {
+
+                $operateTitle = new OperateEntity([
+                    'obj' => $old_client,
+                    'title' => '公司名称',
+                    'start' => $old_client->company,
+                    'end' => $array['company'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
+        }
+
+        if ($request->has('grade')) {
+            $array['grade'] = $payload['grade'];
+            if ($array['grade'] != $old_client->grade) {
+                $operateTitle = new OperateEntity([
+                    'obj' => $old_client,
+                    'title' => '级别',
+                    'start' => $old_client->grade,
+                    'end' => $array['grade'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
+        }
+        if ($request->has('size')) {
+            $array['size'] = $payload['size'];
+            if ($array['grade'] != $old_client->size) {
+                $operateTitle = new OperateEntity([
+                    'obj' => $old_client,
+                    'title' => '规模',
+                    'start' => $old_client->size,
+                    'end' => $array['size'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
+        }
+
+        if ($request->has('address')) {
+            if ($array['address'] != $old_client->address) {
+                $array['address'] = $payload['address'];
+                $operateTitle = new OperateEntity([
+                    'obj' => $old_client,
+                    'title' => '详细地址',
+                    'start' => $old_client->address,
+                    'end' => $array['address'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
+        }
+
+        if ($request->has('desc')) {
+            $array['desc'] = $payload['desc'];
+            if ($array['desc'] != $old_client->desc) {
+
+                $array['desc'] = $payload['desc'];
+                $operateTitle = new OperateEntity([
+                    'obj' => $old_client,
+                    'title' => '备注',
+                    'start' => $old_client->desc,
+                    'end' => $array['desc'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
+        }
+
+        if ($request->has('client_rating')) {
+            if ($array['client_rating'] != $old_client->desc) {
+                $array['client_rating'] = $payload['client_rating'];
+                $operateTitle = new OperateEntity([
+                    'obj' => $old_client,
+                    'title' => '客户评级',
+                    'start' => $old_client->client_rating,
+                    'end' => $array['client_rating'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
+        }
+
+
+        if ($request->has('province')) {
+            if ($array['province'] != $old_client->province) {
+                $array['province'] = $payload['province'];
+                $operateTitle = new OperateEntity([
+                    'obj' => $old_client,
+                    'title' => '地区',
+                    'start' => $old_client->province,
+                    'end' => $array['province'],
+                    'method' => OperateLogMethod::UPDATE,
+                ]);
+                $arrayOperateLog[] = $operateTitle;
+            }
+        }
+
+        if ($request->has('principal_id')) {
+            try {
+                $currentPrincipalUser = User::find($old_client->principal_id);
+                $start = null;
+//                if ($currentPrincipalUser)
+//                    $start = $currentPrincipalUser->name;
+
+                $principalId = hashid_decode($payload['principal_id']);
+                $array['principal_id'] = $principalId;
+
+                if ($currentPrincipalUser) {
+                    if ($currentPrincipalUser->id != $array['principal_id']) {
+                        $operatePrincipal = new OperateEntity([
+                            'obj' => $old_client,
+                            'title' => '负责人',
+                            'start' => $start,
+                            'end' => $currentPrincipalUser->name,
+                            'method' => OperateLogMethod::UPDATE,
+                        ]);
+                        $arrayOperateLog[] = $operatePrincipal;
+                    } else {
+                        unset($arrayOperateLog['principal_id']);
+                    }
+                }
+            } catch (Exception $e) {
+                return $this->response->errorBadRequest();
+            }
+        }
+
+
         try {
 //            foreach ($payload as $key => $value) {
 //                $lastValue = $client[$key];
@@ -238,8 +371,11 @@ class ClientController extends Controller
 //                }
 //
 //            }
+
             $client->update($payload);
-            event(new ClientDataChangeEvent($old_client,$client));//记录日志
+            event(new OperateLogEvent($arrayOperateLog));
+
+            //event(new ClientDataChangeEvent($old_client,$client));//记录日志
 
         } catch (\Exception $exception) {
             Log::error($exception);

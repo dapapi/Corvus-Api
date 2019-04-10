@@ -29,8 +29,12 @@ class TaskUserTransformer extends TransformerAbstract
             'stop_at' => $task->stop_at,
 
         ];
-
-
+        $principalUserInfo = DB::table('users')//
+        ->where('users.id', $task->principal_id)
+            ->select('users.name','users.icon_url')->first();
+        $array['principal']['data']['id'] = hashid_encode($task->principal_id);
+        $array['principal']['data']['name'] = $task->principal_name;
+        $array['principal']['data']['icon_url'] = $principalUserInfo->icon_url;
         return $array;
 
 

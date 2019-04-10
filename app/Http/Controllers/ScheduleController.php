@@ -422,7 +422,7 @@ class ScheduleController extends Controller
                 ->where($materials['start_at'][0], $materials['start_at'][1], $materials['start_at'][2])
                 ->orderby('start_at')->get(['id'])->toArray();
             if ($endmaterials) {
-                return  $this->response->errorForbidden("该时段会议室已被占用");
+                return  $this->response->errorForbidden("该时段资源已被占用");
             }
         }
 

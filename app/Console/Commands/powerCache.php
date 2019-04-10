@@ -6,6 +6,7 @@ use App\Models\Blogger;
 use App\Models\Client;
 use App\Models\DataDictionarie;
 use App\Models\Star;
+use App\Models\Task;
 use App\Models\Trail;
 use App\Repositories\RoleUserRepository;
 use App\Repositories\ScopeRepository;
@@ -49,25 +50,32 @@ class powerCache extends Command
      */
     public function handle()
     {
+        dump(Carbon::now()->toDateTimeString());
         $user_list = User::select('id')->get();
+        Star::select('id')->chunk(10,function ($star_list)use ($user_list){
+            $this->starPowerCache($star_list,$user_list);
+        });
 
-        $star_list = Star::select('id')->get();
-        $this->starPowerCache($star_list,$user_list);
+        Blogger::select('id')->chunk(10,function ($blogger_list)use ($user_list){
+            $this->starPowerCache($blogger_list,$user_list);
+        });
 
-        $blogger_list = Blogger::select('id')->get();
-        $this->starPowerCache($blogger_list,$user_list);
+        Trail::select('id')->chunk(10,function ($trail_list)use ($user_list){
+            $this->starPowerCache($trail_list,$user_list);
+        });
 
-        $trail_list = Trail::select('id')->get();
-        $this->starPowerCache($trail_list,$user_list);
+        Client::select('id')->chunk(10,function ($client_list)use ($user_list){
+            $this->starPowerCache($client_list,$user_list);
+        });
 
-        $client_list = Client::select('id')->get();
-        $this->starPowerCache($client_list,$user_list);
+        Task::select('id')->chunk(10,function ($task_list)use ($user_list){
+            $this->starPowerCache($task_list,$user_list);
+        });
 
-        $task_list = Star::select('id')->get();
-        $this->starPowerCache($task_list,$user_list);
-
-        $project_list = \App\Models\Project::select('id')->get();
-        $this->starPowerCache($project_list,$user_list);
+        \App\Models\Project::select('id')->chunk(10,function ($project_list)use ($user_list){
+            $this->starPowerCache($project_list,$user_list);
+        });
+        dump(Carbon::now()->toDateTimeString());
     }
 
     /**
@@ -84,13 +92,34 @@ class powerCache extends Command
                 foreach ($api_list as $api){
                     $key = "power:{$model->getMorphClass()}:data_id:{$model->id}:user_id:{$user->id}:api_method:{$api->code}:api_uri:{$api->val}";
                     $role_list = RoleUserRepository::getRoleList($user->id);
+//                    DB::beginTransaction();
                     try{
                         $scopeRepository->checkPower($api->val,$api->code,$role_list,$model);
                         Cache::put($key,true,Carbon::now()->addHour(1));
+                        DB::table("power_cache")->insert([
+                            'table_name'    =>  $model->getMorphClass(),
+                            'data_id'   =>  $model->id,
+                            'user_id'   =>  $user->id,
+                            'api_method'    =>  $api->code,
+                            'api_uri'   =>  $api->val,
+                            'power' =>  1
+                        ]);
                         Log::info([$key,Cache::get($key)]);
+//                        DB::commit();
                     }catch (\Exception $exception){
                         Cache::put($key,false,Carbon::now()->addHour(1));
                         Log::info([$key,Cache::get($key)]);
+                        Log::error($exception);
+                        DB::table("power_cache")->insert([
+                            'table_name'    =>  $model->getMorphClass(),
+                            'data_id'   =>  $model->id,
+                            'user_id'   =>  $user->id,
+                            'api_method'    =>  $api->code,
+                            'api_uri'   =>  $api->val,
+                            'power' =>  0
+                        ]);
+//                        dump($exception);
+//                        DB::rollBack();
                     }
 
                 }

@@ -40,27 +40,28 @@ class PowerMiddleWare
         }
         $operation = preg_replace('/\\d+/', '{id}', $request->path());
         $method = $request->method();
+        try{
             $res = (new ScopeRepository())->checkPower($operation,$method,$role_list,$model);
-            if (is_array($res)){
+        }catch (\Exception $exception){
+            if ($request->method() == "GET"){
                 $array = [
-                  "data"=>[],
-                  "meta"=>[
-                      'pagination'  =>  [
-                          'total'   =>  0,
-                          'count'   =>  0,
-                          'per_page'    =>  0,
-                          'current_page'    =>  0,
-                          'total_pages' =>  0,
-                          'links'   =>  [
-                              'next'    =>  'https://sandbox-api-crm.papitube.com',
-                          ]
-                      ]
-                  ]
+                    "data"=>[],
+                    "meta"=>[
+                        'pagination'  =>  [
+                            'total'   =>  0,
+                            'count'   =>  0,
+                            'per_page'    =>  0,
+                            'current_page'    =>  0,
+                            'total_pages' =>  0,
+                            'links'   =>  [
+                                'next'    =>  'https://sandbox-api-crm.papitube.com',
+                            ]
+                        ]
+                    ]
                 ];
                 return response($array);
             }
-
-
+        }
         return $next($request);
     }
 }

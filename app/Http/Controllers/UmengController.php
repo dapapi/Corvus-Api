@@ -3,17 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\UmengRepository;
-use Illuminate\Http\Request;
 
 class UmengController extends Controller
 {
-    protected $umeng;
-    public function __construct(UmengRepository $umeng)
+    protected $umengRepository;
+    public function __construct(UmengRepository $umengRepository)
     {
-        $this->umeng = $umeng;
+        $this->umengRepository = $umengRepository;
     }
     public function sendMsg()
     {
-        $this->umeng->sendMsgToAndriodTest();
+        $this->umengRepository->sendMsgToAndriodTest();
     }
 }

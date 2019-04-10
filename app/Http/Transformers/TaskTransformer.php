@@ -63,13 +63,20 @@ class TaskTransformer extends TransformerAbstract
 
         $userInfo = DB::table('users')//
             ->where('users.id', $task->creator_id)
-            ->select('users.name')->first();
+            ->select('users.name','users.icon_url')->first();
+
+        $principalUserInfo = DB::table('users')//
+        ->where('users.id', $task->principal_id)
+            ->select('users.name','users.icon_url')->first();
 
         $array['principal']['data']['id'] = hashid_encode($task->principal_id);
         $array['principal']['data']['name'] = $task->principal_name;
+        $array['principal']['data']['icon_url'] = $principalUserInfo->icon_url;
 
         $array['creator']['data']['id'] = hashid_encode($task->creator_id);
         $array['creator']['data']['name'] = $userInfo->name;
+        $array['creator']['data']['icon_url'] = $userInfo->icon_url;
+
         $array['operate'] = $operate;
 
         //参与人

@@ -189,8 +189,10 @@ class TaskController extends Controller
         $my = $request->get('my',0);
         $pageSize = $request->get('page_size', config('app.page_size'));
 
-        $query = Task::select('tasks.id','tasks.title','tasks.status','tasks.resource_name','tasks.resource_type_name as resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id','tasks.end_at');
-
+        $query = Task::select('tasks.id','tasks.title','users.icon_url','tasks.status','tasks.resource_name','tasks.resource_type_name as resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id','tasks.end_at')
+            ->join('users', function ($join) {
+                 $join->on('users.id', '=', 'tasks.creator_id');
+            });
         switch ($my) {
             case 2://我参与
                 $query = $user->participantTasks();

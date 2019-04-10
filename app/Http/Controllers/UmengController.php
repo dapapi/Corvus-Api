@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\UmengRepository;
-use http\Client;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 
 class UmengController extends Controller
@@ -33,6 +33,13 @@ class UmengController extends Controller
         $payload_json = json_encode($payload);
         $url = 'http://msg.umeng.com/api/send';
         $sign = md5($method.$url.$payload_json.$app_master_secret);
+        $client = new Client();
+        $options = [
+            "json"  =>  $payload,
+        ];
+        $response = $client->request('POST',$url,$options);
+        dump($response->getStatusCode());
+        dump($response->getBody());
 
     }
 }

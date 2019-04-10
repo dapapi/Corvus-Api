@@ -204,7 +204,7 @@ class UserTransformer extends TransformerAbstract
             ->get();
 //        $sql_with_bindings = str_replace_array('?', $sch->getBindings(), $sch->toSql());
 //        dd($sql_with_bindings);
-        return $this->collection($sch, new ScheduleTransformer());
+        return $this->collection($sch, new ScheduleUserTransformer());
     }
     public function includeEducation(User $user)
     {

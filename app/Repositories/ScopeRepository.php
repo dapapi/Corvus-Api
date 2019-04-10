@@ -263,9 +263,9 @@ class ScopeRepository
                 ->select('role_id','resouce_id')
                 ->where('resouce_id', $resource->id)->get()->toArray();
             if(count($featureInfo) == 0){//如果为空则表示没有权限
-                if($method == "GET"){
-                    return [];
-                }
+//                if($method == "GET"){
+//                    return [];
+//                }
                 throw new NoFeatureInfoException("你没有访问{$resource->name}功能权限");
             }
             //如果是get请求则检查role_data_view表中是检查用户对该接口的权限

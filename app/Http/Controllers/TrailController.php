@@ -685,6 +685,7 @@ class TrailController extends Controller
                     $start = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
                     $repository->deleteTrailStar($trail->id,TrailStar::EXPECTATION);
                     $repository->store($trail,$payload['expectations'],TrailStar::EXPECTATION);
+
                     //获取更新之后的艺人和博主列表
                     $end = $repository->getStarListByTrailId($trail->id,TrailStar::EXPECTATION);
 //                    $start = null;
@@ -736,6 +737,7 @@ class TrailController extends Controller
 //                    }else{
 //                        $title = "关联目标艺人";
 //                    }
+
                     if (!empty($start) || !empty($end)){
                         $operateName = new OperateEntity([
                             'obj' => $trail,
@@ -744,9 +746,8 @@ class TrailController extends Controller
                             'end' => trim($end,","),
                             'method' => OperateLogMethod::UPDATE,
                         ]);
+                        $arrayOperateLog[] = $operateName;
                     }
-
-                    $arrayOperateLog[] = $operateName;
                 }catch (\Exception $e){
                     Log::error($e);
                     return $this->response->errorInternal("目标艺人关联失败");
@@ -819,9 +820,6 @@ class TrailController extends Controller
                         ]);
                         $arrayOperateLog[] = $operateName;
                     }
-
-
-
                 }catch (\Exception $e){
                     Log::error($e);
                     return $this->response->errorInternal("推荐艺人关联失败");

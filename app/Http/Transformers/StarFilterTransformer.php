@@ -29,12 +29,14 @@ class StarFilterTransformer extends TransformerAbstract
     {
         $array = [
             'id' => hashid_encode($star->id),
+            'flag'   =>  ModuleableType::STAR,
             'name' => $star->name,
 
 
         ];
         $arraySimple = [
             'id' => hashid_encode($star->id),
+            'flag'   =>  ModuleableType::STAR,
             'name' => $star->name,
         ];
 

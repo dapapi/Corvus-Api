@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Exceptions\SystemInternalException;
 use App\Exceptions\UserBadRequestException;
 use App\Http\Requests\BindTelephoneRequest;
+use App\Http\Requests\DeviceRequest;
+
 use App\Http\Transformers\UserTransformer;
 use App\Models\Department;
 use App\Models\Project;
@@ -223,5 +225,34 @@ class UserController extends Controller
         }
     }
 
-
+    //验证移动设备
+    public function moblieDeviceToken(DeviceRequest $request)
+    {
+        $user = Auth::guard('api')->user();
+        $payload = $request->all();
+        $payload['device_token'];
+        $payload['client_type'];
+        $userId = $user->id;
+        $deviceInfo = DB::table('mobile_device_tokens')->select('id')
+            ->where('device_type',$payload['client_type'])->where('device_token',$payload['device_token'])->get()->toArray();
+        if($deviceInfo){
+            foreach ($deviceInfo as $value){
+                DB::delete("delete from mobile_device_tokens where id=:id",[':id'=>$value->id]);
+            }
+        }
+        DB::beginTransaction();
+        try {
+            $deviceInfo = DB::table('mobile_device_tokens')->insert(
+                array('device_type' => $payload['client_type'],
+                    'device_token' => $payload['device_token'],
+                    'user_id' => $user->id,
+                )
+            );
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+    }
 }

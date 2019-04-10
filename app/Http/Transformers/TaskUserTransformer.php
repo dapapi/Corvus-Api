@@ -30,7 +30,8 @@ class TaskUserTransformer extends TransformerAbstract
 
         ];
 
-
+        $array['principal']['data']['id'] = hashid_encode($task->principal_id);
+        $array['principal']['data']['name'] = $task->principal_name;
         return $array;
 
 

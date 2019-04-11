@@ -306,7 +306,7 @@ class ApprovalFlowController extends Controller
                 # todo 判断是否需要连续跳过 改进
                 list($nextId, $type, $principalLevel)= $this->jumpOverChain($nextId, $type, $principalLevel, $now, $principalId);
             } else
-                $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, $principalId, 232);
+                $this->createOrUpdateHandler($num, $userId, $currentHandlerType, $principalLevel, $principalId, 232);
 
             // 操作日志
             $operate = new OperateEntity([

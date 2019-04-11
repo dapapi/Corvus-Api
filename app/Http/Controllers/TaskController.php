@@ -1414,8 +1414,16 @@ class TaskController extends Controller
                 'resource_id' => $resourceType,
                 'resourceable_id' =>$resourceableId,
                 'resourceable_type' =>$code,
+                'task_id' =>$task->id,
             ];
-            $taskResource->update($resource);
+
+            if($taskResource !== null){
+                $taskResource->update($resource);
+            }else{
+                $res = TaskResource::create($resource);
+
+            }
+
             unset($payload['code']);
 
         }
@@ -1510,7 +1518,6 @@ class TaskController extends Controller
 
                 }
             }
-
 
             $task->update($array);
 

@@ -860,5 +860,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/user/list_power','App\Http\Controllers\UserController@getListPower');
 
 
+        $api->get('/test/task', 'App\Http\Controllers\TestController@task');
+
+        $api->post('umeng/send','App\Http\Controllers\UmengController@sendMsg');
+        $api->post('umeng/find_tsak_message','App\Http\Controllers\UmengController@findTaskMesg');
+
     });
 });

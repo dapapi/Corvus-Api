@@ -6,6 +6,7 @@ use App\Events\TaskMessageEvent;
 use App\Models\Message;
 use App\Models\Task;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use Illuminate\Queue\InteractsWithQueue;
@@ -19,6 +20,7 @@ class TaskMessageEventListener
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $umengRepository;
     //消息发送内容
     private $message_content = '[{"title":"任务名称","value":"%s"},{"title":"负责人","value":"%s"}]';
     /**
@@ -26,9 +28,11 @@ class TaskMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
+
     }
 
     /**
@@ -140,6 +144,7 @@ class TaskMessageEventListener
     public function createTopTaskSendMessageToPrincipal()
     {
         $subheading = $title = $this->user->name."给你分配了任务";
+        $this->umeng_title = $title;
         $send_to[] = $this->task->principal_id;
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -199,5 +204,12 @@ class TaskMessageEventListener
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::TASK, null, $this->data, $send_to,$this->task->id);
+
+        if ($this->task->pid){
+            $umeng_text = "子任务名称:".$this->task->title;
+        }else{
+            $umeng_text = "任务名称:".$this->task->title;
+        }
+        $this->umengRepository->sendMsgToMobile($send_to,"任务管理助手",$title,$umeng_text,Message::TASK,hashid_encode($this->task->id));
     }
 }

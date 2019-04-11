@@ -58,7 +58,6 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CONTRACT => Contract::class,
             ModuleableType::BUSINESS => Business::class,
             ModuleableType::INSTANCE => Instance::class,
-
             //TODO
         ]);
 

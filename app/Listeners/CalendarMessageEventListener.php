@@ -6,6 +6,7 @@ use App\Events\CalendarMessageEvent;
 use App\Models\Calendar;
 use App\Models\Message;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\CalendarTriggerPoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,6 +21,7 @@ class CalendarMessageEventListener
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
     private $meta;
+    private $umengRepository;
     //消息发送内容
     private $message_content = '[{"title":"日程标题","value":"%s"},{"title":"开始时间","value":"%s"},{"title":"结束时间","value":"%s"}]';
     /**
@@ -27,9 +29,10 @@ class CalendarMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
     }
 
     /**
@@ -120,5 +123,8 @@ class CalendarMessageEventListener
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::CALENDAR, null, $this->data, $send_to,$this->schedule->id);
+        $umeng_text = "日程名称:".$this->schedule->title;
+        $this->umengRepository->sendMsgToMobile($send_to,"日程管理助手",$title,$umeng_text,Message::CALENDAR,hashid_encode($this->schedule->id));
+
     }
 }

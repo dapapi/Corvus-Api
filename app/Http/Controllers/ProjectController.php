@@ -57,6 +57,7 @@ use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
+use App\Repositories\UmengRepository;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -311,8 +312,12 @@ class ProjectController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
+        $payload['creator_name'] = $user->name;
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
+        $principal = User::find($payload['principal_id']);
+        $payload['principal_name'] = $principal->name;
+        $payload['department_name'] = $principal->department()->value('name');
 
         DB::beginTransaction();
 
@@ -824,6 +829,8 @@ class ProjectController extends Controller
             $participant_ids = array_column($project->participants()->select('user_id')->get()->toArray(), 'user_id');
             $authorization = $request->header()['authorization'][0];
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids, $project->id);
+            $text = "项目名称:".$project->title;
+            (new UmengRepository())->sendMsgToMobile($participant_ids,$title,"项目管理助手",$text,$module,hashid_encode($project->id));
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();

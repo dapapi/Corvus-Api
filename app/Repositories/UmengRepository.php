@@ -2,13 +2,14 @@
 
 namespace App\Repositories;
 
+use App\Models\MobileDeviceToken;
 use UmengPusher\Umeng\Facades\Umeng;
 
 class UmengRepository
 {
     protected function sendMsgToAndriod(array $send_to,$tricker,$title,$text,int $module,$data_id)
     {
-        $device_tokens = (new UserRepository)->getDeviceTokens($send_to,2);
+        $device_tokens = (new MobileDeviceToken())->getDeviceTokens($send_to,MobileDeviceToken::ANDRIOD);
         $predefined = array('ticker' => $tricker, 'title'=>$title,'text'=>$text,'after_open'=>'com.rxsoft.papitube');
         $extraField = array('module'=>$module,"data_id"=>$data_id); //other extra filed
         //单播
@@ -20,7 +21,7 @@ class UmengRepository
     protected function senMsgToIos(array $send_to,$tricker,$title,$text,int $module,$data_id)
     {
         //单播
-        $device_tokens = (new UserRepository)->getDeviceTokens($send_to,1);
+        $device_tokens = (new MobileDeviceToken())->getDeviceTokens($send_to,MobileDeviceToken::IOS);
         $predefined = array('alert' =>['title'=>$tricker,'subtitle'=>$title,"body"=>$text]);
         $customField = array('module'=>$module,"data_id"=>$data_id);
         foreach ($device_tokens as $device_token){

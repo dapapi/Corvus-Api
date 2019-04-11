@@ -110,10 +110,4 @@ class UserRepository {
         $user->save();
         return $user;
     }
-
-    //根据userid查找device_token
-    public function getDeviceTokens($user_list,$device_type)
-    {
-        return User::whereIn('user_id',$user_list)->where('device_type',$device_type)->pluck('device_type')->toArray();
-    }
 }

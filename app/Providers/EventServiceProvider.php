@@ -66,7 +66,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\BloggerDataChangeEvent'    =>  [//监听博主修改，增加操作日志
             'App\Listeners\BloggerDataChangeListener',
         ],
-
+        'Illuminate\Database\Events\QueryExecuted' => [
+            'App\Listeners\QueryListener',
+        ],
     ];
 
     /**

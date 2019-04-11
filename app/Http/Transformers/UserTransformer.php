@@ -165,7 +165,10 @@ class UserTransformer extends TransformerAbstract
             $query->where('user_id',$user->id)
             ->orwhere('principal_id',$user->id);
         })
-            ->searchData()->where('tasks.start_at','<=',now())->where('tasks.end_at','>=',now())->get();
+            ->searchData()->where('tasks.start_at','<=',now())->where('tasks.end_at','>=',now())
+            ->select('tasks.id','tasks.title','tasks.end_at','tasks.complete_at','tasks.stop_at'
+                ,'tasks.stop_at','tasks.principal_name','tasks.principal_id')
+            ->get();
 //        $sql_with_bindings = str_replace_array('?', $tasks->getBindings(), $tasks->toSql());
 //        dd($sql_with_bindings);
         return $this->collection($tasks, new TaskUserTransformer());

@@ -107,8 +107,8 @@ class TrailController extends Controller
 //                'take_type','receive',DB::raw("if(max('operate_logs.updated_at') != null,max('operate_logs.updated_at'),
 //                'trails.created_at')  as up_time")]);
             ->select(['trails.id','trails.title','fee','trails.created_at','principal_id','client_id','trails.status'
-                ,DB::raw("if(max('operate_logs.updated_at') != null,max('operate_logs.updated_at'),
-                'trails.created_at')  as up_time")])
+                ,DB::raw("if(max(`operate_logs`.`updated_at`) is null,`trails`.`created_at`,
+                max(`operate_logs`.`updated_at`))  as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);

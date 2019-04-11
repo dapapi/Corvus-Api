@@ -105,6 +105,8 @@ class AnnouncementMessageEventListener
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::ANNOUNCENMENT, null, $this->data, $send_to,$this->instance->id);
+        $umeng_text = "公告名称:".$this->instance->title;
+        $this->umengRepository->sendMsgToMobile($send_to,"公告管理助手",$title,$umeng_text,Message::ANNOUNCENMENT,hashid_encode($this->instance->id));
     }
 
 }

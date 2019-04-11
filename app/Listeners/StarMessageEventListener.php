@@ -24,6 +24,9 @@ class StarMessageEventListener
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $star_names;//签约解约艺人名称
+    private $umeng_text;
+    private $created_at;//签约解约时间
     //消息发送内容
     private $message_content = '[{"title":"艺人名称","value":"%s"},{"title":"签约时间","value":"%s"}]';
     /**
@@ -52,6 +55,8 @@ class StarMessageEventListener
         $created_at = $event->meta['created'];
         $stars = Star::whereIn('id',$this->star_arr)->select('name')->get()->toArray();
         $star_names = implode(",",array_column($stars,'name'));
+        $this->star_names = $star_names;
+        $this->created_at = $created_at;
         $this->data = json_decode(sprintf($this->message_content,$star_names,$created_at),true);
         switch ($this->trigger_point){
             case StarTriggerPoint::SIGNING://签约
@@ -83,6 +88,7 @@ class StarMessageEventListener
         //获取对应角色的用户
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
         $subheading = $title = $star_names."签约";
+        $this->umeng_text = "签约时间:".$this->created_at;
         $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -107,6 +113,7 @@ class StarMessageEventListener
         //获取对应角色的用户
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
         $subheading = $title = $star_names."解约";
+        $this->umeng_text = "解约时间:".$this->created_at;
         $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -122,6 +129,8 @@ class StarMessageEventListener
 
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::STAR, null, $this->data, $send_to,$this->star_arr[0]);
-        $this->umengRepository->sendMsgToMobile($send_to,$title,$this->data[0],$this->data[1],Message::STAR,hashid_encode($this->star_arr[0]));
+        $umeng_title = "艺人名称:".$this->star_names;
+
+        $this->umengRepository->sendMsgToMobile($send_to,"艺人管理助手",$umeng_title,$this->umeng_text,Message::STAR,hashid_encode($this->star_arr[0]));
     }
 }

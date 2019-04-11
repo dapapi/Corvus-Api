@@ -120,5 +120,8 @@ class CalendarMessageEventListener
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::CALENDAR, null, $this->data, $send_to,$this->schedule->id);
+        $umeng_text = "日程名称:".$this->schedule->title;
+        $this->umengRepository->sendMsgToMobile($send_to,"日程管理助手",$title,$umeng_text,Message::CALENDAR,hashid_encode($this->schedule->id));
+
     }
 }

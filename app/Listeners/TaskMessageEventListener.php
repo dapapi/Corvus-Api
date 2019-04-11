@@ -140,6 +140,7 @@ class TaskMessageEventListener
     public function createTopTaskSendMessageToPrincipal()
     {
         $subheading = $title = $this->user->name."给你分配了任务";
+        $this->umeng_title = $title;
         $send_to[] = $this->task->principal_id;
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -199,5 +200,12 @@ class TaskMessageEventListener
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::TASK, null, $this->data, $send_to,$this->task->id);
+
+        if ($this->task->pid){
+            $umeng_text = "子任务名称:".$this->task->title;
+        }else{
+            $umeng_text = "任务名称:".$this->task->title;
+        }
+        $this->umengRepository->sendMsgToMobile($send_to,"任务管理助手",$title,$umeng_text,Message::TASK,hashid_encode($this->task->id));
     }
 }

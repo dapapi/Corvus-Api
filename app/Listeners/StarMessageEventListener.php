@@ -7,8 +7,10 @@ use App\Models\DataDictionarie;
 use App\Models\Message;
 use App\Models\RoleResource;
 use App\Models\RoleUser;
+use App\Models\MessageState;
 use App\Models\Star;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\StarTriggerPoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,6 +18,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class StarMessageEventListener
 {
     private $messageRepository;
+    protected $umengRepository;
     private $star_arr;//任务model
     private $trigger_point;//触发点
     private $authorization;//token
@@ -28,9 +31,10 @@ class StarMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
     }
 
     /**
@@ -118,5 +122,6 @@ class StarMessageEventListener
 
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::STAR, null, $this->data, $send_to,$this->star_arr[0]);
+        $this->umengRepository->sendMsgToMobile($send_to,$title,$this->data[0],$this->data[1],Message::STAR,hashid_encode($this->star_arr[0]));
     }
 }

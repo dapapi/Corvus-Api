@@ -848,6 +848,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
 //        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
 
+        // 目标
+        $api->get('/periods', 'App\Http\Controllers\PeriodController@index');
+        $api->post('/periods', 'App\Http\Controllers\PeriodController@store');
+        $api->get('/periods/all', 'App\Http\Controllers\PeriodController@all');
+        $api->get('/periods/{period}', 'App\Http\Controllers\PeriodController@detail');
+        $api->put('/periods/{period}', 'App\Http\Controllers\PeriodController@edit');
+        $api->delete('/periods/{period}', 'App\Http\Controllers\PeriodController@delete');
+
         // 供应商
         $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
         $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');

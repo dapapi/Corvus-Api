@@ -47,6 +47,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/users/{user}', 'App\Http\Controllers\UserController@show');
         //修改密码
         $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
+        $api->post('/users/device', 'App\Http\Controllers\UserController@moblieDeviceToken');
 
 
         // 自定义筛选集中

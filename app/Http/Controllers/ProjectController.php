@@ -311,8 +311,12 @@ class ProjectController extends Controller
 
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
+        $payload['creator_name'] = $user->name;
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
+        $principal = User::find($payload['principal_id']);
+        $payload['principal_name'] = $principal->name;
+        $payload['department_name'] = $principal->department()->value('name');
 
         DB::beginTransaction();
 

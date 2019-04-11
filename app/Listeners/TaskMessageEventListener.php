@@ -6,6 +6,7 @@ use App\Events\TaskMessageEvent;
 use App\Models\Message;
 use App\Models\Task;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use Illuminate\Queue\InteractsWithQueue;
@@ -19,6 +20,7 @@ class TaskMessageEventListener
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $umengRepository;
     //消息发送内容
     private $message_content = '[{"title":"任务名称","value":"%s"},{"title":"负责人","value":"%s"}]';
     /**
@@ -26,9 +28,11 @@ class TaskMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
+
     }
 
     /**

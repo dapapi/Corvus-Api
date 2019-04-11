@@ -19,6 +19,7 @@ use App\Models\Project;
 use App\Models\Role;
 use App\Models\RoleUser;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
@@ -45,6 +46,7 @@ class ApprovalMessageEventListener
     private $created_at;
 
     private $umeng_text;
+    private $umengRepository;
     //消息发送内容
     private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":"%s"}]';
     /**
@@ -52,9 +54,10 @@ class ApprovalMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
     }
 
     /**

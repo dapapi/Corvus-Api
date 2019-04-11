@@ -6,6 +6,7 @@ use App\Events\CalendarMessageEvent;
 use App\Models\Calendar;
 use App\Models\Message;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\CalendarTriggerPoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,6 +21,7 @@ class CalendarMessageEventListener
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
     private $meta;
+    private $umengRepository;
     //消息发送内容
     private $message_content = '[{"title":"日程标题","value":"%s"},{"title":"开始时间","value":"%s"},{"title":"结束时间","value":"%s"}]';
     /**
@@ -27,9 +29,10 @@ class CalendarMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
     }
 
     /**

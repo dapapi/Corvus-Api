@@ -44,6 +44,7 @@ class TrailIndexTransformer extends TransformerAbstract
                 'id' => hashid_encode($trail->id),
                 'title' => $trail->title,
                 'fee' => "".$trail->fee,
+                'created_at' => $trail->created_at->toDatetimeString(),//时间去掉秒
                 // 日志内容
                 'last_follow_up_at' => $trail->last_follow_up_at,
                

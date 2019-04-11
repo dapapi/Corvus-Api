@@ -56,6 +56,11 @@ class Trail extends Model
     const TYPE_PAPI = 4; // papi项目
     const TYPE_BASE = 5; // 基础项目
 
+    const COMMERCIAL_PERSONNEL = 123;   //营销商务拓展人员
+    const PRODUCTION_PERSONNEL = 117;  //影视资源组
+    const VARIETY_PERSONNEL = 138;   // 综艺资源组
+    const ADMINISTRATOR = 1;        //管理员
+
     // priority 优先级
     const PRIORITY_C = 1;
     const PRIORITY_B = 2;

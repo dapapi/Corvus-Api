@@ -304,7 +304,7 @@ class ApprovalFlowController extends Controller
 
             if ($nextId) {
                 # todo 判断是否需要连续跳过 改进
-                list($nextId, $type, $principalLevel)= $this->jumpOverChain($nextId, $currentHandlerType, $principalLevel, $now, $principalId);
+                list($nextId, $type, $principalLevel)= $this->jumpOverChain($nextId, $type, $principalLevel, $now, $principalId);
             } else
                 $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, $principalId, 232);
 
@@ -1028,7 +1028,6 @@ class ApprovalFlowController extends Controller
         } else {
             if ($currentHandlerId == 0)
                 $this->createOrUpdateHandler($this->num, $this->userId, $currentHandlerType, $principalLevel, null, 232);
-
             return [$currentHandlerId, $currentHandlerType, $principalLevel];
         }
     }

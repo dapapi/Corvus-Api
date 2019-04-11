@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b700640277fc11fb0b5ebfbc4cced208",
+    "content-hash": "602f4507d7b4d8db9324ec5eb0bc04c6",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -7066,6 +7066,49 @@
                 "base62"
             ],
             "time": "2018-09-11T17:12:39+00:00"
+        },
+        {
+            "name": "umengpusher/umeng",
+            "version": "v1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/marstea/umeng.git",
+                "reference": "f84877dce39ab0abb1d040b713ba0807efd29f76"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/marstea/umeng/zipball/f84877dce39ab0abb1d040b713ba0807efd29f76",
+                "reference": "f84877dce39ab0abb1d040b713ba0807efd29f76",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "~5.1",
+                "php": "~5.6|~7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "UmengPusher\\Umeng\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "houguangcong",
+                    "email": "houguangcong@163.com"
+                }
+            ],
+            "description": "umeng for laravel",
+            "homepage": "https://github.com/marstea/umeng",
+            "keywords": [
+                "laravel",
+                "lumen",
+                "umeng"
+            ],
+            "time": "2017-05-25T02:06:11+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

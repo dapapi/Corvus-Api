@@ -62,8 +62,10 @@ class TrailController extends Controller
     public function index(FilterTrailRequest $request)
     {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-        $trails = Trail::where(function ($query) use ($request, $payload) {
+
+        $trails = Trail::where(function ($query) use ($request, $payload,$user) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('status') && !is_null($payload['status']) && $payload['status'] <> '3,4')
@@ -81,7 +83,14 @@ class TrailController extends Controller
             }
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
-
+            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+                $query->where('type',1);
+            else if(in_array($user->id,$this->getRoleUser(Trail::VARIETY_PERSONNEL)))
+                $query->where('type',2);
+            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+                $query->whereIn('type',['3,4']);
+            else if(in_array($user->id,$this->getRoleUser(Trail::ADMINISTRATOR)))
+                $query->whereIn('type',['3,4']);
         })
             ->searchData()->poolType()
             //->orderBy('created_at', 'desc')
@@ -91,15 +100,32 @@ class TrailController extends Controller
                     ->where('operate_logs.method','4');
             })->groupBy('trails.id')
             ->where('trails.id','>',0)
-            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
-                'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("if(max('operate_logs.updated_at') != null,max('operate_logs.updated_at'),'trails.created_at')  as up_time")])
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')
+//            ->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
+//                'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status',
+//                'resource','resource_type','take_type','pool_type','receive','fee','desc','trails.updated_at','trails.created_at',
+//                'take_type','receive',DB::raw("if(max('operate_logs.updated_at') != null,max('operate_logs.updated_at'),
+//                'trails.created_at')  as up_time")]);
+            ->select(['trails.id','trails.title','fee','trails.created_at','principal_id','client_id','trails.status'
+                ,DB::raw("if(max('operate_logs.updated_at') != null,max('operate_logs.updated_at'),
+                'trails.created_at')  as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
         return $this->response->paginator($trails, new TrailIndexTransformer());
     }
-
+    public function getRoleUser($roleId)
+    {
+//        $user_id = DB::select('SELECT T2.id as department_id FROM ( SELECT @r AS _id, (SELECT @r := department_pid FROM
+//              departments WHERE id = _id) AS department_pid, @l := @l + 1 AS lvl FROM (SELECT @r := ?, @l := 0) vars, departments h WHERE @r <> 0 ) T1 JOIN departments T2 ON T1._id = T2.id
+//              ORDER BY T1.lvl DESC', [$department[$i]['department_id']]);
+        $user_id = DB::select('SELECT user_id FROM role_users WHERE role_id = ?', [$roleId]);
+        $arr = [];
+        foreach ($user_id as $val){
+            $arr[] = $val->user_id;
+        }
+        return  $arr;
+    }
 
     public function getTrailRelated(Request $request)
     {

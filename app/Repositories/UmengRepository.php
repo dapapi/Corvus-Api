@@ -28,10 +28,8 @@ class UmengRepository
         }
     }
 
-    public function sendMsgToMobile(array $send_to,$tricker,array $title,array $text,int $module,$data_id)
+    public function sendMsgToMobile(array $send_to,$tricker, $title, $text,int $module,$data_id)
     {
-        $title = implode($title,":");
-        $text = implode($text,":");
         $this->sendMsgToAndriod($send_to,$tricker,$title,$text,$module,$data_id);
         $this->senMsgToIos($send_to,$tricker,$title,$text,$module,$data_id);
     }

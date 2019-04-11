@@ -105,7 +105,6 @@ class ApprovalMessageEventListener
         $this->form_name = $form == null ? null : $form->name;
         $this->created_at = $create_at;
         $this->data = json_decode(sprintf($this->message_content,$origin_name,$origin_name,$create_at),true);
-
         switch ($this->trigger_point){
             case ApprovalTriggerPoint::AGREE://审批同意
                 $this->sendMessageWhenAgree();
@@ -119,9 +118,9 @@ class ApprovalMessageEventListener
             case ApprovalTriggerPoint::WAIT_ME://待我审批
                 $this->sendMessageWhenWaitMe();
                 break;
-            case ApprovalTriggerPoint::NOTIFY://知会我的
-                $this->sendMessageWhenNotify();
-                break;
+//            case ApprovalTriggerPoint::NOTIFY://知会我的
+//                $this->sendMessageWhenNotify();
+//                break;
             case ApprovalTriggerPoint::REMIND://提醒
                 $this->sendMessageWhenProjectRemind();
                 break;
@@ -197,12 +196,10 @@ class ApprovalMessageEventListener
 //            $send_to = array_column($users,'user_id');
 //        }
         $send_to = $this->getNextApprovalUser();
-//        dd($send_to);
         $creator = User::find($this->creator_id);
         $creator_name = $creator == null ? null : $creator->name;
         $subheading = $title = $creator_name."的".$this->form_name."待您审批";
         $this->umeng_text = "提交时间:".$this->created_at;
-//        $send_to[] = $this->other_id;//向下一个审批人发消息
         $this->sendMessage($title,$subheading,$send_to);
     }
     //向知会人发消息

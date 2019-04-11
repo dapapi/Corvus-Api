@@ -47,6 +47,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/users/{user}', 'App\Http\Controllers\UserController@show');
         //修改密码
         $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
+        $api->post('/users/device', 'App\Http\Controllers\UserController@moblieDeviceToken');
 
 
         // 自定义筛选集中
@@ -830,8 +831,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
-        $api->get('/test/task', 'App\Http\Controllers\TestController@task');
-
         //供应商管理
         $api->get('/supplier','App\Http\Controllers\SupplierController@index');
 
@@ -865,5 +864,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post('umeng/send','App\Http\Controllers\UmengController@sendMsg');
         $api->post('umeng/find_tsak_message','App\Http\Controllers\UmengController@findTaskMesg');
+
     });
 });

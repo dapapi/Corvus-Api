@@ -62,6 +62,8 @@ use League\Fractal\Serializer\DataArraySerializer;
 class ApprovalFlowController extends Controller
 {
     protected $num;
+    protected $userId;
+    protected $applyId;
 
     // 拉起表单时显示的审批流程
     public function getChains(GetChainsRequest $request)
@@ -264,6 +266,7 @@ class ApprovalFlowController extends Controller
     {
         $num = $instance->form_instance_number;
 
+        $this->num = $num;
         // 判断分支
         $form = $instance->form;
         $formId = $instance->form_id;
@@ -277,12 +280,14 @@ class ApprovalFlowController extends Controller
 
         # 申请人id
         $applyId = $instance->apply_id;
+        $this->applyId = $applyId;
         $principalId = null;
 
         $comment = $request->get('comment', null);
 
         $user = Auth::guard('api')->user();
         $userId = $user->id;
+        $this->userId = $userId;
 
         $now = Carbon::now();
 
@@ -297,9 +302,10 @@ class ApprovalFlowController extends Controller
             if ($type == 246)
                 $principalId = Common::getDepartmentPrincipal($applyId, $principalLevel);
 
-            if ($nextId)
-                $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $principalId);
-            else
+            if ($nextId) {
+                # todo 判断是否需要连续跳过 改进
+                list($nextId, $type, $principalLevel)= $this->jumpOverChain($nextId, $type, $principalLevel, $now, $principalId);
+            } else
                 $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, $principalId, 232);
 
             // 操作日志
@@ -323,42 +329,6 @@ class ApprovalFlowController extends Controller
         }
         DB::commit();
 
-        DB::beginTransaction();
-        # todo 判断是否需要连续跳过 改进
-        try {
-            if ($type == 246) {
-                $header = Common::getDepartmentPrincipal($applyId, $principalLevel);
-                if ($userId == $header) {
-                    list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $currentHandlerId, false, $principalLevel);
-                    $this->storeRecord($num, $userId, $now, 239, $comment, $currentHandlerId, $currentHandlerType);
-                    if ($nextId)
-                        if ($type == 246)
-                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId);
-                        else
-                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null);
-                    else
-                        if ($type == 246)
-                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId, 232);
-                        else
-                            $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null, 232);
-                }
-            } elseif ($nextId == $userId) {
-                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($num), $nextId);
-                $this->storeRecord($num, $userId, $now, 239, $comment, $nextId, $type);
-                if ($nextId)
-                    if ($type == 246)
-                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $userId);
-                    else
-                        $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, null);
-                else {
-                    $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, null, 232);
-                }
-            }
-        } catch (Exception $exception) {
-            DB::rollBack();
-            Log::error($exception);
-        }
-        DB::commit();
         $authorization = $request->header()['authorization'][0];
         $execute = Execute::where("form_instance_number", $instance->form_instance_number)->first();
         if ($execute->flow_type_id == 232) {//审批通过
@@ -408,7 +378,7 @@ class ApprovalFlowController extends Controller
             //项目合同审批同意向M组发消息
             event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::PROJECT_CONTRACT_AGREE, $authorization, $user));
         } else {
-            //向下一个审批人发消息
+//            向下一个审批人发消息
             event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $user, $nextId));
         }
 
@@ -700,7 +670,6 @@ class ApprovalFlowController extends Controller
         }
         if (is_null($chain)) {
             $now = Carbon::now();
-
             return $this->getTransferNextChain($instance, $now);
         }
         if ($chain->next_id == 0)
@@ -1022,5 +991,44 @@ class ApprovalFlowController extends Controller
             }
         }
 
+    }
+
+    private function jumpOverChain($currentHandlerId, $currentHandlerType, $principalLevel, $now, $principalId = null)
+    {
+        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $principalId);
+        if ($currentHandlerType == 246) {
+            $header = Common::getDepartmentPrincipal($this->applyId, $principalLevel);
+            if ($this->userId == $header) {
+                $this->storeRecord($this->num, $this->userId, $now, 239, null, $currentHandlerId, $currentHandlerType);
+                if ($currentHandlerId) {
+                    if ($currentHandlerType == 246)
+                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId);
+                    else
+                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null);
+
+                    list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($this->num), $currentHandlerId, false, $principalLevel);
+                    return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
+                } else {
+                    if ($currentHandlerType == 246)
+                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId, 232);
+                    else
+                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null, 232);
+                }
+            }
+        } elseif ($currentHandlerId == $this->userId) {
+            $this->storeRecord($this->num, $this->userId, $now, 239, null, $currentHandlerId, $currentHandlerType);
+            if ($currentHandlerId) {
+                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null);
+
+                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($this->num), $currentHandlerId);
+                return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
+            } else {
+                $this->createOrUpdateHandler($this->num, $this->userId, $currentHandlerType, $principalLevel, null, 232);
+            }
+        } else {
+            if ($currentHandlerId == 0)
+                $this->createOrUpdateHandler($this->num, $this->userId, $currentHandlerType, $principalLevel, null, 232);
+            return [$currentHandlerId, $currentHandlerType, $principalLevel];
+        }
     }
 }

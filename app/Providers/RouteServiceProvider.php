@@ -13,6 +13,7 @@ use App\Models\BulletinReviewTitle;
 use App\Models\Calendar;
 use App\Models\Contract;
 use App\Models\DataDictionary;
+use App\Models\Period;
 use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
 use App\Models\Project;
@@ -542,6 +543,16 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Position::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('period', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Period::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

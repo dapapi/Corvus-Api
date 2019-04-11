@@ -93,7 +93,7 @@ class TrailController extends Controller
             ->where('trails.id','>',0)
             ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')->select(['trails.id','trails.title','brand','principal_id','industry_id','client_id','contact_id','creator_id',
                 'type','trails.status','priority','cooperation_type','lock_status','lock_user','lock_at','progress_status','resource','resource_type','take_type','pool_type','receive','fee','desc',
-                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("max(operate_logs.updated_at) as up_time")])
+                'trails.updated_at','trails.created_at','take_type','receive',DB::raw("if(max('operate_logs.updated_at') != null,max('operate_logs.updated_at'),'trails.created_at')  as up_time")])
             ->paginate($pageSize);
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);

@@ -211,8 +211,8 @@ class ClientController extends Controller
     }
 
 
-
-    public function store(StoreClientRequest $request)
+    //客户新增接口
+    public function clientsStore(StoreClientRequest $request)
     {
         $payload = $request->all();
 

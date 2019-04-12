@@ -27,6 +27,7 @@ class StarMessageEventListener
     private $star_names;//签约解约艺人名称
     private $umeng_text;
     private $created_at;//签约解约时间
+    private $umeng_description;
     //消息发送内容
     private $message_content = '[{"title":"艺人名称","value":"%s"},{"title":"签约时间","value":"%s"}]';
     /**
@@ -88,6 +89,7 @@ class StarMessageEventListener
         //获取对应角色的用户
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
         $subheading = $title = $star_names."签约";
+        $this->umeng_description = $title;
         $this->umeng_text = "签约时间:".$this->created_at;
         $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
@@ -114,6 +116,7 @@ class StarMessageEventListener
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
         $subheading = $title = $star_names."解约";
         $this->umeng_text = "解约时间:".$this->created_at;
+        $this->umeng_description = $title;
         $send_to = $user_list;//全员
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -131,6 +134,16 @@ class StarMessageEventListener
             Message::STAR, null, $this->data, $send_to,$this->star_arr[0]);
         $umeng_title = "艺人名称:".$this->star_names;
 
-        $this->umengRepository->sendMsgToMobile($send_to,"艺人管理助手",$umeng_title,$this->umeng_text,Message::STAR,hashid_encode($this->star_arr[0]));
+//        $this->umengRepository->sendMsgToMobile($send_to,"艺人管理助手",$umeng_title,$this->umeng_text,Message::STAR,hashid_encode($this->star_arr[0]));
+        $job = new SendUmengMsgToMobile([
+            'send_to' => $send_to,
+            'title' => $umeng_title,
+            'tricker' => "艺人管理助手",
+            'text' => $this->umeng_text,
+            'description'   => $this->umeng_description,
+            'module' => Message::STAR,
+            'module_data_id' => hashid_encode($this->star_arr[0]),
+        ]);
+        dispatch($job)->onQueue("umeng_message");
     }
 }

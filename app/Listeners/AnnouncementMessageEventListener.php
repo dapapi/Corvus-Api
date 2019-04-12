@@ -31,6 +31,7 @@ class AnnouncementMessageEventListener
     private $deparments;//接受消息的部门
     private $message_content = '[{"title":"公告","value":"%s"},{"title":"发布人","value":"%s"},{"title":"发布时间","value":"%s"}]';
 
+    private $umeng_description;
     /**
      * Create the event listener.
      *
@@ -75,6 +76,7 @@ class AnnouncementMessageEventListener
 //        $send_to = DepartmentUser::whereIn('department_id', $this->deparments)->select('user_id')->get();
 //        $send_to = array_column($send_to,"user_id");
         $subheading = $title = $this->user->name."发布了新公告";
+        $this->umeng_description = "发布公告";
         $this->sendMessage($title,$subheading,$send_to);
 
     }
@@ -83,12 +85,14 @@ class AnnouncementMessageEventListener
     {
         $send_to = $this->announcementRepository->getAllUserThatCanSeeTheAnnouncement($this->instance);
         $subheading = $title = $this->user->name."更新了新公告";
+        $this->umeng_description = "修改公告";
         $this->sendMessage($title,$subheading,$send_to);
     }
     public function sendMessageWhenDelete()
     {
         $send_to = $this->announcementRepository->getAllUserThatCanSeeTheAnnouncement($this->instance);
         $subheading = $title = $this->user->name."删除了新公告";
+        $this->umeng_description="删除公告";
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -106,7 +110,17 @@ class AnnouncementMessageEventListener
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::ANNOUNCENMENT, null, $this->data, $send_to,$this->instance->id);
         $umeng_text = "公告名称:".$this->instance->title;
-        $this->umengRepository->sendMsgToMobile($send_to,"公告管理助手",$title,$umeng_text,Message::ANNOUNCENMENT,hashid_encode($this->instance->id));
+//        $this->umengRepository->sendMsgToMobile($send_to,"公告管理助手",$title,$umeng_text,Message::ANNOUNCENMENT,hashid_encode($this->instance->id));
+        $job = new SendUmengMsgToMobile([
+            'send_to' => $send_to,
+            'title' => $title,
+            'tricker' => "公告管理助手",
+            'text' => $this->umeng_text,
+            'description'   => $this->umeng_description,
+            'module' => Message::ANNOUNCENMENT,
+            'module_data_id' => hashid_encode($this->instance->id),
+        ]);
+        dispatch($job)->onQueue("umeng_message");
     }
 
 }

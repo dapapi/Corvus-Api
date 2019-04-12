@@ -281,6 +281,7 @@ class ApprovalMessageEventListener
             $this->module, null, $this->data, $send_to,$module_data_id);
 //        $this->umengRepository->sendMsgToMobile($send_to,"审批管理助手",$title,$this->umeng_text,$this->umeng_description,$this->module,$module_data_id);
        //加入任务对列
+//        dd($send_to);
         Log::info("消息加入对列");
         $job = new SendUmengMsgToMobile([
             'send_to' => $send_to,

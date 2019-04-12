@@ -207,6 +207,8 @@ class TaskController extends Controller
                 $query->where('creator_id', $user->id);
                 break;
             default:
+                $query->whereRaw('1=1');
+                $query->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)");
                 break;
         }
 
@@ -225,10 +227,8 @@ class TaskController extends Controller
                 $userIds = array();
                 $userIds = $this->getDepartmentUserIds($payload['department']);
                 $query->whereIn('tasks.principal_id', $userIds);
-            }else{
-                $query->whereRaw('1=1');
             }
-        })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+        })->searchData()->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
         foreach ($tasks as &$value) {
             $value['id'] = hashid_encode($value['id']);
         }

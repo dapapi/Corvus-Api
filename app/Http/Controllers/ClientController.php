@@ -210,6 +210,79 @@ class ClientController extends Controller
         return $this->response->item($client, new ClientTransformer());
     }
 
+
+
+    public function store(StoreClientRequest $request)
+    {
+        $payload = $request->all();
+
+        $payload['principal_id'] = hashid_decode($payload['principal_id']);
+        if ($payload['grade'] == Client::GRADE_NORMAL){
+            $payload['protected_client_time'] = Carbon::now()->addDay(90)->toDateTimeString();//直客保护截止日期
+        }
+        $user = Auth::guard('api')->user();
+        $payload['creator_id'] = $user->id;
+
+        DB::beginTransaction();
+        try {
+            $client = Client::create($payload);
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $client,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+
+            if ($request->has('contact')) {
+
+                $dataArray = [];
+                $dataArray['client_id'] = $client->id;
+                $dataArray['name'] = $payload['contact']['name'];
+                $dataArray['position'] = $payload['contact']['position'];
+                $dataArray['client_id'] = $client->id;
+                $dataArray['type'] = $payload['contact']['type'];
+                if($request->has("contact.phone")){
+                    $dataArray['phone'] = $payload['contact']['phone'];
+                }
+                if($request->has("contact.wechat")){
+                    $dataArray['wechat'] = $payload['contact']['wechat'];
+                }
+                if($request->has("contact.other_contact_ways")){
+                    $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                }
+                $contact = Contact::create($dataArray);
+                $operate = new OperateEntity([
+                    'obj' => $client,
+                    'title' => '该用户',
+                    'start' => '联系人',
+                    'end' => null,
+                    'method' => OperateLogMethod::ADD_PERSON,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorInternal('创建失败');
+        }
+        DB::commit();
+
+        //直客新增是
+        if ($client->grade == Client::GRADE_NORMAL){
+            $authorization = $request->header()['authorization'][0];
+            event(new ClientMessageEvent($client,ClientTriggerPoint::CREATE_NEW_GRADE_NORMAL,$authorization,$user));
+        }
+
+        return $this->response->item($client, new ClientTransformer());
+    }
+
     public function edit(EditClientRequest $request, Client $client)
     {
         $payload = $request->all();

@@ -277,8 +277,8 @@ class ApprovalMessageEventListener
         if ($this->trigger_point == ApprovalTriggerPoint::NOTIFY){
             Log::info("消息函数向".implode(",",$send_to)."发消息");
         }
-//        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-//            $this->module, null, $this->data, $send_to,$module_data_id);
+        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
+            $this->module, null, $this->data, $send_to,$module_data_id);
 //        $this->umengRepository->sendMsgToMobile($send_to,"审批管理助手",$title,$this->umeng_text,$this->umeng_description,$this->module,$module_data_id);
        //加入任务对列
         Log::info("消息加入对列");

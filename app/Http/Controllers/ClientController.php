@@ -15,6 +15,8 @@ use App\Http\Transformers\ClientTransformer;
 use App\Imports\ClientsImport;
 use App\Models\Client;
 use App\Models\Contact;
+use App\Models\ClientWork;
+
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\OperateLogMethod;
@@ -75,6 +77,8 @@ class ClientController extends Controller
     public function indexAll(Request $request)
     {
         $payload = $request->all();
+        $user = Auth::guard('api')->user();
+
         $pageSize = $request->get('page_size', config('app.page_size'));
         $clients = Client::searchData()
             ->leftJoin('operate_logs',function($join){
@@ -83,10 +87,23 @@ class ClientController extends Controller
                     ->where('operate_logs.method','4');
 
             })
-            ->leftJoin('users',function($join){
+            ->Join('users',function($join){
                 $join->on('users.id','clients.principal_id');
             })
-            ->where(function ($query) use ($request, $payload) {
+
+
+            ->where(function ($query) use ($request, $payload,$user) {
+
+                if($request->has('type') && $payload['type']){
+                    $query->where('type',$payload['type']);
+                }else if(in_array($user->id,$this->getRoleUser(Client::TYPE_MOVIE)))
+                    $query->where('type',1);
+                else if(in_array($user->id,$this->getRoleUser(Client::TYPE_VARIETY)))
+                    $query->where('type',2);
+                else if(in_array($user->id,$this->getRoleUser(Client::TYPE_ENDORSEMENT)))
+                    $query->where('type',3);
+
+
                 if ($request->has('keyword'))
                     $query->where('company', 'LIKE', '%' . $payload['keyword'] . '%');
                 if ($request->has('grade'))
@@ -102,20 +119,34 @@ class ClientController extends Controller
                     $query->where('type',$payload['type']);
                 }
             })
+
             ->groupBy('clients.id')
-            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','clients.company','clients.type','clients.grade','clients.district'
-               ,'clients.status','principal_id','creator_id','client_rating','clients.created_at','clients.updated_at','protected_client_time','users.name',
+            ->orderBy('up_time', 'desc')->orderBy('clients.created_at', 'desc')->select(['clients.id','clients.brand','clients.industry','clients.nature','clients.district','clients.city'
+               ,'clients.status','client_rating','clients.created_at','clients.updated_at','protected_client_time','users.name',
                 DB::raw( "max(operate_logs.updated_at) as up_time")])
 
             ->paginate($pageSize);
 
         foreach ($clients as &$value) {
+            $value['works_data'] = DB::table("client_work")->select('works')->where('client_id',$value['id'])->get()->toArray();
             $value['id'] = hashid_encode($value['id']);
+
         }
 
         return $clients;
         //return $this->response->paginator($clients, new ClientTransformer());
     }
+
+    public function getRoleUser($roleId)
+    {
+        $user_id = DB::select('SELECT user_id FROM role_users WHERE role_id = ?', [$roleId]);
+        $arr = [];
+        foreach ($user_id as $val){
+            $arr[] = $val->user_id;
+        }
+        return  $arr;
+    }
+
 
     public function getClientRelated(Request $request){
 
@@ -215,11 +246,20 @@ class ClientController extends Controller
     public function clientsStore(StoreClientRequest $request)
     {
         $payload = $request->all();
+        if($payload['brand'] != null){
+            $brand = client::where('brand', $payload['brand'])->get()->keyBy('brand')->toArray();
+            if($brand){
+                return $this->response->errorInternal('品牌名称已存在!');
+            }
+        }
+        if($payload['customer'] != null){
+            $brand = client::where('customer', $payload['customer'])->get()->keyBy('customer')->toArray();
+            if($brand){
+                return $this->response->errorInternal('客户名称已存在!');
+            }
+        }
 
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
-        if ($payload['grade'] == Client::GRADE_NORMAL){
-            $payload['protected_client_time'] = Carbon::now()->addDay(90)->toDateTimeString();//直客保护截止日期
-        }
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
 
@@ -237,6 +277,18 @@ class ClientController extends Controller
             event(new OperateLogEvent([
                 $operate,
             ]));
+
+            if ($request->has('work')) {
+                $workInfo = $payload['work'];
+
+                foreach ($workInfo as $value){
+                    $workArr['client_id']= $client->id;
+                    $workArr['works']= $value;
+                    ClientWork::create($workArr);
+
+                }
+
+            }
 
             if ($request->has('contact')) {
 
@@ -267,6 +319,8 @@ class ClientController extends Controller
                     $operate,
                 ]));
             }
+
+
         } catch (\Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -274,11 +328,6 @@ class ClientController extends Controller
         }
         DB::commit();
 
-        //直客新增是
-        if ($client->grade == Client::GRADE_NORMAL){
-            $authorization = $request->header()['authorization'][0];
-            event(new ClientMessageEvent($client,ClientTriggerPoint::CREATE_NEW_GRADE_NORMAL,$authorization,$user));
-        }
 
         return $this->response->item($client, new ClientTransformer());
     }

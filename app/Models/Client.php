@@ -37,6 +37,9 @@ class Client extends Model
 
     protected $fillable = [
         'company',
+        'brand',              // 品牌
+        'industry',           //行业
+        'customer',           //客户
         'grade',             // 级别
         'client_rating',     // 客户评级
         'province',

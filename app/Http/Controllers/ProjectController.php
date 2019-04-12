@@ -305,6 +305,8 @@ class ProjectController extends Controller
             if (is_array($payload['trail']) && array_key_exists('id', $payload['trail'])) {
                 $payload['trail_id'] = hashid_decode($payload['trail']['id']);
                 unset($payload['trail']['id']);
+                $repository = new TrailStarRepository();
+                $repository->getStarListByTrailId($payload['trail_id'], TrailStar::EXPECTATION);
             }
             $payload['project_number'] = Project::getProjectNumber();
         }
@@ -364,59 +366,6 @@ class ProjectController extends Controller
                         $repository->store($trail, $payload['trail']['expectations'], TrailStar::EXPECTATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
-//                        $start = null;
-//                        $end = null;
-//                        if ($trail->type == Trail::TYPE_PAPI) {
-//                            $starableType = ModuleableType::BLOGGER;
-//                            //获取当前的博主
-//                            $blogger_list = $trail->bloggerExpectations()->get()->toArray();
-//                            if (count($blogger_list) != 0) {
-//                                $bloggers = array_column($blogger_list, 'nickname');
-//                                $start = implode(",", $bloggers);
-//                            }
-//                        } else {
-//                            $starableType = ModuleableType::STAR;
-//                            //获取当前的艺人
-//                            $star_list = $trail->expectations()->get()->toArray();
-//                            if (count($star_list) != 0) {
-//                                $stars = array_column($star_list, 'name');
-//                                $start = implode(",", $stars);
-//                            }
-//                        }
-//                        //删除
-//                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
-//
-//                        foreach ($val as $expectation) {
-//                            $starId = hashid_decode($expectation);
-//                            if ($starableType == ModuleableType::BLOGGER) {
-//                                $blogger = Blogger::find($starId);
-//                                if ($blogger) {
-//                                    $end .= "," . $blogger->nickname;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::EXPECTATION,
-//                                    ]);
-//                                }
-//                            } else {
-//                                $star = Star::find($starId);
-//                                if ($star) {
-//                                    $end .= "," . $star->name;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::EXPECTATION,
-//                                    ]);
-//                                }
-//                            }
-//                        }
-//                        if ($starableType == ModuleableType::BLOGGER) {
-//                            $title = "关联目标博主";
-//                        } else {
-//                            $title = "关联目标艺人";
-//                        }
                         $title = "关联目标艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([

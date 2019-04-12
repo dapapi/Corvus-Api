@@ -23,6 +23,9 @@ use App\User;
 
 use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -61,6 +64,12 @@ class AppServiceProvider extends ServiceProvider
             //TODO
         ]);
 
+        //对列失败
+        Queue::failing(function (JobFailed $event){
+            Log::info("失败任务，连接:".$event->connectionName);
+            Log::info("失败任务,job:".$event->job);
+            Log::info($event->exception);
+        });
     }
 
     /**

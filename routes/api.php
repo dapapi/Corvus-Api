@@ -324,6 +324,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+        //客户新增接口
+        $api->post('/clients/store', 'App\Http\Controllers\ClientController@clientsStore');
+
 //            ->middleware('can:create,App\Models\ClientProtected');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');

@@ -306,8 +306,6 @@ class ProjectController extends Controller
             if (is_array($payload['trail']) && array_key_exists('id', $payload['trail'])) {
                 $payload['trail_id'] = hashid_decode($payload['trail']['id']);
                 unset($payload['trail']['id']);
-                $repository = new TrailStarRepository();
-                $repository->getStarListByTrailId($payload['trail_id'], TrailStar::EXPECTATION);
             }
             $payload['project_number'] = Project::getProjectNumber();
         }
@@ -391,55 +389,6 @@ class ProjectController extends Controller
                         $repository->store($trail, $payload['trail']['recommendations'], TrailStar::RECOMMENDATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
-//                        $start = null;
-//                        $end = null;
-//                        if ($trail->type == Trail::TYPE_PAPI) {
-//                            $starableType = ModuleableType::BLOGGER;
-//                            //当前关联的博主
-//                            $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
-//                            $bloggers = array_column($blogger_list, 'nickname');
-//                            $start = implode(",", $bloggers);
-//                        } else {
-//                            $starableType = ModuleableType::STAR;
-//                            $star_list = $trail->recommendations()->get()->toArray();
-//                            $stars = array_column($star_list, 'name');
-//                            $start = implode(",", $stars);
-//                        }
-//                        //删除
-//                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
-//                        foreach ($val as $recommendation) {
-//                            $starId = hashid_decode($recommendation);
-//
-//                            if ($starableType == ModuleableType::BLOGGER) {
-//                                $blogger = Blogger::find($starId);
-//                                if ($blogger) {
-//                                    $end .= $blogger->nickname;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::RECOMMENDATION,
-//                                    ]);
-//                                }
-//                            } else {
-//                                $star = Star::find($starId);
-//                                if ($star) {
-//                                    $end .= $star->name;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::RECOMMENDATION,
-//                                    ]);
-//                                }
-//
-//                            }
-//                        }
-//                        if ($starableType == ModuleableType::BLOGGER) {
-//                            $title = "关联推荐博主";
-//                        } else {
-//                            $title = "关联推荐艺人";
-//                        }
                         $title = "关联推荐艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([
@@ -456,6 +405,8 @@ class ProjectController extends Controller
                     }
                 }
                 $trail->update($payload['trail']);
+                $repository = new TrailStarRepository();
+                $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
             }
 
             if ($request->has('participant_ids')) {

@@ -12,6 +12,7 @@ use App\Models\Calendar;
 use App\Models\OperateEntity;
 use App\Models\Schedule;
 use App\ModuleableType;
+use App\Models\ModuleUser;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\CalendarRepository;
@@ -40,13 +41,15 @@ class CalendarController extends Controller
         if($request->has('title')){//姓名
             $array[] = ['title','like','%'.$payload['title'].'%'];
         }
-        $subquery = DB::table("calendars as s")->leftJoin('module_users as mu', function ($join) {
+
+        $subquery = DB::table("calendars as s")->Join('module_users as mu', function ($join) {
             $join->on('mu.moduleable_id', 's.id')
                 ->whereRaw("mu.moduleable_type='" . ModuleableType::CALENDAR . "'")
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
         })->whereRaw("s.id=calendars.id")->select("mu.user_id");
 
-        $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.id','calendars.color','calendars.principal_id','calendars.privacy',
+
+        $calendars  = Calendar::select(DB::raw('distinct calendars.id'),'calendars.color','calendars.principal_id','calendars.privacy',
             'calendars.starable_type','calendars.title')
             ->where(function ($query)use ($user,$subquery){
             $query->where('calendars.creator_id',$user->id)//创建人
@@ -55,7 +58,11 @@ class CalendarController extends Controller
                          ->where('calendars.privacy',Calendar::SECRET);//参与人
                  })
             ->orwhere('calendars.privacy',Calendar::OPEN);
-        })->where($array)->get();
+        })->where('id','>',0)->where($array)
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $calendars->getBindings(), $calendars->toSql());
+//                    dd($sql_with_bindings);
+
         return $this->response->collection($calendars, new CalendarIndexTransformer());
     }
     public function all(Request $request)
@@ -174,11 +181,19 @@ class CalendarController extends Controller
             $start_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
             if ($request->has('principal_id'))
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
-            $calendar->update($payload);
             $this->moduleUserRepository->addModuleUserss($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
+            if($request->has('principal_id') && $payload['principal_id'] != $calendar->principal_id)
+            {
+
+                $user_id = ModuleUser::where('moduleable_type',ModuleableType::CALENDAR)->where('moduleable_id',$calendar->id)->where('user_id',$payload['principal_id'])->get()->toArray();
+                if(!$user_id){
+                    ModuleUser::create(['moduleable_type'=>ModuleableType::CALENDAR,'moduleable_id'=>$calendar->id,'user_id'=>$payload['principal_id'],'type'=>1]);
+
+                }
+            }
+            $calendar->update($payload);
             //更新之后的参与人
             $end_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
-
             ///记录日志
             // 操作日志
             $operate = new OperateEntity([
@@ -208,12 +223,15 @@ class CalendarController extends Controller
         if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
             return $this->response->errorInternal("你没有查看该日历的权限");
         }
-        return $this->response->item($calendar, new CalendarTransformer());
+        return $this->response->item($calendar, new CalendarIndexTransformer());
     }
 
     public function delete(Request $request, Calendar $calendar)
     {
         $user = Auth::guard('api')->user();
+
+        $participants = array_column($calendar->participants()->get()->toArray(),'id');
+
         if($calendar->privacy == Calendar::SECRET && $user->id != $calendar->creator_id && !in_array($user->id,$participants)){
             return $this->response->errorInternal("你没有该日历的权限");
         }
@@ -224,7 +242,17 @@ class CalendarController extends Controller
             $calendar->delete();
 
            Schedule::where('calendar_id',$calendar->id)->delete();
-
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $calendar,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::DELETE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();

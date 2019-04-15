@@ -340,6 +340,194 @@ class TrailController extends Controller
         }
         return $this->response->item($trail, new TrailTransformer());
     }
+    // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
+    public function add(StoreTrailRequest $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $payload['creator_id'] = $user->id;
+
+        if ($request->has('lock') && $payload['lock'])
+            $payload['lock_status'] = 1;
+
+        $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
+        // 改为直接新建
+        $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
+        $payload['industry_id'] = hashid_decode($payload['industry_id']);
+
+        if (array_key_exists('id', $payload['contact'])) {
+            $contact = Contact::find(hashid_decode($payload['contact']['id']));
+            if (!$contact)
+                return $this->response->errorBadRequest('联系人不存在');
+        } else {
+            $contact = null;
+        }
+
+        if (array_key_exists('id', $payload['client'])) {
+            $client = Client::find(hashid_decode($payload['client']['id']));
+            if (!$client)
+                return $this->response->errorBadRequest('客户不存在');
+        } elseif (array_key_exists('id', $payload['contact'])) {
+            return $this->response->errorBadRequest('新建客户不应选现有联系人');
+        } else {
+            $client = null;
+        }
+
+        $user = User::find($payload['principal_id']);
+        if (!$user)
+            return $this->response->errorBadRequest('用户不存在');
+
+        DB::beginTransaction();
+
+        try {
+            if (!array_key_exists('id', $payload['client'])) {
+                $client = Client::create([
+                    'company' => $payload['client']['company'],
+                    'grade' => $payload['client']['grade'],
+                    'principal_id' => $payload['principal_id'],
+                    'type' => $payload['type'],
+                    'creator_id' => $user->id,
+                ]);
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $client,
+                    'title' => null,
+                    'start' => null,
+                    'end' => null,
+                    'method' => OperateLogMethod::CREATE,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+
+            if (!array_key_exists('id', $payload['contact'])) {
+                $dataArray = [];
+                $dataArray['client_id'] = $client->id;
+                $dataArray['name'] = $payload['contact']['name'];
+                if($request->has("contact.phone")){
+                    $dataArray['phone'] = $payload['contact']['phone'];
+                }
+                if($request->has("contact.wechat")){
+                    $dataArray['wechat'] = $payload['contact']['wechat'];
+                }
+                if($request->has("contact.other_contact_ways")){
+                    $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
+                }
+                $contact = Contact::create($dataArray);
+
+                // 操作日志
+                $operate = new OperateEntity([
+                    'obj' => $client,
+                    'title' => '该用户',
+                    'start' => '联系人',
+                    'end' => null,
+                    'method' => OperateLogMethod::ADD_PERSON,
+                ]);
+                event(new OperateLogEvent([
+                    $operate,
+                ]));
+            }
+
+            $payload['contact_id'] = $contact->id;
+            $payload['client_id'] = $client->id;
+
+            $lock_user = $user->id;
+            $lock_at = now()->toDateTimeString();
+            $payload['lock_user'] = $lock_user;
+            $payload['lock_at'] = $lock_at;
+            $trail = Trail::create($payload);
+
+            if ($request->has('expectations') && is_array($payload['expectations'])) {
+                (new TrailStarRepository())->store($trail,$payload['expectations'],TrailStar::EXPECTATION);
+//                if ($trail->type == Trail::TYPE_PAPI) {
+//                    $starableType = ModuleableType::BLOGGER;
+//                } else {
+//                    $starableType = ModuleableType::STAR;
+//                }
+//                foreach ($payload['expectations'] as $expectation) {
+//                    $starId = hashid_decode($expectation);
+//
+//                    if ($starableType == ModuleableType::BLOGGER) {
+//                        if (Blogger::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::EXPECTATION,
+//                            ]);
+//                    } else {
+//                        if (Star::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::EXPECTATION,
+//                            ]);
+//                    }
+//                }
+            }
+
+            if ($request->has('recommendations') && is_array($payload['recommendations'])) {
+                (new TrailStarRepository())->store($trail,$payload['recommendations'],TrailStar::RECOMMENDATION);
+//                if ($trail->type == Trail::TYPE_PAPI) {
+//                    $starableType = ModuleableType::BLOGGER;
+//                } else {
+//                    $starableType = ModuleableType::STAR;
+//                }
+//                foreach ($payload['recommendations'] as $recommendation) {
+//                    $starId = hashid_decode($recommendation);
+//                    if ($starableType == ModuleableType::BLOGGER) {
+//                        if (Blogger::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::RECOMMENDATION,
+//                            ]);
+//                    } else {
+//                        if (Star::find($starId))
+//                            TrailStar::create([
+//                                'trail_id' => $trail->id,
+//                                'starable_id' => $starId,
+//                                'starable_type' => $starableType,
+//                                'type' => TrailStar::RECOMMENDATION,
+//                            ]);
+//                    }
+//                }
+            }
+
+            // 操作日志
+            $operate = new OperateEntity([
+                'obj' => $trail,
+                'title' => null,
+                'start' => null,
+                'end' => null,
+                'method' => OperateLogMethod::CREATE,
+            ]);
+            event(new OperateLogEvent([
+                $operate,
+            ]));
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->errorInternal('创建线索失败');
+        }
+
+        DB::commit();
+        //发消息
+        if($trail->lock_status == 1){
+            try{
+                $authorization = $request->header()['authorization'][0];
+                event(new TrailMessageEvent($trail,TrailTrigreePoint::LOCK_PRICE,$authorization,$user));
+            }catch (Exception $exception){
+                Log::error("销售线索锁价:[".$trail->title."]发送失败");
+                Log::error($exception);
+            }
+
+        }
+        return $this->response->item($trail, new TrailTransformer());
+    }
     //todo 操作日志怎么记
     public function edit(EditTrailRequest $request, Trail $trail)
     {

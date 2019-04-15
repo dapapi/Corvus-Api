@@ -33,7 +33,7 @@ class SendUmengMsgToMobile implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->UmenMessage){
+//        if ($this->UmenMessage){
             Log::info("消息");
             Log::info($this->UmenMessage);
             $send_to = $this->UmenMessage['send_to'];
@@ -45,7 +45,7 @@ class SendUmengMsgToMobile implements ShouldQueue
             $description   =   $this->UmenMessage['description'];
             //推送消息
             (new UmengRepository())->sendMsgToMobile($send_to,$tricker,$title,$text,$description,$module,$module_data_id);
-        }
+//        }
 
     }
 }

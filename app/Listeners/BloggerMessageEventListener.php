@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\BloggerMessageEvent;
+use App\Jobs\SendUmengMsgToMobile;
 use App\Models\Blogger;
 use App\Models\DataDictionarie;
 use App\Models\Message;

@@ -47,7 +47,7 @@ class AimController extends Controller
         DB::beginTransaction();
         try {
             $aim = Aim::create($payload);
-            if ($payload->has('parents_ids')) {
+            if ($request->has('parents_ids')) {
                 foreach ($payload['parents_ids'] as $id) {
                     $id = hashid_decode($id);
                     $pAim = Aim::find($id);
@@ -86,6 +86,7 @@ class AimController extends Controller
         return $this->response->item($aim, new AimDetailTransformer());
     }
 
+    # todo 注意详细日志
     public function edit(AimEditRequest $request)
     {
 

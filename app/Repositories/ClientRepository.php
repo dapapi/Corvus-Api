@@ -48,7 +48,7 @@ class ClientRepository
         //登录用户对线索编辑权限验证
         foreach ($api_list as $key => $value){
             try{
-                $repository->checkPower("clients/{id}",'put',$role_list,$client);
+                $repository->checkPower($value['uri'],$value['method'],$role_list,$client);
                 $power[$key] = "true";
             }catch (\Exception $exception){
                 $power[$key] = "false";

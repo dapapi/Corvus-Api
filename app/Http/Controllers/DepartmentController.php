@@ -473,6 +473,13 @@ class DepartmentController extends Controller
 
     }
 
+    # todo 优化用户信息返回
+    public function users(Request $request, Department $department)
+    {
+        $users = $department->users;
+        return $this->response->collection($users, new UserTransformer());
+    }
+
 
 
 

@@ -324,10 +324,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+//            ->middleware('can:create,App\Models\ClientProtected');
         //客户新增接口
         $api->post('/clients/store', 'App\Http\Controllers\ClientController@clientsStore');
-
-//            ->middleware('can:create,App\Models\ClientProtected');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
@@ -406,6 +405,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
+        $api->post('/trails/add', 'App\Http\Controllers\TrailController@add');
         $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
@@ -834,6 +834,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
+
         //供应商管理
         $api->get('/supplier','App\Http\Controllers\SupplierController@index');
 
@@ -851,6 +852,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
 //        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
 
+//        // 目标
+//        $api->get('/periods', 'App\Http\Controllers\PeriodController@index');
+//        $api->post('/periods', 'App\Http\Controllers\PeriodController@store');
+//        $api->get('/periods/all', 'App\Http\Controllers\PeriodController@all');
+//        $api->get('/periods/{period}', 'App\Http\Controllers\PeriodController@detail');
+//        $api->put('/periods/{period}', 'App\Http\Controllers\PeriodController@edit');
+//        $api->delete('/periods/{period}', 'App\Http\Controllers\PeriodController@delete');
+
         // 供应商
         $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');
         $api->get('/contact/{supplier}', 'App\Http\Controllers\SupplierController@contactShow');
@@ -867,6 +876,5 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post('umeng/send','App\Http\Controllers\UmengController@sendMsg');
         $api->post('umeng/find_tsak_message','App\Http\Controllers\UmengController@findTaskMesg');
-
     });
 });

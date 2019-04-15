@@ -283,7 +283,7 @@ class TaskController extends Controller
     }
 
 
-    public function tasksAll(Request $request,Task $task)
+    public function tasksAll(Request $request, Task $task)
     {
         $payload = $request->all();
         $data = $task
@@ -524,7 +524,7 @@ class TaskController extends Controller
 
         $tasks = $query->searchData()->where('privacy', false)->paginate($pageSize);
         //获取任务完成数量
-        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
+        $complete_count = $query->where('privacy', false)->where('status', TaskStatus::COMPLETE)->count();
 
         $request = $this->response->paginator($tasks, new ClientTaskTransformer());
         $request->addMeta("complete_count",$complete_count);

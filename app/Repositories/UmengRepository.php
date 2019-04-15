@@ -14,6 +14,7 @@ class UmengRepository
         $predefined = array('ticker' => $tricker, 'title'=>$title,'text'=>$text,'after_open'=>'com.rxsoft.papitube','description'=>$description);
         $extraField = array('module'=>$module,"data_id"=>$data_id); //other extra filed
         //单播
+        Log::info($device_tokens);
         foreach ($device_tokens as $device_token){
             try{
                 Log::info("向安卓[".$device_token."]发送消息");
@@ -22,6 +23,8 @@ class UmengRepository
                     Log::info("消息发送失败");
                     Log::error($res);
                 }
+                Log::info("消息发送成功");
+                Log::info($res);
             }catch (\Exception $exception){
                 Log::info("消息发送失败");
                 Log::info("device_token:".$device_tokens);
@@ -47,6 +50,8 @@ class UmengRepository
                     Log::info("消息发送失败");
                     Log::error($res);
                 }
+                Log::info("消息发送成功");
+                Log::info($res);
             }catch (\Exception $e){
                 Log::info("消息发送失败");
                 Log::info("device_token:".$device_tokens);
@@ -60,6 +65,7 @@ class UmengRepository
 
     public function sendMsgToMobile($send_to,$tricker, $title, $text,$description,int $module,$data_id)
     {
+        Log::info("消息发送");
         $this->sendMsgToAndriod($send_to,$tricker,$title,$text,$description,$module,$data_id);
         $this->senMsgToIos($send_to,$tricker,$title,$text,$description,$module,$data_id);
     }

@@ -67,7 +67,8 @@ class AppServiceProvider extends ServiceProvider
         //对列失败
         Queue::failing(function (JobFailed $event){
             Log::info("失败任务，连接:".$event->connectionName);
-            Log::info("失败任务,job:".$event->job);
+            Log::info("失败任务,job:");
+            Log::info($event->job->getName());
             Log::info($event->exception);
         });
     }

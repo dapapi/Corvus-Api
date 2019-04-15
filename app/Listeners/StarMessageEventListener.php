@@ -92,8 +92,14 @@ class StarMessageEventListener
         $star_name_arr = array_column(Star::select("name")->whereIn('id',$this->star_arr)->get()->toArray(),"name");
         $star_names = implode(",",$star_name_arr);
         //获取有查看艺人详情的功能权限的角色
-        $resource_list = DataDictionarie::where(['val'=>'/stars/detail/{id}','code'=>'get'])->orWhere(['val'=>'/stars/{id}','code'=>'get'])->pluck('id');
-        $role_list = RoleResource::whereIn('resource_id',$resource_list)->pluck('role_id');
+        $resource_list = DataDictionarie::where(function($query){
+            $query->where('val','/stars/detail/{id}')
+                ->where('code','get');
+        })->orWhere(function ($query){
+            $query->where('val','/stars/{id}')
+                ->where('code','get');
+        })->pluck('id');
+        $role_list = RoleResource::whereIn('resouce_id',$resource_list)->pluck('role_id');
         //获取对应角色的用户
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
         $subheading = $title = $star_names."解约";

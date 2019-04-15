@@ -9,6 +9,7 @@
 namespace App\Helper;
 
 
+use App\Exceptions\ApprovalVerifyException;
 use App\Models\Department;
 use App\Models\DepartmentPrincipal;
 use App\Models\DepartmentUser;
@@ -63,13 +64,20 @@ class Common
     {
         $departmentUser = DepartmentUser::where('user_id', $userId)->first();
         $departmentId = $departmentUser->department_id;
+
         $departmentPrincipalId = DepartmentPrincipal::where('department_id', $departmentId)->first()->user_id;
         $level = $departmentPrincipalId == $userId ? $level + 1 : $level;
 
         for ($i = $level;$i > 1; $i--) {
-            $departmentId = self::getParentDepartment($departmentId);
+            $departmentNextId = self::getParentDepartment($departmentId);
+            if ($departmentNextId != 0) {
+                $departmentId = $departmentNextId;
+            }
         }
-        $departmentPrincipalId = DepartmentPrincipal::where('department_id', $departmentId)->first()->user_id;
+        $departmentPrincipal = DepartmentPrincipal::where('department_id', $departmentId)->first();
+        if ($departmentPrincipal) {
+            $departmentPrincipalId = $departmentPrincipal->user_id;
+        }
         return $departmentPrincipalId;
     }
 

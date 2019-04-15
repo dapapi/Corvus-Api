@@ -847,13 +847,21 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
 //        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
 
-        // 目标
+        // 目标周期
         $api->get('/periods', 'App\Http\Controllers\PeriodController@index');
         $api->post('/periods', 'App\Http\Controllers\PeriodController@store');
         $api->get('/periods/all', 'App\Http\Controllers\PeriodController@all');
         $api->get('/periods/{period}', 'App\Http\Controllers\PeriodController@detail');
         $api->put('/periods/{period}', 'App\Http\Controllers\PeriodController@edit');
         $api->delete('/periods/{period}', 'App\Http\Controllers\PeriodController@delete');
+
+        // 目标
+        $api->get('/aims', 'App\Http\Controllers\AimController@index');
+        $api->post('/aims', 'App\Http\Controllers\AimController@store');
+        $api->get('/aims/all', 'App\Http\Controllers\AimController@all');
+        $api->get('/aims/{aim}', 'App\Http\Controllers\AimController@detail');
+        $api->put('/aims/{aim}', 'App\Http\Controllers\AimController@edit');
+        $api->delete('/aims/{aim}', 'App\Http\Controllers\AimController@delete');
 
         // 供应商
         $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');

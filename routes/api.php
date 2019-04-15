@@ -402,6 +402,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
+        $api->post('/trails/add', 'App\Http\Controllers\TrailController@add');
         $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');

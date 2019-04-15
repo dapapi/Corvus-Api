@@ -47,6 +47,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/users/{user}', 'App\Http\Controllers\UserController@show');
         //修改密码
         $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
+        $api->post('/users/device', 'App\Http\Controllers\UserController@moblieDeviceToken');
 
 
         // 自定义筛选集中
@@ -324,6 +325,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
 //            ->middleware('can:create,App\Models\ClientProtected');
+        //客户新增接口
+        $api->post('/clients/store', 'App\Http\Controllers\ClientController@clientsStore');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
@@ -849,13 +852,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
 //        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
 
-        // 目标
-        $api->get('/periods', 'App\Http\Controllers\PeriodController@index');
-        $api->post('/periods', 'App\Http\Controllers\PeriodController@store');
-        $api->get('/periods/all', 'App\Http\Controllers\PeriodController@all');
-        $api->get('/periods/{period}', 'App\Http\Controllers\PeriodController@detail');
-        $api->put('/periods/{period}', 'App\Http\Controllers\PeriodController@edit');
-        $api->delete('/periods/{period}', 'App\Http\Controllers\PeriodController@delete');
+//        // 目标
+//        $api->get('/periods', 'App\Http\Controllers\PeriodController@index');
+//        $api->post('/periods', 'App\Http\Controllers\PeriodController@store');
+//        $api->get('/periods/all', 'App\Http\Controllers\PeriodController@all');
+//        $api->get('/periods/{period}', 'App\Http\Controllers\PeriodController@detail');
+//        $api->put('/periods/{period}', 'App\Http\Controllers\PeriodController@edit');
+//        $api->delete('/periods/{period}', 'App\Http\Controllers\PeriodController@delete');
 
         // 供应商
         $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');

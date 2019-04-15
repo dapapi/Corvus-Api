@@ -34,7 +34,9 @@ class AimStoreRequest extends FormRequest
             'position' => 'required',
             'talent_level' => 'nullable',
             'aim_level' => 'required',
-            'principal_id' => 'required',
+            'principal' => 'required',
+            'principal.id' => 'required',
+            'principal.name' => 'required',
             'desc' => 'nullable',
             'parents_ids' => 'array'
         ];
@@ -49,7 +51,9 @@ class AimStoreRequest extends FormRequest
             'type.required' => '目标类型 必须填写',
             'position.required' => '维度 必须填写',
             'aim_level.required' => '目标级别 必须填写',
-            'principal_id.required' => ' 必须填写',
+            'principal.required' => '负责人 必须填写',
+            'principal.id.required' => '负责人id 必须填写',
+            'principal.name.required' => '负责人姓名 必须填写',
         ];
     }
 }

@@ -33,8 +33,8 @@ class AimController extends Controller
             $payload['department_name'] = DB::table('departments')->where('id', $payload['department_id'])->value('name');
         }
 
-        $payload['principal_id'] = hashid_decode($payload['principal_id']);
-        $payload['principal_name'] = DB::table('users')->where('id', $payload['principal_id'])->value('name');
+        $payload['principal_id'] = hashid_decode($payload['principal']['id']);
+        $payload['principal_name'] = $payload['principal']['name'];
 
         $payload['period_id'] = hashid_decode($payload['period_id']);
         $payload['period_name'] = DB::table('aim_periods')->where('id', $payload['period_id'])->value('name');

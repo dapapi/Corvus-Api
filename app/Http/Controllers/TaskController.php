@@ -1750,7 +1750,6 @@ class TaskController extends Controller
         //发消息
         $authorization = $request->header()['authorization'][0];
         event(new TaskMessageEvent($task, TaskTriggerPoint::CRATE_TASK, $authorization, $user));
-
 //        DB::beginTransaction();
 //        try {
 //
@@ -2030,8 +2029,8 @@ class TaskController extends Controller
         }
         DB::commit();
         //发消息
-//        $authorization = $request->header()['authorization'][0];
-//        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+        $authorization = $request->header()['authorization'][0];
+        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
 
 //        DB::beginTransaction();
 //        try {

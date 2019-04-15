@@ -91,6 +91,7 @@ class CalendarMessageEventListener
      */
     public function sendMessageWhenUpdateSchedule()
     {
+        $this->umeng_description = "修改日程";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
         //判断是否更改了会议室，时间，位置
         $old_schedule_arr = $this->meta['old_schedule']->toArray();
@@ -116,7 +117,6 @@ class CalendarMessageEventListener
                 }
             }
         }
-        $this->umeng_description = "修改日程";
     }
 
     //最终发送消息方法调用

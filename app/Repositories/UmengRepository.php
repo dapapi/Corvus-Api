@@ -14,12 +14,22 @@ class UmengRepository
         $predefined = array('ticker' => $tricker, 'title'=>$title,'text'=>$text,'after_open'=>'com.rxsoft.papitube','description'=>$description);
         $extraField = array('module'=>$module,"data_id"=>$data_id); //other extra filed
         //单播
-        Log::info("安卓devicetoken");
-        Log::info($device_tokens);
         foreach ($device_tokens as $device_token){
-            Log::info("向[".$device_token."]发送消息");
-            $res = Umeng::android()->sendUnicast($device_token, $predefined, $extraField);
-            Log::info($res);
+            try{
+                Log::info("向安卓[".$device_token."]发送消息");
+                $res = Umeng::android()->sendUnicast($device_token, $predefined, $extraField);
+                if ($res['ret'] != "SUCCESS"){
+                    Log::info("消息发送失败");
+                    Log::error($res);
+                }
+            }catch (\Exception $exception){
+                Log::info("消息发送失败");
+                Log::info("device_token:".$device_tokens);
+                Log::info("predefined:".$predefined);
+                Log::info("customField:".$extraField);
+                Log::error($exception);
+            }
+
         }
     }
     //向ios发送消息
@@ -30,9 +40,21 @@ class UmengRepository
         $predefined = array('alert' =>['title'=>$tricker,'subtitle'=>$title,"body"=>$text],'badge'=>1,'description'=>$description);
         $customField = array('module'=>$module,"data_id"=>$data_id);
         foreach ($device_tokens as $device_token){
-            Log::info("向[".$device_token."]发送消息");
-            $res = Umeng::ios()->sendUnicast($device_token, $predefined, $customField);
-            Log::info($res);
+            try{
+                Log::info("向ios:[".$device_token."]发送消息");
+                $res = Umeng::ios()->sendUnicast($device_token, $predefined, $customField);
+                if ($res['ret'] != "SUCCESS"){
+                    Log::info("消息发送失败");
+                    Log::error($res);
+                }
+            }catch (\Exception $e){
+                Log::info("消息发送失败");
+                Log::info("device_token:".$device_tokens);
+                Log::info("predefined:".$predefined);
+                Log::info("customField:".$customField);
+                Log::error($e);
+            }
+
         }
     }
 

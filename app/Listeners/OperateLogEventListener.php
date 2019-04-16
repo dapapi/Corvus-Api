@@ -476,7 +476,7 @@ class OperateLogEventListener
                 'status' => 1,
                 'field_name'    =>$field_name,
                 'field_title' =>  $title
-            ])->delay(Carbon::now()->addMinutes(10));
+            ]);
 
         }
     }

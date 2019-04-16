@@ -82,6 +82,11 @@ return [
             'root' => storage_path('photo'),
         ],
 
+        'ics' => [
+            'driver' => 'local',
+            'root' => storage_path('ics'),
+        ],
+
     ],
 
 

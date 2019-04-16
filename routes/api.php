@@ -47,6 +47,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/users/{user}', 'App\Http\Controllers\UserController@show');
         //修改密码
         $api->put('/users/{user}', 'App\Http\Controllers\UserController@editpassword');
+        $api->post('/users/device', 'App\Http\Controllers\UserController@moblieDeviceToken');
 
 
         // 自定义筛选集中
@@ -324,6 +325,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+        //客户新增接口
+        $api->post('/clients/store', 'App\Http\Controllers\ClientController@clientsStore');
+
 //            ->middleware('can:create,App\Models\ClientProtected');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
@@ -484,6 +488,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
+        $api->post('/information', 'App\Http\Controllers\PersonnelManageController@personalStore');
+
+
         // calendar
         $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
         $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
@@ -509,6 +516,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
         $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
         $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
+
+        //生成日程ICS文件
+        $api->post('/generate', 'App\Http\Controllers\ScheduleController@generateIcs');
 
 
         // material

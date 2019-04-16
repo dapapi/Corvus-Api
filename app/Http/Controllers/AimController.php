@@ -185,10 +185,11 @@ class AimController extends Controller
             }
             event(new AimDataChangeEvent($oldModel, $aim));//更新项目操作日志
         } catch (\Exception $exception) {
-            DB::commit();
+            DB::rollBack();
             Log::error($exception);
             return $this->response->error('修改失败');
         }
+        DB::commit();
         return $this->response->item($aim, new AimDetailTransformer());
     }
 

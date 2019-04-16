@@ -4,7 +4,10 @@ namespace App\Listeners;
 
 use App\Events\BloggerMessageEvent;
 use App\Models\Blogger;
+use App\Models\DataDictionarie;
 use App\Models\Message;
+use App\Models\RoleResource;
+use App\Models\RoleUser;
 use App\Repositories\MessageRepository;
 use App\TriggerPoint\BloggerTriggerPoint;
 use DemeterChain\B;
@@ -75,7 +78,7 @@ class BloggerMessageEventListener
             $query->where('val','/stars/{id}')
                 ->where('code','get');
         })->pluck('id');
-        $role_list = RoleResource::whereIn('resource_id',$resource_list)->pluck('role_id');
+        $role_list = RoleResource::whereIn('resouce_id',$resource_list)->pluck('role_id');
         //获取对应角色的用户
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
         $subheading = $title = $blogger_names."签约";
@@ -98,7 +101,7 @@ class BloggerMessageEventListener
             $query->where('val','/stars/{id}')
                 ->where('code','get');
         })->pluck('id');
-        $role_list = RoleResource::whereIn('resource_id',$resource_list)->pluck('role_id');
+        $role_list = RoleResource::whereIn('resouce_id',$resource_list)->pluck('role_id');
         //获取对应角色的用户
         $user_list = RoleUser::whereIn('role_id',$role_list)->pluck('user_id')->toArray();
 

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Aim;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Blogger;
@@ -64,7 +65,7 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::INSTANCE => Instance::class,
             ModuleableType::SUPPLIER => Supplier::class,
             ModuleableType::SUPPLIERRELATE => SupplierRelate::class,
-
+            ModuleableType::AIM => Aim::class,
 
             //TODO
         ]);

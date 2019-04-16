@@ -12,7 +12,6 @@ use App\Http\Requests\Schedule\StoreScheduleRequest;
 use App\Http\Requests\Schedule\StoreScheduleTaskRequest;
 use App\Http\Requests\ScheduleRequest;
 use App\Http\Transformers\ScheduleTransformer;
-use App\Http\Transformers\ScheduleDetailTransformer;
 use App\Http\Transformers\ScheduleRelateTransformer;
 use App\Models\Blogger;
 use App\Models\Calendar;
@@ -192,7 +191,6 @@ class ScheduleController extends Controller
             foreach ($payload['calendar_ids'] as $calendar_id) {
                 $calendars_id[] = hashid_decode($calendar_id);
             }
-
             // todo 按权限筛选
             $payload = $request->all();
             $user = Auth::guard("api")->user();
@@ -209,7 +207,6 @@ class ScheduleController extends Controller
                 $query->orwhere('calendars.privacy',Calendar::OPEN);
             })->where($array)->select('calendars.id')->get()->toArray();
             foreach ($calendars as  $key => $value){
-
 
                 $dataArr[] = $value['id'];
             }
@@ -291,7 +288,7 @@ class ScheduleController extends Controller
             // 开始时间   Ymd 格式
             $array['stime'] = date('Y-m-d', strtotime($payload['start_at']));
             $array['etime'] = date('Y-m-d', strtotime($payload['end_at']));
-            $array['ntime'] = date('Y-m-d', strtotime(now()));
+            $array['$ntime'] = date('Y-m-d', strtotime(now()));
 
         } else {
             $array['sstime'] = date('Y-m-d H:i:s', strtotime($payload['start_at']));
@@ -425,7 +422,7 @@ class ScheduleController extends Controller
                 ->where($materials['start_at'][0], $materials['start_at'][1], $materials['start_at'][2])
                 ->orderby('start_at')->get(['id'])->toArray();
             if ($endmaterials) {
-                return  $this->response->errorForbidden("该时段会议室已被占用");
+                return  $this->response->errorForbidden("该时段资源已被占用");
             }
         }
 
@@ -743,17 +740,17 @@ class ScheduleController extends Controller
             return $this->response->accepted();
         }
         // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $schedule,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
-        return $this->response->item($schedule, new ScheduleDetailTransformer());
+//        $operate = new OperateEntity([
+//            'obj' => $schedule,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
+        return $this->response->item($schedule, new ScheduleTransformer());
     }
 
     public function delete(Request $request, Schedule $schedule)
@@ -771,17 +768,7 @@ class ScheduleController extends Controller
         } else {
             $schedule->delete();
         }
-        // 操作日志
-        $operate = new OperateEntity([
-            'obj' => $schedule,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::DELETE,
-        ]);
-        event(new OperateLogEvent([
-            $operate,
-        ]));
+
         return $this->response->noContent();
     }
 

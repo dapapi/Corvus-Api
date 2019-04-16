@@ -33,6 +33,15 @@ class Trail extends Model
     const STATUS_DELETE = 3;
     const STATUS_REFUSE = 0;
 
+    // 线索状态 status字段
+    const STATUS_BEGIN = 1;          //开始接洽
+    const STATUS_INITIATIVE = 2;     //主动拒绝
+    const STATUS_CLIENT = 3;         //客户拒绝
+    const STATUS_ENTER = 4;          //进入谈判
+    const STATUS_PURPOSE = 5;        //意向合作
+    const STATUS_ACCOMPLISH = 6;     //完成立项
+
+
     // 线索状态 用status字段
     const PROGRESS_BEGIN= 1;
     const PROGRESS_REFUSE = 2;
@@ -55,6 +64,11 @@ class Trail extends Model
     const TYPE_ENDORSEMENT = 3; // 商务代言
     const TYPE_PAPI = 4; // papi项目
     const TYPE_BASE = 5; // 基础项目
+
+    const COMMERCIAL_PERSONNEL = 123;   //营销商务拓展人员
+    const PRODUCTION_PERSONNEL = 117;  //影视资源组
+    const VARIETY_PERSONNEL = 138;   // 综艺资源组
+    const ADMINISTRATOR = 1;        //管理员
 
     // priority 优先级
     const PRIORITY_C = 1;

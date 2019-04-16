@@ -7,6 +7,7 @@ use App\User;
 use League\Fractal\TransformerAbstract;
 use Illuminate\Support\Facades\DB;
 use App\ModuleUserType;
+use App\Models\Task;
 use App\ModuleableType;
 use App\Models\Schedule;
 use App\Models\DepartmentPrincipal;
@@ -155,8 +156,22 @@ class UserTransformer extends TransformerAbstract
     public function includeTasks(User $user)
     {
 
-        $tasks = $user->userTasks;
-        return $this->collection($tasks, new TaskTransformer());
+      //  $tasks = $user->userTasks;
+        $tasks = Task::LeftJoin('module_users',function($query){
+             $query->on('moduleable_id','tasks.id')
+                 ->where('moduleable_type',ModuleableType::TASK);
+        })
+            ->where(function($query) use($user){
+            $query->where('user_id',$user->id)
+            ->orwhere('principal_id',$user->id);
+        })
+            ->searchData()->where('tasks.start_at','<=',now())->where('tasks.end_at','>=',now())
+            ->select('tasks.id','tasks.title','tasks.end_at','tasks.complete_at','tasks.stop_at'
+                ,'tasks.stop_at','tasks.principal_name','tasks.principal_id')
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $tasks->getBindings(), $tasks->toSql());
+//        dd($sql_with_bindings);
+        return $this->collection($tasks, new TaskUserTransformer());
     }
     public function includeSchedules(User $user)
     {
@@ -192,7 +207,7 @@ class UserTransformer extends TransformerAbstract
             ->get();
 //        $sql_with_bindings = str_replace_array('?', $sch->getBindings(), $sch->toSql());
 //        dd($sql_with_bindings);
-        return $this->collection($sch, new ScheduleTransformer());
+        return $this->collection($sch, new ScheduleUserTransformer());
     }
     public function includeEducation(User $user)
     {

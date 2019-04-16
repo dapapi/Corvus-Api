@@ -12,6 +12,7 @@ use App\Models\Calendar;
 use App\Models\OperateEntity;
 use App\Models\Schedule;
 use App\ModuleableType;
+use App\Models\ModuleUser;
 use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\CalendarRepository;
@@ -41,7 +42,7 @@ class CalendarController extends Controller
             $array[] = ['title','like','%'.$payload['title'].'%'];
         }
 
-        $subquery = DB::table("calendars as s")->Join('module_users as mu', function ($join) {
+        $subquery = DB::table("calendars as s")->LeftJoin('module_users as mu', function ($join) {
             $join->on('mu.moduleable_id', 's.id')
                 ->whereRaw("mu.moduleable_type='" . ModuleableType::CALENDAR . "'")
                 ->whereRaw("mu.type='" . ModuleUserType::PARTICIPANT . "'");
@@ -180,8 +181,17 @@ class CalendarController extends Controller
             $start_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
             if ($request->has('principal_id'))
                 $payload['principal_id'] = hashid_decode($payload['principal_id']);
-            $calendar->update($payload);
             $this->moduleUserRepository->addModuleUserss($payload['participant_ids'], $payload['participant_del_ids'], $calendar, ModuleUserType::PARTICIPANT);
+            if($request->has('principal_id') && $payload['principal_id'] != $calendar->principal_id)
+            {
+
+                $user_id = ModuleUser::where('moduleable_type',ModuleableType::CALENDAR)->where('moduleable_id',$calendar->id)->where('user_id',$payload['principal_id'])->get()->toArray();
+                if(!$user_id){
+                    ModuleUser::create(['moduleable_type'=>ModuleableType::CALENDAR,'moduleable_id'=>$calendar->id,'user_id'=>$payload['principal_id'],'type'=>1]);
+
+                }
+            }
+            $calendar->update($payload);
             //更新之后的参与人
             $end_participants = implode(",",array_column($calendar->participants()->get(['name'])->toArray(),'name'));
             ///记录日志

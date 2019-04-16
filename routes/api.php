@@ -402,6 +402,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');
+        $api->post('/trails/add', 'App\Http\Controllers\TrailController@add');
         $api->put('/trails/{trail}', 'App\Http\Controllers\TrailController@edit');
         $api->put('/trails/{trail}/recover', 'App\Http\Controllers\TrailController@recover');
         $api->put('/trails/{trail}/refuse', 'App\Http\Controllers\TrailController@refuse');
@@ -830,7 +831,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
-
         //供应商管理
         $api->get('/supplier','App\Http\Controllers\SupplierController@index');
 
@@ -847,6 +847,22 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/departments/{department}/dashboard/stars', 'App\Http\Controllers\StarController@dashboard');
         $api->get('/departments/{department}/dashboard/bloggers', 'App\Http\Controllers\BloggerController@dashboard');
 //        $api->get('/departments/{department}/dashboard/tasks', 'App\Http\Controllers\TaskController@dashboard');
+
+        // 目标周期
+        $api->get('/periods', 'App\Http\Controllers\PeriodController@index');
+        $api->post('/periods', 'App\Http\Controllers\PeriodController@store');
+        $api->get('/periods/all', 'App\Http\Controllers\PeriodController@all');
+        $api->get('/periods/{period}', 'App\Http\Controllers\PeriodController@detail');
+        $api->put('/periods/{period}', 'App\Http\Controllers\PeriodController@edit');
+        $api->delete('/periods/{period}', 'App\Http\Controllers\PeriodController@delete');
+
+        // 目标
+        $api->get('/aims', 'App\Http\Controllers\AimController@index');
+        $api->post('/aims', 'App\Http\Controllers\AimController@store');
+        $api->get('/aims/all', 'App\Http\Controllers\AimController@all');
+        $api->get('/aims/{aim}', 'App\Http\Controllers\AimController@detail');
+        $api->put('/aims/{aim}', 'App\Http\Controllers\AimController@edit');
+        $api->delete('/aims/{aim}', 'App\Http\Controllers\AimController@delete');
 
         // 供应商
         $api->put('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@edit');

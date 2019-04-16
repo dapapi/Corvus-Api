@@ -348,18 +348,18 @@ class PrivacyUserRepository
      */
     public static function has_power($table,$field,$data_id,$userid)
     {
-        $user_ids = Cache::get($table."_".$field."_".$data_id);
-        if ($user_ids){
-            return $user_ids;
-        }else{
-            $user_ids = PrivacyUser::where('moduleable_id',$data_id)
-                ->where('moduleable_field',$field)
+        $key = "privacy_user:".$table."_".$data_id."_".$userid;
+        $fields = Cache::get($key);
+        if (!$fields){
+            $fields = PrivacyUser::where('moduleable_id',$data_id)  //查询对传入用户不隐私的字段
+                ->where('user_id',$userid)
                 ->where('moduleable_type',$table)
-                ->pluck('user_id');
+                ->where('is_privacy',1)
+                ->pluck('moduleable_field');
+            $now = Carbon::now();
+            Cache::put($key,$fields,$now->addMinute(1));
         }
-        $now = Carbon::now();
-        Cache::put($table."_".$field."_".$data_id,$now->addMinute(1));
-        if($user_ids->contains($userid)){ //如果$userid在有权限用户范围内则可以查看日志
+        if($fields->contains($field)){ //如果$userid在有权限用户范围内则可以查看日志
             return true;
         }else{
             return false;

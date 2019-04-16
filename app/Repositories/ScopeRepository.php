@@ -24,7 +24,6 @@ use Illuminate\Support\Facades\Log;
 
 class ScopeRepository
 {
-
     //数据字典中parent_id查看数据范围
     //根据19-本人相关 20-本部门  21-本人及下属部门 22-全部 替换userIds
     public function getDataViewUsers($model_dic_id=null,bool $arr=false){
@@ -47,8 +46,9 @@ class ScopeRepository
     public function getUserIds($userId,$operation,$method,bool $arr=false)
     {
         //获取用户角色列表
-        $roleIdList = RoleUser::where('user_id', $userId)->get()->toArray();
-        if(count($roleIdList) == 0){//用户没有角色
+//        $roleIdList = RoleUser::where('user_id', $userId)->get()->toArray();
+        $roleIdList = RoleUserRepository::getRoleList($userId);
+        if($roleIdList->isEmpty()){//用户没有角色
             return null;
         }
         if (is_int($operation)){//如果是数字传入的直接是模块id
@@ -64,12 +64,13 @@ class ScopeRepository
 
         $arrviewSql = array();
         //角色id 列表
-        foreach ($roleIdList as $value){
-            $arrRoleId[] = $value['role_id'];
-        }
+//        foreach ($roleIdList as $value){
+//            $arrRoleId[] = $value['role_id'];
+//        }
+//        dd($arrRoleId);
 
         //根据roleid数组查找所有对应的模块权限，取最大值,用户和角色是一对多的
-        $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$arrRoleId)->where('resource_id',$resourceId)->get()->toArray();
+        $viewSql = RoleDataView::select('data_view_id')->whereIn('role_id',$roleIdList)->where('resource_id',$resourceId)->get()->toArray();
 
         if(count($viewSql) == 0){//没有对应模块的权限
             return null;
@@ -194,11 +195,11 @@ class ScopeRepository
         $user = Auth::guard('api')->user();
         $userId = $user->id;
         //获取用户角色
-        $roleList = RoleUser::where('user_id',$userId)->select('role_id')->get();
-        if(count($roleList->toArray()) == 0) {
+//        $roleList = RoleUser::where('user_id',$userId)->select('role_id')->get();
+        $roleList = RoleUserRepository::getRoleList($userId);
+        if($roleList->isEmpty()) {
             return false;
         }
-        $roleList = array_column($roleList->toArray(),'role_id');
         //获取请求资源的父id
         $path = request()->path();
         $method = request()->getMethod();

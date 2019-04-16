@@ -240,4 +240,49 @@ class AimController extends Controller
 
         return $this->response->created();
     }
+
+    public function count(Request $request)
+    {
+        # 周期切换
+        if ($request->has('period_id') && $request->get('period_id')) {
+            $periodId = hashid_decode($request->get('period_id'));
+            $query = Aim::where('period_id', $periodId);
+        } else {
+            return $this->response->errorNotFound('条件错误');
+        }
+        # tab部分
+        $tab = $request->get('tab', 1);
+        switch ($tab) {
+            case 4: # 全部
+                break;
+            case 3: # 公司
+                $query->where('range', Aim::RANGE_COMPANY);
+                break;
+            case 2: # 部门
+                $user = Auth::guard('api')->user();
+                $departmentId = DB::table('department_user')->where('user_id', $user->id)->value('department_id');
+                $query->where('department_id', $departmentId)->where('range', Aim::RANGE_DEPARTMENT);
+                break;
+            case 1: # 个人
+            default:
+                $user = Auth::guard('api')->user();
+                $query->where('principal_id', $user->id)->where('range', Aim::RANGE_PERSONAL);
+                break;
+        }
+
+        $collection = $query->get();
+        $total = $collection->count();
+
+        $timePoint = Carbon::today('PRC')->subDays(7);
+        $latestCount = $collection->where('last_follow_up_at', '>', $timePoint)->count();
+        $completeCount = $collection->where('status', '=', Aim::STATUS_COMPLETE)->count();
+        $percentageAvg = number_format($collection->sum('percentage') / $total, 2);
+        $data = [
+            'total' => $total,
+            'complete_count' => $completeCount,
+            'latest_count' => $latestCount,
+            'percentage_avg' => $percentageAvg,
+        ];
+        return  $this->response->array(['data' => $data]);
+    }
 }

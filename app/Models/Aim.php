@@ -11,6 +11,13 @@ class Aim extends Model
         restore as private restoreSoftDeletes;
     }
 
+    const STATUS_COMPLETE = 1;
+    const STATUS_PROCESSING = 0;
+
+    const RANGE_PERSONAL = 1;
+    const RANGE_DEPARTMENT = 2;
+    const RANGE_COMPANY = 3;
+
     protected $table = 'aims';
 
     protected $fillable = [
@@ -32,6 +39,7 @@ class Aim extends Model
         'creator_name',
         'percentage',
         'deadline',
+        'status',
         'desc',
     ];
 
@@ -40,8 +48,13 @@ class Aim extends Model
         $this->belongsTo(AimParent::class, 'p_aim_id', 'id');
     }
 
-    public function childs()
+    public function children()
     {
         $this->hasMany(AimParent::class, 'c_aim_id', 'id');
+    }
+
+    public function operateLogs()
+    {
+        return $this->morphMany(OperateLog::class, 'logable');
     }
 }

@@ -33,6 +33,8 @@ class CreateAimsTable extends Migration
             $table->string('creator_name', 20)->comment('创建人姓名');
             $table->string('desc', 80)->nullable()->comment('目标描述');
             $table->float('percentage', 5, 2)->nullable()->comment('目标进度');
+            $table->date('deadline')->nullable()->comment('截止日期');
+            $table->unsignedTinyInteger('status')->default(0)->comment('目标状态');
             $table->timestamps();
             $table->softDeletes();
         });

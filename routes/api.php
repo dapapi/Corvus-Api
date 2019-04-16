@@ -213,6 +213,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->get('/supplier/{supplier}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/aims/{aim}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/aims/{aim}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
 
@@ -862,6 +864,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/aims/all', 'App\Http\Controllers\AimController@all');
         $api->get('/aims/{aim}', 'App\Http\Controllers\AimController@detail');
         $api->put('/aims/{aim}', 'App\Http\Controllers\AimController@edit');
+        $api->put('/aims/{aim}/status', 'App\Http\Controllers\AimController@changeStatus');
         $api->delete('/aims/{aim}', 'App\Http\Controllers\AimController@delete');
 
         // 供应商

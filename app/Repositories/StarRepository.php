@@ -86,8 +86,8 @@ class StarRepository
         $where = Star::getConditionSql();//权限
         $sql = <<<AAA
 
-        select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars 
-        left join module_users on module_users.moduleable_id = stars.id and module_users.moduleable_type = :moduleable_type 
+        select stars.id,stars.name,stars.weibo_fans_num,stars.source,stars.sign_contract_status,stars.created_at,stars.last_follow_up_at,stars.sign_contract_at,stars.birthday,stars.terminate_agreement_at,stars.communication_status from stars
+        left join module_users on module_users.moduleable_id = stars.id and module_users.moduleable_type = :moduleable_type
         left join department_user on department_user.user_id = module_users.user_id
         where 1 = 1 {$where}  {$condition['where']} limit 0,10
 AAA;
@@ -108,6 +108,5 @@ AAA;
         }else{
             return Star::select('stars.id','stars.name','stars.birthday','stars.weibo_fans_num','stars.source','stars.sign_contract_status','stars.created_at',DB::raw('stars.last_follow_up_at as follow_up_at'),'stars.sign_contract_at','stars.birthday','stars.terminate_agreement_at','stars.communication_status');
         }
-
     }
 }

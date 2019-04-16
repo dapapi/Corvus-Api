@@ -10,7 +10,9 @@ use App\Http\Transformers\Aim\AimSimpleTransformer;
 
 use App\Models\Aim;
 use App\Models\OperateEntity;
+use App\Models\Project;
 use App\OperateLogMethod;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -76,7 +78,7 @@ class AimController extends Controller
             $query->where('title', 'like', '%' . $keyword . '%');
         }
 
-        $paginator = $query->paginate($pageSize);
+        $paginator = $query->orderBy('last_follow_up_at', 'desc')->paginate($pageSize);
         return $this->response->paginator($paginator, new AimSimpleTransformer());
     }
 
@@ -98,6 +100,7 @@ class AimController extends Controller
         $creator = Auth::guard('api')->user();
         $payload['creator_id'] = $creator->id;
         $payload['creator_name'] = $creator->name;
+        $payload['last_follow_up_at'] = Carbon::now()->toDateTimeString();
 
         DB::beginTransaction();
         try {
@@ -161,9 +164,10 @@ class AimController extends Controller
             $payload['deadline'] = DB::table('aim_periods')->where('id', $payload['period_id'])->value('end_at');
         }
 
+        DB::beginTransaction();
         try {
             $aim->update($payload);
-            if ($payload->has('parents_ids')) {
+            if ($request->has('parents_ids')) {
                 $aim->parents->delete();
                 foreach ($payload['parents_ids'] as $id) {
                     $id = hashid_decode($id);
@@ -181,6 +185,7 @@ class AimController extends Controller
             }
             event(new AimDataChangeEvent($oldModel, $aim));//更新项目操作日志
         } catch (\Exception $exception) {
+            DB::commit();
             Log::error($exception);
             return $this->response->error('修改失败');
         }
@@ -203,5 +208,35 @@ class AimController extends Controller
         }
 
         return $this->response->accepted();
+    }
+
+    public function relateProject(Request $request, Aim $aim)
+    {
+        DB::beginTransaction();
+        try {
+            $aim->projects()->delete();
+            if ($request->has('project_ids')) {
+                $projectIds = $request->get('project_ids');
+                if (count($projectIds) > 0) {
+                    foreach ($projectIds as $projectId) {
+                        $projectId = hashid_decode($projectId);
+                        $project = Project::find($projectId);
+                        $aim->projects()->create([
+                            'project_id' => $projectId,
+                            'project_name' => $project->title,
+                        ]);
+                    }
+                }
+            } else {
+                throw new \Exception('未关联项目');
+            }
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            DB::rollBack();
+            return $this->response->error('关联失败');
+        }
+        DB::commit();
+
+        return $this->response->created();
     }
 }

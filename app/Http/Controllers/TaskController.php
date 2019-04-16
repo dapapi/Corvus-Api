@@ -41,6 +41,9 @@ use App\Repositories\ScopeRepository;
 
 
 use App\ResourceType;
+
+use App\TaskPriorityStatus;
+
 use App\TaskStatus;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
@@ -184,6 +187,7 @@ class TaskController extends Controller
         $user = Auth::guard("api")->user();
         $userId = $user->id;
         $my = $request->get('my',0);
+
         $pageSize = $request->get('page_size', config('app.page_size'));
 
         $query = Task::select('tasks.id','tasks.title','users.icon_url','tasks.status','tasks.resource_name','tasks.resource_type_name as resource_type','tasks.principal_name','tasks.type_name','tasks.adj_id','tasks.end_at')
@@ -204,11 +208,13 @@ class TaskController extends Controller
                 $query->where('creator_id', $user->id);
                 break;
             default:
+
                 break;
         }
 
-        $tasks = $query->where(function($query) use ($request, $payload) {
+        $tasks = $query->where(function($query) use ($request, $payload,$my,$userId) {
             if ($request->has('keyword'))
+
                 $query->where('tasks.title', 'LIKE', '%' . $payload['keyword'] . '%');
             if ($request->has('type_id'))
                 $query->where('type_id', hashid_decode($payload['type_id']));
@@ -222,10 +228,12 @@ class TaskController extends Controller
                 $userIds = array();
                 $userIds = $this->getDepartmentUserIds($payload['department']);
                 $query->whereIn('tasks.principal_id', $userIds);
-            }else{
-                $query->whereRaw('1=1');
             }
-        })->searchData()->orWhereRaw("FIND_IN_SET($user->id,tasks.adj_id)")->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
+            if($my ==0){
+                $query->whereRaw('1=1');
+                $query->orWhereRaw("FIND_IN_SET($userId,tasks.adj_id)");
+            }
+        })->searchData()->orderBy('tasks.updated_at', 'desc')->paginate($pageSize);//created_at
         foreach ($tasks as &$value) {
             $value['id'] = hashid_encode($value['id']);
         }
@@ -1414,8 +1422,16 @@ class TaskController extends Controller
                 'resource_id' => $resourceType,
                 'resourceable_id' =>$resourceableId,
                 'resourceable_type' =>$code,
+                'task_id' =>$task->id,
             ];
-            $taskResource->update($resource);
+
+            if($taskResource !== null){
+                $taskResource->update($resource);
+            }else{
+                $res = TaskResource::create($resource);
+
+            }
+
             unset($payload['code']);
 
         }
@@ -1518,7 +1534,6 @@ class TaskController extends Controller
 
                 }
             }
-
 
             $task->update($array);
 

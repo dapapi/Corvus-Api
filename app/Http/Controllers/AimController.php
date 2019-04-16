@@ -73,7 +73,7 @@ class AimController extends Controller
         # 选择输入目标名称
         if ($request->has('keyword') && $request->get('keyword')) {
             $keyword = $request->get('keyword');
-            $query->where('keyword', 'like', '%' . $keyword . '%');
+            $query->where('title', 'like', '%' . $keyword . '%');
         }
 
         $paginator = $query->paginate($pageSize);

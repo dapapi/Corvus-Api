@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Transformers\OperateLogTransformer;
+use App\Models\Aim;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Client;
@@ -41,7 +42,7 @@ class OperateLogController extends Controller
         $this->scopeRepository = $scopeRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business, Aim $aim)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -79,6 +80,8 @@ class OperateLogController extends Controller
             $query = $instance->operateLogs();
         }else if($business && $business->id){
             $query = $business->operateLogs();
+        }else if ($aim && $aim->id) {
+            $query = $aim->operateLogs();
         }
         //TODO 其他模块
         switch ($status) {

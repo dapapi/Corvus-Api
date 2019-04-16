@@ -7,6 +7,8 @@ use League\Fractal\TransformerAbstract;
 
 class AimDetailTransformer extends TransformerAbstract
 {
+    protected $availableIncludes = ['parents', 'children', 'relate_projects'];
+
     public function transform(Aim $aim)
     {
         $arr = [
@@ -20,13 +22,15 @@ class AimDetailTransformer extends TransformerAbstract
             'principal_id' => hashid_encode($aim->principal_id),
             'principal_name' => $aim->principal_name,
             'type' => $aim->type,
-            'amount_type' =>  $aim->amount_type,
-            'amount' =>  $aim->amount,
-            'position' =>  $aim->position,
-            'talent_level' =>  $aim->talent_level,
-            'aim_level' =>  $aim->aim_level,
-            'desc' =>  $aim->desc,
-            'percentage' =>  $aim->percentage,
+            'amount_type' => $aim->amount_type,
+            'amount' => $aim->amount,
+            'position' => $aim->position,
+            'talent_level' => $aim->talent_level,
+            'aim_level' => $aim->aim_level,
+            'deadline' => $aim->deadline,
+            'status' => $aim->status,
+            'percentage' => $aim->percentage,
+            'desc' => $aim->desc,
             'created_at' => $aim->created_at->toDateString(),
             'updated_at' => $aim->updated_at->toDateString(),
         ];

@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Affix;
+use App\Models\Aim;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Blogger;
@@ -56,6 +57,8 @@ class OperateLogRepository
         }else if ($model instanceof Instance && $model->form_instance_id){
             $obj = $model;
         }else if ($model instanceof Business && $model->id){
+            $obj = $model;
+        }else if ($model instanceof Aim && $model->id){
             $obj = $model;
         }
 

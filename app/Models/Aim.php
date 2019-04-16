@@ -39,6 +39,7 @@ class Aim extends Model
         'creator_name',
         'percentage',
         'deadline',
+        'last_follow_up_at',
         'status',
         'desc',
     ];
@@ -56,5 +57,10 @@ class Aim extends Model
     public function operateLogs()
     {
         return $this->morphMany(OperateLog::class, 'logable');
+    }
+
+    public function projects()
+    {
+        $this->hasMany(AimParent::class, 'c_aim_id', 'id');
     }
 }

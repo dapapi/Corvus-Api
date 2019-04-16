@@ -873,6 +873,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/aims/all', 'App\Http\Controllers\AimController@all');
         $api->get('/aims/{aim}', 'App\Http\Controllers\AimController@detail');
         $api->put('/aims/{aim}', 'App\Http\Controllers\AimController@edit');
+        $api->post('/aims/{aim}/project', 'App\Http\Controllers\AimController@relateProject');
         $api->put('/aims/{aim}/status', 'App\Http\Controllers\AimController@changeStatus');
         $api->delete('/aims/{aim}', 'App\Http\Controllers\AimController@delete');
 

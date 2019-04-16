@@ -27,11 +27,11 @@ class QueryListener
      */
     public function handle(QueryExecuted $event)
     {
-        if (env('APP_ENV', 'production') == 'local') {
-            $sql = str_replace("?", "'%s'", $event->sql);
-            $log = vsprintf($sql, $event->bindings);
-            Log::info($log);
-            Log::info("excequte_time".$event->time);
-        }
+//        if (env('APP_ENV', 'production') == 'local') {
+//            $sql = str_replace("?", "'%s'", $event->sql);
+//            $log = vsprintf($sql, $event->bindings);
+//            Log::info($log);
+//            Log::info($event->time);
+//        }
     }
 }

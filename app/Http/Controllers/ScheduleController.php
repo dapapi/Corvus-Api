@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\ICS;
-use Storage;
+use Illuminate\Support\Facades\Storage;
 
 
 class ScheduleController extends Controller
@@ -845,7 +845,6 @@ class ScheduleController extends Controller
         $name = $payload['user_id'];
         $userId = hashid_decode($payload['user_id']);
 
-
         $data = DB::table('schedules')->select('title','materials.name','start_at','end_at','desc','remind')
             ->join('materials', function ($join) {
                 $join->on('materials.id', '=', 'schedules.material_id');
@@ -853,7 +852,7 @@ class ScheduleController extends Controller
         $dataArr = json_decode(json_encode($data), true);
 
         if($dataArr){
-            $path = $pathUrl.'/storage/ics/'.$name.'.ics';
+            $path = $pathUrl.'/storage/app/public/ics/'.$name.'.ics';
 
 
             if (!file_exists($path)){
@@ -910,6 +909,8 @@ class ScheduleController extends Controller
                 'END:VCALENDAR'."\r\n"
             );
             file_put_contents($filename,$ics_props,FILE_APPEND);
+            //$url = Storage::url('ics/531752163.ics');
+            //dd('http://cims.com'.$url);
             return asset('storage/ics/'.$name.'.ics');
         }else{
             return $this->response->errorInternal('该用户没有日程');

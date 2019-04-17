@@ -55,7 +55,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class TrailController extends Controller
 {
-    protected $redis;
     private $departmentRepository;
     public function __construct(DepartmentRepository $departmentRepository)
     {
@@ -122,17 +121,17 @@ class TrailController extends Controller
 //        $user_id = DB::select('SELECT T2.id as department_id FROM ( SELECT @r AS _id, (SELECT @r := department_pid FROM
 //              departments WHERE id = _id) AS department_pid, @l := @l + 1 AS lvl FROM (SELECT @r := ?, @l := 0) vars, departments h WHERE @r <> 0 ) T1 JOIN departments T2 ON T1._id = T2.id
 //              ORDER BY T1.lvl DESC', [$department[$i]['department_id']]);
-               redis::select(7);
-        $this->redis = app('redis');
-        $groupId = $_SERVER['HTTP_HOST'].$roleId;
-        if (redis::exists($groupId)) {
-           $collection = redis::get($groupId);
-            $collection = json_decode($collection,true);
-        } else {
+//               redis::select(7);
+//        $this->redis = app('redis');
+//        $groupId = $_SERVER['HTTP_HOST'].$roleId;
+//        if (redis::exists($groupId)) {
+//           $collection = redis::get($groupId);
+//            $collection = json_decode($collection,true);
+//        } else {
             $collection = RoleUser::where('role_id',$roleId)->get(['user_id']);
-            $groupId = $_SERVER['HTTP_HOST'].$roleId;
-            redis::set($groupId,$collection);
-        }
+//            $groupId = $_SERVER['HTTP_HOST'].$roleId;
+//            redis::set($groupId,$collection);
+//        }
         $arr = [];
         foreach ($collection as $val){
             $arr[] = $val['user_id'];

@@ -11,8 +11,6 @@ use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Contract;
 use App\Models\Project;
-use App\Observers\DataDictionarieObserver;
-use App\Models\DataDictionarie;
 use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\Star;

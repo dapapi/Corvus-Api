@@ -1007,7 +1007,7 @@ class ApprovalFlowController extends Controller
                 return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
             } else {
                 # 直接返回
-                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId);
+                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $header);
                 return [$currentHandlerId, $currentHandlerType, $principalLevel];
             }
         } elseif ($currentHandlerId == $this->userId) {

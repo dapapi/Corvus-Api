@@ -210,8 +210,8 @@ class UserTransformer extends TransformerAbstract
 //                    });
 //            })->whereRaw("schedules.start_at <='" . now() . "'")->whereRaw("schedules.end_at >='" . now() . "'")
 //            ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy'
-//                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc')
-//            ->get();
+//                ,'schedules.start_at','schedules.end_at','schedules.position','schedules.repeat','schedules.desc');
+          //  ->get();
         $sch =  Schedule::select('schedules.*')
             ->leftJoin('module_users as mu', function ($join) use ($this_id) {
                 $join->on('mu.moduleable_id', 'schedules.id')
@@ -221,11 +221,11 @@ class UserTransformer extends TransformerAbstract
             ->where(function ($query) use ($user,$this_id) {
                 $query->where(function ($query) use ($user, $this_id) {
                     $query->where('privacy', Schedule::OPEN)
-                        ->orWhere(function($query) use ($user,$this_id){
-                            $query->where('privacy', Schedule::SECRET)
-                                  ->where('creator_id', $user->id)
-                                  ->orwhere('mu.user_id',$user->id);
-                        });
+                        ->where('creator_id', $user->id)
+                        ->orwhere('mu.user_id',$user->id);
+                })->orwhere(function ($query) use ($user,$this_id){
+                    $query->where('privacy', Schedule::SECRET)
+                        ->where('creator_id', $user->id);
                 });
             })->whereRaw("schedules.start_at <='" . now() . "'")->whereRaw("schedules.end_at >='" . now() . "'")
             ->select('schedules.id','schedules.title','schedules.calendar_id','schedules.creator_id','schedules.is_allday','schedules.privacy'
@@ -233,6 +233,7 @@ class UserTransformer extends TransformerAbstract
             ->get();
 //        $sql_with_bindings = str_replace_array('?', $sch->getBindings(), $sch->toSql());
 //        dd($sql_with_bindings);
+//        dd($sch);
         return $this->collection($sch, new ScheduleUserTransformer());
     }
     public function includeEducation(User $user)

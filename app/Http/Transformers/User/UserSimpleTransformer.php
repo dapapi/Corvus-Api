@@ -13,6 +13,8 @@ class UserSimpleTransformer extends TransformerAbstract
             'id' => hashid_encode($user->id),
             'name' => $user->name,
             'icon_url' => $user->icon_url,
+            'phone' =>  $user->phone,
+            'email' =>  $user->email,
         ];
     }
 }

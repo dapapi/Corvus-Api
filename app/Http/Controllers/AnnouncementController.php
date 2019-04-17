@@ -335,7 +335,7 @@ class AnnouncementController extends Controller
         //删除公告成功发送消息
         try{
             $authorization = $request->header()['authorization'][0];
-            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::DELETE,$authorization,$user));
         }catch (\Exception $exception){
             Log::error("修改公告消息发送失败[$announcement->title]");
 
@@ -498,7 +498,7 @@ class AnnouncementController extends Controller
 
         try{
             $authorization = $request->header()['authorization'][0];
-            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::CREATE,$authorization,$user));
+            event(new AnnouncementMessageEvent($announcement,AnnouncementTriggerPoint::UPDATE,$authorization,$user));
         }catch (\Exception $exception){
             Log::error("修改公告消息发送失败[$announcement->title]");
             Log::error($exception);

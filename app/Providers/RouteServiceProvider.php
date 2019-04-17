@@ -52,6 +52,7 @@ use App\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -625,6 +626,18 @@ class RouteServiceProvider extends ServiceProvider
             return $entity;
         });
 
+        Route::bind('dashboard', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Dashboard::withTrashed()->findOrFail($id);
+                if ($entity == null){
+                    throw new Exception("合同不存在");
+                }
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
     }
 
     /**

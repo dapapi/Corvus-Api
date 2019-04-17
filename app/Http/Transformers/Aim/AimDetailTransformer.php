@@ -46,8 +46,8 @@ class AimDetailTransformer extends TransformerAbstract
 
     public function includeParents(Aim $aim)
     {
-        $projects =$aim->parents;
-        return $this->collection($projects, new AimParentTransformer());
+        $parents =$aim->parents;
+        return $this->collection($parents, new AimParentTransformer());
     }
 
     public function includeChildren(Aim $aim)

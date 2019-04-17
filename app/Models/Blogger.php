@@ -20,7 +20,7 @@ class Blogger extends Model
     use SoftDeletes;
     use PrivacyFieldTrait;
 //    use OperateLogTrait;
-    protected static $model_dic_id = DataDictionarie::BLOGGER;//模型在数据字典中对应的id
+    protected  $model_dic_id = DataDictionarie::BLOGGER;//模型在数据字典中对应的id
     protected $fillable = [
         'nickname',
         'communication_status',//沟通状态
@@ -58,6 +58,15 @@ class Blogger extends Model
         'last_follow_up_user'
 
     ];
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $path = Input::path();
+        if(starts_with($path,"signing")){//如果接口地址以signing开头则是签约中的艺人
+            $this->model_dic_id = DataDictionarie::SIGNING_BLOGGER;
+        }
+    }
+
 //隐藏字段
 //'contract_type',//合同类型
 //'divide_into_proportion',//分成比例
@@ -66,29 +75,21 @@ class Blogger extends Model
         $user = Auth::guard("api")->user();
         $userid = $user->id;
         $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
-        return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
+        $query->where(function ($query)use ($rules,$userid){
+            return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from bloggers as b 
             left join module_users as mu on mu.moduleable_id = b.id and 
             mu.moduleable_type='".ModuleableType::BLOGGER.
-            "' left join users as u on u.id = mu.user_id where b.id = bloggers.id
+                "' left join users as u on u.id = mu.user_id where b.id = bloggers.id
         )");
-    }
+        })->where(function ($query){
+            if ($this->model_dic_id == DataDictionarie::SIGNING_BLOGGER){//签约中
+                $query->where('sign_contract_status',SignContractStatus::SIGN_CONTRACTING);
+            }elseif ($this->model_dic_id == DataDictionarie::BLOGGER){//已签约，已解约
+                $query->whereIn('sign_contract_status',[SignContractStatus::ALREADY_SIGN_CONTRACT,SignContractStatus::ALREADY_TERMINATE_AGREEMENT]);
+            }
+        });
 
-    public static function powerConditionSql()
-    {
-        $user = Auth::guard("api")->user();
-        $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
-        $where = (new SearchDataScope())->getConditionSql($rules);
-        $where .= <<<AAA
-        or ({$userid} in (
-                select mu.user_id from bloggers as b
-                inner join module_users as mu on mu.moduleable_id = b.id
-                where b.id = bloggers.id and mu.moduleable_type='blogger' and mu.type=2
-            )
-        )
-AAA;
-        return $where;
     }
 
     public function scopeCreateDesc($query)

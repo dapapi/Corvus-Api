@@ -3,9 +3,11 @@
 namespace App\Listeners;
 
 use App\Events\CalendarMessageEvent;
+use App\Jobs\SendUmengMsgToMobile;
 use App\Models\Calendar;
 use App\Models\Message;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\CalendarTriggerPoint;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,6 +22,8 @@ class CalendarMessageEventListener
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
     private $meta;
+    private $umengRepository;
+    private $umeng_description;
     //消息发送内容
     private $message_content = '[{"title":"日程标题","value":"%s"},{"title":"开始时间","value":"%s"},{"title":"结束时间","value":"%s"}]';
     /**
@@ -27,9 +31,10 @@ class CalendarMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
     }
 
     /**
@@ -66,7 +71,7 @@ class CalendarMessageEventListener
     {
         $subheading = $title = $this->user->name."邀请你参与了日程";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
-
+        $this->umeng_description = "日历";
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -76,6 +81,7 @@ class CalendarMessageEventListener
     public function sendMessageWhenRemindSchdule()
     {
         $subheading = $title = "日程提醒";
+        $this->umeng_description = "日程提醒";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
         $send_to[] = $this->schedule->creator_id;
         $this->sendMessage($title,$subheading,$send_to);
@@ -85,6 +91,7 @@ class CalendarMessageEventListener
      */
     public function sendMessageWhenUpdateSchedule()
     {
+        $this->umeng_description = "修改日程";
         $send_to = array_column($this->schedule->participants()->select("user_id")->get()->toArray(),"user_id");
         //判断是否更改了会议室，时间，位置
         $old_schedule_arr = $this->meta['old_schedule']->toArray();
@@ -120,5 +127,17 @@ class CalendarMessageEventListener
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::CALENDAR, null, $this->data, $send_to,$this->schedule->id);
+        $umeng_text = "日程名称:".$this->schedule->title;
+//        $this->umengRepository->sendMsgToMobile($send_to,"日程管理助手",$title,$umeng_text,Message::CALENDAR,hashid_encode($this->schedule->id));
+        $job = new SendUmengMsgToMobile([
+            'send_to' => $send_to,
+            'title' => $title,
+            'tricker' => "日程管理助手",
+            'text' => $umeng_text,
+            'description'   => $this->umeng_description,
+            'module' => Message::CALENDAR,
+            'module_data_id' => hashid_encode($this->schedule->id),
+        ]);
+        dispatch($job)->onQueue("umeng_message");
     }
 }

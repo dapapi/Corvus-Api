@@ -129,12 +129,12 @@ class SearchDataScope implements Scope
     {
 
         if ($rules === null) {
-            return " and 0 = 1"; //不查询任何数据
+            return " 0 = 1"; //不查询任何数据
         }
         if (is_array($rules) && count($rules) == 0) {
-            return " and 1 = 1";
+            return " 1 = 1";
         }
-        $where = "";
+        $where = "0 = 1";
         switch ($rules['op']) {
             case 'or':
 //                $query->where(function ($query) use ($rules,$where) {

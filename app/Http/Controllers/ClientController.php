@@ -17,24 +17,20 @@ use App\Http\Transformers\DashboardModelTransformer;
 use App\Imports\ClientsImport;
 use App\Models\Client;
 use App\Models\Contact;
-
 use App\Models\Department;
 use App\Models\DepartmentUser;
-
 use App\Models\ClientWork;
-
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\Models\Project;
 use App\Models\Trail;
+use App\ModuleableType;
 use App\OperateLogMethod;
 use App\Repositories\ClientRepository;
 use App\Repositories\FilterReportRepository;
 use App\Repositories\ScopeRepository;
 use App\TriggerPoint\ClientTriggerPoint;
-use App\User;
 use Carbon\Carbon;
-use App\ModuleableType;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

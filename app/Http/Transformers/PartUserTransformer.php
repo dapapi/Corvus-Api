@@ -27,6 +27,7 @@ class PartUserTransformer extends TransformerAbstract
             'phone'=>$user->phone,
             'email'=>$user->email,
         ];
+
         return $array;
     }
 

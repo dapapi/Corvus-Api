@@ -4,9 +4,14 @@ namespace App\Models;
 
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Material extends Model
 {
+    use SoftDeletes {
+        restore as private restoreSoftDeletes;
+    }
     const TYPE_MEETING_ROOM = 1;
     const TYPE_STUDIO = 2;
 

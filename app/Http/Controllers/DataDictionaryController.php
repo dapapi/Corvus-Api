@@ -19,10 +19,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use League\Fractal;
 use League\Fractal\Manager;
+use Illuminate\Support\Facades\Redis;
 use League\Fractal\Serializer\DataArraySerializer;
 
 class DataDictionaryController extends Controller
 {
+
+//    protected $redis;
+//    public function __construct()
+//    {
+//
+//
+//
+//        $this->redis = app('redis');
+//    }
+
     /**
      * 数据字典列表
      */
@@ -62,11 +73,28 @@ class DataDictionaryController extends Controller
      */
     public function company(Request $request, $pid)
     {
-        $collection = DataDictionary::where('parent_id', $pid)->get();
-        $resource = new Fractal\Resource\Collection($collection, new DataDictionaryTransformer());
-        $manager = new Manager();
-        $manager->setSerializer(new DataArraySerializer());
-        return $this->response->array($manager->createData($resource)->toArray());
+//        redis::select(8);
+//        if (redis::exists($pid)) {
+//           $collection = redis::get($pid);
+//           // $user =redis::hmget($pid, ['*']);
+//            $collection = json_decode($collection,true);
+//            $arrlist = [];
+//            foreach ($collection as $key => &$value){
+//                $arrlist['data'][$key]['id'] = $value['id'];
+//                $arrlist['data'][$key]['name'] = $value['name'];
+//            }
+//          return $arrlist;
+//
+//        } else {
+            $collection = DataDictionary::where('parent_id', $pid)->get();
+//            redis::set($pid,$collection);
+//            $resource = new Fractal\Resource\Collection($collection, new DataDictionaryTransformer());
+//            $manager = new Manager();
+//            $manager->setSerializer(new DataArraySerializer());
+//            return $this->response->array($manager->createData($resource)->toArray());
+//        }
+
+
     }
 
 

@@ -22,8 +22,10 @@ class PartUserTransformer extends TransformerAbstract
         $array = [
             'id' => hashid_encode($user->id),
             'name' => $user->name,
-            'real_name'=>$user->real_name,
             'icon_url' => $user->icon_url,//'用户头像',
+            'real_name'=>$user->real_name,
+            'phone'=>$user->phone,
+            'email'=>$user->email,
         ];
         return $array;
     }

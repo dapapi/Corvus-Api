@@ -35,7 +35,7 @@ class Department extends Model
     public function departments()
     {
 
-        return $this->hasMany(Department::class, 'department_pid', 'id')->where('deleted_at', null)->orderBy('sort_number','desc');
+        return $this->hasMany(Department::class, 'department_pid', 'id')->where('deleted_at', null)->orderBy('sort_number','asc');
     }
 
     public function users()

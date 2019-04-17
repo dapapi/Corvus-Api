@@ -6,6 +6,7 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
+use App\SignContractStatus;
 use App\Traits\PrivacyFieldTrait;
 use App\User;
 use App\TaskStatus;

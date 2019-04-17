@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\MobileDeviceToken;
 use Illuminate\Support\Facades\Log;
 use UmengPusher\Umeng\Facades\Umeng;
+use UmengPusher\Umeng\Pusher\UmengPusher;
 
 class UmengRepository
 {
@@ -18,7 +19,7 @@ class UmengRepository
         foreach ($device_tokens as $device_token){
             try{
                 Log::info("向安卓[".$device_token."]发送消息");
-                $res = Umeng::android()->sendUnicast($device_token, $predefined, $extraField);
+                $res = (new UmengPusher())->android()->sendUnicast($device_token, $predefined, $extraField);
                 if ($res['ret'] != "SUCCESS"){
                     Log::info("消息发送失败");
                     Log::error($res);
@@ -48,7 +49,7 @@ class UmengRepository
         foreach ($device_tokens as $device_token){
             try{
                 Log::info("向ios:[".$device_token."]发送消息");
-                $res = Umeng::ios()->sendUnicast($device_token, $predefined, $customField);
+                $res = (new UmengPusher())->ios()->sendUnicast($device_token, $predefined, $customField);
                 if ($res['ret'] != "SUCCESS"){
                     Log::info("消息发送失败");
                     Log::error($res);

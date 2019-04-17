@@ -2,7 +2,7 @@
 
 namespace App\Http\Transformers;
 
-
+use App\Http\Transformers\User\UserSimpleTransformer;
 use App\Models\Department;
 use App\Models\Role;
 use App\User;

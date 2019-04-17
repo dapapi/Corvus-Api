@@ -287,7 +287,6 @@ class User extends Authenticatable
         return $this->morphMany(OperateLog::class, 'logable');
     }
 
-
     private function departmentToCompany(Department $department)
     {
 //        if ($department->department_pid == 0) {

@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\BloggerLevel;
-use App\CommunicationStatus;
 use App\Events\BloggerDataChangeEvent;
 use App\Events\TaskMessageEvent;
 use App\Gender;

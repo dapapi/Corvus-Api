@@ -3,9 +3,11 @@
 namespace App\Listeners;
 
 use App\Events\TaskMessageEvent;
+use App\Jobs\SendUmengMsgToMobile;
 use App\Models\Message;
 use App\Models\Task;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\TaskTriggerPoint;
 use App\User;
 use Illuminate\Queue\InteractsWithQueue;
@@ -19,6 +21,8 @@ class TaskMessageEventListener
     private $authorization;//token
     private $user;//发送消息用户
     private $data;//向用户发送的消息内容
+    private $umengRepository;
+    private $umeng_description;
     //消息发送内容
     private $message_content = '[{"title":"任务名称","value":"%s"},{"title":"负责人","value":"%s"}]';
     /**
@@ -26,9 +30,11 @@ class TaskMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
+
     }
 
     /**
@@ -89,6 +95,7 @@ class TaskMessageEventListener
     }
     public function sendMessageWhenComplete()
     {
+        $this->umeng_description = "完成任务";
         //判断任务是顶级任务还是子任务
         if ($this->task->task_pid) {//子任务
             $this->sendMessageWhenSonTaskCompleteToPTask();//向子任务的父任务创建人、参与人、负责人发送消息
@@ -140,6 +147,8 @@ class TaskMessageEventListener
     public function createTopTaskSendMessageToPrincipal()
     {
         $subheading = $title = $this->user->name."给你分配了任务";
+        $this->umeng_description = "分配任务";
+        $this->umeng_title = $title;
         $send_to[] = $this->task->principal_id;
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -147,6 +156,7 @@ class TaskMessageEventListener
     public function createTopTaskSendMessageToParticipants()
     {
         $subheading = $title = $this->user->name."邀请你参加任务";
+        $this->umeng_description = "邀请任务";
         //任务参与人
         $send_to = array_column($this->task->participants()->select('user_id')->get()->toArray(),'user_id');
         $this->sendMessage($title,$subheading,$send_to);
@@ -158,6 +168,7 @@ class TaskMessageEventListener
         $pTask = Task::find($this->task->task_pid);
         $pTaskTitle = $pTask == null ? null : $pTask->title;
         $subheading = $title = $this->user->name."给你分配了子任务(父任务:{$pTaskTitle})";
+        $this->umeng_description = "分配子任务";
         $send_to[] = $this->task->principal_id;
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -168,6 +179,7 @@ class TaskMessageEventListener
         $pTask = Task::find($this->task->task_pid);
         $pTaskTitle = $pTask == null ? null : $pTask->title;//父任务名称
         $subheading = $title = $this->user->name."创建了子任务(父任务:{$pTaskTitle})";
+        $this->umeng_description = "创建子任务";
         //父任务创建人
         $send_to[] = $pTask == null ? null : $pTask->creator_id;
         //父任务负责人
@@ -199,5 +211,24 @@ class TaskMessageEventListener
         $send_to = array_filter($send_to);//过滤函数没有写回调默认去除值为false的项目
         $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
             Message::TASK, null, $this->data, $send_to,$this->task->id);
+
+        if ($this->task->pid){
+            $umeng_text = "子任务名称:".$this->task->title;
+            $module = 221;//没在数据字典里写这个
+        }else{
+            $umeng_text = "任务名称:".$this->task->title;
+            $module = Message::TASK;
+        }
+//        $this->umengRepository->sendMsgToMobile($send_to,"任务管理助手",$title,$umeng_text,Message::TASK,hashid_encode($this->task->id));
+        $job = new SendUmengMsgToMobile([
+            'send_to' => $send_to,
+            'title' => $title,
+            'tricker' => "任务管理助手",
+            'text' => $umeng_text,
+            'description'   => $this->umeng_description,
+            'module' => $module,
+            'module_data_id' => hashid_encode($this->task->id),
+        ]);
+        dispatch($job)->onQueue("umeng_message");
     }
 }

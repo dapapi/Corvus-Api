@@ -32,7 +32,6 @@ use App\Http\Transformers\ClientProjectTransformer;
 use App\Models\Blogger;
 use App\Models\FilterJoin;
 use App\Models\Client;
-
 use App\Models\FieldHistorie;
 use App\Models\FieldValue;
 use App\Models\Message;
@@ -58,6 +57,7 @@ use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
+use App\Repositories\UmengRepository;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -339,59 +339,6 @@ class ProjectController extends Controller
                         $repository->store($trail, $payload['trail']['expectations'], TrailStar::EXPECTATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
-//                        $start = null;
-//                        $end = null;
-//                        if ($trail->type == Trail::TYPE_PAPI) {
-//                            $starableType = ModuleableType::BLOGGER;
-//                            //获取当前的博主
-//                            $blogger_list = $trail->bloggerExpectations()->get()->toArray();
-//                            if (count($blogger_list) != 0) {
-//                                $bloggers = array_column($blogger_list, 'nickname');
-//                                $start = implode(",", $bloggers);
-//                            }
-//                        } else {
-//                            $starableType = ModuleableType::STAR;
-//                            //获取当前的艺人
-//                            $star_list = $trail->expectations()->get()->toArray();
-//                            if (count($star_list) != 0) {
-//                                $stars = array_column($star_list, 'name');
-//                                $start = implode(",", $stars);
-//                            }
-//                        }
-//                        //删除
-//                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::EXPECTATION)->delete();
-//
-//                        foreach ($val as $expectation) {
-//                            $starId = hashid_decode($expectation);
-//                            if ($starableType == ModuleableType::BLOGGER) {
-//                                $blogger = Blogger::find($starId);
-//                                if ($blogger) {
-//                                    $end .= "," . $blogger->nickname;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::EXPECTATION,
-//                                    ]);
-//                                }
-//                            } else {
-//                                $star = Star::find($starId);
-//                                if ($star) {
-//                                    $end .= "," . $star->name;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::EXPECTATION,
-//                                    ]);
-//                                }
-//                            }
-//                        }
-//                        if ($starableType == ModuleableType::BLOGGER) {
-//                            $title = "关联目标博主";
-//                        } else {
-//                            $title = "关联目标艺人";
-//                        }
                         $title = "关联目标艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([
@@ -413,55 +360,6 @@ class ProjectController extends Controller
                         $repository->store($trail, $payload['trail']['recommendations'], TrailStar::RECOMMENDATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
-//                        $start = null;
-//                        $end = null;
-//                        if ($trail->type == Trail::TYPE_PAPI) {
-//                            $starableType = ModuleableType::BLOGGER;
-//                            //当前关联的博主
-//                            $blogger_list = $trail->bloggerRecommendations()->get()->toArray();
-//                            $bloggers = array_column($blogger_list, 'nickname');
-//                            $start = implode(",", $bloggers);
-//                        } else {
-//                            $starableType = ModuleableType::STAR;
-//                            $star_list = $trail->recommendations()->get()->toArray();
-//                            $stars = array_column($star_list, 'name');
-//                            $start = implode(",", $stars);
-//                        }
-//                        //删除
-//                        TrailStar::where('trail_id', $trail->id)->where('starable_type', $starableType)->where('type', TrailStar::RECOMMENDATION)->delete();
-//                        foreach ($val as $recommendation) {
-//                            $starId = hashid_decode($recommendation);
-//
-//                            if ($starableType == ModuleableType::BLOGGER) {
-//                                $blogger = Blogger::find($starId);
-//                                if ($blogger) {
-//                                    $end .= $blogger->nickname;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::RECOMMENDATION,
-//                                    ]);
-//                                }
-//                            } else {
-//                                $star = Star::find($starId);
-//                                if ($star) {
-//                                    $end .= $star->name;
-//                                    TrailStar::create([
-//                                        'trail_id' => $trail->id,
-//                                        'starable_id' => $starId,
-//                                        'starable_type' => $starableType,
-//                                        'type' => TrailStar::RECOMMENDATION,
-//                                    ]);
-//                                }
-//
-//                            }
-//                        }
-//                        if ($starableType == ModuleableType::BLOGGER) {
-//                            $title = "关联推荐博主";
-//                        } else {
-//                            $title = "关联推荐艺人";
-//                        }
                         $title = "关联推荐艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([
@@ -476,6 +374,8 @@ class ProjectController extends Controller
                     }
                 }
                 $trail->update($payload['trail']);
+                $repository = new TrailStarRepository();
+                $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
             }
             if ($request->has('participant_ids')) {
                 foreach ($payload['participant_ids'] as &$id) {
@@ -763,6 +663,8 @@ class ProjectController extends Controller
             $participant_ids = array_column($project->participants()->select('user_id')->get()->toArray(), 'user_id');
             $authorization = $request->header()['authorization'][0];
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids, $project->id);
+            $text = "项目名称:".$project->title;
+            (new UmengRepository())->sendMsgToMobile($participant_ids,$title,"项目管理助手",$text,$module,hashid_encode($project->id));
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
@@ -1593,6 +1495,7 @@ class ProjectController extends Controller
             }
         }
         $query->whereRaw(DB::raw("(1 = 1 $power)"));
+
         if ($request->has('principal_ids') && $payload['principal_ids']) {
             $payload['principal_ids'] = explode(',', $payload['principal_ids']);
             foreach ($payload['principal_ids'] as &$id) {

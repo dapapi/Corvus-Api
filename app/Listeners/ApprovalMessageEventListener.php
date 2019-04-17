@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\ApprovalMessageEvent;
+use App\Jobs\SendUmengMsgToMobile;
 use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
@@ -19,6 +20,7 @@ use App\Models\Project;
 use App\Models\Role;
 use App\Models\RoleUser;
 use App\Repositories\MessageRepository;
+use App\Repositories\UmengRepository;
 use App\TriggerPoint\ApprovalTriggerPoint;
 use App\User;
 use Carbon\Carbon;
@@ -42,6 +44,11 @@ class ApprovalMessageEventListener
     private $origin;//发起人
     private $module;//消息模块
     private $creator_id;
+    private $created_at;
+
+    private $umeng_text;
+    private $umengRepository;
+    private $umeng_description;
     //消息发送内容
     private $message_content = '[{"title":"发起人","value":"%s"},{"title":"提交人","value":"%s"},{"title":"提交时间","value":"%s"}]';
     /**
@@ -49,9 +56,10 @@ class ApprovalMessageEventListener
      *
      * @return void
      */
-    public function __construct(MessageRepository $messageRepository)
+    public function __construct(MessageRepository $messageRepository,UmengRepository $umengRepository)
     {
         $this->messageRepository = $messageRepository;
+        $this->umengRepository = $umengRepository;
     }
 
     /**
@@ -97,8 +105,8 @@ class ApprovalMessageEventListener
         //获取审批的名字
         $form = ApprovalForm::where("form_id",$this->instance->form_id)->first();
         $this->form_name = $form == null ? null : $form->name;
+        $this->created_at = $create_at;
         $this->data = json_decode(sprintf($this->message_content,$origin_name,$origin_name,$create_at),true);
-
         switch ($this->trigger_point){
             case ApprovalTriggerPoint::AGREE://审批同意
                 $this->sendMessageWhenAgree();
@@ -112,9 +120,9 @@ class ApprovalMessageEventListener
             case ApprovalTriggerPoint::WAIT_ME://待我审批
                 $this->sendMessageWhenWaitMe();
                 break;
-            case ApprovalTriggerPoint::NOTIFY://知会我的
-                $this->sendMessageWhenNotify();
-                break;
+//            case ApprovalTriggerPoint::NOTIFY://知会我的
+//                $this->sendMessageWhenNotify();
+//                break;
             case ApprovalTriggerPoint::REMIND://提醒
                 $this->sendMessageWhenProjectRemind();
                 break;
@@ -135,6 +143,8 @@ class ApprovalMessageEventListener
         }catch (\Exception $e){
             Log::error($e);
         }
+        $this->umeng_text = "提交时间:".$this->created_at;
+        $this->umeng_description = "同意了我的审批";
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -150,6 +160,8 @@ class ApprovalMessageEventListener
         }catch (\Exception $e){
             Log::error($e);
         }
+        $this->umeng_text = "提交时间:".$this->created_at;
+        $this->umeng_description = "拒绝了我的审批";
         $this->sendMessage($title,$subheading,$send_to);
     }
     /**
@@ -157,11 +169,10 @@ class ApprovalMessageEventListener
      */
     public function sendMessageWhenTransfer()
     {
-        //转交人
-//        $other_user = User::find($this->other_id);
-//        $other_user_name = $other_user == null ? null : $other_user->name;
         $origin_name = $this->origin == null ? null : $this->origin->name;
         $subheading = $title = $this->user->name."转交你审批{$origin_name}"."的".$this->form_name;
+        $this->umeng_text = "审批类型:".$this->form_name;
+        $this->umeng_description = "转交审批";
         $send_to[] = $this->other_id;//被转交人
         $this->sendMessage($title,$subheading,$send_to);
     }
@@ -190,11 +201,11 @@ class ApprovalMessageEventListener
 //            $send_to = array_column($users,'user_id');
 //        }
         $send_to = $this->getNextApprovalUser();
-//        dd($send_to);
         $creator = User::find($this->creator_id);
         $creator_name = $creator == null ? null : $creator->name;
         $subheading = $title = $creator_name."的".$this->form_name."待您审批";
-//        $send_to[] = $this->other_id;//向下一个审批人发消息
+        $this->umeng_description = "审批";
+        $this->umeng_text = "提交时间:".$this->created_at;
         $this->sendMessage($title,$subheading,$send_to);
     }
     //向知会人发消息
@@ -202,6 +213,8 @@ class ApprovalMessageEventListener
     {
         $origin_name = $this->origin == null ? null : $this->origin->name;
         $subheading = $title = $this->user->name."知会你".$origin_name."的".$this->form_name;
+        $this->umeng_text = "提交时间:".$this->created_at;
+        $this->umeng_description = "审批";
         //todo 可能会根据角色发消息
         //获取知会人
         $send_to = array_column(Participant::select("notice_id")->where("form_instance_number",$this->instance->form_instance_number)->get()->toArray(),"notice_id");
@@ -235,6 +248,8 @@ class ApprovalMessageEventListener
         $creator = User::find($this->creator_id);
         $creator_name = $creator == null ? null : $creator->name;
         $title = $subheading = "$creator_name 提醒你审批 $creator_name 的 $this->form_name";
+        $this->umeng_text = "提交时间:".$this->created_at;
+        $this->umeng_description = "提醒审批";
         $this->sendMessage($title,$subheading,$send_to);
     }
 
@@ -262,8 +277,22 @@ class ApprovalMessageEventListener
         if ($this->trigger_point == ApprovalTriggerPoint::NOTIFY){
             Log::info("消息函数向".implode(",",$send_to)."发消息");
         }
-        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-            $this->module, null, $this->data, $send_to,$module_data_id);
+//        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
+//            $this->module, null, $this->data, $send_to,$module_data_id);
+//        $this->umengRepository->sendMsgToMobile($send_to,"审批管理助手",$title,$this->umeng_text,$this->umeng_description,$this->module,$module_data_id);
+       //加入任务对列
+//        dd($send_to);
+        Log::info("消息加入对列");
+        $job = new SendUmengMsgToMobile([
+            'send_to' => $send_to,
+            'title' => $title,
+            'tricker' => "审批管理助手",
+            'text' => $this->umeng_text,
+            'description'   => $this->umeng_description,
+            'module' => $this->module,
+            'module_data_id' => $module_data_id,
+        ]);
+        dispatch($job)->onQueue("umeng_message");
     }
 
     private function getInstanceCreator()

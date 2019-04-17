@@ -303,11 +303,10 @@ class ApprovalFlowController extends Controller
                 $principalId = Common::getDepartmentPrincipal($applyId, $principalLevel);
 
             if ($nextId) {
-                $this->createOrUpdateHandler($num, $nextId, $type, $principalLevel, $principalId);
                 # todo 判断是否需要连续跳过 改进
-                list($nextId, $type, $principalLevel)= $this->jumpOverChain($nextId, $currentHandlerType, $principalLevel, $now);
+                list($nextId, $type, $principalLevel)= $this->jumpOverChain($nextId, $type, $principalLevel, $now, $principalId);
             } else
-                $this->createOrUpdateHandler($num, $userId, $type, $principalLevel, $principalId, 232);
+                $this->createOrUpdateHandler($num, $userId, $currentHandlerType, $principalLevel, $principalId, 232);
 
             // 操作日志
             $operate = new OperateEntity([
@@ -994,8 +993,9 @@ class ApprovalFlowController extends Controller
 
     }
 
-    private function jumpOverChain($currentHandlerId, $currentHandlerType, $principalLevel, $now)
+    private function jumpOverChain($currentHandlerId, $currentHandlerType, $principalLevel, $now, $principalId = null)
     {
+        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $principalId);
         if ($currentHandlerType == 246) {
             $header = Common::getDepartmentPrincipal($this->applyId, $principalLevel);
             if ($this->userId == $header) {

@@ -32,7 +32,7 @@ class RoleTransformer extends TransformerAbstract
     {
         $userinfo = $role->users;
 
-        return $this->collection($userinfo, new UserTransformer());
+        return $this->collection($userinfo, new PartUserTransformer());
     }
 
 

@@ -309,7 +309,7 @@ class DepartmentController extends Controller
             }
            //////////
             $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
-            $nums = DB::table("departments")->where('id',$departmentId)->delete();
+            $nums = $department->where('id',$departmentId)->delete();
 
 
 //            if(empty($depatments)){

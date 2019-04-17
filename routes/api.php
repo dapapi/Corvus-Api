@@ -12,7 +12,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
-        $api->post('stars/list','App\Http\Controllers\StarController@getStarList2');//测试艺人列表
         $api->get('/test/users', 'App\Http\Controllers\TestController@users');
         $api->get('/test/job', 'App\Http\Controllers\TestController@test');
     }
@@ -103,8 +102,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/{project}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/clients/{client}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        //签约中的艺人关联任务
+        $api->get('signing/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/trails/{trail}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+
         $api->get('/bloggers/{blogger}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        //签约中的博主，关联任务
+        $api->get('/signing/bloggers/{blogger}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
 
         //任务关联资源
 
@@ -202,8 +206,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/blogger/{blogger}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        //签约中的艺人，艺人跟进
+        $api->get('/signing/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+
         $api->post('/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        //签约中的艺人，艺人跟进
+        $api->post('/signing/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/trails/{trail}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/trails/{trail}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/clients/{client}/operate_log', 'App\Http\Controllers\OperateLogController@index');
@@ -217,32 +228,85 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //stars
 
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
-        $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");//测试艺人详情
+        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");
+        //签约中的艺人，艺人列表
+        $api->post('/signing/stars/list',"App\Http\Controllers\StarController@getStarList2");
+
+        $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");
+        //签约中的艺人，艺人详情
+        $api->get('/signing/stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");
+
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
+        //签约中的艺人,导出艺人
+        $api->post('/signing/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
+
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
+        //签约中的艺人艺人导入
+        $api->post('/signing/stars/import', 'App\Http\Controllers\StarController@import');
+
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
+        //签约中的艺人新增
+        $api->post('/signing/stars', 'App\Http\Controllers\StarController@store');
+
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
+        //签约中的艺人列表
+        $api->get('/signing/stars', 'App\Http\Controllers\StarController@index');
+
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+        //签约中的艺人，全部艺人
+        $api->get('/signing/stars/all', 'App\Http\Controllers\StarController@all');
+
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
+        //签约中的艺人，艺人修改
+        $api->put('/signing/stars/{star}', 'App\Http\Controllers\StarController@edit');
+
         $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
+        //签约中的艺人，获取删除的
+        $api->get('/signing/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
+
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
+        //签约中的艺人，获取艺人详情
+        $api->get('/signing/stars/{star}', 'App\Http\Controllers\StarController@show');
+
 //        $api->get('/stars/{star}', 'App\Http\Controllers\StarController@getStarById');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
+        //签约中的艺人，恢复已删除的艺人
+        $api->post('/signing/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
+
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
+        //签约中的艺人，删除艺人
+        $api->delete('/signing/stars/{star}', 'App\Http\Controllers\StarController@remove');
+
         $api->get('/stars/{star}/gettaskandprojejct', 'App\Http\Controllers\StarController@getFiveTaskAndProjejct');
         //获取明星作品列表
         $api->get('/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
+        //查看签约中的艺人的做品列表
+        $api->get('/signing/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
+
         //创建明星作品
         $api->post('/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
+        //签约中的艺人，艺人做品新增
+        $api->post('/signing/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
+
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+        //签约中的艺人，分配宣传人
+        $api->post('/signing/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+
         //分配制作人
         $api->post('/bloggers/{blogger}/produser', 'App\Http\Controllers\ModuleUserController@addModuleUserProducer');
+        //签约中的博主,分配制作人
+        $api->post('/signing/bloggers/{blogger}/produser', 'App\Http\Controllers\ModuleUserController@addModuleUserProducer');
 
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+        //签约中的艺人，删除宣传人
+        $api->put('/signing/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+
         //分配经纪人
         $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
+        //签约中的艺人分配经理人
+        $api->post('/signing/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
+
         //获取艺人和博主的联合列表
         $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBlogger');
         //为多个博主艺人分配多个经纪人宣传人制作人
@@ -252,33 +316,77 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //->middleware('export')
 
         $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+        $api->post('/signing/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+
         $api->get('/bloggers/detail/{blogger}','App\Http\Controllers\BloggerController@getBloggerDetail');
+        //签约中的博主，博主详情
+        $api->get('/signing/bloggers/detail/{blogger}','App\Http\Controllers\BloggerController@getBloggerDetail');
+
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
+        //签约中的博主，博主导出
+        $api->post('/signing/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
+
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
+        //签约中的博主博主导出
+        $api->post('/signing/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
+        //签约中的博主，博主新增
+        $api->post('/signing/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人
         $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producerStore');
         //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
+        //签约中的博主，博主列表
+        $api->get('/signing/bloggers', 'App\Http\Controllers\BloggerController@index');
+
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        //签约中的博主，获取全部博主
+        $api->get('/signing/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+
         $api->get('/bloggers/select', 'App\Http\Controllers\BloggerController@select');
         //获取类型
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
         //添加作品
         $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
+        //签约中的博主，博主做品
+        $api->post('/signing/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
         //查询任务  是否有问卷
         $api->get('/bloggers/{task}/taskblogger', 'App\Http\Controllers\BloggerController@taskBloggerProductionIndex');
         // 查看作品
         $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
+        //签约中的博主，查看博主做品库
+        $api->get('/signing/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
+
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
+        //签约中的博主，博主详情
+        $api->get('/signing/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
+
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
+        //签约中的博主，博主修改
+        $api->put('/signing/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
+
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
+        //签约中的博主，恢复已删除的博主列表
+        $api->get('/signing/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
+
         $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
+        //签约中的博主，删除博主
+        $api->delete('/signing/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
+
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
+        //签约中的博主，恢复博主
+        $api->post('/signing/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
+
         //账单
         $api->get('/bloggers/{blogger}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+        //签约中的博主,博主账单
+        $api->get('/signing/bloggers/{blogger}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+
         $api->get('/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+        //签约中的艺人，艺人账单
+        $api->get('/signing/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+
         $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->post('/projects/{project}/store/bill', 'App\Http\Controllers\ProjectBillController@store');
         $api->put('/projects/{project}/edit/bill', 'App\Http\Controllers\ProjectBillController@edit');
@@ -873,8 +981,5 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         $api->get('/test/task', 'App\Http\Controllers\TestController@task');
-
-        $api->post('umeng/send','App\Http\Controllers\UmengController@sendMsg');
-        $api->post('umeng/find_tsak_message','App\Http\Controllers\UmengController@findTaskMesg');
     });
 });

@@ -27,9 +27,12 @@ class UmengRepository
                 Log::info($res);
             }catch (\Exception $exception){
                 Log::info("消息发送失败");
-                Log::info("device_token:".$device_tokens);
-                Log::info("predefined:".$predefined);
-                Log::info("customField:".$extraField);
+                Log::info("device_token:");
+                Log::info($device_tokens);
+                Log::info("predefined:");
+                Log::info($predefined);
+                Log::info("customField:");
+                Log::info($extraField);
                 Log::error($exception);
             }
 
@@ -54,9 +57,12 @@ class UmengRepository
                 Log::info($res);
             }catch (\Exception $e){
                 Log::info("消息发送失败");
-                Log::info("device_token:".$device_tokens);
-                Log::info("predefined:".$predefined);
-                Log::info("customField:".$customField);
+                Log::info("device_token:");
+                Log::info($device_tokens);
+                Log::info("predefined:");
+                Log::info($predefined);
+                Log::info("customField:");
+                Log::info($customField);
                 Log::error($e);
             }
 

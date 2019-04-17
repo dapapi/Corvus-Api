@@ -327,7 +327,6 @@ class ApprovalFlowController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
-        dd('the end');
         DB::commit();
 
         $authorization = $request->header()['authorization'][0];

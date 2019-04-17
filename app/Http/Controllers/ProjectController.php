@@ -730,7 +730,17 @@ class ProjectController extends Controller
             $authorization = $request->header()['authorization'][0];
             (new MessageRepository())->addMessage($user, $authorization, $title, $subheading, $module, $link, $data, $participant_ids, $project->id);
             $text = "项目名称:".$project->title;
-            (new UmengRepository())->sendMsgToMobile($participant_ids,$title,"项目管理助手",$text,$module,hashid_encode($project->id));
+//            (new UmengRepository())->sendMsgToMobile($participant_ids,$title,"项目管理助手",$text,$module,hashid_encode($project->id));
+            $job = new SendUmengMsgToMobile([
+                'send_to' => $participant_ids,
+                'title' => $title,
+                'tricker' => "任务管理助手",
+                'text' => $text,
+                'description'   => $title,
+                'module' => $module,
+                'module_data_id' => hashid_encode($project->id),
+            ]);
+            dispatch($job)->onQueue("umeng_message");
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();

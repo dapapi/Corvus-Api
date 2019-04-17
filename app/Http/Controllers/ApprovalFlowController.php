@@ -304,7 +304,7 @@ class ApprovalFlowController extends Controller
 
             if ($nextId) {
                 # todo 判断是否需要连续跳过 改进
-                list($nextId, $type, $principalLevel)= $this->jumpOverChain($nextId, $type, $principalLevel, $now, $principalId);
+                list($nextId, $type, $principalLevel) = $this->jumpOverChain($nextId, $type, $principalLevel, $now, $principalId);
             } else
                 $this->createOrUpdateHandler($num, $userId, $currentHandlerType, $principalLevel, $principalId, 232);
 
@@ -999,32 +999,23 @@ class ApprovalFlowController extends Controller
         if ($currentHandlerType == 246) {
             $header = Common::getDepartmentPrincipal($this->applyId, $principalLevel);
             if ($this->userId == $header) {
+                # 指向下一个
                 $this->storeRecord($this->num, $this->userId, $now, 239, null, $currentHandlerId, $currentHandlerType);
-                if ($currentHandlerId) {
-                    if ($currentHandlerType == 246)
-                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId);
-                    else
-                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null);
+                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId);
+                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($this->num), $currentHandlerId, false, $principalLevel);
 
-                    list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($this->num), $currentHandlerId, false, $principalLevel);
-                    return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
-                } else {
-                    if ($currentHandlerType == 246)
-                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId, 232);
-                    else
-                        $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null, 232);
-                }
+                return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
+            } else {
+                # 直接返回
+                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId);
+                return [$currentHandlerId, $currentHandlerType, $principalLevel];
             }
         } elseif ($currentHandlerId == $this->userId) {
             $this->storeRecord($this->num, $this->userId, $now, 239, null, $currentHandlerId, $currentHandlerType);
-            if ($currentHandlerId) {
-                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null);
+            $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, null);
 
-                list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($this->num), $currentHandlerId);
-                return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
-            } else {
-                $this->createOrUpdateHandler($this->num, $this->userId, $currentHandlerType, $principalLevel, null, 232);
-            }
+            list($nextId, $type, $principalLevel) = $this->getChainNext($this->getInstance($this->num), $currentHandlerId);
+            return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
         } else {
             if ($currentHandlerId == 0)
                 $this->createOrUpdateHandler($this->num, $this->userId, $currentHandlerType, $principalLevel, null, 232);

@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Helper\Common;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Department extends Model
 {
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -18,6 +20,7 @@ class Department extends Model
         'desc',
         'city',
     ];
+    protected $dates = ['delete_at'];
     const DEPARTMENT_HEAD_TYPE = 1; // 部门负责人
     const NOT_DISTRIBUTION_DEPARTMENT= '未分配部门'; // 部门负责人
 
@@ -32,7 +35,7 @@ class Department extends Model
     public function departments()
     {
 
-        return $this->hasMany(Department::class, 'department_pid', 'id')->orderBy('sort_number','asc');
+        return $this->hasMany(Department::class, 'department_pid', 'id')->where('deleted_at', null)->orderBy('sort_number','asc');
     }
 
     public function users()

@@ -280,7 +280,7 @@ class DepartmentController extends Controller
         $departmentId = $department->id;
         $departmentPid = $department->department_pid;
 
-        $depatmentRes = DB::table("departments")->where('department_pid', $departmentId)->first();
+        $depatmentRes = DB::table("departments")->where('department_pid', $departmentId)->where('deleted_at', null)->first();
         if($depatmentRes !==null){
             return $this->response->errorInternal('该部门有下级部门');
         }
@@ -311,7 +311,7 @@ class DepartmentController extends Controller
             }
            //////////
             $num = DB::table("department_principal")->where('department_id',$departmentId)->delete();
-            $nums = DB::table("departments")->where('id',$departmentId)->delete();
+            $nums = $department->where('id',$departmentId)->delete();
 
 
 //            if(empty($depatments)){
@@ -471,6 +471,13 @@ class DepartmentController extends Controller
 
         return $arr;
 
+    }
+
+    # todo 优化用户信息返回
+    public function users(Request $request, Department $department)
+    {
+        $users = $department->users;
+        return $this->response->collection($users, new UserTransformer());
     }
 
 

@@ -327,6 +327,7 @@ class ApprovalFlowController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('审批失败');
         }
+        dd('the end');
         DB::commit();
 
         $authorization = $request->header()['authorization'][0];
@@ -1007,7 +1008,7 @@ class ApprovalFlowController extends Controller
                 return $this->jumpOverChain($nextId, $type, $principalLevel, $now);
             } else {
                 # 直接返回
-                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $this->userId);
+                $this->createOrUpdateHandler($this->num, $currentHandlerId, $currentHandlerType, $principalLevel, $header);
                 return [$currentHandlerId, $currentHandlerType, $principalLevel];
             }
         } elseif ($currentHandlerId == $this->userId) {

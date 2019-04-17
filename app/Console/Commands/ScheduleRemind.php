@@ -64,21 +64,21 @@ class ScheduleRemind extends Command
      */
     public function handle()
     {
-//        try{
-//            $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
-//            if (!$res){
-//                echo "登录失败";
-//                Log::error("直客到期检测登录失败...");
-//                return;
-//            }
-//        }catch (\Exception $e){
-//            Log::error("定时任务。。。登录异常");
-//            Log::error($e);
-//        }
-//        Log::info("系统用户登录成功");
-//        $body = $this->httpRepository->jar->getBody();
-//        $access_token = json_decode($body,true)['access_token'];
-//        $authorization = "Bearer ".$access_token;
+        try{
+            $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
+            if (!$res){
+                echo "登录失败";
+                Log::error("直客到期检测登录失败...");
+                return;
+            }
+        }catch (\Exception $e){
+            Log::error("定时任务。。。登录异常");
+            Log::error($e);
+        }
+        Log::info("系统用户登录成功");
+        $body = $this->httpRepository->jar->getBody();
+        $access_token = json_decode($body,true)['access_token'];
+        $authorization = "Bearer ".$access_token;
         $now = Carbon::now();
         //查询开始时间大于当前时间的日程
         $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select(['remind','id','title','creator_id','start_at'])->get();
@@ -139,7 +139,7 @@ class ScheduleRemind extends Command
                 $schdule_obj = Schedule::find($schdule['id']);
                 Log::info("发送日程提醒".$schdule_obj->title);
                 try{
-                    event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,null,$user));
+                    event(new CalendarMessageEvent($schdule_obj,CalendarTriggerPoint::REMIND_SCHEDULE,$authorization,$user));
                     Log::info("日程提醒消息发送成功");
                 }catch (\Exception $exception){
                     Log::error("日程提醒消息发送失败");

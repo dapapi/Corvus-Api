@@ -65,27 +65,27 @@ class Trails extends Command
      */
     public function handle()
     {
-//        try{
-//            $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
-//            if (!$res){
-//                echo "登录失败";
-//                Log::error("直客到期检测登录失败...");
-//                return;
-//            }
-//        }catch (\Exception $e){
-//            Log::error("线索。。。登录异常");
-//            Log::error($e);
-//        }
-//
-////        Log::info("系统用户登录成功");
-//        $body = $this->httpRepository->jar->getBody();
-//        $access_token = json_decode($body,true)['access_token'];
-//        $authorization = "Bearer ".$access_token;
+        try{
+            $res = $this->httpRepository->request("post",'oauth/token',$this->header,$this->params);
+            if (!$res){
+                echo "登录失败";
+                Log::error("直客到期检测登录失败...");
+                return;
+            }
+        }catch (\Exception $e){
+            Log::error("线索。。。登录异常");
+            Log::error($e);
+        }
 
-    //        //获取今天时间
-    //        $dataDay = date('YmdHi');//当前时间
-    //        $Log = "加入公海池".$dataDay."\n";
-    //        Log::info($Log);
+//        Log::info("系统用户登录成功");
+        $body = $this->httpRepository->jar->getBody();
+        $access_token = json_decode($body,true)['access_token'];
+        $authorization = "Bearer ".$access_token;
+
+            //获取今天时间
+            $dataDay = date('YmdHi');//当前时间
+            $Log = "加入公海池".$dataDay."\n";
+            Log::info($Log);
         $now = Carbon::now();
 
         //获取今天时间
@@ -133,7 +133,7 @@ class Trails extends Command
                     $user = User::find(config("app.schdule_user_id"));
                     $meta['created'] = $last_update_at->toDateTimeString();//跟进时间
                     try{
-                        event(new TrailMessageEvent($value, TrailTrigreePoint::REMIND_TRAIL_TO_SEAS, null, $user, $meta));
+                        event(new TrailMessageEvent($value, TrailTrigreePoint::REMIND_TRAIL_TO_SEAS, $authorization, $user, $meta));
                     }catch (\Exception $exception){
                         dump("消息发送失败");
                         Log::error("线索【{$value->title}】进入公海池,消息发送失败");

@@ -225,6 +225,8 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/approval_instances/{instance}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->get('/supplier/{supplier}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/supplier/{supplier}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->get('/aims/{aim}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->post('/aims/{aim}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
         $api->post('stars/list', "App\Http\Controllers\StarController@getStarList2");
@@ -586,6 +588,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
+        $api->post('/information', 'App\Http\Controllers\PersonnelManageController@personalStore');
+
+
         // calendar
         $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
         $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
@@ -611,6 +616,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
         $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
         $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
+
+        //生成日程ICS文件
+        $api->post('/generate', 'App\Http\Controllers\ScheduleController@generateIcs');
 
 
         // material
@@ -960,7 +968,10 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/aims', 'App\Http\Controllers\AimController@store');
         $api->get('/aims/all', 'App\Http\Controllers\AimController@all');
         $api->get('/aims/{aim}', 'App\Http\Controllers\AimController@detail');
+        $api->get('/aims/{aim}/count', 'App\Http\Controllers\AimController@count');
         $api->put('/aims/{aim}', 'App\Http\Controllers\AimController@edit');
+        $api->post('/aims/{aim}/project', 'App\Http\Controllers\AimController@relateProject');
+        $api->put('/aims/{aim}/status', 'App\Http\Controllers\AimController@changeStatus');
         $api->delete('/aims/{aim}', 'App\Http\Controllers\AimController@delete');
 
         // 供应商

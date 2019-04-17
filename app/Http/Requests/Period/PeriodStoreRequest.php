@@ -24,7 +24,7 @@ class PeriodStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required',
+            'name' => 'required|unique',
             'start_at' => 'required|before:end_at',
             'end_at' => 'required|after:start_at',
         ];

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Aim;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Dingo\Api\Http\FormRequest;
 
 class AimEditRequest extends FormRequest
 {
@@ -13,7 +13,7 @@ class AimEditRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,14 @@ class AimEditRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'percentage' => 'between:0,100',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'percentage.between' => '进度范围在0～100%',
         ];
     }
 }

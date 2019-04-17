@@ -27,6 +27,7 @@ use App\Models\Department;
 use App\Models\FilterJoin;
 use App\Models\Industry;
 use App\Models\Message;
+use App\Models\RoleUser;
 use App\ModuleableType;
 use App\Models\OperateEntity;
 use App\Models\Client;
@@ -43,6 +44,7 @@ use App\Repositories\TrailStarRepository;
 use App\TriggerPoint\TrailTrigreePoint;
 use App\User;
 use Exception;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -119,10 +121,20 @@ class TrailController extends Controller
 //        $user_id = DB::select('SELECT T2.id as department_id FROM ( SELECT @r AS _id, (SELECT @r := department_pid FROM
 //              departments WHERE id = _id) AS department_pid, @l := @l + 1 AS lvl FROM (SELECT @r := ?, @l := 0) vars, departments h WHERE @r <> 0 ) T1 JOIN departments T2 ON T1._id = T2.id
 //              ORDER BY T1.lvl DESC', [$department[$i]['department_id']]);
-        $user_id = DB::select('SELECT user_id FROM role_users WHERE role_id = ?', [$roleId]);
+//               redis::select(7);
+//        $this->redis = app('redis');
+//        $groupId = $_SERVER['HTTP_HOST'].$roleId;
+//        if (redis::exists($groupId)) {
+//           $collection = redis::get($groupId);
+//            $collection = json_decode($collection,true);
+//        } else {
+            $collection = RoleUser::where('role_id',$roleId)->get(['user_id']);
+//            $groupId = $_SERVER['HTTP_HOST'].$roleId;
+//            redis::set($groupId,$collection);
+//        }
         $arr = [];
-        foreach ($user_id as $val){
-            $arr[] = $val->user_id;
+        foreach ($collection as $val){
+            $arr[] = $val['user_id'];
         }
         return  $arr;
     }

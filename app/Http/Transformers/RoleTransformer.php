@@ -34,6 +34,7 @@ class RoleTransformer extends TransformerAbstract
         $userinfo = $role->users;
 
         return $this->collection($userinfo, new UserSimpleTransformer());
+
     }
 
 

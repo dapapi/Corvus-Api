@@ -486,6 +486,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->post('/personnel', 'App\Http\Controllers\PersonnelManageController@store');
 
+        $api->post('/information', 'App\Http\Controllers\PersonnelManageController@personalStore');
+
+
         // calendar
         $api->get('/calendars/index', 'App\Http\Controllers\CalendarController@index');
         $api->get('/calendars/all', 'App\Http\Controllers\CalendarController@all');
@@ -511,6 +514,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@detail');
         $api->delete('/schedules/{schedule}', 'App\Http\Controllers\ScheduleController@delete');
         $api->put('/schedules/{schedule}/recover', 'App\Http\Controllers\ScheduleController@recover');
+
+        //生成日程ICS文件
+        $api->post('/generate', 'App\Http\Controllers\ScheduleController@generateIcs');
 
 
         // material

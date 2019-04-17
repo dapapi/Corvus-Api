@@ -157,7 +157,7 @@ class UserTransformer extends TransformerAbstract
     {
 
       //  $tasks = $user->userTasks;
-        $tasks = Task::Join('module_users',function($query){
+        $tasks = Task::LeftJoin('module_users',function($query){
              $query->on('moduleable_id','tasks.id')
                  ->where('moduleable_type',ModuleableType::TASK);
         })

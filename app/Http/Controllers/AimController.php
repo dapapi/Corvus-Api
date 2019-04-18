@@ -267,6 +267,11 @@ class AimController extends Controller
             default:
                 $user = Auth::guard('api')->user();
                 $query->where('principal_id', $user->id)->where('range', Aim::RANGE_PERSONAL);
+
+                # 算本部门其他人完成度
+                $departmentId = DB::table('department_user')->where('user_id', $user->id)->value('department_id');
+                $userIds = DB::table('department_user')->where('department_id', $departmentId)->pluck('');
+                $total = DB::table('aims')->where('range', Aim::RANGE_PERSONAL)->whereIn('principal_id', [])->groupBy('principal_id');
                 break;
         }
 

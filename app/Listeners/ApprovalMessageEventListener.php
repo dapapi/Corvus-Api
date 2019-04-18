@@ -120,9 +120,9 @@ class ApprovalMessageEventListener
             case ApprovalTriggerPoint::WAIT_ME://待我审批
                 $this->sendMessageWhenWaitMe();
                 break;
-//            case ApprovalTriggerPoint::NOTIFY://知会我的
-//                $this->sendMessageWhenNotify();
-//                break;
+            case ApprovalTriggerPoint::NOTIFY://知会我的
+                $this->sendMessageWhenNotify();
+                break;
             case ApprovalTriggerPoint::REMIND://提醒
                 $this->sendMessageWhenProjectRemind();
                 break;

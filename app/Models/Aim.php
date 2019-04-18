@@ -61,6 +61,6 @@ class Aim extends Model
 
     public function projects()
     {
-        return $this->hasMany(AimParent::class, 'c_aim_id', 'id');
+        return $this->hasMany(AimProject::class, 'aim_id', 'id');
     }
 }

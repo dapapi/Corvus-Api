@@ -290,4 +290,9 @@ class AimController extends Controller
         ];
         return  $this->response->array(['data' => $data]);
     }
+
+    public function all (Request $request)
+    {
+
+    }
 }

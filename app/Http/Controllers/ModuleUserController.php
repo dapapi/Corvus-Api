@@ -147,7 +147,8 @@ class ModuleUserController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
-            return $this->response->errorInternal();
+            $error = $e->getMessage();
+            return $this->response->errorInternal($error);
         }
         DB::commit();
         return $this->response->accepted();

@@ -402,6 +402,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
+        $api->get('/trailsOne', 'App\Http\Controllers\TrailController@indexOne');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');

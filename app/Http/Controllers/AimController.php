@@ -271,7 +271,8 @@ class AimController extends Controller
                 # 算本部门其他人完成度
                 $departmentId = DB::table('department_user')->where('user_id', $user->id)->value('department_id');
                 $userIds = DB::table('department_user')->where('department_id', $departmentId)->pluck('user_id');
-                $total = DB::table('aims')->where('range', Aim::RANGE_PERSONAL)->whereIn('principal_id', [])->groupBy('principal_id');
+                $amount = count($userIds);
+                $total = DB::table('aims')->where('range', Aim::RANGE_PERSONAL)->whereIn('principal_id', $userIds)->groupBy('principal_id');
                 break;
         }
 
@@ -297,6 +298,8 @@ class AimController extends Controller
 
     public function all (Request $request)
     {
-
+        # todo 加权限
+        $collections = Aim::get();
+        return $this->response->collection($collections, new AimSimpleTransformer());
     }
 }

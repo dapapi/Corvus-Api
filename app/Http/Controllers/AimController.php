@@ -281,7 +281,11 @@ class AimController extends Controller
         $timePoint = Carbon::today('PRC')->subDays(7);
         $latestCount = $collection->where('last_follow_up_at', '>', $timePoint)->count();
         $completeCount = $collection->where('status', '=', Aim::STATUS_COMPLETE)->count();
-        $percentageAvg = number_format($collection->sum('percentage') / $total, 2);
+        if ($total > 0)
+            $percentageAvg = number_format($collection->sum('percentage') / $total, 2);
+        else
+            $percentageAvg = 0;
+
         $data = [
             'total' => $total,
             'complete_count' => $completeCount,

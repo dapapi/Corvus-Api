@@ -860,9 +860,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         // 目标
         $api->get('/aims', 'App\Http\Controllers\AimController@index');
         $api->post('/aims', 'App\Http\Controllers\AimController@store');
+        $api->get('/aims/count', 'App\Http\Controllers\AimController@count');
         $api->get('/aims/all', 'App\Http\Controllers\AimController@all');
         $api->get('/aims/{aim}', 'App\Http\Controllers\AimController@detail');
-        $api->get('/aims/count', 'App\Http\Controllers\AimController@count');
         $api->put('/aims/{aim}', 'App\Http\Controllers\AimController@edit');
         $api->post('/aims/{aim}/project', 'App\Http\Controllers\AimController@relateProject');
         $api->put('/aims/{aim}/status', 'App\Http\Controllers\AimController@changeStatus');

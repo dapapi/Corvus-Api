@@ -202,8 +202,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/report/{report}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/tasks/{task}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/tasks/{task}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/blogger/{blogger}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->get('/signing/blogger/{blogger}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/blogger/{blogger}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->post('/signing/blogger/{blogger}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 

@@ -230,7 +230,7 @@ class TaskController extends Controller
                 $userIds = $this->getDepartmentUserIds($payload['department']);
                 $query->whereIn('tasks.principal_id', $userIds);
             }
-            if($my ==0){
+            if($my ==0 && !$request->has('keyword') && !$request->has('type_id') && !$request->has('status') && !$request->has('user') && !$request->has('department')){
                 $query->whereRaw('1=1');
                 $query->orWhereRaw("FIND_IN_SET($userId,tasks.adj_id)");
             }

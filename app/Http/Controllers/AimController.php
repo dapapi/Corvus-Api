@@ -270,7 +270,7 @@ class AimController extends Controller
 
                 # 算本部门其他人完成度
                 $departmentId = DB::table('department_user')->where('user_id', $user->id)->value('department_id');
-                $userIds = DB::table('department_user')->where('department_id', $departmentId)->pluck('');
+                $userIds = DB::table('department_user')->where('department_id', $departmentId)->pluck('user_id');
                 $total = DB::table('aims')->where('range', Aim::RANGE_PERSONAL)->whereIn('principal_id', [])->groupBy('principal_id');
                 break;
         }

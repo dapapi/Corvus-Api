@@ -18,7 +18,7 @@ use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
 
 use App\Http\Transformers\TrailDetailTransformer;
-use App\Http\Transformers\TrailFilterTransformer;
+use App\Http\Transformers\TrailIndexOneTransformer;
 use App\Http\Transformers\TrailIndexTransformer;
 use App\Http\Transformers\TrailClientTransformer;
 use App\Imports\TrailsImport;
@@ -83,14 +83,14 @@ class TrailController extends Controller
             }
             if($request->has('type') && $payload['type'])
                 $query->where('type',$payload['type']);
-            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
-                $query->where('type',1);
-            else if(in_array($user->id,$this->getRoleUser(Trail::VARIETY_PERSONNEL)))
-                $query->where('type',2);
-            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
-                $query->whereIn('type',['3,4']);
-            else if(in_array($user->id,$this->getRoleUser(Trail::ADMINISTRATOR)))
-                $query->whereIn('type',['3,4']);
+//            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+//                $query->where('type',1);
+//            else if(in_array($user->id,$this->getRoleUser(Trail::VARIETY_PERSONNEL)))
+//                $query->where('type',2);
+//            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+//                $query->whereIn('type',['3,4']);
+//            else if(in_array($user->id,$this->getRoleUser(Trail::ADMINISTRATOR)))
+//                $query->whereIn('type',['3,4']);
         })
             ->searchData()->poolType()
             //->orderBy('created_at', 'desc')
@@ -113,6 +113,51 @@ class TrailController extends Controller
 //        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
 //        dd($sql_with_bindings);
         return $this->response->paginator($trails, new TrailIndexTransformer());
+    }
+    public function indexOne(FilterTrailRequest $request)
+    {
+        $payload = $request->all();
+        $user = Auth::guard('api')->user();
+        $pageSize = $request->get('page_size', config('app.page_size'));
+
+        $trails = Trail::where(function ($query) use ($request, $payload,$user) {
+            if ($request->has('keyword') && $payload['keyword'])
+                $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
+            if ($request->has('principal_ids') && $payload['principal_ids']) {
+                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                foreach ($payload['principal_ids'] as &$id) {
+                    $id = hashid_decode((int)$id);
+                }
+                unset($id);
+                $query->whereIn('principal_id', $payload['principal_ids']);
+            }
+            if($request->has('type') && $payload['type'])
+                $query->where('type',$payload['type']);
+            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+                $query->where('type',1);
+            else if(in_array($user->id,$this->getRoleUser(Trail::VARIETY_PERSONNEL)))
+                $query->where('type',2);
+            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+                $query->whereIn('type',['3,4']);
+            else
+                $query->whereIn('type',['3,4']);
+        })
+            ->searchData()->poolType()
+            //->orderBy('created_at', 'desc')
+            ->leftJoin('operate_logs',function($join){
+                $join->on('trails.id','operate_logs.logable_id')
+                    ->where('logable_type',ModuleableType::TRAIL)
+                    ->where('operate_logs.method','4');
+            })->groupBy('trails.id')
+            ->where('trails.id','>',0)
+            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')
+            ->select(['trails.id','trails.title','trails.client_id','trails.principal_id','trails.status'
+                ,DB::raw("if(max(`operate_logs`.`updated_at`) is null,`trails`.`created_at`,
+                max(`operate_logs`.`updated_at`))  as up_time")])
+            ->paginate($pageSize);
+//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
+//        dd($sql_with_bindings);
+        return $this->response->paginator($trails, new TrailIndexOneTransformer());
     }
     public function getRoleUser($roleId)
     {

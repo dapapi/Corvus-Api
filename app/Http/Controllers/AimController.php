@@ -10,6 +10,7 @@ use App\Http\Transformers\Aim\AimSimpleTransformer;
 
 use App\Models\Aim;
 use App\Models\OperateEntity;
+use App\Models\Period;
 use App\Models\Project;
 use App\OperateLogMethod;
 use Carbon\Carbon;
@@ -254,14 +255,63 @@ class AimController extends Controller
         $tab = $request->get('tab', 1);
         switch ($tab) {
             case 4: # 全部
+                $defeat = null;
                 break;
             case 3: # 公司
                 $query->where('range', Aim::RANGE_COMPANY);
+
+                $period = Period::find($periodId);
+                $startAt = Carbon::parse($period->start_at)->subYear();
+                $bStartAt = $startAt->subDay()->toDateString();
+                $eStartAt = $startAt->addDay()->toDateString();
+                $endAt = Carbon::parse($period->end_at)->subYear();
+                $bEndAt = $endAt->subDay()->toDateString();
+                $eEndAt = $endAt->addDay()->toDateString();
+                $periods = DB::table('aim_periods')
+                    ->whereBetween('start_at', [$bStartAt, $eStartAt])
+                    ->whereBetween('end_at', [$bEndAt, $eEndAt])
+                    ->pluck('id');
+                $amount = count($periods);
+                $avg = DB::table('aims')->selectRaw('AVG(percentage) as avg_percentage')
+                    ->where('range', Aim::RANGE_COMPANY)
+                    ->where('period_id', $periodId)->value('avg_percentage');
+                if ($amount > 0) {
+                    $temp = DB::table('aims')->selectRaw('AVG(percentage) as avg_percentage')
+                        ->where('range', Aim::RANGE_COMPANY)
+                        ->whereIn('period_id', $periods)->value('avg_percentage');
+
+
+                    $defeat = $avg - $temp;
+                } else {
+                    $defeat = $avg;
+                }
                 break;
             case 2: # 部门
                 $user = Auth::guard('api')->user();
                 $departmentId = DB::table('department_user')->where('user_id', $user->id)->value('department_id');
                 $query->where('department_id', $departmentId)->where('range', Aim::RANGE_DEPARTMENT);
+                $amount = DB::table('departments')->where('id', '!=', '1')->count();
+                $temp = DB::table('aims')->selectRaw('AVG(percentage) as avg_percentage, department_id')
+                    ->where('range', Aim::RANGE_DEPARTMENT)
+                    ->where('period_id', $periodId)
+                    ->groupBy('department_id');
+                $sql_with_bindings = str_replace_array('?', $temp->getBindings(), $temp->toSql());
+                $rankSql = <<<rank
+                    SELECT a.*,
+                    (@rowNum:=@rowNum+1) AS rank
+                    FROM ($sql_with_bindings) AS a,
+                    (SELECT (@rowNum :=0) ) b
+                    ORDER BY a.avg_percentage DESC
+rank;
+                $my = collect(DB::select($rankSql))->where('department_id', $departmentId)->first();
+                dd($my);
+                if ($my) {
+                    # 有排名
+                    $defeat = number_format(($amount + 1 - $my->rank) / $amount, 2) * 100;
+                } else {
+                    # 没排名
+                    $defeat = 0;
+                }
                 break;
             case 1: # 个人
             default:
@@ -272,8 +322,27 @@ class AimController extends Controller
                 $departmentId = DB::table('department_user')->where('user_id', $user->id)->value('department_id');
                 $userIds = DB::table('department_user')->where('department_id', $departmentId)->pluck('user_id');
                 $amount = count($userIds);
-                $total = DB::table('aims')->where('range', Aim::RANGE_PERSONAL)->whereIn('principal_id', $userIds)->groupBy('principal_id');
-                break;
+                $temp = DB::table('aims')->selectRaw('AVG(percentage) as avg_percentage, principal_id')
+                    ->where('period_id', $periodId)
+                    ->where('range', Aim::RANGE_PERSONAL)
+                    ->whereIn('principal_id', $userIds)
+                    ->groupBy('principal_id');
+                $sql_with_bindings = str_replace_array('?', $temp->getBindings(), $temp->toSql());
+                $rankSql = <<<rank
+                    SELECT a.*,
+                    (@rowNum:=@rowNum+1) AS rank
+                    FROM ($sql_with_bindings) AS a,
+                    (SELECT (@rowNum :=0) ) b
+                    ORDER BY a.avg_percentage DESC
+rank;
+                $my = collect(DB::select($rankSql))->where('principal_id', $user->id)->first();
+                if ($my) {
+                    # 有排名
+                    $defeat = number_format(($amount + 1 - $my->rank) / $amount, 2) * 100;
+                } else {
+                    # 没排名
+                    $defeat = 0;
+                }
         }
 
         $collection = $query->get();
@@ -292,11 +361,12 @@ class AimController extends Controller
             'complete_count' => $completeCount,
             'latest_count' => $latestCount,
             'percentage_avg' => $percentageAvg,
+            'percent' => is_null($defeat) ? null : $defeat,
         ];
-        return  $this->response->array(['data' => $data]);
+        return $this->response->array(['data' => $data]);
     }
 
-    public function all (Request $request)
+    public function all(Request $request)
     {
         # todo 加权限
         $collections = Aim::get();

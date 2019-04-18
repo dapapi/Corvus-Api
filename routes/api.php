@@ -12,7 +12,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/test/date', 'App\Http\Controllers\TestController@date');
         $api->get('/test/array_if', 'App\Http\Controllers\TestController@arrayIf');
         $api->get('/test/department', 'App\Http\Controllers\TestController@department');
-        $api->post('stars/list','App\Http\Controllers\StarController@getStarList2');//测试艺人列表
         $api->get('/test/users', 'App\Http\Controllers\TestController@users');
         $api->get('/test/job', 'App\Http\Controllers\TestController@test');
     }
@@ -103,8 +102,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/projects/{project}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/clients/{client}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        //签约中的艺人关联任务
+        $api->get('signing/stars/{star}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
         $api->get('/trails/{trail}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+
         $api->get('/bloggers/{blogger}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
+        //签约中的博主，关联任务
+        $api->get('/signing/bloggers/{blogger}/tasks', 'App\Http\Controllers\TaskController@findModuleTasks');
 
         //任务关联资源
 
@@ -202,8 +206,15 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/blogger/{blogger}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        //签约中的艺人，艺人跟进
+        $api->get('/signing/stars/{star}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+
         $api->post('/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        //签约中的艺人，艺人跟进
+        $api->post('/signing/stars/{star}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/trails/{trail}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/trails/{trail}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/clients/{client}/operate_log', 'App\Http\Controllers\OperateLogController@index');
@@ -218,68 +229,165 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/aims/{aim}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
         //stars
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");//测试艺人列表
-        $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");//测试艺人详情
+        $api->post('stars/list', "App\Http\Controllers\StarController@getStarList2");
+        //签约中的艺人，艺人列表
+        $api->post('/signing/stars/list', "App\Http\Controllers\StarController@getStarList2");
+
+        $api->get('stars/detail/{star}', "App\Http\Controllers\StarController@getStarDeatil");
+        //签约中的艺人，艺人详情
+        $api->get('/signing/stars/detail/{star}', "App\Http\Controllers\StarController@getStarDeatil");
+
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
+        //签约中的艺人,导出艺人
+        $api->post('/signing/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
+
         $api->post('/stars/import', 'App\Http\Controllers\StarController@import');
+        //签约中的艺人艺人导入
+        $api->post('/signing/stars/import', 'App\Http\Controllers\StarController@import');
+
         $api->post('/stars', 'App\Http\Controllers\StarController@store');
+        //签约中的艺人新增
+        $api->post('/signing/stars', 'App\Http\Controllers\StarController@store');
+
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
+        //签约中的艺人列表
+        $api->get('/signing/stars', 'App\Http\Controllers\StarController@index');
+
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
+        //签约中的艺人，全部艺人
+        $api->get('/signing/stars/all', 'App\Http\Controllers\StarController@all');
+
         $api->put('/stars/{star}', 'App\Http\Controllers\StarController@edit');
+        //签约中的艺人，艺人修改
+        $api->put('/signing/stars/{star}', 'App\Http\Controllers\StarController@edit');
+
         $api->get('/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
+        //签约中的艺人，获取删除的
+        $api->get('/signing/stars/recycle_bin', 'App\Http\Controllers\StarController@recycleBin');
+
         $api->get('/stars/{star}', 'App\Http\Controllers\StarController@show');
+        //签约中的艺人，获取艺人详情
+        $api->get('/signing/stars/{star}', 'App\Http\Controllers\StarController@show');
+
 //        $api->get('/stars/{star}', 'App\Http\Controllers\StarController@getStarById');
         $api->post('/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
+        //签约中的艺人，恢复已删除的艺人
+        $api->post('/signing/stars/{star}/recover', 'App\Http\Controllers\StarController@recoverRemove');
+
         $api->delete('/stars/{star}', 'App\Http\Controllers\StarController@remove');
+        //签约中的艺人，删除艺人
+        $api->delete('/signing/stars/{star}', 'App\Http\Controllers\StarController@remove');
+
         $api->get('/stars/{star}/gettaskandprojejct', 'App\Http\Controllers\StarController@getFiveTaskAndProjejct');
         //获取明星作品列表
         $api->get('/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
+        //查看签约中的艺人的做品列表
+        $api->get('/signing/stars/{star}/works', 'App\Http\Controllers\WorkController@index');
+
         //创建明星作品
         $api->post('/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
+        //签约中的艺人，艺人做品新增
+        $api->post('/signing/stars/{star}/works', 'App\Http\Controllers\WorkController@store');
+
         //模型用户(宣传人)
         $api->post('/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+        //签约中的艺人，分配宣传人
+        $api->post('/signing/stars/{star}/publicity', 'App\Http\Controllers\ModuleUserController@addModuleUserPublicity');
+
         //分配制作人
         $api->post('/bloggers/{blogger}/produser', 'App\Http\Controllers\ModuleUserController@addModuleUserProducer');
+        //签约中的博主,分配制作人
+        $api->post('/signing/bloggers/{blogger}/produser', 'App\Http\Controllers\ModuleUserController@addModuleUserProducer');
 
         $api->put('/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+        //签约中的艺人，删除宣传人
+        $api->put('/signing/stars/{star}/publicity_remove', 'App\Http\Controllers\ModuleUserController@remove');
+
         //分配经纪人
         $api->post('/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
+        //签约中的艺人分配经理人
+        $api->post('/signing/stars/{star}/broker', 'App\Http\Controllers\ModuleUserController@addModuleUserBroker');
+
         //获取艺人和博主的联合列表
-        $api->get('/starandblogger','App\Http\Controllers\StarController@getStarAndBlogger');
+        $api->get('/starandblogger', 'App\Http\Controllers\StarController@getStarAndBlogger');
         //为多个博主艺人分配多个经纪人宣传人制作人
         $api->post('/distribution/person', 'App\Http\Controllers\ModuleUserController@addMore');
         $api->delete('/star/{star}/affixes/{affix}', 'App\Http\Controllers\AffixController@remove');
         //导入 导出
         //->middleware('export')
 
-        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
-        $api->get('/bloggers/detail/{blogger}','App\Http\Controllers\BloggerController@getBloggerDetail');
+        $api->post('/bloggers/list', 'App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+        $api->post('/signing/bloggers/list', 'App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+
+        $api->get('/bloggers/detail/{blogger}', 'App\Http\Controllers\BloggerController@getBloggerDetail');
+        //签约中的博主，博主详情
+        $api->get('/signing/bloggers/detail/{blogger}', 'App\Http\Controllers\BloggerController@getBloggerDetail');
+
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
+        //签约中的博主，博主导出
+        $api->post('/signing/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
+
         $api->post('/bloggers/import', 'App\Http\Controllers\BloggerController@import');
+        //签约中的博主博主导出
+        $api->post('/signing/bloggers/import', 'App\Http\Controllers\BloggerController@import');
         //blogger
         $api->post('/bloggers', 'App\Http\Controllers\BloggerController@store');
+        //签约中的博主，博主新增
+        $api->post('/signing/bloggers', 'App\Http\Controllers\BloggerController@store');
         // 分配制作人
         $api->post('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@producerStore');
         //  $api->post('/bloggers/follow/add', 'App\Http\Controllers\BloggerController@follow_store');
         $api->get('/bloggers', 'App\Http\Controllers\BloggerController@index');
+        //签约中的博主，博主列表
+        $api->get('/signing/bloggers', 'App\Http\Controllers\BloggerController@index');
+
         $api->get('/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+        //签约中的博主，获取全部博主
+        $api->get('/signing/bloggers/all', 'App\Http\Controllers\BloggerController@all');
+
         $api->get('/bloggers/select', 'App\Http\Controllers\BloggerController@select');
         //获取类型
         $api->get('/bloggers/gettype', 'App\Http\Controllers\BloggerController@gettypename');
         //添加作品
         $api->post('/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
+        //签约中的博主，博主做品
+        $api->post('/signing/bloggers/new/production', 'App\Http\Controllers\BloggerController@productionStore');
         //查询任务  是否有问卷
         $api->get('/bloggers/{task}/taskblogger', 'App\Http\Controllers\BloggerController@taskBloggerProductionIndex');
         // 查看作品
         $api->get('/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
+        //签约中的博主，查看博主做品库
+        $api->get('/signing/bloggers/index/production', 'App\Http\Controllers\BloggerController@productionIndex');
+
         $api->get('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
+        //签约中的博主，博主详情
+        $api->get('/signing/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@show');
+
         $api->put('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
+        //签约中的博主，博主修改
+        $api->put('/signing/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@edit');
+
         $api->get('/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
+        //签约中的博主，恢复已删除的博主列表
+        $api->get('/signing/bloggers/recycle_bin', 'App\Http\Controllers\BloggerController@recycleBin');
+
         $api->delete('/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
+        //签约中的博主，删除博主
+        $api->delete('/signing/bloggers/{blogger}', 'App\Http\Controllers\BloggerController@remove');
+
         $api->post('/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
+        //签约中的博主，恢复博主
+        $api->post('/signing/bloggers/{blogger}/recover', 'App\Http\Controllers\BloggerController@recoverRemove');
+
         //账单
         $api->get('/bloggers/{blogger}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+        //签约中的博主,博主账单
+        $api->get('/signing/bloggers/{blogger}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+
         $api->get('/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+        //签约中的艺人，艺人账单
+        $api->get('/signing/stars/{star}/bill', 'App\Http\Controllers\ProjectBillController@Index');
+
         $api->get('/projects/{project}/bill', 'App\Http\Controllers\ProjectBillController@Index');
         $api->post('/projects/{project}/store/bill', 'App\Http\Controllers\ProjectBillController@store');
         $api->put('/projects/{project}/edit/bill', 'App\Http\Controllers\ProjectBillController@edit');
@@ -325,10 +433,9 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         $api->get('/clients/all', 'App\Http\Controllers\ClientController@all');
         $api->post('/clients', 'App\Http\Controllers\ClientController@store');
+//            ->middleware('can:create,App\Models\ClientProtected');
         //客户新增接口
         $api->post('/clients/store', 'App\Http\Controllers\ClientController@clientsStore');
-
-//            ->middleware('can:create,App\Models\ClientProtected');
         $api->put('/clients/{client}', 'App\Http\Controllers\ClientController@edit');
         $api->put('/clients/{client}/recover', 'App\Http\Controllers\ClientController@recover');
         $api->delete('/clients/{client}', 'App\Http\Controllers\ClientController@delete');
@@ -343,7 +450,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //获取客户下任务
         $api->get('/clients_tasks/{client}', 'App\Http\Controllers\TaskController@getClientTaskList');
         $api->get('/clients_tasks_norma/{client}', 'App\Http\Controllers\TaskController@getClientTaskNorma');
-
 
 
         //announcement
@@ -416,7 +522,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trailsAll/{trail}', 'App\Http\Controllers\TrailController@detailAll');
 
 
-
         // stars
         $api->get('/stars', 'App\Http\Controllers\StarController@index');
         $api->get('/stars/all', 'App\Http\Controllers\StarController@all');
@@ -443,10 +548,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/reviews/{reviewquestionnaire}/questions/{reviewquestion}/items/{reviewquestionitem}/value', 'App\Http\Controllers\ReviewQuestionItemController@updateValue');
 
 
-
-
-
-
         // project
         $api->get('/projects/filter', 'App\Http\Controllers\ProjectController@filter');
 
@@ -467,7 +568,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->delete('returned/money/{projectreturnedmoney}', 'App\Http\Controllers\ProjectController@deleteReturnedMoney');
         //获取审批通过的项目
         $api->get('/get_has_approval_project', 'App\Http\Controllers\ProjectController@getHasApprovalProject');
-
 
 
         $api->get('/projects/{project}', 'App\Http\Controllers\ProjectController@detail');
@@ -556,7 +656,6 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/edit/data/{user}', 'App\Http\Controllers\PersonnelManageController@editData');//
 
 
-
         $api->post('/materials', 'App\Http\Controllers\MaterialController@store');
         $api->put('/materials/{material}', 'App\Http\Controllers\MaterialController@edit');
         $api->delete('/materials/{material}', 'App\Http\Controllers\MaterialController@delete');
@@ -578,13 +677,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //商务报表导出
         $api->post("/reportfrom/commercialfunnel/export", "App\Http\Controllers\ReportFormController@reportExport")->middleware('export');
         //销售漏斗
-        $api->get("/reportfrom/salesFunnel","App\Http\Controllers\ReportFormController@salesFunnel");
+        $api->get("/reportfrom/salesFunnel", "App\Http\Controllers\ReportFormController@salesFunnel");
         //销售线索报表--线索报表
-        $api->get("/reportfrom/trail","App\Http\Controllers\ReportFormController@trailReportFrom");
+        $api->get("/reportfrom/trail", "App\Http\Controllers\ReportFormController@trailReportFrom");
         //销售线索报表导出
         $api->post("/reportfrom/trail/export", "App\Http\Controllers\ReportFormController@trailExport")->middleware('export');
         //销售线索报表--线索新增
-        $api->get("/reportfrom/newtrail","App\Http\Controllers\ReportFormController@newTrail");
+        $api->get("/reportfrom/newtrail", "App\Http\Controllers\ReportFormController@newTrail");
         //销售线索报表--线索占比perTrail
 //        $api->get("/reportfrom/pertrail","App\Http\Controllers\ReportFormController@perTrail");
         $api->get("/reportfrom/salesFunnel", "App\Http\Controllers\ReportFormController@salesFunnel");
@@ -667,113 +766,109 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
 
         /*公海池*/
-        $api->get('/pool','App\Http\Controllers\SeasPoolController@index');
+        $api->get('/pool', 'App\Http\Controllers\SeasPoolController@index');
         //领取
-        $api->post('/pool/receive','App\Http\Controllers\SeasPoolController@receive');
+        $api->post('/pool/receive', 'App\Http\Controllers\SeasPoolController@receive');
         //分配
-        $api->post('/pool/allot','App\Http\Controllers\SeasPoolController@allot');
+        $api->post('/pool/allot', 'App\Http\Controllers\SeasPoolController@allot');
         //退回
-        $api->post('/pool/refund/{trail}','App\Http\Controllers\SeasPoolController@refund');
-
-
-
+        $api->post('/pool/refund/{trail}', 'App\Http\Controllers\SeasPoolController@refund');
 
 
         /*后台权限 分组 控制台*/
-        $api->get('/console','App\Http\Controllers\ConsoleController@index');
+        $api->get('/console', 'App\Http\Controllers\ConsoleController@index');
         //获取分组信息
-        $api->get('/console/group','App\Http\Controllers\ConsoleController@getGroup');
+        $api->get('/console/group', 'App\Http\Controllers\ConsoleController@getGroup');
         //添加分组
-        $api->post('/console/group','App\Http\Controllers\ConsoleController@storeGroup');
+        $api->post('/console/group', 'App\Http\Controllers\ConsoleController@storeGroup');
         //修改分组
-        $api->put('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@editGroup');
+        $api->put('/console/group/{groupRoles}', 'App\Http\Controllers\ConsoleController@editGroup');
         //删除分组
-        $api->delete('/console/group/{groupRoles}','App\Http\Controllers\ConsoleController@deleteGroup');
+        $api->delete('/console/group/{groupRoles}', 'App\Http\Controllers\ConsoleController@deleteGroup');
         /*后台权限 角色 控制台*/
-        $api->get('/console/role','App\Http\Controllers\ConsoleController@getRole');
+        $api->get('/console/role', 'App\Http\Controllers\ConsoleController@getRole');
         //添加角色
-        $api->post('/console/role','App\Http\Controllers\ConsoleController@storeRole');
+        $api->post('/console/role', 'App\Http\Controllers\ConsoleController@storeRole');
         //修改角色
-        $api->put('/console/role/{role}','App\Http\Controllers\ConsoleController@editRole');
+        $api->put('/console/role/{role}', 'App\Http\Controllers\ConsoleController@editRole');
         //删除角色
-        $api->delete('/console/role/{role}','App\Http\Controllers\ConsoleController@deleteRole');
+        $api->delete('/console/role/{role}', 'App\Http\Controllers\ConsoleController@deleteRole');
         //移动角色
-        $api->put('/console/mobile/{role}','App\Http\Controllers\ConsoleController@mobileRole');
+        $api->put('/console/mobile/{role}', 'App\Http\Controllers\ConsoleController@mobileRole');
         //组获取人员
-        $api->get('/console/person/{role}','App\Http\Controllers\ConsoleController@rolePerson');
+        $api->get('/console/person/{role}', 'App\Http\Controllers\ConsoleController@rolePerson');
         //角色和用户关联
-        $api->post('/console/relevancy/{role}','App\Http\Controllers\ConsoleController@setRoleUser');
+        $api->post('/console/relevancy/{role}', 'App\Http\Controllers\ConsoleController@setRoleUser');
         //功能列表
-        $api->get('/console/feature/{role}','App\Http\Controllers\ConsoleController@feature');
+        $api->get('/console/feature/{role}', 'App\Http\Controllers\ConsoleController@feature');
         //功能角色关联
-        $api->post('/console/feature/{role}','App\Http\Controllers\ConsoleController@featureRole');
+        $api->post('/console/feature/{role}', 'App\Http\Controllers\ConsoleController@featureRole');
         //获取数据权限
-        $api->get('/console/scope/{role}','App\Http\Controllers\ConsoleController@scope');
+        $api->get('/console/scope/{role}', 'App\Http\Controllers\ConsoleController@scope');
         //获取部门负责人
         $api->get('/console/director', 'App\Http\Controllers\ConsoleController@directorList');
 
 
         //增加修改数据权限
-        $api->post('/console/scope/{role}','App\Http\Controllers\ConsoleController@scopeStore');
-        $api->post('/console/features/{role}','App\Http\Controllers\ConsoleController@featureRole');
+        $api->post('/console/scope/{role}', 'App\Http\Controllers\ConsoleController@scopeStore');
+        $api->post('/console/features/{role}', 'App\Http\Controllers\ConsoleController@featureRole');
         //获取数据权限
-        $api->get('/console/scope/{user}','App\Http\Controllers\ConsoleController@scope');
+        $api->get('/console/scope/{user}', 'App\Http\Controllers\ConsoleController@scope');
         /*后台权限 数据范围 控制台*/
-        $api->get('/scope/{user}/module/{dictionaries}','App\Http\Controllers\ScopeController@index');
-        $api->get('/scope/{user}/operation/{dictionaries}','App\Http\Controllers\ScopeController@show');
+        $api->get('/scope/{user}/module/{dictionaries}', 'App\Http\Controllers\ScopeController@index');
+        $api->get('/scope/{user}/operation/{dictionaries}', 'App\Http\Controllers\ScopeController@show');
         //获取当前用户有权限的模块
-        $api->get('/console/getpowermodel','App\Http\Controllers\ConsoleController@getPowerModel');
+        $api->get('/console/getpowermodel', 'App\Http\Controllers\ConsoleController@getPowerModel');
         //验证权限
-        $api->get('/console/checkpower','App\Http\Controllers\ConsoleController@checkPower');
-
+        $api->get('/console/checkpower', 'App\Http\Controllers\ConsoleController@checkPower');
 
 
         // 审批
         //我申请
-        $api->get('/approvals_project/my','App\Http\Controllers\ApprovalFormController@myApply');
+        $api->get('/approvals_project/my', 'App\Http\Controllers\ApprovalFormController@myApply');
         //我的审批 待审批
-        $api->get('/approvals_project/approval','App\Http\Controllers\ApprovalFormController@myApproval');
+        $api->get('/approvals_project/approval', 'App\Http\Controllers\ApprovalFormController@myApproval');
         //我的审批 已审批
-        $api->get('/approvals_project/thenapproval','App\Http\Controllers\ApprovalFormController@myThenApproval');
-        $api->get('/approvals_project/notify','App\Http\Controllers\ApprovalFormController@notify');
+        $api->get('/approvals_project/thenapproval', 'App\Http\Controllers\ApprovalFormController@myThenApproval');
+        $api->get('/approvals_project/notify', 'App\Http\Controllers\ApprovalFormController@notify');
         $api->get('/approvals/contracts', 'App\Http\Controllers\ApprovalFormController@getContractForms');
         $api->get('/approvals', 'App\Http\Controllers\ApprovalFormController@getGeneralForms');
         $api->get('/approvals/{approval}/form_control', 'App\Http\Controllers\ApprovalFormController@getForm');
 
         /*合同列表*/
         //我申请列表
-        $api->get('/approvals_contract/my','App\Http\Controllers\ApprovalContractController@myApply');
+        $api->get('/approvals_contract/my', 'App\Http\Controllers\ApprovalContractController@myApply');
         //我审批的 待审批
-        $api->get('/approvals_contract/approval','App\Http\Controllers\ApprovalContractController@myApproval');
+        $api->get('/approvals_contract/approval', 'App\Http\Controllers\ApprovalContractController@myApproval');
         //我审批的 已审批
-        $api->get('/approvals_contract/thenapproval','App\Http\Controllers\ApprovalContractController@myThenApproval');
+        $api->get('/approvals_contract/thenapproval', 'App\Http\Controllers\ApprovalContractController@myThenApproval');
         //知会我的
-        $api->get('/approvals_contract/notify','App\Http\Controllers\ApprovalContractController@notify');
+        $api->get('/approvals_contract/notify', 'App\Http\Controllers\ApprovalContractController@notify');
 
         /*合同管理*/
         //项目合同
-        $api->get('/approvals_contract/project','App\Http\Controllers\ApprovalContractController@project');
-        $api->post('/approvals_project/filter','App\Http\Controllers\ApprovalFormController@getFilter');
+        $api->get('/approvals_contract/project', 'App\Http\Controllers\ApprovalContractController@project');
+        $api->post('/approvals_project/filter', 'App\Http\Controllers\ApprovalFormController@getFilter');
 
         //经济合同
-        $api->get('/approvals_contract/economic','App\Http\Controllers\ApprovalContractController@economic');
+        $api->get('/approvals_contract/economic', 'App\Http\Controllers\ApprovalContractController@economic');
 
         //合同归档
         $api->post('/approval_instances/{contract}/archive', 'App\Http\Controllers\ApprovalContractController@archive');
 
         //经济合同 自定义筛选
-        $api->post('/approvals_contract/filter','App\Http\Controllers\ApprovalContractController@getFilter');
+        $api->post('/approvals_contract/filter', 'App\Http\Controllers\ApprovalContractController@getFilter');
 
         //项目详情合同列表
-        $api->get('/approvals_contract/projectList','App\Http\Controllers\ApprovalContractController@projectList');
+        $api->get('/approvals_contract/projectList', 'App\Http\Controllers\ApprovalContractController@projectList');
 
         /*一般审批列表*/
         //我申请列表
-        $api->get('/approvals_general/my','App\Http\Controllers\ApprovalGeneralController@myApply');
+        $api->get('/approvals_general/my', 'App\Http\Controllers\ApprovalGeneralController@myApply');
         //我审批的 待审批
-        $api->get('/approvals_general/approval','App\Http\Controllers\ApprovalGeneralController@myApproval');
+        $api->get('/approvals_general/approval', 'App\Http\Controllers\ApprovalGeneralController@myApproval');
         //知会我的
-        $api->get('/approvals_general/notify','App\Http\Controllers\ApprovalGeneralController@notify');
+        $api->get('/approvals_general/notify', 'App\Http\Controllers\ApprovalGeneralController@notify');
 
 
         // 获取审批实例
@@ -798,24 +893,24 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/task/secret/{task}', 'App\Http\Controllers\TaskController@secret');
 
         //获取消息
-        $api->get('/getmsg','App\Http\Controllers\MessageController@index');
+        $api->get('/getmsg', 'App\Http\Controllers\MessageController@index');
         //更改消息状态
-        $api->get('/changestae','App\Http\Controllers\MessageController@changeSate');
-        $api->get('/getmodules','App\Http\Controllers\MessageController@getModules');
+        $api->get('/changestae', 'App\Http\Controllers\MessageController@changeSate');
+        $api->get('/getmodules', 'App\Http\Controllers\MessageController@getModules');
         //移动端获取消息
-        $api->get('/mobile_get_message','App\Http\Controllers\MessageController@MobileGetMessage');
+        $api->get('/mobile_get_message', 'App\Http\Controllers\MessageController@MobileGetMessage');
 
 
         //数据字典
         //列表
-        $api->get('/datadic/index','App\Http\Controllers\DataDictionaryController@index');
-        $api->post('/datadic/add','App\Http\Controllers\DataDictionaryController@store');
+        $api->get('/datadic/index', 'App\Http\Controllers\DataDictionaryController@index');
+        $api->post('/datadic/add', 'App\Http\Controllers\DataDictionaryController@store');
 
         $api->get('data_dictionary/{pid}', 'App\Http\Controllers\DataDictionaryController@company');
         $api->get('data_dictionary/appraising/{pid}', 'App\Http\Controllers\DataDictionaryController@appraising');
         //艺人项目列表
-        $api->get("/stars/{star}/project","App\Http\Controllers\ProjectController@getProjectList");
-        $api->get("/bloggers/{blogger}/project","App\Http\Controllers\ProjectController@getProjectList");
+        $api->get("/stars/{star}/project", "App\Http\Controllers\ProjectController@getProjectList");
+        $api->get("/bloggers/{blogger}/project", "App\Http\Controllers\ProjectController@getProjectList");
 
         //删除附件api
         $api->delete('/affixe', 'App\Http\Controllers\PersonnelManageController@affixe');
@@ -834,16 +929,17 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->put('/appversion/{appversion}', 'App\Http\Controllers\AppVersionController@updateAppVersion');
 
         //任务获取项目相关资源不分页
-        $api->get("/project/related","App\Http\Controllers\ProjectController@getProjectRelated");
+        $api->get("/project/related", "App\Http\Controllers\ProjectController@getProjectRelated");
         //任务获取艺人相关资源不分页
-        $api->get('/star/related','App\Http\Controllers\StarController@getStarRelated');
+        $api->get('/star/related', 'App\Http\Controllers\StarController@getStarRelated');
         //任务获取客户相关资源不分页
-        $api->get('/client/related','App\Http\Controllers\ClientController@getClientRelated');
+        $api->get('/client/related', 'App\Http\Controllers\ClientController@getClientRelated');
         //任务获取销售线索相关资源不分页
         $api->get('/trail/related', 'App\Http\Controllers\TrailController@getTrailRelated');
 
+
         //供应商管理
-        $api->get('/supplier','App\Http\Controllers\SupplierController@index');
+        $api->get('/supplier', 'App\Http\Controllers\SupplierController@index');
 
         $api->get('/supplier/{supplier}', 'App\Http\Controllers\SupplierController@detail');
         $api->post('/supplier', 'App\Http\Controllers\SupplierController@store');
@@ -885,15 +981,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/contact/{supplier}', 'App\Http\Controllers\SupplierController@addContact');
         $api->delete('/contact/{supplierRelate}', 'App\Http\Controllers\SupplierController@removeContact');
         //获取我的任务，我的审批，我的项目，待我审批的数量
-        $api->get('/user/mynumber','App\Http\Controllers\UserController@getMyNumber');
+        $api->get('/user/mynumber', 'App\Http\Controllers\UserController@getMyNumber');
         //获取各个模块列表里面按钮权限
-        $api->get('/user/list_power','App\Http\Controllers\UserController@getListPower');
+        $api->get('/user/list_power', 'App\Http\Controllers\UserController@getListPower');
 
 
         $api->get('/test/task', 'App\Http\Controllers\TestController@task');
-
-        $api->post('umeng/send','App\Http\Controllers\UmengController@sendMsg');
-        $api->post('umeng/sendtoios','App\Http\Controllers\UmengController@sendMsgToIos');
-        $api->post('umeng/find_tsak_message','App\Http\Controllers\UmengController@findTaskMesg');
     });
 });

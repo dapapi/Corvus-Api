@@ -4,7 +4,7 @@
 /storage/*.key
 /storage/app/exports
 /storage/app/imports
-/storage/framework
+/storage/framework/*
 /vendor
 /.idea
 /.vscode

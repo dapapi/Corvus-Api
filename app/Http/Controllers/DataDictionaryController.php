@@ -23,6 +23,7 @@ use League\Fractal\Serializer\DataArraySerializer;
 
 class DataDictionaryController extends Controller
 {
+
     /**
      * 数据字典列表
      */

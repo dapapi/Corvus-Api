@@ -64,7 +64,7 @@ class privacyUserController extends Controller
             $array['moduleable_type'] = ModuleableType::BLOGGER;
             $thisnull = $this->privacyUserRepository->is_creator($array,$model);
             if(!$thisnull) {
-                return $this->response->errorForbidden("你不能修改");
+                return $this->response->errorForbidden("你不能修改隐私设置");
             }
 
         }else if($model instanceof Project && $model->id){
@@ -72,14 +72,14 @@ class privacyUserController extends Controller
             $array['moduleable_type'] = ModuleableType::PROJECT;
             $thisnull = $this->privacyUserRepository->is_creator($array,$model);
             if(!$thisnull) {
-                return $this->response->errorForbidden("你不能修改");
+                return $this->response->errorForbidden("你不能修改隐私设置");
             }
         }else if($model instanceof Star && $model->id){
             $array['moduleable_id'] = $model->id;
             $array['moduleable_type'] = ModuleableType::Star;
             $thisnull = $this->privacyUserRepository->is_creator($array,$model);
             if(!$thisnull) {
-                return $this->response->errorForbidden("你不能修改");
+                return $this->response->errorForbidden("你不能修改隐私设置");
             }
         }
         unset( $array['user_id']);
@@ -115,7 +115,7 @@ class privacyUserController extends Controller
         $user = Auth::guard('api')->user();
         $thisnull = $this->privacyUserRepository->is_creator(["user_id"=>$user->id],$model);
         if(!$thisnull) {
-            return $this->response->errorForbidden("你不能添加");
+            return $this->response->errorForbidden("你不能添加隐私设置");
         }
 //        $data[] = ['moduleable_id' => $moduleable_id,"moduleable_type"=>$moduleable_type,"user_id"=>$user->id];//将创建人加入
         foreach ($payload as $moduleable_field => $users){

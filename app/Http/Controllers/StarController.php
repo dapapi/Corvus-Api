@@ -22,7 +22,6 @@ use App\Models\Affix;
 use App\Models\Blogger;
 use App\Models\Department;
 use App\Models\DepartmentUser;
-
 use App\Models\FilterJoin;
 use App\Models\OperateEntity;
 use App\Models\Project;
@@ -81,11 +80,11 @@ class StarController extends Controller
                 ->where('logable_type', ModuleableType::STAR)
                 ->where('operate_logs.method', '4');
         })->groupBy('stars.id')
-            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id','name','broker_id','avatar','gender','birthday','phone','wechat',
-                'email','source','communication_status','intention','intention_desc','sign_contract_other','sign_contract_other_name','sign_contract_at','sign_contract_status',
-                'terminate_agreement_at','creator_id','stars.status','type','stars.updated_at',
-                'platform','stars.created_at',DB::raw("max(operate_logs.updated_at) as up_time")])
-        //根据条件查询
+            ->orderBy('up_time', 'desc')->orderBy('stars.created_at', 'desc')->select(['stars.id', 'name', 'broker_id', 'avatar', 'gender', 'birthday', 'phone', 'wechat',
+                'email', 'source', 'communication_status', 'intention', 'intention_desc', 'sign_contract_other', 'sign_contract_other_name', 'sign_contract_at', 'sign_contract_status',
+                'terminate_agreement_at', 'creator_id', 'stars.status', 'type', 'stars.updated_at',
+                'platform', 'stars.created_at', DB::raw("max(operate_logs.updated_at) as up_time")])
+            //根据条件查询
 //               $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
 //        dd($sql_with_bindings);
         ->paginate($pageSize);
@@ -771,7 +770,6 @@ class StarController extends Controller
             }
 
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error($e);
             return $this->response->errorInternal('创建失败');
@@ -928,137 +926,6 @@ class StarController extends Controller
         return (new StarsExport($request))->download($file);
     }
 
-    public function dashboard(Request $request, Department $department)
-    {
-        $days = $request->get('days', 7);
-        $departmentId = $department->id;
-        $departmentArr = Common::getChildDepartment($departmentId);
-        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
-
-        $stars = Star::select('stars.id as id', DB::raw('GREATEST(stars.created_at, COALESCE(MAX(b.created_at), 0)) as t'), 'stars.created_at', 'stars.name as title')
-            ->join('module_users', function ($join) {
-                $join->on('stars.id', '=', 'module_users.moduleable_id')
-                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR)
-                    ->where('module_users.type', '=', ModuleUserType::BROKER);
-            })
-            ->whereIn('module_users.user_id', $userIds)
-            ->leftJoin('operate_logs as b', function ($join) {
-                $join->on('stars.id', '=', 'b.logable_id')
-                    ->where('b.logable_type', '=', ModuleableType::STAR)
-                    ->where('b.method', '=', OperateLogMethod::FOLLOW_UP);
-            })
-            ->groupBy('stars.id')
-            ->orderBy('t', 'desc')
-            ->take(5)
-            ->get();
-//        $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
-//        dd($sql_with_bindings);
-        $result = $this->response->collection($stars, new DashboardModelTransformer());
-
-//        dd($result);
-        $count = Star::select('stars.id as id')
-            ->join('module_users', function ($join) {
-                $join->on('stars.id', '=', 'module_users.moduleable_id')
-                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR)
-                    ->where('module_users.type', '=', ModuleUserType::BROKER);
-            })
-            ->whereIn('module_users.user_id', $userIds)->distinct('stars.id')->count('stars.id');
-
-        $timePoint = Carbon::today('PRC')->subDays($days);
-
-        $latestFollow = Star::join('module_users', function ($join) {
-            $join->on('stars.id', '=', 'module_users.moduleable_id')
-                ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
-        })
-            ->where('module_users.type', '=', ModuleUserType::BROKER)
-            ->whereIn('module_users.user_id', $userIds)->join('operate_logs', function ($join) {
-                $join->on('stars.id', '=', 'operate_logs.logable_id')
-                    ->where('operate_logs.logable_type', ModuleableType::STAR)
-                    ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
-            })->where('operate_logs.created_at', '>', $timePoint)->distinct('stars.id')->count('stars.id');
-
-        $starIdArr = Star::select('stars.id as id', DB::raw('GREATEST(stars.created_at, MAX(b.created_at)) as t'), 'stars.name as title')
-            ->join('module_users', function ($join) {
-                $join->on('stars.id', '=', 'module_users.moduleable_id')
-                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR)
-                    ->where('module_users.type', '=', ModuleUserType::BROKER);
-            })
-            ->whereIn('module_users.user_id', $userIds)
-            ->join('operate_logs as b', function ($join) {
-                $join->on('stars.id', '=', 'b.logable_id')
-                    ->where('b.logable_type', ModuleableType::STAR)
-                    ->where('b.method', '=', OperateLogMethod::FOLLOW_UP);
-            })->groupBy('stars.id')->pluck('stars.id');
-
-        $withTrail = Trail::leftJoin('trail_star', function ($join) {
-            $join->on('trail_star.trail_id', '=', 'trails.id')
-                ->where('starable_type', ModuleableType::STAR)
-                ->where('trail_star.type', TrailStar::EXPECTATION);
-        })->whereIn('starable_id', $starIdArr)->where('trail_star.created_at', '>', $timePoint)->distinct('trails.id')->count('trails.id');
-        $trailIdArr = Trail::leftJoin('trail_star', function ($join) {
-            $join->on('trail_star.trail_id', '=', 'trails.id')
-                ->where('starable_type', ModuleableType::STAR)
-                ->where('trail_star.type', TrailStar::EXPECTATION);
-        })->whereIn('starable_id', $starIdArr)->where('trail_star.created_at', '>', $timePoint)->distinct('trails.id')->pluck('trails.id');
-        $withProject = Project::whereIn('trail_id', $trailIdArr)->where('created_at', '>', $timePoint)->distinct('projects.id')->count('projects.id');
-
-        $starInfoArr = [
-            'total' => $count,
-            'latest_follow' => $latestFollow,
-            'with_trail' => $withTrail,
-            'with_project' => $withProject,
-        ];
-
-        $result->addMeta('count', $starInfoArr);
-        return $result;
-    }
-
-    public function getStarList(Request $request)
-    {
-        $payload = $request->all();
-        $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $condition = null;
-        if (isset($payload['conditions'])){
-            $condition = FilterReportRepository::getCondition($payload['conditions']);
-        }
-        $star_list =  StarRepository::getStarList($condition);
-        $res = [];
-        foreach ($star_list as $key => $star){
-            $temp['id'] = hashid_encode($star->id);
-            $temp['contracts']['data']['contract_start_date'] = $star->sign_contract_at;
-            $temp['contracts']['data']['contract_end_date'] = $star->terminate_agreement_at;
-            $temp['sign_contract_at'] = $star->sign_contract_at;
-            $temp['terminate_agreement_at'] = $star->terminate_agreement_at;
-            $temp['name'] = $star->name;
-            $temp['weibo_fans_num'] = $star->weibo_fans_num;
-            $temp['source'] = $star->source;
-            $temp['created_at'] = $star->created_at;
-            $temp['last_follow_up_at'] = $star->last_follow_up_at;
-            $temp['sign_contract_status'] = $star->sign_contract_status;
-            $temp['birthday'] = $star->birthday;
-            $temp['communication_status'] = $star->communication_status;
-            $res[] = $temp;
-        }
-        $meta = [
-            "pagination"=> [
-                "total"=> 576,
-                "count"=> 15,
-                "per_page"=> 15,
-                "current_page"=> 1,
-                "total_pages"=> 39,
-                "links"=> [
-                    "next"=> "http://corvus.cn/stars/filter?page=2"
-                ],
-            ]
-        ];
-        return [
-            "data" => $res,
-            "meta"  => $meta,
-            "status"    =>  "success"
-        ];
-    }
-
 
     public function getStarList2(Request $request)
     {
@@ -1109,7 +976,92 @@ class StarController extends Controller
             $operate,
         ]));
         $user = Auth::guard("api")->user();
-        $star->powers = $starRepository->getPower($user,$star);
-        return $this->response()->item($star,new StarDeatilTransformer());
+        $star->powers = $starRepository->getPower($user, $star);
+        return $this->response()->item($star, new StarDeatilTransformer());
+    }
+
+    public function dashboard(Request $request, Department $department)
+    {
+        $days = $request->get('days', 7);
+        $departmentId = $department->id;
+        $departmentArr = Common::getChildDepartment($departmentId);
+        $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
+
+        $stars = Star::select('stars.id as id', DB::raw('GREATEST(stars.created_at, COALESCE(MAX(b.created_at), 0)) as t'), 'stars.created_at', 'stars.name as title')
+            ->join('module_users', function ($join) {
+                $join->on('stars.id', '=', 'module_users.moduleable_id')
+                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR)
+                    ->where('module_users.type', '=', ModuleUserType::BROKER);
+            })
+            ->whereIn('module_users.user_id', $userIds)
+            ->leftJoin('operate_logs as b', function ($join) {
+                $join->on('stars.id', '=', 'b.logable_id')
+                    ->where('b.logable_type', '=', ModuleableType::STAR)
+                    ->where('b.method', '=', OperateLogMethod::FOLLOW_UP);
+            })
+            ->groupBy('stars.id')
+            ->orderBy('t', 'desc')
+            ->take(5)
+            ->get();
+//        $sql_with_bindings = str_replace_array('?', $stars->getBindings(), $stars->toSql());
+//        dd($sql_with_bindings);
+        $result = $this->response->collection($stars, new DashboardModelTransformer());
+
+//        dd($result);
+        $count = Star::select('stars.id as id')
+            ->join('module_users', function ($join) {
+                $join->on('stars.id', '=', 'module_users.moduleable_id')
+                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR)
+                    ->where('module_users.type', '=', ModuleUserType::BROKER);
+            })
+            ->whereIn('module_users.user_id', $userIds)->distinct('stars.id')->count('stars.id');
+
+        $timePoint = Carbon::today('PRC')->subDays($days);
+
+        $latestFollow = Star::join('module_users', function ($join) {
+                $join->on('stars.id', '=', 'module_users.moduleable_id')
+                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR);
+            })
+                ->where('module_users.type', '=', ModuleUserType::BROKER)
+                ->whereIn('module_users.user_id', $userIds)->join('operate_logs', function ($join) {
+            $join->on('stars.id', '=', 'operate_logs.logable_id')
+                ->where('operate_logs.logable_type', ModuleableType::STAR)
+                ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
+        })->where('operate_logs.created_at', '>', $timePoint)->distinct('stars.id')->count('stars.id');
+
+        $starIdArr = Star::select('stars.id as id', DB::raw('GREATEST(stars.created_at, MAX(b.created_at)) as t'), 'stars.name as title')
+            ->join('module_users', function ($join) {
+                $join->on('stars.id', '=', 'module_users.moduleable_id')
+                    ->where('module_users.moduleable_type', '=', ModuleableType::STAR)
+                    ->where('module_users.type', '=', ModuleUserType::BROKER);
+            })
+            ->whereIn('module_users.user_id', $userIds)
+            ->join('operate_logs as b', function ($join) {
+                $join->on('stars.id', '=', 'b.logable_id')
+                    ->where('b.logable_type', ModuleableType::STAR)
+                    ->where('b.method', '=', OperateLogMethod::FOLLOW_UP);
+            })->groupBy('stars.id')->pluck('stars.id');
+
+        $withTrail = Trail::leftJoin('trail_star', function ($join) {
+            $join->on('trail_star.trail_id', '=', 'trails.id')
+                ->where('starable_type', ModuleableType::STAR)
+                ->where('trail_star.type', TrailStar::EXPECTATION);
+        })->whereIn('starable_id', $starIdArr)->where('trail_star.created_at', '>', $timePoint)->distinct('trails.id')->count('trails.id');
+        $trailIdArr = Trail::leftJoin('trail_star', function ($join) {
+            $join->on('trail_star.trail_id', '=', 'trails.id')
+                ->where('starable_type', ModuleableType::STAR)
+                ->where('trail_star.type', TrailStar::EXPECTATION);
+        })->whereIn('starable_id', $starIdArr)->where('trail_star.created_at', '>', $timePoint)->distinct('trails.id')->pluck('trails.id');
+        $withProject = Project::whereIn('trail_id', $trailIdArr)->where('created_at', '>', $timePoint)->distinct('projects.id')->count('projects.id');
+
+        $starInfoArr = [
+            'total' => $count,
+            'latest_follow' => $latestFollow,
+            'with_trail' => $withTrail,
+            'with_project' => $withProject,
+        ];
+
+        $result->addMeta('count', $starInfoArr);
+        return $result;
     }
 }

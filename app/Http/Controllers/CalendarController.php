@@ -115,7 +115,7 @@ class CalendarController extends Controller
             }else{
                 $calendar = Calendar::create($payload);
             }
-            
+
             if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
                 $payload['participant_ids'] = [];
 

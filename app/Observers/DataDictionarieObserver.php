@@ -2,12 +2,12 @@
 
 namespace App\Observers;
 
-use App\Models\GroupList;
+use App\Models\DataDictionarie;
 
 class DataDictionarieObserver
 {
 
-    public function saved(GroupList $groupList)
+    public function saved(DataDictionarie $dataDictionarie)
     {
 
 dd(2);
@@ -22,7 +22,7 @@ dd(2);
 //        // 更新 Redis
 //        app('redis')->connection('content')->hmset($key, $value);
     }
-    public function deleted(GroupList $groupList)
+    public function deleted(DataDictionarie $dataDictionarie)
     {
         dd(3);
 //        //   要检索内存的数据

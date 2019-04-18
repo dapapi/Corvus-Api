@@ -39,9 +39,7 @@ use App\Repositories\AffixRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ScopeRepository;
 
-
 use App\ResourceType;
-
 use App\TaskPriorityStatus;
 
 use App\TaskStatus;
@@ -285,7 +283,7 @@ class TaskController extends Controller
     }
 
 
-    public function tasksAll(Request $request,Task $task)
+    public function tasksAll(Request $request, Task $task)
     {
         $payload = $request->all();
         $data = $task
@@ -526,7 +524,7 @@ class TaskController extends Controller
 
         $tasks = $query->searchData()->where('privacy', false)->paginate($pageSize);
         //获取任务完成数量
-        $complete_count = $query->where('privacy', false)->where('status',TaskStatus::COMPLETE)->count();
+        $complete_count = $query->where('privacy', false)->where('status', TaskStatus::COMPLETE)->count();
 
         $request = $this->response->paginator($tasks, new ClientTaskTransformer());
         $request->addMeta("complete_count",$complete_count);
@@ -1760,7 +1758,6 @@ class TaskController extends Controller
         //发消息
         $authorization = $request->header()['authorization'][0];
         event(new TaskMessageEvent($task, TaskTriggerPoint::CRATE_TASK, $authorization, $user));
-
 //        DB::beginTransaction();
 //        try {
 //
@@ -2040,8 +2037,8 @@ class TaskController extends Controller
         }
         DB::commit();
         //发消息
-//        $authorization = $request->header()['authorization'][0];
-//        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
+        $authorization = $request->header()['authorization'][0];
+        event(new TaskMessageEvent($task,TaskTriggerPoint::CRATE_TASK,$authorization,$user));
 
 //        DB::beginTransaction();
 //        try {

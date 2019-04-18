@@ -120,9 +120,9 @@ class ApprovalMessageEventListener
             case ApprovalTriggerPoint::WAIT_ME://待我审批
                 $this->sendMessageWhenWaitMe();
                 break;
-//            case ApprovalTriggerPoint::NOTIFY://知会我的
-//                $this->sendMessageWhenNotify();
-//                break;
+            case ApprovalTriggerPoint::NOTIFY://知会我的
+                $this->sendMessageWhenNotify();
+                break;
             case ApprovalTriggerPoint::REMIND://提醒
                 $this->sendMessageWhenProjectRemind();
                 break;
@@ -277,8 +277,8 @@ class ApprovalMessageEventListener
         if ($this->trigger_point == ApprovalTriggerPoint::NOTIFY){
             Log::info("消息函数向".implode(",",$send_to)."发消息");
         }
-//        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
-//            $this->module, null, $this->data, $send_to,$module_data_id);
+        $this->messageRepository->addMessage($this->user, $this->authorization, $title, $subheading,
+            $this->module, null, $this->data, $send_to,$module_data_id);
 //        $this->umengRepository->sendMsgToMobile($send_to,"审批管理助手",$title,$this->umeng_text,$this->umeng_description,$this->module,$module_data_id);
        //加入任务对列
 //        dd($send_to);

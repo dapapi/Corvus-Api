@@ -70,7 +70,7 @@ return [
     */
 
     'server_http' => [
-        'address' => 'corvus.cn',
+        'address' => '127.0.0.1',
         'port' => '8099',
     ],
 

@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Transformers;
-
 use App\Models\Department;
 use App\Models\Role;
 use App\User;

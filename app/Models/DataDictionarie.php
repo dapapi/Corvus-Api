@@ -53,6 +53,8 @@ class DataDictionarie extends Model
     const PROJECT_BILL = 543;//项目账单
     const BLOGGER_BILL = 544; //博主账单
     const STAR_BILL = 545; //艺人账单
+    const SIGNING_STAR = 620;//签约中的艺人
+    const SIGNING_BLOGGER = 652;//签约中的博主
     //。。。。
 
 

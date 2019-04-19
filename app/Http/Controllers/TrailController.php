@@ -397,6 +397,39 @@ class TrailController extends Controller
         }
         return $this->response->item($trail, new TrailTransformer());
     }
+    //todo  客户品牌   公司获取
+    public function getCompanyBrand()
+    {
+
+        $getCompanyBrand = Client::searchData()->get(['id','company','brand','industry']);
+        foreach ($getCompanyBrand as $key){
+            $key['id'] = hashid_encode($key['id']);
+        }
+       return $getCompanyBrand;
+    }
+     // todo 品牌带出 公司行业
+    public function BrandOrCompany(Request $request)
+    {
+        $payload = $request->all();
+        if($request->has('brand')) {
+
+            $brandgetCompany = Client::searchData()->where('brand',$payload['brand'])->first(['id','company','brand','industry']);
+            if(!$brandgetCompany)
+               return '没有找到行业对应公司';
+         return $brandgetCompany;
+        }
+        if($request->has('company')){
+
+            $CompanygetBrand = Client::searchData()->where('brand',$payload['brand'])->first(['id','company','brand','industry']);
+            if(!$CompanygetBrand)
+                return '没有找到公司对应行业';
+            return $CompanygetBrand;
+        }
+
+    }
+
+
+
     // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
     public function add(StoreTrailRequest $request)
     {

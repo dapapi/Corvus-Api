@@ -267,6 +267,12 @@ class AimController extends Controller
             default:
                 $user = Auth::guard('api')->user();
                 $query->where('principal_id', $user->id)->where('range', Aim::RANGE_PERSONAL);
+
+                # 算本部门其他人完成度
+                $departmentId = DB::table('department_user')->where('user_id', $user->id)->value('department_id');
+                $userIds = DB::table('department_user')->where('department_id', $departmentId)->pluck('user_id');
+                $amount = count($userIds);
+                $total = DB::table('aims')->where('range', Aim::RANGE_PERSONAL)->whereIn('principal_id', $userIds)->groupBy('principal_id');
                 break;
         }
 
@@ -276,7 +282,11 @@ class AimController extends Controller
         $timePoint = Carbon::today('PRC')->subDays(7);
         $latestCount = $collection->where('last_follow_up_at', '>', $timePoint)->count();
         $completeCount = $collection->where('status', '=', Aim::STATUS_COMPLETE)->count();
-        $percentageAvg = number_format($collection->sum('percentage') / $total, 2);
+        if ($total > 0)
+            $percentageAvg = number_format($collection->sum('percentage') / $total, 2);
+        else
+            $percentageAvg = 0;
+
         $data = [
             'total' => $total,
             'complete_count' => $completeCount,
@@ -284,5 +294,12 @@ class AimController extends Controller
             'percentage_avg' => $percentageAvg,
         ];
         return  $this->response->array(['data' => $data]);
+    }
+
+    public function all (Request $request)
+    {
+        # todo 加权限
+        $collections = Aim::get();
+        return $this->response->collection($collections, new AimSimpleTransformer());
     }
 }

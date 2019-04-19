@@ -6,6 +6,7 @@ use App\ModuleUserType;
 use App\OperateLogMethod;
 use App\Repositories\ScopeRepository;
 use App\Scopes\SearchDataScope;
+use App\SignContractStatus;
 use App\Traits\PrivacyFieldTrait;
 use App\User;
 use App\TaskStatus;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Input;
 
 class Blogger extends Model
 {
@@ -74,7 +76,7 @@ class Blogger extends Model
     {
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-        $rules = (new ScopeRepository())->getDataViewUsers(self::$model_dic_id);
+        $rules = (new ScopeRepository())->getDataViewUsers($this->model_dic_id);
         $query->where(function ($query)use ($rules,$userid){
             return (new SearchDataScope())->getCondition($query,$rules,$userid)->orWhereRaw("{$userid} in (
             select u.id from bloggers as b 

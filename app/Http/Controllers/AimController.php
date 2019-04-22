@@ -170,7 +170,7 @@ class AimController extends Controller
             $aim->update($payload);
             if ($request->has('parents_ids')) {
                 if (count($aim->parents) > 0)
-                    $aim->parents->delete();
+                    $aim->parents()->delete();
 
                 foreach ($payload['parents_ids'] as $id) {
                     $id = hashid_decode($id);
@@ -190,7 +190,7 @@ class AimController extends Controller
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error($exception);
-            return $this->response->error('修改失败');
+            return $this->response->errorInternal('修改失败');
         }
         DB::commit();
         return $this->response->item($aim, new AimDetailTransformer());

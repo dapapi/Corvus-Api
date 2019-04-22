@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\TaskMessageEvent;
+use App\Helper\Common;
 use App\Jobs\SendUmengMsgToMobile;
 use App\Models\Message;
 use App\Models\Task;
@@ -221,7 +222,7 @@ class TaskMessageEventListener
         }
 //        $this->umengRepository->sendMsgToMobile($send_to,"任务管理助手",$title,$umeng_text,Message::TASK,hashid_encode($this->task->id));
         $job = new SendUmengMsgToMobile([
-            'send_to' => $send_to,
+            'send_to' => Common::unsetArrayValue($send_to,$this->user->id),
             'title' => $title,
             'tricker' => "任务管理助手",
             'text' => $umeng_text,

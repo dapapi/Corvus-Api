@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\ApprovalMessageEvent;
+use App\Helper\Common;
 use App\Jobs\SendUmengMsgToMobile;
 use App\Models\ApprovalFlow\Execute;
 use App\Models\ApprovalForm\ApprovalForm;
@@ -284,7 +285,7 @@ class ApprovalMessageEventListener
 //        dd($send_to);
         Log::info("消息加入对列");
         $job = new SendUmengMsgToMobile([
-            'send_to' => $send_to,
+            'send_to' => Common::unsetArrayValue($send_to,$this->user->id),
             'title' => $title,
             'tricker' => "审批管理助手",
             'text' => $this->umeng_text,

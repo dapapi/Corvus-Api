@@ -46,12 +46,12 @@ class Aim extends Model
 
     public function parents()
     {
-        return $this->hasMany(AimParent::class, 'p_aim_id', 'id');
+        return $this->hasMany(AimParent::class, 'c_aim_id', 'id');
     }
 
     public function children()
     {
-        return $this->hasMany(AimParent::class, 'c_aim_id', 'id');
+        return $this->hasMany(AimParent::class, 'p_aim_id', 'id');
     }
 
     public function operateLogs()

@@ -169,7 +169,9 @@ class AimController extends Controller
         try {
             $aim->update($payload);
             if ($request->has('parents_ids')) {
-                $aim->parents->delete();
+                if (count($aim->parents) > 0)
+                    $aim->parents->delete();
+
                 foreach ($payload['parents_ids'] as $id) {
                     $id = hashid_decode($id);
                     $pAim = Aim::find($id);

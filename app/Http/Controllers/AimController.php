@@ -306,7 +306,6 @@ class AimController extends Controller
                     ORDER BY a.avg_percentage DESC
 rank;
                 $my = collect(DB::select($rankSql))->where('department_id', $departmentId)->first();
-                dd($my);
                 if ($my) {
                     # 有排名
                     $defeat = number_format(($amount + 1 - $my->rank) / $amount, 2) * 100;

@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\AnnouncementMessageEvent;
+use App\Helper\Common;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\Project;
@@ -112,7 +113,7 @@ class AnnouncementMessageEventListener
         $umeng_text = "公告名称:".$this->instance->title;
 //        $this->umengRepository->sendMsgToMobile($send_to,"公告管理助手",$title,$umeng_text,Message::ANNOUNCENMENT,hashid_encode($this->instance->id));
         $job = new SendUmengMsgToMobile([
-            'send_to' => $send_to,
+            'send_to' => Common::unsetArrayValue($send_to,$this->user->id),
             'title' => $title,
             'tricker' => "公告管理助手",
             'text' => $this->umeng_text,

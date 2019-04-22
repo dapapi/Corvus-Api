@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\CalendarMessageEvent;
+use App\Helper\Common;
 use App\Jobs\SendUmengMsgToMobile;
 use App\Models\Calendar;
 use App\Models\Message;
@@ -130,7 +131,7 @@ class CalendarMessageEventListener
         $umeng_text = "日程名称:".$this->schedule->title;
 //        $this->umengRepository->sendMsgToMobile($send_to,"日程管理助手",$title,$umeng_text,Message::CALENDAR,hashid_encode($this->schedule->id));
         $job = new SendUmengMsgToMobile([
-            'send_to' => $send_to,
+            'send_to' => Common::unsetArrayValue($send_to,$this->user->id),
             'title' => $title,
             'tricker' => "日程管理助手",
             'text' => $umeng_text,

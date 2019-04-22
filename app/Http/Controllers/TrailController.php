@@ -13,6 +13,7 @@ use App\Http\Requests\Trail\FilterTrailRequest;
 use App\Http\Requests\Trail\RefuseTrailReuqest;
 use App\Http\Requests\Trail\SearchTrailRequest;
 use App\Http\Requests\Trail\StoreTrailRequest;
+use App\Http\Requests\Trail\AddTrailRequest;
 use App\Http\Requests\Trail\TypeTrailReuqest;
 use App\Http\Requests\Excel\ExcelImportRequest;
 use App\Http\Transformers\TrailTransformer;
@@ -431,20 +432,15 @@ class TrailController extends Controller
 
 
     // todo 根据所属公司存不同类型 去完善 /users/my 目前为前端传type，之前去确认是否改
-    public function add(StoreTrailRequest $request)
+    public function add(AddTrailRequest $request)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
-
-        if ($request->has('lock') && $payload['lock'])
-            $payload['lock_status'] = 1;
-
         $payload['principal_id'] = $request->has('principal_id') ? hashid_decode($payload['principal_id']) : null;
         // 改为直接新建
         $payload['contact_id'] = $request->has('contact_id') ? hashid_decode($payload['contact_id']) : null;
-        $payload['industry_id'] = hashid_decode($payload['industry_id']);
-
+       $payload['client']['industry'] = hashid_decode($payload['client']['industry']);
         if (array_key_exists('id', $payload['contact'])) {
             $contact = Contact::find(hashid_decode($payload['contact']['id']));
             if (!$contact)
@@ -462,20 +458,21 @@ class TrailController extends Controller
         } else {
             $client = null;
         }
-
         $user = User::find($payload['principal_id']);
         if (!$user)
             return $this->response->errorBadRequest('用户不存在');
-
         DB::beginTransaction();
-
         try {
+
             if (!array_key_exists('id', $payload['client'])) {
                 $client = Client::create([
                     'company' => $payload['client']['company'],
-                    'grade' => $payload['client']['grade'],
+                    //'grade' => $payload['client']['grade'],
                     'principal_id' => $payload['principal_id'],
                     'type' => $payload['type'],
+                    'brand' => $payload['client']['brand'] = $request->has('client.brand') ? $payload['client']['brand']:'',
+                    'industry' => $payload['client']['industry'],
+                    'customer' => $payload['customer'] = $request->has('customer')? $payload['customer']: '',
                     'creator_id' => $user->id,
                 ]);
                 // 操作日志
@@ -490,7 +487,6 @@ class TrailController extends Controller
                     $operate,
                 ]));
             }
-
             if (!array_key_exists('id', $payload['contact'])) {
                 $dataArray = [];
                 $dataArray['client_id'] = $client->id;
@@ -505,7 +501,6 @@ class TrailController extends Controller
                     $dataArray['other_contact_ways'] = $payload['contact']['other_contact_ways'];
                 }
                 $contact = Contact::create($dataArray);
-
                 // 操作日志
                 $operate = new OperateEntity([
                     'obj' => $client,
@@ -518,7 +513,6 @@ class TrailController extends Controller
                     $operate,
                 ]));
             }
-
             $payload['contact_id'] = $contact->id;
             $payload['client_id'] = $client->id;
 
@@ -527,7 +521,6 @@ class TrailController extends Controller
             $payload['lock_user'] = $lock_user;
             $payload['lock_at'] = $lock_at;
             $trail = Trail::create($payload);
-
             if ($request->has('expectations') && is_array($payload['expectations'])) {
                 (new TrailStarRepository())->store($trail,$payload['expectations'],TrailStar::EXPECTATION);
 //                if ($trail->type == Trail::TYPE_PAPI) {
@@ -599,6 +592,7 @@ class TrailController extends Controller
                 $operate,
             ]));
         } catch (\Exception $exception) {
+            dd($exception);
             Log::error($exception);
             DB::rollBack();
             return $this->response->errorInternal('创建线索失败');

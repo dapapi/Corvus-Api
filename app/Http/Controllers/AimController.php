@@ -169,7 +169,9 @@ class AimController extends Controller
         try {
             $aim->update($payload);
             if ($request->has('parents_ids')) {
-                $aim->parents->delete();
+                if (count($aim->parents) > 0)
+                    $aim->parents()->delete();
+
                 foreach ($payload['parents_ids'] as $id) {
                     $id = hashid_decode($id);
                     $pAim = Aim::find($id);
@@ -188,7 +190,7 @@ class AimController extends Controller
         } catch (\Exception $exception) {
             DB::rollBack();
             Log::error($exception);
-            return $this->response->error('修改失败');
+            return $this->response->errorInternal('修改失败');
         }
         DB::commit();
         return $this->response->item($aim, new AimDetailTransformer());
@@ -304,7 +306,6 @@ class AimController extends Controller
                     ORDER BY a.avg_percentage DESC
 rank;
                 $my = collect(DB::select($rankSql))->where('department_id', $departmentId)->first();
-                dd($my);
                 if ($my) {
                     # 有排名
                     $defeat = number_format(($amount + 1 - $my->rank) / $amount, 2) * 100;

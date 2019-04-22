@@ -202,8 +202,12 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->post('/report/{report}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
         $api->get('/tasks/{task}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/tasks/{task}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/blogger/{blogger}/operate_log', 'App\Http\Controllers\OperateLogController@index');
+        $api->get('/signing/blogger/{blogger}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/blogger/{blogger}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+        $api->post('/signing/blogger/{blogger}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
+
         $api->get('/projects/{project}/operate_log', 'App\Http\Controllers\OperateLogController@index');
         $api->post('/projects/{project}/follow_up', 'App\Http\Controllers\OperateLogController@addFollowUp');
 
@@ -511,6 +515,11 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trailsOne', 'App\Http\Controllers\TrailController@indexOne');
+
+        //客户  公司 品牌
+        $api->get('/getCompanyBrand', 'App\Http\Controllers\TrailController@getCompanyBrand');
+        //品牌带出行业
+        $api->get('/brandOrCompany', 'App\Http\Controllers\TrailController@BrandOrCompany');
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');
         $api->post('/trails', 'App\Http\Controllers\TrailController@store');

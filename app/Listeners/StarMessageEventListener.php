@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\StarMessageEvent;
+use App\Helper\Common;
 use App\Jobs\SendUmengMsgToMobile;
 use App\Models\DataDictionarie;
 use App\Models\Message;
@@ -137,7 +138,7 @@ class StarMessageEventListener
 
 //        $this->umengRepository->sendMsgToMobile($send_to,"艺人管理助手",$umeng_title,$this->umeng_text,Message::STAR,hashid_encode($this->star_arr[0]));
         $job = new SendUmengMsgToMobile([
-            'send_to' => $send_to,
+            'send_to' => Common::unsetArrayValue($send_to,$this->user->id),
             'title' => $umeng_title,
             'tricker' => "艺人管理助手",
             'text' => $this->umeng_text,

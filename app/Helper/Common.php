@@ -91,4 +91,15 @@ class Common
         }
         return $departmentPid;
     }
+
+    public static function unsetArrayValue($array,$v)
+    {
+        $res = [];
+        foreach ($array as $value){
+            if ($v != $value){
+                $res[] = $value;
+            }
+        }
+        return $res;
+    }
 }

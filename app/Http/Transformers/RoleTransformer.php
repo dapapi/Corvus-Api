@@ -2,11 +2,9 @@
 
 namespace App\Http\Transformers;
 
-<<<<<<< HEAD
-=======
 
 use App\Http\Transformers\User\UserSimpleTransformer;
->>>>>>> develop
+
 use App\Models\Department;
 use App\Models\Role;
 use App\User;
@@ -36,12 +34,10 @@ class RoleTransformer extends TransformerAbstract
     {
         $userinfo = $role->users;
 
-<<<<<<< HEAD
-        return $this->collection($userinfo, new PartUserTransformer());
-=======
+
         return $this->collection($userinfo, new UserSimpleTransformer());
 
->>>>>>> develop
+
     }
 
 

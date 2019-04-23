@@ -23,7 +23,7 @@ use App\Models\Report;
 use App\Models\Department;
 use App\Models\Repository;
 use App\User;
-
+use App\Observers\TrailObserver;
 use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Queue\Events\JobFailed;
@@ -74,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
         //token过期时间
         $this->app->get(AuthorizationServer::class)
             ->enableGrantType(new PersonalAccessGrant(), new \DateInterval('P1W'));
-
+        Trail::observe(TrailObserver::class);
         //对列失败
         Queue::failing(function (JobFailed $event){
             Log::info("失败任务，连接:".$event->connectionName);

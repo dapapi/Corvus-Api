@@ -111,10 +111,12 @@ class TrailController extends Controller
 //            )
             'data'=>$pageList, //需求数据
             'meta'=>array(
-                'current_page'=>$page, //当前页数
-                'pageSize'=>$pageSize, //每页多少条
-                'total'=>$count, //记录总数
-                'total_pages'=>$pageCount //总页数
+                'pagination'=>array(
+                    'current_page'=>$page, //当前页数
+                    'pageSize'=>$pageSize, //每页多少条
+                    'total'=>$count, //记录总数
+                    'total_pages'=>$pageCount //总页数
+                )
             )
         );
         return $data;

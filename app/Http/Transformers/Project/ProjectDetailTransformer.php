@@ -14,7 +14,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectDetailTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['participants', 'relate_tasks', 'relate_projects', 'relate_project_courses', 'relate_project_bills_resource', 'tasks'];
+    protected $availableIncludes = ['trail', 'participants', 'relate_tasks', 'relate_projects', 'relate_project_courses', 'relate_project_bills_resource', 'tasks', 'exceptions'];
 
     private $isAll = true;
     private $user = null;
@@ -155,5 +155,11 @@ class ProjectDetailTransformer extends TransformerAbstract
         if (!$participants)
             return $this->null();
         return $this->collection($participants, new UserSimpleTransformer());
+    }
+
+    public function includeExceptions(Project $project)
+    {
+        $exceptions = $project->exceptions;
+        return $this->collection($exceptions, new ProjectTalentTranformer());
     }
 }

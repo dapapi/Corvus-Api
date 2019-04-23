@@ -225,4 +225,10 @@ AAA;
             return "回款完成";
         }
     }
+
+    public function exceptions()
+    {
+        return $this->hasMany(ProjectTalent::class, 'project_id', 'id');
+    }
+
 }

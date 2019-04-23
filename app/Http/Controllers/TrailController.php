@@ -155,7 +155,7 @@ class TrailController extends Controller
      * @param string $type db:清空当前数据库 all:清空所有数据库
      * @return bool
      */
-    protected function clear($type='db'){
+    public function clear($type='db'){
         if($type == 'db'){
             $this->_redis->flushdb();
         }elseif($type == 'all'){
@@ -261,7 +261,7 @@ class TrailController extends Controller
                 ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')
                 ->select(['trails.id', 'trails.title', 'trails.client_id', 'trails.principal_id', 'trails.status'
                     , DB::raw("if(max(`operate_logs`.`updated_at`) is null,`trails`.`created_at`,
-                max(`operate_logs`.`updated_at`))  as last_follow_up_at_or_created_at")])
+                max(`operate_logs`.`updated_at`))  as up_time")])
                 ->get()->toArray();
             foreach ($trails as $k => $v) {
                 //查询负责人
@@ -291,6 +291,8 @@ class TrailController extends Controller
                 $v['starable_type'] = $star['starable_type'];
                 $v['stars_name'] = $starsInfo['name'];
                 $v['id'] = hashid_encode($v['id']);
+                $v['last_follow_up_at_or_created_at'] = $v['up_time'];
+                unset($v['up_time']);
                 $this->set_redis_page_info('trails', $k, $v);
             }
         }

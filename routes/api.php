@@ -514,6 +514,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
+        $api->get('/trails/clear', 'App\Http\Controllers\TrailController@clear');
         $api->get('/trailsOne', 'App\Http\Controllers\TrailController@indexOne');
 
         //客户  公司 品牌

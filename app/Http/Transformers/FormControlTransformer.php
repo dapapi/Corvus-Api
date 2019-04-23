@@ -3,11 +3,13 @@
 namespace App\Http\Transformers;
 
 use App\Models\ApprovalForm\Control;
+use App\Models\ApprovalForm\DetailValue;
 use League\Fractal\TransformerAbstract;
 
 class FormControlTransformer extends TransformerAbstract
 {
     protected $num = null;
+
     public function __construct($num = null)
     {
         $this->num = $num;
@@ -36,7 +38,7 @@ class FormControlTransformer extends TransformerAbstract
         if ($control->indefinite_show)
             $arr['indefinite_show'] = $control->indefinite_show;
 
-        if (in_array($control->control_id, [82,84,85]))
+        if (in_array($control->control_id, [82, 84, 85]))
             $arr['control_enums'] = $control->enum;
 
         if ($control->control_id == 391) {
@@ -50,8 +52,23 @@ class FormControlTransformer extends TransformerAbstract
 
         if ($this->num && !is_null($control->value($this->num)))
             $arr['control_value'] = $control->value($this->num)->form_control_value;
-        else
+        elseif ($control->control_id == 88) {
+            $detailArr = [];
+            foreach (DetailValue::where('form_instance_number', $this->num)->cursor() as $item) {
+                $detailArr[$item->sort_number][] = [
+                    'key' => $item->key,
+                    'values' => [
+                        'data' => [
+                            'value' => $item->value
+                        ]
+                    ]
+                ];
+            }
+            $arr['control_value'] = $detailArr;
+        } else {
             $arr['control_value'] = null;
+        }
+
 
         return $arr;
     }

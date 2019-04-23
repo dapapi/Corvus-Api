@@ -23,7 +23,6 @@ class StarListTransformer extends TransformerAbstract
             'communication_status'  =>  $star->communication_status,
             'birthday'  =>  $star->birthday,
         ];
-
     }
 //    public function includeContracts(Star $star)
 //    {

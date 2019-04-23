@@ -14,6 +14,7 @@ use App\ModuleableType;
 use App\ModuleUserType;
 use App\User;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ModuleUserRepository
@@ -347,7 +348,31 @@ public function addModuleUserBatch($participantIds, $particalendarsIds, $model, 
 
         $particalendarsIds[$key] = hashid_decode($value);
     }
+     if($array['moduleable_type'] == ModuleableType::CALENDAR && count($particalendarsIds) >= 1)
+     {
 
+         $user = Auth::guard('api')->user();
+<<<<<<< HEAD
+            $is_principal= Calendar::whereIn('id',$particalendarsIds)->where('starable_type',ModuleableType::STAR)->where('principal_id','<>',$user->id)->get();
+=======
+
+            $is_principal= Calendar::whereIn('id',$particalendarsIds)->where('starable_type',ModuleableType::STAR)->where('principal_id','<>',$user->id)->first();
+>>>>>>> develop
+         if($is_principal){
+             throw new Exception('您没有艺人日历添加成员的权限');
+         }
+//             if (!$moduleUser) {//不存在则添加
+//
+//                 ModuleUser::create($array);
+//
+//             } else {//存在则从列表中删除
+//                 array_splice($participantIds, $key, 1);
+////                    $participantDeleteIds[] = $participantId;
+////                    //要求一个接口可以完成添加人和删除人,已经存在的删除
+////                    $moduleUser->delete();
+//             }
+
+     }
 //    $participantDeleteIds = ModuleUser::where('moduleable_type', $array['moduleable_type'])->whereIn('moduleable_id', $particalendarsIds)->where('type', $type)->get(['id'])->toArray();
 //    foreach ($participantDeleteIds as $key => &$participantDeleteId) {
 //        try {
@@ -363,7 +388,6 @@ public function addModuleUserBatch($participantIds, $particalendarsIds, $model, 
 //        }
 //    }
     $participantIds = array_unique($participantIds);//去除参与人或者宣传人列表的重复值
-
     foreach ($participantIds as $key => &$participantId) {
 
         try {

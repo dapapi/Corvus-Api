@@ -18,6 +18,5 @@ class RoleUserRepository
             Cache::put($key,$role_list,Carbon::now()->addMinutes(1));
         }
         return $role_list;
-
     }
 }

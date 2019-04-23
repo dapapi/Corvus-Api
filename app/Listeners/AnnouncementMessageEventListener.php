@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\AnnouncementMessageEvent;
+use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\Project;
@@ -18,6 +19,7 @@ class AnnouncementMessageEventListener
 
     private $messageRepository;//消息仓库
     private $announcementRepository;
+    private $deparment;
     private $instance;//公告model
     private $trigger_point;//触发点
     private $authorization;//token
@@ -37,6 +39,7 @@ class AnnouncementMessageEventListener
      *
      * @return void
      */
+
     public function __construct(MessageRepository $messageRepository,AnnouncementRepository $announcementRepository)
     {
         $this->messageRepository = $messageRepository;
@@ -122,5 +125,8 @@ class AnnouncementMessageEventListener
         ]);
         dispatch($job)->onQueue("umeng_message");
     }
+
+
+
 
 }

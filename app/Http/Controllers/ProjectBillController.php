@@ -151,7 +151,6 @@ class ProjectBillController extends Controller
 
         }
         $is_exist = ProjectBillsResource::where(['resourceable_id' => $array['resourceable_id'], 'resourceable_title' => $array['resourceable_title'], 'resourceable_type' => $array['resourceable_type']])->first();
-
         if (isset($is_exist)) {
             return $this->response->errorNotFound('已存在');
         }

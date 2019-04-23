@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Affix;
+use App\Models\Aim;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
@@ -14,6 +15,7 @@ use App\Models\Calendar;
 use App\Models\Contract;
 use App\Models\Dashboard;
 use App\Models\DataDictionary;
+use App\Models\Period;
 use App\Models\ProjectReturnedMoney;
 use App\Models\Material;
 use App\Models\Project;
@@ -26,8 +28,8 @@ use App\Models\Client;
 use App\Models\Production;
 use App\Models\ProjectHistorie;
 use App\Models\Position;
-
-
+use App\Models\Supplier;
+use App\Models\SupplierRelate;
 use App\Models\Draft;
 use App\Models\Repository;
 use App\Models\ReviewQuestionnaire;
@@ -47,8 +49,10 @@ use App\Models\CommentLog;
 use App\Models\Task;
 use App\Models\Trail;
 use App\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -543,6 +547,79 @@ class RouteServiceProvider extends ServiceProvider
             try {
                 $id = hashid_decode($value);
                 $entity = Position::findOrFail($id);
+                if ($entity == null){
+                    throw new Exception("合同不存在");
+                }
+                } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('dashboard', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Dashboard::withTrashed()->findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplier', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Supplier::findOrFail($id);
+                } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('appversion', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Position::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('supplierRelate', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = supplierRelate::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('period', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Period::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('period', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Period::findOrFail($id);
+            } catch (Exception $exception) {
+                abort(404);
+            }
+            return $entity;
+        });
+
+        Route::bind('aim', function ($value) {
+            try {
+                $id = hashid_decode($value);
+                $entity = Aim::findOrFail($id);
             } catch (Exception $exception) {
                 abort(404);
             }

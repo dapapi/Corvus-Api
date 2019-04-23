@@ -16,12 +16,12 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\ICS;
-
 
 use League\Fractal;
 use League\Fractal\Manager;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
+
+use App\Http\Controllers\ICS;
 
 
 class TestController extends Controller
@@ -218,6 +218,7 @@ class TestController extends Controller
                 dispatch(new ProjectImplode($project));
             }
         });
+
     }
 
     public function task()

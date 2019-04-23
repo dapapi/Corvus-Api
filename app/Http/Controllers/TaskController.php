@@ -1440,6 +1440,14 @@ class TaskController extends Controller
             $end = $array['start_at'];
 
             if ($start != $end) {
+//                $operateStartAt = new OperateEntity([
+//                    'obj' => $task,
+//                    'title' => '开始时间',
+//                    'start' => $start,
+//                    'end' => $end,
+//                    'method' => OperateLogMethod::UPDATE,
+//                ]);
+//                $arrayOperateLog[] = $operateStartAt;
                 $operateStartAt = new OperateEntity([
                     'obj' => $task,
                     'title' => '开始时间',

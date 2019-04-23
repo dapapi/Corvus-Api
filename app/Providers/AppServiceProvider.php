@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Aim;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Blogger;
@@ -13,6 +14,8 @@ use App\Models\Project;
 use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\Star;
+use App\Models\Supplier;
+use App\Models\SupplierRelate;
 use App\Models\Task;
 use App\Models\Issues;
 use App\Models\Trail;
@@ -25,9 +28,12 @@ use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Log;
+use App\Observers\TrailObserver;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Bridge\PersonalAccessGrant;
+use League\OAuth2\Server\AuthorizationServer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -61,9 +67,16 @@ class AppServiceProvider extends ServiceProvider
             ModuleableType::CONTRACT => Contract::class,
             ModuleableType::BUSINESS => Business::class,
             ModuleableType::INSTANCE => Instance::class,
+            ModuleableType::SUPPLIER => Supplier::class,
+            ModuleableType::SUPPLIERRELATE => SupplierRelate::class,
+            ModuleableType::AIM => Aim::class,
             //TODO
         ]);
-
+        //token过期时间
+        $this->app->get(AuthorizationServer::class)
+            ->enableGrantType(new PersonalAccessGrant(), new \DateInterval('P1W'));
+        // 线索
+        Trail::observe(TrailObserver::class);
         //对列失败
         Queue::failing(function (JobFailed $event){
             Log::info("失败任务，连接:".$event->connectionName);
@@ -80,6 +93,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        if (! $this->app->environment('production')) {
+            $this->app->register(\JKocik\Laravel\Profiler\ServiceProvider::class);
+        }
+
+        $this->app->make('auth')->provider('redis', function ($app, $config) {
+            return new RedisUserProvider($app['hash'], $config['model']);
+        });
     }
 }

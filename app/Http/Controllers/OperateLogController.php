@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\OperateLogEvent;
 use App\Http\Requests\OperateLogFollowUpRequest;
 use App\Http\Transformers\OperateLogTransformer;
+use App\Models\Aim;
 use App\Models\ApprovalForm\Business;
 use App\Models\ApprovalForm\Instance;
 use App\Models\Client;
@@ -14,6 +15,8 @@ use App\Models\Project;
 use App\Models\Blogger;
 use App\Models\Announcement;
 use App\Models\Star;
+use App\Models\Supplier;
+
 use App\Models\Report;
 use App\Models\Issues;
 use App\Models\Calendar;
@@ -41,7 +44,7 @@ class OperateLogController extends Controller
         $this->scopeRepository = $scopeRepository;
     }
 
-    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business)
+    public function index(Request $request, Task $task, Project $project, Star $star, Trail $trail, Blogger $blogger, Report $report,Client $client,Calendar $calendar,Issues $issues,Announcement $announcement,Contract $contract,Instance $instance,Business $business, Aim $aim, Supplier $supplier)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
@@ -79,6 +82,10 @@ class OperateLogController extends Controller
             $query = $instance->operateLogs();
         }else if($business && $business->id){
             $query = $business->operateLogs();
+        }else if($supplier && $supplier->id){
+            $query = $supplier->operateLogs();
+        }else if ($aim && $aim->id) {
+            $query = $aim->operateLogs();
         }
         //TODO 其他模块
         switch ($status) {
@@ -96,8 +103,10 @@ class OperateLogController extends Controller
 
 
         $operateLogs = $query->createDesc()->paginate($pageSize);
-
 //        $operateLogs = $query->createDesc()->get();
+//        dd($operateLogs);
+//        dd(DB::getQueryLog());
+
 
 
 

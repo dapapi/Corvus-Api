@@ -27,7 +27,15 @@ trait OperateLogTrait
         else
             return null;
     }
+    public function getLookAttribute()
+    {
+        $look = $this->operateLogs()->where('method', OperateLogMethod::LOOK)->where('status',1)->orderBy('created_at', 'desc')->first();
 
+        if ($look)
+            return $look;
+        else
+            return null;
+    }
     public function getLastUpdatedUserAttribute()
     {
         $lastFollowUp = $this->operateLogs()->where('method', OperateLogMethod::UPDATE)->orderBy('operate_logs.created_at', 'desc')->first();

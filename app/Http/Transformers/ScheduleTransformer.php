@@ -24,7 +24,7 @@ class ScheduleTransformer extends TransformerAbstract
             'desc' => $schedule->desc,
             'icon_url'  =>  $schedule->icon_url,
             'remind'    =>  $schedule->remind,
-            'calendar_id'   =>  $schedule->calendar_id,
+            'calendar_id'   =>  hashid_encode($schedule->calendar_id)
         ];
 
         return $array;

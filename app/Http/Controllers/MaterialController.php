@@ -19,9 +19,9 @@ class MaterialController extends Controller
 //        $materials = Material::where('type', $type)->get();
         if($request->has('type')){
             $type = $request->get('type', 1);
-            $materials = Material::where('type', $type)->get();
+            $materials = Material::where('id','>',0)->where('type', $type)->get();
         }else{
-        $materials = Material::get();
+        $materials = Material::where('id','>',0)->get();
        }
         return $this->response->collection($materials, new MaterialTransformer());
     }

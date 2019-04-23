@@ -158,9 +158,9 @@ class ApprovalFormController extends Controller
             $instance = Business::where("form_instance_number", $projectNumber)->first();
             //向知会人发消息
             $authorization = $request->header()['authorization'][0];
-            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $user));
+//            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::NOTIFY, $authorization, $user));
             //向下一个审批人发消息
-            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $user));
+//            event(new ApprovalMessageEvent($instance, ApprovalTriggerPoint::WAIT_ME, $authorization, $user));
             return $this->response->accepted();
 //
         } else {
@@ -302,7 +302,6 @@ class ApprovalFormController extends Controller
                 ->whereIn('afe.flow_type_id', $payload['status'])->where('afe.current_handler_type', 247)->where('u.id', $userId)
                 ->orderBy('ph.created_at', 'desc')
                 ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'us.name','us.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
-
             //查询个人
             $dataUser = DB::table('approval_flow_execute as afe')//
             ->join('users as u', function ($join) {
@@ -340,9 +339,8 @@ class ApprovalFormController extends Controller
                 ->join('project_histories as ph', function ($join) {
                     $join->on('ph.project_number', '=', 'bu.form_instance_number');
                 })
-                ->join("data_dictionaries as dds",function ($join){
-                    $join->on("dds.id",'=','afe.flow_type_id');
-
+                ->join("data_dictionaries as dds", function ($join) {
+                    $join->on("dds.id", '=', 'afe.flow_type_id');
                 })
                 ->where(function ($query) use ($payload, $request) {
                     if ($request->has('keywords')) {
@@ -352,7 +350,7 @@ class ApprovalFormController extends Controller
                 ->where('afe.principal_uid', $userId)
                 ->whereIn('afe.flow_type_id', $payload['status'])
                 ->orderBy('ph.created_at', 'desc')
-                ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name','creator.icon_url', 'ph.created_at','dds.name as approval_status_name','dds.icon')->get()->toArray();
+                ->select('ph.id', 'afe.form_instance_number', 'afe.current_handler_type', 'afe.current_handler_type', 'afe.flow_type_id as form_status', 'ph.title', 'creator.name', 'creator.icon_url', 'ph.created_at', 'dds.name as approval_status_name', 'dds.icon')->get()->toArray();
 
             //$dataPrincipals = $this->getPrincipalLevel($userId,$request,$payload);
            
@@ -375,7 +373,7 @@ class ApprovalFormController extends Controller
             }
             array_multisort($ctime_str, SORT_DESC, $resArr);
 
-        } else {
+        }else{
 
             //$payload['status'] = array('232', '233', '234', '235');
             $resArr = $this->thenApproval($request, $payload);
@@ -485,11 +483,6 @@ class ApprovalFormController extends Controller
 
         return $dataPrincipals;
     }
-
-
-
-    
-
 
     function array_unique_fb($array2D)
     {

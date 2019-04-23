@@ -127,7 +127,7 @@ class privacyUserController extends Controller
                     "moduleable_type"=>$moduleable_type,
                     "user_id"=>$user_id,
                     "moduleable_field"=>$moduleable_field,
-                    "is_privacy"    =>  1,
+                    "is_privacy"=>1,
                     "created_at"    =>  Carbon::now()->toDateTimeString(),
                 ];
 

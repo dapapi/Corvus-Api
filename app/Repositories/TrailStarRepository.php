@@ -89,8 +89,7 @@ class TrailStarRepository
         $bloggerIds = implode(',', $bloggerIdArr);
         $bloggerName = implode(',', $bloggerNameArr);
         $project = Project::where('trail_id', $trail_id)->pluck('id')->toArray();
-        DB::table('project_implode')
-            ->whereIn('id', $project)
+        ProjectImplode::whereIn('id', $project)
             ->update([
                 'stars' => $starName,
                 'star_ids' => $starIds,

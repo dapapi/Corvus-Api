@@ -82,10 +82,10 @@ class Trails extends Command
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
 
-    //        //获取今天时间
-    //        $dataDay = date('YmdHi');//当前时间
-    //        $Log = "加入公海池".$dataDay."\n";
-    //        Log::info($Log);
+            //获取今天时间
+            $dataDay = date('YmdHi');//当前时间
+            $Log = "加入公海池".$dataDay."\n";
+            Log::info($Log);
         $now = Carbon::now();
 
         //获取今天时间

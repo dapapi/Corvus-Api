@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OperateLogEvent;
 use App\Events\ProjectDataChangeEvent;
+use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\Project\ProjectDetailTransformer;
 use App\Models\Department;
 use App\Models\DepartmentUser;
@@ -18,7 +19,6 @@ use App\Http\Requests\Project\EditEeturnedMoneyRequest;
 use App\Http\Requests\Project\EditProjectRequest;
 use App\Http\Requests\Project\ReturnedMoneyRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Transformers\DashboardModelTransformer;
 use App\Http\Transformers\ProjectCourseTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyShowTransformer;
 use App\Http\Transformers\ProjectReturnedMoneyTransformer;
@@ -129,7 +129,6 @@ class ProjectController extends Controller
                 case 'my_create'://我创建
                     $query->where('projects.creator_id', $user->id);
                     break;
-
             }
         }
         //$projects = $query->orderBy('projects.created_at', 'desc')->paginate($pageSize);
@@ -159,10 +158,7 @@ class ProjectController extends Controller
             $value['id'] = hashid_encode($value['id']);
         }
         return $data;
-
-
     }
-
     public function all(Request $request)
     {
         $isAll = $request->get('all', false);
@@ -173,24 +169,18 @@ class ProjectController extends Controller
             $projects = Project::orderBy('created_at', 'desc')->where('id', '>', 0)->where('status', $status)->searchData()->select('id', 'title')->get();
         return $this->response->collection($projects, new ProjectAllTransformer($isAll));
     }
-
     public function myAll(Request $request)
     {
         $payload = $request->all();
-
         $user = Auth::guard('api')->user();
         $userId = $user->id;
-
         if ($request->has('page_size')) {
             $pageSize = $payload['page_size'];
         } else {
             $pageSize = config('api.page_size');
         }
-
         $type = $request->get('type', 0);
-
         $status = $request->get('status', 0);
-
         $projects = DB::table('projects')->select('projects.*');
         switch ($status) {
             case Project::STATUS_NORMAL:
@@ -205,17 +195,14 @@ class ProjectController extends Controller
             default:
                 break;
         }
-
         $projects->where(function ($query) use ($userId) {
             $query->where('creator_id', $userId)->orWhere('principal_id', $userId);
         });
-
         $query = DB::table('projects')->select('projects.*')->join('module_users', function ($join) use ($userId) {
             $join->on('module_users.moduleable_id', '=', 'projects.id')
                 ->where('module_users.moduleable_type', ModuleableType::PROJECT)
                 ->where('module_users.user_id', $userId);
         });
-
         switch ($status) {
             case Project::STATUS_NORMAL:
                 $query->where('status', Project::STATUS_NORMAL);
@@ -229,9 +216,7 @@ class ProjectController extends Controller
             default:
                 break;
         }
-
         $query->union($projects);
-
         $querySql = $query->toSql();
         $result = Project::rightJoin(DB::raw("($querySql) as a"), function ($join) {
             $join->on('projects.id', '=', 'a.id');
@@ -240,7 +225,6 @@ class ProjectController extends Controller
             ->paginate($pageSize);
         return $this->response->paginator($result, new ProjectTransformer());
     }
-
     public function my(Request $request)
     {
         $payload = $request->all();
@@ -250,7 +234,6 @@ class ProjectController extends Controller
         $type = $request->get('type', 1);
         $project_type = $request->get('project_type', null);
         $query = Project::select('projects.*');
-
         switch ($type) {
             case 2://我负责
                 $query->where('principal_id', $user->id);
@@ -278,16 +261,13 @@ class ProjectController extends Controller
         }
         if ($request->has('project_type') && $project_type <> '3,4') {
             $query->where('type', $project_type);
-
         }
         if ($request->has('project_type') && $project_type == '3,4') {
             $query->whereIn('type', [$project_type]);
         }
         $projects = $query->orderBy('created_at', 'desc')->paginate($pageSize);
-
         return $this->response->paginator($projects, new ProjectTransformer());
     }
-
     public function store(StoreProjectRequest $request)
     {
         // todo 可能涉及筛选可选线索
@@ -309,23 +289,18 @@ class ProjectController extends Controller
             }
             $payload['project_number'] = Project::getProjectNumber();
         }
-
         $user = Auth::guard('api')->user();
         $payload['creator_id'] = $user->id;
         $payload['creator_name'] = $user->name;
-
         $payload['principal_id'] = hashid_decode($payload['principal_id']);
-        $principal = User::find($payload['principal_id']);
-        $payload['principal_name'] = $principal->name;
-        $payload['department_name'] = $principal->department()->value('name');
-
+        $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
+        $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
+        $payload['department_name'] = Department::where('id', $departmentId)->value('name');
         DB::beginTransaction();
-
         try {
             $project = Project::create($payload);
             $projectId = $project->id;
             $this->createProjectImplode($payload, $projectId);
-
             if ($payload['type'] != 5) {
                 $projectHistorie = ProjectHistorie::create($payload);
                 $approvalForm = new ApprovalFormController();
@@ -344,7 +319,6 @@ class ProjectController extends Controller
                     ]);
                     $this->updateProjectImplodeTemplateField($key1, $val, $projectId);
                 }
-
                 // todo 优化，这部分操作应该有对应仓库
                 // todo 操作日志的时候在对应的trail也要记录
                 $trail = Trail::find($payload['trail_id']);
@@ -353,7 +327,6 @@ class ProjectController extends Controller
                         $trail->lock_status = $val;
                         continue;
                     }
-
                     if ($key == 'fee') {
                         $trail->fee = $val;
                         continue;
@@ -377,10 +350,8 @@ class ProjectController extends Controller
                             ]);
                             $arrayOperateLog[] = $operateName;
                         }
-
                         continue;
                     }
-
                     if ($key == 'recommendations') {
                         $repository = new TrailStarRepository();
                         //获取现在关联的艺人和博主
@@ -400,15 +371,12 @@ class ProjectController extends Controller
                             ]);
                             $arrayOperateLog[] = $operateName;
                         }
-
-
                     }
                 }
                 $trail->update($payload['trail']);
                 $repository = new TrailStarRepository();
                 $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
             }
-
             if ($request->has('participant_ids')) {
                 foreach ($payload['participant_ids'] as &$id) {
                     $id = hashid_decode($id);
@@ -426,7 +394,6 @@ class ProjectController extends Controller
             ]);
             $arrayOperateLog[] = $operateName;
             event(new OperateLogEvent($arrayOperateLog));//更新日志
-
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -434,22 +401,16 @@ class ProjectController extends Controller
         }
         DB::commit();
         //向知会人发消息
-
         //向审批人发消息
-
         return $this->response->item($project, new ProjectTransformer());
-
     }
-
     public function edit(EditProjectRequest $request, Project $project)
     {
         $payload = $request->all();
         $arrayOperateLog = [];
         $old_project = clone $project;
         $trail = $project->trail;
-
         $projectId = $project->id;
-
         if (!empty($trail)) {
             $old_trail = clone $trail;
         }
@@ -461,12 +422,9 @@ class ProjectController extends Controller
                 $payload['principal_name'] = User::where('id', $payload['principal_id'])->value('name');
                 $departmentId = DepartmentUser::where('user_id', $payload['principal_id'])->value('department_id');
                 $payload['department_name'] = Department::where('id', $departmentId)->value('name');
-
             }
             if (!$request->has('type') || $payload['type'] == '')
                 $payload['type'] = $project->type;
-
-
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
                     $fieldId = hashid_decode((int)$key);
@@ -478,14 +436,11 @@ class ProjectController extends Controller
             }
             if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
                 $payload['participant_ids'] = [];
-
             if (!$request->has('participant_del_ids') || !is_array($payload['participant_del_ids']))
                 $payload['participant_del_ids'] = [];
-
             //更新之前的项目参与人
             $last_participants = implode(",", array_column($project->participants()->get()->toArray(), 'name'));
             $project->update($payload);//更新项目
-
 //            $trail = $project->trail;
             //只有新增或者要删除的参与人不为空是才更新
             if (count($payload['participant_ids']) != 0 || count($payload['participant_del_ids']) != 0) {
@@ -504,15 +459,12 @@ class ProjectController extends Controller
                     $arrayOperateLog[] = $operateName;
                 }
             }
-
             if ($request->has('fields')) {
                 foreach ($payload['fields'] as $key => $val) {
                     $fieldId = hashid_decode((int)$key);
                     $fieldValue = FieldValue::where('field_id', $fieldId)->where('project_id', $projectId)->first();
-
                     //根据filedid获取字段名
                     $fieldName = TemplateField::findOrFail($fieldId)->key;
-
                     $oldValue = null;
                     if ($fieldValue != null) {
                         $oldValue = $fieldValue->value;
@@ -530,11 +482,9 @@ class ProjectController extends Controller
                             ]);
                             $arrayOperateLog[] = $operateName;
                         }
-
                         if ($fieldValue) {//存在保存，不存在新增
                             $fieldValue->value = $val;
                             $fieldValue->save();
-
                         } else {
                             $fieldValue = FieldValue::create([
                                 'field_id' => $fieldId,
@@ -587,11 +537,8 @@ class ProjectController extends Controller
                         }
                         $projectImp->save();
                     }
-
                 }
-
             }
-
             if ($request->has('trail')) {
                 foreach ($payload['trail'] as $key => $val) {
                     if ($key == 'fee') {
@@ -618,7 +565,6 @@ class ProjectController extends Controller
                     }
                     if ($key == 'lock') {
 //                        $trail->lock_status = $val;
-
                         if ($val != $trail->lock_status) {
 //                            $operateName = new OperateEntity([
 //                                'obj' => $project,
@@ -640,7 +586,6 @@ class ProjectController extends Controller
                         }
                         continue;
                     }
-
                     if ($key == 'expectations') {
                         $repository = new TrailStarRepository();
                         //获取现在关联的艺人和博主
@@ -649,7 +594,6 @@ class ProjectController extends Controller
                         $repository->store($trail, $payload['trail']['expectations'], TrailStar::EXPECTATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
-
                         $title = "关联目标艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([
@@ -661,10 +605,8 @@ class ProjectController extends Controller
                             ]);
                             $arrayOperateLog[] = $operateName;
                         }
-
                         continue;
                     }
-
                     if ($key == 'recommendations') {
                         $repository = new TrailStarRepository();
                         //获取现在关联的艺人和博主
@@ -673,7 +615,6 @@ class ProjectController extends Controller
                         $repository->store($trail, $payload['trail']['recommendations'], TrailStar::RECOMMENDATION);
                         //获取更新之后的艺人和博主列表
                         $end = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
-
                         $title = "关联推荐艺人";
                         if (!empty($start) || !empty($end)) {
                             $operateName = new OperateEntity([
@@ -685,16 +626,11 @@ class ProjectController extends Controller
                             ]);
                             $arrayOperateLog[] = $operateName;
                         }
-
-
                     }
-
                 }
                 //更新线索
                 $trail->update($payload['trail']);
-
             }
-
             event(new OperateLogEvent($arrayOperateLog));//更新日志
             event(new ProjectDataChangeEvent($old_project, $project));//更新项目操作日志
 
@@ -707,10 +643,8 @@ class ProjectController extends Controller
             return $this->response->errorInternal('修改失败,' . $exception->getMessage());
         }
         DB::commit();
-
         DB::beginTransaction();
         try {
-
             $user = Auth::guard('api')->user();
             $title = $user->name . "将你加入了项目";  //通知消息的标题
             $subheading = $user->name . "将你加入了项目";
@@ -746,8 +680,6 @@ class ProjectController extends Controller
             DB::rollBack();
             Log::error($e);
         }
-
-
         return $this->response->accepted();
     }
 
@@ -764,7 +696,6 @@ class ProjectController extends Controller
         } catch (Exception $exception) {
             $project->power = "false";
         }
-
         $project->powers = $repository->getPower($user, $project);
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
@@ -783,7 +714,6 @@ class ProjectController extends Controller
                     return null;
                 } else {
                     $expectations = $expectations->broker->toArray();
-
 //                ->broker;
                     $department_name = [];
                     if (!$expectations)
@@ -792,7 +722,6 @@ class ProjectController extends Controller
                         $department_name[$key] = DepartmentUser::where('user_id', $val['id'])->first()->department['name'];
                     }
                 }
-
             } else {
                 $expectations = $expectations->first()->publicity->toArray();
                 $department_name = [];
@@ -802,7 +731,6 @@ class ProjectController extends Controller
                     $department_name[$key] = DepartmentUser::where('user_id', $val['id'])->first()->department['name'];
                 }
             }
-
         }
         unset($array);
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
@@ -812,8 +740,6 @@ class ProjectController extends Controller
         if ($project->trail) {
             $result->addMeta('department_name', $department_name);
         }
-
-
         if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
             $contractMoneyResult = PrivacyType::excludePrivacy($user->id, $project->id, ModuleableType::PROJECT, 'contractmoney');
@@ -849,19 +775,18 @@ class ProjectController extends Controller
             }
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $operate = new OperateEntity([
-            'obj' => $project,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $project,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
         return $result;
     }
-
     public function delete(Request $request, Project $project)
     {
         try {
@@ -872,19 +797,15 @@ class ProjectController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('删除失败');
         }
-
         return $this->response->noContent();
     }
-
     public function recover(Request $request, Project $project)
     {
         $project->restore();
         $project->status = Project::STATUS_NORMAL;
         $project->save();
-
         return $this->response->item($project, new ProjectTransformer());
     }
-
     public function course(Request $request, Project $project)
     {
         $status = $request->get('status');
@@ -892,38 +813,28 @@ class ProjectController extends Controller
         $array['user_id'] = $user->id;
         switch ($status) {
             case Project::STATUS_EVALUATINGACCOMPLISH:
-
                 $status1 = $status;
-
                 break;
             case Project::STATUS_CONTRACT:
-
                 $status1 = $status;
-
                 break;
             case Project::STATUS_CONTRACTACCOMPLISH:
                 $status1 = $status;
-
                 break;
             case Project::STATUS_EXECUTION:
                 $status1 = $status;
-
                 break;
             case Project::STATUS_EXECUTIONACCOMPLISH:
                 $status1 = $status;
-
                 break;
             case Project::STATUS_RETURNEDMONEY:
                 $status1 = $status;
-
                 break;
             case Project::STATUS_RETURNEDMONEYACCOMPLISH:
                 $status1 = $status;
-
                 break;
             case Project::STATUS_BEEVALUATING:
                 $status1 = $status;
-
                 break;
             default:
                 break;
@@ -933,13 +844,10 @@ class ProjectController extends Controller
         $array['content'] = $status1;
         DB::beginTransaction();
         try {
-
             if (ProjectStatusLogs::where($array)->first() == true) {
                 return $this->response->errorForbidden('该状态已存在');
             }
-
             $projects = ProjectStatusLogs::create($array);
-
             $operate = new OperateEntity([
                 'obj' => $project,
                 'title' => null,
@@ -950,7 +858,6 @@ class ProjectController extends Controller
             event(new OperateLogEvent([
                 $operate
             ]));
-
         } catch (Exception $e) {
             DB::rollBack();
             Log::error($e);
@@ -959,7 +866,6 @@ class ProjectController extends Controller
         DB::commit();
         return $this->response->item($projects, new ProjectCourseTransformer());
     }
-
     public function allCourse(Request $request, Project $project)
     {
         $projects = ProjectStatusLogs::where('logable_id', $project->id)->CreateDesc()->get();
@@ -967,11 +873,9 @@ class ProjectController extends Controller
         //meta内是项目进度百分比，目前就8步所以除以八
         return $this->response->collection($projects, new ProjectCourseTransformer())->addMeta("progress", $count / (8));
     }
-
     public function changeStatus(Request $request, Project $project)
     {
         $status = $request->get('status');
-
         switch ($status) {
             case Project::STATUS_COMPLETE:
                 $project->complete_at = now();
@@ -1010,21 +914,15 @@ class ProjectController extends Controller
             default:
                 break;
         }
-
-
         $project->save();
-
-
         return $this->response->item($project, new ProjectTransformer());
     }
-
     public function filter(Request $request)
     {
         $payload = $request->all();
         $pageSize = $request->get('page_size', config('app.page_size'));
         $user = Auth::guard("api")->user();
         $userid = $user->id;
-
         $projects = Project::where(function ($query) use ($request, $payload, $userid) {
             if ($request->has('keyword'))
                 $query->where('title', 'LIKE', '%' . $payload['keyword'] . '%');
@@ -1040,7 +938,6 @@ class ProjectController extends Controller
                 $query->where('principal_id', '<>', $userid);
             if ($request->has('principal_id'))
                 $query->where('principal_id', $userid);
-
             if ($request->has('type') && $payload['type'] <> '3,4') {
                 $query->where('type', $payload['type']);
             }
@@ -1049,7 +946,6 @@ class ProjectController extends Controller
             }
             if ($request->has('status'))
                 $query->where('projects.status', $payload['status']);
-
         })->searchData()
             ->leftJoin('operate_logs', function ($join) {
                 $join->on('projects.id', 'operate_logs.logable_id')
@@ -1061,10 +957,7 @@ class ProjectController extends Controller
             ->paginate($pageSize);
         //  修改项目排序   按跟进时间  和 创建时间排序
         return $this->response->paginator($projects, new ProjectTransformer());
-
     }
-
-
     public function getClient(Request $request)
     {
         $projectId = $request->get('project_id', 0);
@@ -1074,16 +967,13 @@ class ProjectController extends Controller
         } catch (Exception $exception) {
             return $this->response->errorBadRequest('项目id错误');
         }
-
         $client = $project->trail->client;
-
         $data = array(
             'client_id' => hashid_encode($client->id),
             'title' => $client->company
         );
         return $this->response->array(['data' => array($data)]);
     }
-
     /**
      * 获取明星下的项目3个
      * @param Request $request
@@ -1092,42 +982,32 @@ class ProjectController extends Controller
     public function getStarProject(Star $star)
     {
         $result = ProjectRepository::getProjectBySatrId($star->id);
-
         //todo 这里的返回值status没有返回数字，返回的是中文所以用不了transfromer
 //        return $this->response->collection($result, new ProjectTransformer());
         return $result;
     }
-
     public function getClientProject(Request $request, Client $client)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $projects = Project::select('projects.id', 'projects.title', 'projects.principal_id', 'projects.creator_id', 'projects.trail_id', 'projects.status', 'projects.type', 'projects.priority', 'projects.created_at', 'projects.updated_at')->join('trails', function ($join) {
             $join->on('projects.trail_id', '=', 'trails.id');
         })->where('trails.client_id', '=', $client->id)
             ->paginate($pageSize);
-
         return $this->response->paginator($projects, new ProjectTransformer());
     }
-
     //客户任务
-
     public function getClientProjectList(Request $request, Client $client)
     {
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $projects = Project::select('projects.id', 'projects.title', 'projects.principal_id', 'projects.creator_id', 'projects.trail_id', 'projects.status', 'projects.type', 'projects.priority', 'projects.created_at', 'projects.updated_at')->join('trails', function ($join) {
             $join->on('projects.trail_id', '=', 'trails.id');
         })->where('trails.client_id', '=', $client->id)
             ->paginate($pageSize);
-
         return $this->response->paginator($projects, new ClientProjectTransformer());
     }
-
     public function getClientProjectNormalList(Request $request, Client $client)
     {
         $now = Carbon::now()->toDateTimeString();
-
         $projects = Project::select('projects.id', 'projects.title', 'projects.status', 'projects.type', 'projects.created_at', 'users.name')
             ->join('trails', function ($join) {
                 $join->on('projects.trail_id', '=', 'trails.id');
@@ -1142,8 +1022,6 @@ class ProjectController extends Controller
         }
         return $projects;
     }
-
-
     /**
      * 项目关联项目 关联任务
      * @param AddRelateProjectRequest $request
@@ -1171,10 +1049,8 @@ class ProjectController extends Controller
                             'moduleable_type' => ModuleableType::TASK,
                         ]);
                     }
-
                 }
             }
-
             if ($request->has('projects')) {
                 ProjectRelate::where('project_id', $project->id)->where('moduleable_type', ModuleableType::PROJECT)->delete();
                 $projects = $request->get('projects');
@@ -1190,7 +1066,6 @@ class ProjectController extends Controller
                             'moduleable_type' => ModuleableType::PROJECT,
                         ]);
                     }
-
                 }
             }
             //记录日志
@@ -1201,7 +1076,6 @@ class ProjectController extends Controller
             if (count($relate_task) != 0) {
                 $start .= "," . implode(",", $relate_task) . "任务";
             }
-
             $operate = new OperateEntity([
                 'obj' => $project,
                 'title' => null,
@@ -1212,7 +1086,6 @@ class ProjectController extends Controller
             event(new OperateLogEvent([
                 $operate,
             ]));
-
         } catch (Exception $exception) {
             DB::rollBack();
             Log::error($exception);
@@ -1221,14 +1094,11 @@ class ProjectController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
-
     public function getMoneType(Request $request)
     {
-
         $type = ProjectReturnedMoneyType::get();
         return $this->response->collection($type, new ProjectReturnedMoneyTypeTransformer());
     }
-
     public function indexReturnedMoney(Request $request, Project $project)
     {
         $ploay = $request;
@@ -1238,22 +1108,17 @@ class ProjectController extends Controller
         $project_id = $project->id;
         $project = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id, 'p_id' => 0])->createDesc()->get();
         $contractReturnedMoney = $approval['money'];
-
         $alreadyReturnedMoney = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id])->wherein('project_returned_money_type_id', [1, 2, 3, 4])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
         $notReturnedMoney = $contractReturnedMoney - $alreadyReturnedMoney->toArray()['alreadysum'];
         $alreadyinvoice = ProjectReturnedMoney::where(['contract_id' => $contract_id, 'project_id' => $project_id])->wherein('project_returned_money_type_id', [5, 6])->select(DB::raw('sum(plan_returned_money) as alreadysum'))->createDesc()->first();
-
-
         $result = $this->response->collection($project, new ProjectReturnedMoneyTransformer());
         $result->addMeta('appoval', $approval);
         $result->addMeta('contractReturnedMoney', $contractReturnedMoney);
         $result->addMeta('alreadyReturnedMoney', $alreadyReturnedMoney->alreadysum);
         $result->addMeta('notReturnedMoney', $notReturnedMoney);
         $result->addMeta('alreadyinvoice', $alreadyinvoice->alreadysum);
-
         return $result;
     }
-
     public function addReturnedMoney(ReturnedMoneyRequest $request, Project $project, ProjectReturnedMoney $projectReturnedMoney)
     {
         $payload = $request->all();
@@ -1290,24 +1155,19 @@ class ProjectController extends Controller
         }
         DB::commit();
     }
-
     public function showReturnedMoney(Request $request, ProjectReturnedMoney $projectReturnedMoney)
     {
-
         if ($projectReturnedMoney->p_id == 0) {
             return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyTransformer());
         } else {
-
             return $this->response->item($projectReturnedMoney, new ProjectReturnedMoneyShowTransformer());
         }
     }
-
     public function editReturnedMoney(EditEeturnedMoneyRequest $request, ProjectReturnedMoney $projectReturnedMoney)
     {
         $payload = $request->all();
         $array = $payload;
         if ($request->has('principal_id')) {
-
             $array['principal_id'] = hashid_decode($payload['principal_id']);
         }
         if ($request->has('project_returned_money_type_id')) {
@@ -1323,10 +1183,8 @@ class ProjectController extends Controller
         DB::commit();
         return $this->response->accepted();
     }
-
     public function deleteReturnedMoney(ProjectReturnedMoney $projectReturnedMoney)
     {
-
         try {
             $id = ProjectReturnedMoney::where('p_id', $projectReturnedMoney->id)->get(['id'])->toArray();
             if ($id) {
@@ -1338,11 +1196,8 @@ class ProjectController extends Controller
             Log::error($exception);
             return $this->response->errorInternal('删除失败');
         }
-
         return $this->response->noContent();
-
     }
-
     public function addProjectRecord(Request $request, Project $project, ProjectReturnedMoney $projectReturnedMoney)
     {
         $payload = $request->all();
@@ -1380,7 +1235,6 @@ class ProjectController extends Controller
         }
         DB::commit();
     }
-
     private function editLog($obj, $field, $old, $new)
     {
         $operate = new OperateEntity([
@@ -1394,7 +1248,6 @@ class ProjectController extends Controller
             $operate,
         ]));
     }
-
     /**
      * 获取已经审批通过的项目
      */
@@ -1406,7 +1259,6 @@ class ProjectController extends Controller
             ->get();
         return $this->response->collection($res, new simpleProjectTransformer());
     }
-
     function str_insert($str, $i, $substr)
     {
         $startstr = [];
@@ -1509,8 +1361,6 @@ class ProjectController extends Controller
         }
         $pageSize = $request->get('page_size', config('app.page_size'));
         //  $joinSql = FilterJoin::where('table_name', 'projects')->first()->join_sql;
-
-
         $query = Project::selectRaw('DISTINCT(projects.id) as ids')->from(DB::raw($joinSql));
         $projects = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
@@ -1552,7 +1402,6 @@ class ProjectController extends Controller
                 case 'my_create'://我创建
                     $query->where('projects.creator_id', $user->id);
                     break;
-
             }
         }
         $projects = $query->searchData()->groupBy('projects.id')
@@ -1588,22 +1437,17 @@ class ProjectController extends Controller
         $projects = ProjectRepository::getSignContractProjectBySatr($id, $name, $star_type, $pageSize);
         return $this->response->paginator($projects, new StarProjectTransformer());
     }
-
     public function export(Request $request)
     {
-
         $file = '当前项目导出' . date('YmdHis', time()) . '.xlsx';
         return (new ProjectsExport($request))->download($file);
     }
-
-
     public function dashboard(Request $request, Department $department)
     {
         $days = $request->get('days', 7);
         $departmentId = $department->id;
         $departmentArr = Common::getChildDepartment($departmentId);
         $userIds = DepartmentUser::whereIn('department_id', $departmentArr)->pluck('user_id');
-
         $projects = Project::select('projects.id as id', DB::raw('GREATEST(projects.created_at, COALESCE(MAX(operate_logs.created_at), 0)) as t'), 'projects.title')
             ->whereIn('projects.principal_id', $userIds)
             ->leftjoin('operate_logs', function ($join) {
@@ -1613,43 +1457,33 @@ class ProjectController extends Controller
             })->groupBy('projects.id')
             ->orderBy('t', 'desc')
             ->take(5)->get();
-
         $result = $this->response->collection($projects, new DashboardModelTransformer());
-
-
         $count = Project::whereIn('principal_id', $userIds)->count('id');
         $completeCount = Project::whereIn('principal_id', $userIds)->where('status', Project::STATUS_COMPLETE)->count('id');
-
         $timePoint = Carbon::today('PRC')->subDays($days);
-
         $signed = Project::whereIn('principal_id', $userIds)
             ->join('contracts', function ($join) {
                 $join->on('contracts.project_id', '=', 'projects.id');
             })
             ->count();
-
         $latestFollow = Project::whereIn('principal_id', $userIds)->join('operate_logs', function ($join) {
             $join->on('projects.id', '=', 'operate_logs.logable_id')
                 ->where('operate_logs.logable_type', ModuleableType::PROJECT)
                 ->where('operate_logs.method', OperateLogMethod::FOLLOW_UP);
         })->where('operate_logs.created_at', '>', $timePoint)->distinct('projects.id')->count('projects.id');
-
         $projectInfoArr = [
             'total' => $count,
             'latest_follow' => $latestFollow,
             'completed' => $completeCount,
             'signed' => $signed,
         ];
-
         $result->addMeta('count', $projectInfoArr);
         return $result;
     }
-
     public function projectList(FilterRequest $request)
     {
         # 我参与的
         $power = ProjectImplode::getConditionSql();
-
         $query = DB::table('project_implode')->selectRaw("id, principal_id,creator_id, project_name, principal, latest_time, project_store_at, trail_fee as fee, stars, star_ids, bloggers, blogger_ids, project_type");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
@@ -1668,12 +1502,9 @@ class ProjectController extends Controller
                 case 'my_create'://我创建
                     $query->where('creator_id', $user->id);
                     break;
-
             }
         }
-
         $query->whereRaw(DB::raw("($power)"));
-
 
         if ($request->has('principal_ids') && $payload['principal_ids']) {
             $payload['principal_ids'] = explode(',', $payload['principal_ids']);
@@ -1686,14 +1517,12 @@ class ProjectController extends Controller
 
         if ($request->has('project_type'))
             $query->where('project_type', $payload['project_type']);
-
         if ($request->has('keyword'))
             $query->where('project_implode.project_name', 'LIKE', '%' . $payload['keyword'] . '%');
 
         $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload, $query);
         });
-
         $paginator = $query->orderBy('latest_time', 'desc')
 //            ->toSql();
             ->paginate();
@@ -1710,13 +1539,11 @@ class ProjectController extends Controller
                     }
                 }
             }
-
         }
         $resource = new Fractal\Resource\Collection($projects, function ($item) {
             # 单独处理
             $stars = [];
             if ($item->stars) {
-
                 $arr["stars"] = explode(',', $item->stars);
                 $arr["star_ids"] = explode(',', $item->star_ids);
                 foreach ($arr['stars'] as $key1 => $val1) {
@@ -1738,21 +1565,6 @@ class ProjectController extends Controller
                 }
             }
             $expectations = array_merge($stars, $bloggers);
-//                    if($project ->creator_id != $user->id && $project->principal_id != $user->id)
-//        {
-//            foreach ($array as $key => $value)
-//            {
-//                $result = PrivacyType::isPrivacy(ModuleableType::PROJECT,$key);
-//                if($result)
-//                {
-//                    $result = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, $key);
-//                    if(!$result)
-//                    {
-//                        $array[$key] = 'privacy';
-//                    }
-//                }
-//            }
-//        }
             return [
                 "id" => hashid_encode($item->id),
                 "title" => $item->project_name,
@@ -1774,17 +1586,14 @@ class ProjectController extends Controller
                 ],
             ];
         });
-
         $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
         $manager = new Manager();
         return response($manager->createData($data)->toArray());
     }
-
     public function detail2(Request $request, Project $project, ProjectRepository $repository)
     {
         $type = $project->type;
         $user = Auth::guard("api")->user();
-
         $project->powers = $repository->getPower($user, $project);
         $result = $this->response->item($project, new ProjectTransformer());
         $data = TemplateField::where('module_type', $type)->get();
@@ -1792,21 +1601,19 @@ class ProjectController extends Controller
         $resource = new Fractal\Resource\Collection($data, new TemplateFieldTransformer($project->id));
         $manager = new Manager();
         $manager->setSerializer(new DataArraySerializer());
-
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-        $operate = new OperateEntity([
-            'obj' => $project,
-            'title' => null,
-            'start' => null,
-            'end' => null,
-            'method' => OperateLogMethod::LOOK,
-        ]);
-        event(new OperateLogEvent([
-            $operate
-        ]));
+//        $operate = new OperateEntity([
+//            'obj' => $project,
+//            'title' => null,
+//            'start' => null,
+//            'end' => null,
+//            'method' => OperateLogMethod::LOOK,
+//        ]);
+//        event(new OperateLogEvent([
+//            $operate
+//        ]));
         return $result;
     }
-
     public function detail3(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
     {
         $type = $project->type;
@@ -1912,7 +1719,6 @@ class ProjectController extends Controller
             $arr['cooperation_type'] = $trail->cooperation_type;
             $arr['trail_status'] = $trail->status;
         }
-
         DB::beginTransaction();
         try {
             DB::table('project_implode')->insertGetId($arr);
@@ -1923,7 +1729,6 @@ class ProjectController extends Controller
         }
         DB::commit();
     }
-
     private function updateProjectImplodeTemplateField($key, $val)
     {
         $arr = [];
@@ -1974,4 +1779,3 @@ class ProjectController extends Controller
         ProjectImplode::find($projectImpId)->update($arr);
     }
 }
-

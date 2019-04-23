@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\OperateLogEvent;
 use App\Jobs\RecordOperateLog;
+use App\Models\Aim;
 use App\Models\Announcement;
 use App\Models\ApprovalForm\ApprovalForm;
 use App\Models\ApprovalForm\Business;
@@ -214,6 +215,9 @@ class OperateLogEventListener
             }else if($operate->obj instanceof SupplierRelate){
                 $type = ModuleableType::SUPPLIERRELATE;
                 $typeName = "供应商联系人";
+            } else if($operate->obj instanceof Aim) {
+                $type = ModuleableType::AIM;
+                $typeName = "目标";
             }
             //TODO
             $id = $operate->obj->id;
@@ -450,7 +454,8 @@ class OperateLogEventListener
                     break;
 
             }
-//            RecordOperateLog::dispatch([
+
+//            dispatch(new RecordOperateLog([
 //                'user_id' => $user->id,
 //                'logable_id' => $id,
 //                'logable_type' => $type,
@@ -460,7 +465,7 @@ class OperateLogEventListener
 //                'status' => 1,
 //                'field_name'    =>$field_name,
 //                'field_title' =>  $title
-//            ])->delay(Carbon::now()->addMinutes(10));
+//            ]));
             OperateLog::create([
                 'user_id' => $user->id,
                 'logable_id' => $id,

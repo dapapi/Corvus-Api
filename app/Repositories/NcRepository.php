@@ -35,6 +35,7 @@ class NcRepository
             "json"  =>  ["sysCode"   =>  $sysCode,"sysPass"  =>  $sysPass,"companyId"    =>$companyId],
 //            "headers"   =>  ['Accept'   =>  'application/json']
         ];
+
         $response = $client->request('POST',$login_url,$options);
         if($response->getStatusCode() == 200){
             $body = json_decode($response->getBody(),true);
@@ -63,7 +64,6 @@ class NcRepository
             "json"  =>  ['token'=>$token,'itfcode'=>$itfconde,'companyId'=>config('nc.nc_companyid'),'data'=>$data],
             "debug" =>  true
         ];
-        dump($options);
         $client = new Client();
         $nc_query = config("nc.nc_query");
         $response = $client->request("POST",$nc_query,$options);
@@ -72,9 +72,11 @@ class NcRepository
             if ($body['success'] == "true"){
                 return true;
             }
+
             throw new \Exception($response->getBody());
         }
         throw new \Exception($response->getStatusCode());
+
     }
 
     /**
@@ -94,6 +96,7 @@ class NcRepository
         if($star->sign_contract_status == SignContractStatus::ALREADY_TERMINATE_AGREEMENT){
             $signflag = 1;//解约
         }
+
         $data = ['accode'=>$star->accode,'acname'=>$star->name,'signflag'=>$signflag,'enflag'=>$star->enflag];
         return $this->senMessageToNC($itfcode,$data);
     }

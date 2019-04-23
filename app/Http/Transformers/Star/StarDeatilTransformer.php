@@ -110,7 +110,7 @@ class StarDeatilTransformer extends TransformerAbstract
             ->where('tasks.status',TaskStatus::NORMAL)->searchData()
             ->limit(3)->get();
         foreach ($tasks as $task){
-            $tasks->id = hashid_encode($task->id);
+            $task->id = hashid_encode($task->id);
         }
         return $tasks;
     }

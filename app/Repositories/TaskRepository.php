@@ -13,6 +13,7 @@ class TaskRepository
         $cache_key = "power:user:".$user->id.":task:".$task->id;
         $power = Cache::get($cache_key);
 
+
         if ($power){
             return $power;
         }

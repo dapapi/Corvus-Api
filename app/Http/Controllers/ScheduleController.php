@@ -583,11 +583,27 @@ class ScheduleController extends Controller
         }
         if ($request->has('material_id') && $payload['material_id']) {
             $payload['material_id'] = hashid_decode($payload['material_id']);
-            $material = Material::find($payload['material_id']);
-            if (!$material)
-                return $this->response->errorBadRequest('会议室id不存在');
-        }
+            if ($payload['is_allday'] == 1) {
+                // 开始时间   Ymd 格式
+                $array['start_at'] = date('Y-m-d', strtotime($payload['start_at']));
+                $array['end_at'] = date('Y-m-d', strtotime($payload['end_at']));
 
+            } else {
+                $array['start_at'] = date('Y-m-d H:i:s', strtotime($payload['start_at']));
+                $array['end_at'] = date('Y-m-d H:i:s', strtotime($payload['end_at']));
+
+            }
+            $materials['material_id'] = ['material_id', $payload['material_id']];
+            $materials['start_at'] = ['end_at', '>=', $array['start_at']];
+            $materials['end_at'] = ['start_at', '<=', $array['end_at']];
+            $endmaterials = Schedule::where($materials['material_id'][0], $materials['material_id'][1])
+                ->where($materials['end_at'][0], $materials['end_at'][1], $materials['end_at'][2])
+                ->where($materials['start_at'][0], $materials['start_at'][1], $materials['start_at'][2])
+                ->orderby('start_at')->get(['id'])->toArray();
+            if ($endmaterials) {
+                return  $this->response->errorForbidden("该时段资源已被占用");
+            }
+        }
         if (!$request->has('participant_ids') || !is_array($payload['participant_ids']))
             $payload['participant_ids'] = [];
 

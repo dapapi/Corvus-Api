@@ -41,7 +41,18 @@ class PrivacyUserRepository
     }
     public function updatePrivacy($array,$request, $payload)
     {
+        if ($request->has('star_risk_point')) {
+            $p_id = $payload['star_risk_point'];
+            $array['moduleable_field'] = PrivacyType::STAR_RISK_POINT;
+            $array['is_privacy'] = PrivacyType::OTHER;
+            $this->addAll($p_id,$array);
 
+            //                $isnot = PrivacyUser::where($array)->first();
+            //                if(!$isnot){
+            //                    $privacyUser = PrivacyUser::create($array);
+            //                }
+
+        }
         if ($request->has('projected_expenditure')) {
                 $p_id = $payload['projected_expenditure'];
                 $array['moduleable_field'] = PrivacyType::PROJECT_EXPENDITURE;
@@ -143,7 +154,20 @@ class PrivacyUserRepository
     }
     public function addPrivacy($array,$request, $payload)
     {
-
+        if ($request->has('star_risk_point')) {
+            $star_risk_point = $payload['star_risk_point'];
+            unset($payload['star_risk_point']);
+            foreach ($star_risk_point as $key => &$value) {
+                $array['moduleable_field'] = PrivacyType::STAR_RISK_POINT;
+                $array['is_privacy'] = PrivacyType::OTHER;
+                $array['user_id'] = hashid_decode($value);
+//                $this->add($array);
+                $isnot = PrivacyUser::where($array)->first();
+                if(!$isnot){
+                    $privacyUser = PrivacyUser::create($array);
+                }
+            }
+        }
         if ($request->has('sign_contract_status')) {
             $sign_contract_status = $payload['sign_contract_status'];
             unset($payload['sign_contract_status']);
@@ -324,18 +348,18 @@ class PrivacyUserRepository
      */
     public static function has_power($table,$field,$data_id,$userid)
     {
-        $user_ids = Cache::get($table."_".$field."_".$data_id);
-        if ($user_ids){
-            return $user_ids;
-        }else{
-            $user_ids = PrivacyUser::where('moduleable_id',$data_id)
-                ->where('moduleable_field',$field)
+        $key = "privacy_user:".$table."_".$data_id."_".$userid;
+        $fields = Cache::get($key);
+        if (!$fields){
+            $fields = PrivacyUser::where('moduleable_id',$data_id)  //查询对传入用户不隐私的字段
+                ->where('user_id',$userid)
                 ->where('moduleable_type',$table)
-                ->pluck('user_id');
+                ->where('is_privacy',1)
+                ->pluck('moduleable_field');
+            $now = Carbon::now();
+            Cache::put($key,$fields,$now->addMinute(1));
         }
-        $now = Carbon::now();
-        Cache::put($table."_".$field."_".$data_id,$now->addMinute(1));
-        if($user_ids->contains($userid)){ //如果$userid在有权限用户范围内则可以查看日志
+        if($fields->contains($field)){ //如果$userid在有权限用户范围内则可以查看日志
             return true;
         }else{
             return false;

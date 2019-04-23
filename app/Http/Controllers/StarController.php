@@ -92,15 +92,17 @@ class StarController extends Controller
         return $this->response->paginator($stars, new StarTransformer());
     }
 
-    public function getStarRelated(Request $request){
+    public function getStarRelated(Request $request)
+    {
 
-        $stars = Star::where('sign_contract_status',2)->searchData()->select('id','name')->get();
+        $stars = Star::where('sign_contract_status', 2)->searchData()->select('id', 'name')->get();
         $data = array();
         $data['data'] = $stars;
         foreach ($data['data'] as $key => &$value) {
             $value['id'] = hashid_encode($value['id']);
         }
         return $data;
+
     }
 
     public function all(Request $request)
@@ -137,6 +139,7 @@ class StarController extends Controller
             $star->power = "true";
         }catch (Exception $exception){
             $star->power = "false";
+
         }
         $star->powers = $repository->getPower($user,$star);
 
@@ -678,8 +681,7 @@ class StarController extends Controller
 //                $arrayOperateLog[] = $operateStarLocation;
             }
         }
-        if ($request->has("star_risk_point"))
-        {
+        if ($request->has("star_risk_point")) {
             $array['star_risk_point'] = $payload['star_risk_point'];
         }
         DB::beginTransaction();
@@ -850,8 +852,7 @@ class StarController extends Controller
             ->union($first)
             ->get();
 
-
-        return $this->response->collection($stars,new StarAndBloggerTransfromer());
+        return $this->response->collection($stars, new StarAndBloggerTransfromer());
     }
 
     /**
@@ -859,7 +860,7 @@ class StarController extends Controller
      * @param FilterRequest $request
      * @return \Dingo\Api\Http\Response
      */
-    public function getFilter(FilterRequest $request,StarRepository $repository)
+    public function getFilter(FilterRequest $request, StarRepository $repository)
     {
         $payload = $request->all();
         $array = [];//查询条件
@@ -881,6 +882,7 @@ class StarController extends Controller
         $all = $request->get('all', false);
 //        $joinSql = FilterJoin::where('table_name', 'stars')->first()->join_sql;
 //        $query = Star::from(DB::raw($joinSql))->select("stars.*");
+
 
         $query =    $repository->starCustomSiftBuilder();
 //        $query = StarRepository::getStarList();
@@ -924,52 +926,6 @@ class StarController extends Controller
         return (new StarsExport($request))->download($file);
     }
 
-    public function getStarList(Request $request)
-    {
-        $payload = $request->all();
-        $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $condition = null;
-        if (isset($payload['conditions'])){
-            $condition = FilterReportRepository::getCondition($payload['conditions']);
-        }
-        $star_list =  StarRepository::getStarList($condition);
-        $res = [];
-        foreach ($star_list as $key => $star){
-            $temp['id'] = hashid_encode($star->id);
-            $temp['contracts']['data']['contract_start_date'] = $star->sign_contract_at;
-            $temp['contracts']['data']['contract_end_date'] = $star->terminate_agreement_at;
-            $temp['sign_contract_at'] = $star->sign_contract_at;
-            $temp['terminate_agreement_at'] = $star->terminate_agreement_at;
-            $temp['name'] = $star->name;
-            $temp['weibo_fans_num'] = $star->weibo_fans_num;
-            $temp['source'] = $star->source;
-            $temp['created_at'] = $star->created_at;
-            $temp['last_follow_up_at'] = $star->last_follow_up_at;
-            $temp['sign_contract_status'] = $star->sign_contract_status;
-            $temp['birthday'] = $star->birthday;
-            $temp['communication_status'] = $star->communication_status;
-            $res[] = $temp;
-        }
-        $meta = [
-            "pagination"=> [
-                "total"=> 576,
-                "count"=> 15,
-                "per_page"=> 15,
-                "current_page"=> 1,
-                "total_pages"=> 39,
-                "links"=> [
-                    "next"=> "http://corvus.cn/stars/filter?page=2"
-                ],
-            ]
-        ];
-        return [
-            "data" => $res,
-            "meta"  => $meta,
-            "status"    =>  "success"
-        ];
-    }
-
 
     public function getStarList2(Request $request)
     {
@@ -1009,16 +965,16 @@ class StarController extends Controller
     public function getStarDeatil(Star $star,StarRepository $starRepository)
     {
         // 操作日志
-//        $operate = new OperateEntity([
-//            'obj' => $star,
-//            'title' => null,
-//            'start' => null,
-//            'end' => null,
-//            'method' => OperateLogMethod::LOOK,
-//        ]);
-//        event(new OperateLogEvent([
-//            $operate,
-//        ]));
+        $operate = new OperateEntity([
+            'obj' => $star,
+            'title' => null,
+            'start' => null,
+            'end' => null,
+            'method' => OperateLogMethod::LOOK,
+        ]);
+        event(new OperateLogEvent([
+            $operate,
+        ]));
         $user = Auth::guard("api")->user();
         $star->powers = $starRepository->getPower($user, $star);
         return $this->response()->item($star, new StarDeatilTransformer());

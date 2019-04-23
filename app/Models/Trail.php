@@ -104,7 +104,9 @@ class Trail extends Model
         'pool_type',
         'receive',
         'fee',
-        'desc'
+        'desc',
+        'play_grade',             //剧本评分
+        'television_type'         //影视类型
     ];
 
     protected $dates = ['deleted_at'];

@@ -670,7 +670,6 @@ class ClientController extends Controller
         $clients = $query->where(function ($query) use ($payload) {
             FilterReportRepository::getTableNameAndCondition($payload,$query);
         });
-
 //        DB::connection()->enableQueryLog();
         $clients = $clients->where($array)
             ->select('clients.id','clients.company','clients.creator_id','clients.grade','clients.principal_id','clients.created_at','operate_logs.created_at as last_updated_at','clients.updated_at')

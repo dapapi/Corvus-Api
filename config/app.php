@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => env('APP_ENV', 'dev'),
 
     /*
     |--------------------------------------------------------------------------
@@ -207,7 +207,8 @@ return [
         Maatwebsite\Excel\ExcelServiceProvider::class,
         //友盟推送
         UmengPusher\Umeng\UmengServiceProvider::class,
-
+         //
+        RunningTime\RunningTimeServiceProvider::class,
 
     ],
 

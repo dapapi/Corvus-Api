@@ -12,8 +12,9 @@ class DashboardTransformer extends TransformerAbstract
     {
         $arr = [
             'id' => hashid_encode($department->id),
-            'name' => $department->name . '仪表盘',
             'department_name' => $department->name,
+            'name' => $department->name . '仪表盘',
+
         ];
 
         return $arr;

@@ -24,6 +24,8 @@ class ClientIndexTransformer extends TransformerAbstract
         if ($this->isAll) {
             $array = [
                 'company' => $client->company,
+                'brand' => $client->brand,
+                'grade' => $client->grade,
             ];
         } else {
             $array = [

@@ -75,7 +75,7 @@ class ScheduleRemind extends Command
             Log::error("定时任务。。。登录异常");
             Log::error($e);
         }
-//        Log::info("系统用户登录成功");
+        Log::info("系统用户登录成功");
         $body = $this->httpRepository->jar->getBody();
         $access_token = json_decode($body,true)['access_token'];
         $authorization = "Bearer ".$access_token;
@@ -84,6 +84,7 @@ class ScheduleRemind extends Command
         $schdules = Schedule::where("start_at",'>',$now->toDateTimeString())->select(['remind','id','title','creator_id','start_at'])->get();
         foreach ($schdules->toArray() as $schdule){
             $remid_time = Carbon::createFromTimeString($schdule['start_at']);
+            Log::info("时间差距".$remid_time->diffInMinutes($now));
             $flag = false; //是否发消息标志
             //提醒 1:无 2:日程发生时 3:5分钟前 4:10分钟前 5:15分钟前 6:30分钟前 7:1小时前 8:2小时前 9:1天前 10:2天前
             switch ($schdule['remind']){
@@ -128,7 +129,10 @@ class ScheduleRemind extends Command
                     }
                     break;
             }
-//            Log::info($flag);
+
+            Log::info($flag ? "发消息" : "不发消息");
+//            dump($flag);
+
             if($flag){
                 $user = User::find(config("app.schdule_user_id"));
                 //发消息

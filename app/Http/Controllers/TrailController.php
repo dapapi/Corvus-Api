@@ -261,7 +261,7 @@ class TrailController extends Controller
                 ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')
                 ->select(['trails.id', 'trails.title', 'trails.client_id', 'trails.principal_id', 'trails.status'
                     , DB::raw("if(max(`operate_logs`.`updated_at`) is null,`trails`.`created_at`,
-                max(`operate_logs`.`updated_at`))  as up_time")])
+                max(`operate_logs`.`updated_at`))  as last_follow_up_at_or_created_at")])
                 ->get()->toArray();
             foreach ($trails as $k => $v) {
                 //查询负责人

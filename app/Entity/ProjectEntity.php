@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Entity;
+
 use App\Models\DataDictionarie;
 use App\Models\Project;
 use App\Models\Trail;
@@ -12,185 +14,267 @@ use App\User;
  * Date: 2019-01-23
  * Time: 15:12
  */
-
 class ProjectEntity
 {
     /**
-     *@desc 主键id
+     * @desc 主键id
      */
-   public $id;
+    public $id;
 
     /**
-     *@desc 项目编号
+     * @desc 项目编号
      */
-   public $project_number;
+    public $project_number;
 
     /**
-     *@desc 项目名称
+     * @desc 项目名称
      */
-   public $title;
+    public $title;
 
     /**
-     *@desc 负责人
+     * @desc 负责人
      */
-   public $principal_id;
+    public $principal_id;
 
     /**
-     *@desc 创建人
+     * @desc 创建人
      */
-   public $creator_id;
+    public $creator_id;
 
     /**
-     *@desc 销售线索
+     * @desc 销售线索
      */
-   public $trail_id;
+    public $trail_id;
 
     /**
-     *@desc 私密
+     * @desc 项目来源类型
      */
-   public $privacy;
+    public $resource_type;
 
     /**
-     *@desc 优先级
+     * @desc 项目来源
      */
-   public $priority;
+    public $resource;
 
     /**
-     *@desc 项目状态
+     *
+     * @desc 合作预算
      */
-   public $status;
+    public $fee;
 
     /**
-     *@desc 项目类型
+     * @desc 合作类型
      */
-   public $type;
+    public $cooperation_type;
 
     /**
-     *@desc 描述
+     * @desc 影剧类型
      */
-   public $desc;
+    public $television_type;
 
     /**
-     *@desc 
+     * @desc 剧本评分
      */
-   private $deleted_at;
+    public $play_grade;
 
     /**
-     *@desc 项目停止时间
+     * @desc 私密
      */
-   public $stop_at;
+    public $privacy;
 
     /**
-     *@desc 项目完成时间
+     * @desc 优先级
      */
-   public $complete_at;
+    public $priority;
 
     /**
-     *@desc 支出
+     * @desc 项目状态
      */
-   public $projected_expenditure;
+    public $status;
 
     /**
-     *@desc 项目截止时间
+     * @desc 项目类型
      */
-   public $end_at;
+    public $type;
 
     /**
-     *@desc 项目开始时间
+     * @desc 描述
      */
-   public $start_at;
+    public $desc;
 
     /**
-     *@desc 
+     * @desc
      */
-   private $created_at;
+    private $deleted_at;
 
     /**
-     *@desc 
+     * @desc 项目停止时间
      */
-   private $updated_at;
+    public $stop_at;
 
-   public function get_id()
-   {
-       return $this->id;
-   }
-   public function get_project_number()
-   {
-       return $this->project_number;
-   }
-   public function get_title()
-   {
-       return $this->title;
-   }
-   public function get_principal_id()
-   {
-       $user = User::find($this->principal_id);
-       return $user == null ? null : $user->name;
-   }
-   public function get_creator_id()
-   {
-       $user = User::find($this->creator_id);
-       return $user == null ? null : $user->name;
-   }
-   public function get_trail_id()
-   {   $trail = Trail::find($this->trail_id);
-       return $trail == null ? null : $trail->title;
-   }
-   public function get_privacy()
-   {
-       if ($this->privacy == 1){
-           return "私有";
-       }else{
-           return "公开";
-       }
-   }
-   public function get_priority()
-   {
-       return (new DataDictionarie())->getName(DataDictionarie::PRIORITY,$this->priority);
-   }
-   public function get_status()
-   {
-       return (new Project())->getProjectStatus($this->status);
-   }
-   public function get_type()
-   {
-       return (new Project())->getProjectType($this->type);
-   }
-   public function get_desc()
-   {
-       return $this->desc;
-   }
-   public function get_deleted_at()
-   {
-       return $this->deleted_at;
-   }
-   public function get_stop_at()
-   {
-       return $this->stop_at;
-   }
-   public function get_complete_at()
-   {
-       return $this->complete_at;
-   }
-   public function get_projected_expenditure()
-   {
-       return $this->projected_expenditure;
-   }
-   public function get_end_at()
-   {
-       return $this->end_at;
-   }
-   public function get_start_at()
-   {
-       return $this->start_at;
-   }
-   public function get_created_at()
-   {
-       return $this->created_at;
-   }
-   public function get_updated_at()
-   {
-       return $this->updated_at;
-   }
+    /**
+     * @desc 项目完成时间
+     */
+    public $complete_at;
+
+    /**
+     * @desc 支出
+     */
+    public $projected_expenditure;
+
+    /**
+     * @desc 项目截止时间
+     */
+    public $end_at;
+
+    /**
+     * @desc 项目开始时间
+     */
+    public $start_at;
+
+    /**
+     * @desc
+     */
+    private $created_at;
+
+    /**
+     * @desc
+     */
+    private $updated_at;
+
+    public function get_id()
+    {
+        return $this->id;
+    }
+
+    public function get_project_number()
+    {
+        return $this->project_number;
+    }
+
+    public function get_title()
+    {
+        return $this->title;
+    }
+
+    public function get_principal_id()
+    {
+        $user = User::find($this->principal_id);
+        return $user == null ? null : $user->name;
+    }
+
+    public function get_creator_id()
+    {
+        $user = User::find($this->creator_id);
+        return $user == null ? null : $user->name;
+    }
+
+    public function get_trail_id()
+    {
+        $trail = Trail::find($this->trail_id);
+        return $trail == null ? null : $trail->title;
+    }
+
+    # todo 维护int对应字符串
+    public function get_resource_type()
+    {
+        return $this->title;
+    }
+
+    public function get_resource()
+    {
+        return $this->resource;
+    }
+
+    public function get_fee()
+    {
+        return $this->fee;
+    }
+
+    # todo 维护int对应字符串
+    public function get_cooperation_type()
+    {
+        return $this->cooperation_type;
+    }
+
+    # todo 维护int对应字符串
+    public function get_television_type()
+    {
+        return $this->television_type;
+    }
+
+    public function get_play_grade()
+    {
+        return $this->play_grade;
+    }
+
+    public function get_privacy()
+    {
+        if ($this->privacy == 1) {
+            return "私有";
+        } else {
+            return "公开";
+        }
+    }
+
+    public function get_priority()
+    {
+        return (new DataDictionarie())->getName(DataDictionarie::PRIORITY, $this->priority);
+    }
+
+    public function get_status()
+    {
+        return (new Project())->getProjectStatus($this->status);
+    }
+
+    public function get_type()
+    {
+        return (new Project())->getProjectType($this->type);
+    }
+
+    public function get_desc()
+    {
+        return $this->desc;
+    }
+
+    public function get_deleted_at()
+    {
+        return $this->deleted_at;
+    }
+
+    public function get_stop_at()
+    {
+        return $this->stop_at;
+    }
+
+    public function get_complete_at()
+    {
+        return $this->complete_at;
+    }
+
+    public function get_projected_expenditure()
+    {
+        return $this->projected_expenditure;
+    }
+
+    public function get_end_at()
+    {
+        return $this->end_at;
+    }
+
+    public function get_start_at()
+    {
+        return $this->start_at;
+    }
+
+    public function get_created_at()
+    {
+        return $this->created_at;
+    }
+
+    public function get_updated_at()
+    {
+        return $this->updated_at;
+    }
 
 }

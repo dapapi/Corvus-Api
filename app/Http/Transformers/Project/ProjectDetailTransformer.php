@@ -14,7 +14,7 @@ use League\Fractal\TransformerAbstract;
 
 class ProjectDetailTransformer extends TransformerAbstract
 {
-    protected $availableIncludes = ['trail', 'participants', 'relate_tasks', 'relate_projects', 'relate_project_courses', 'relate_project_bills_resource', 'tasks'];
+    protected $availableIncludes = ['participants', 'relate_tasks', 'relate_projects', 'relate_project_courses', 'relate_project_bills_resource', 'tasks'];
 
     private $isAll = true;
     private $user = null;
@@ -49,6 +49,15 @@ class ProjectDetailTransformer extends TransformerAbstract
                         'name' => $project->creator_name,
                     ]
                 ],
+                # 原 线索相关字段
+                'trail_id' => !empty($project->trail_id) ? hashid_encode($project->trail_id) : null,
+                'resource_type' => $project->resource_type,
+                'resource' => $project->resource,
+                'fee' => $project->fee,
+                'cooperation_type' => $project->cooperation_type,
+                'television_type' => $project->television_type,
+                'play_grade' => $project->play_grade,
+
                 'type' => $project->type,
                 'privacy' => $project->privacy,
                 'priority' => $project->priority,

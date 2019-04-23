@@ -55,6 +55,7 @@ use App\PrivacyType;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModuleUserRepository;
 use App\Repositories\ProjectRepository;
+use App\Repositories\ProjectStarRepository;
 use App\Repositories\ScopeRepository;
 use App\Repositories\TrailStarRepository;
 use App\Repositories\UmengRepository;
@@ -283,10 +284,7 @@ class ProjectController extends Controller
                     return $this->response->errorBadRequest('字段与项目类型匹配错误');
                 }
             }
-            if (is_array($payload['trail']) && array_key_exists('id', $payload['trail'])) {
-                $payload['trail_id'] = hashid_decode($payload['trail']['id']);
-                unset($payload['trail']['id']);
-            }
+            $payload['trail_id'] = hashid_decode($payload['trail_id']);
             $payload['project_number'] = Project::getProjectNumber();
         }
         $user = Auth::guard('api')->user();
@@ -321,61 +319,10 @@ class ProjectController extends Controller
                 }
                 // todo 优化，这部分操作应该有对应仓库
                 // todo 操作日志的时候在对应的trail也要记录
-                $trail = Trail::find($payload['trail_id']);
-                foreach ($payload['trail'] as $key => $val) {
-                    if ($key == 'lock') {
-                        $trail->lock_status = $val;
-                        continue;
-                    }
-                    if ($key == 'fee') {
-                        $trail->fee = $val;
-                        continue;
-                    }
-                    if ($key == 'expectations') {
-                        $repository = new TrailStarRepository();
-                        //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
-                        $repository->deleteTrailStar($trail->id, TrailStar::EXPECTATION);
-                        $repository->store($trail, $payload['trail']['expectations'], TrailStar::EXPECTATION);
-                        //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
-                        $title = "关联目标艺人";
-                        if (!empty($start) || !empty($end)) {
-                            $operateName = new OperateEntity([
-                                'obj' => $trail,
-                                'title' => $title,
-                                'start' => $start,
-                                'end' => trim($end, ","),
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
-                        }
-                        continue;
-                    }
-                    if ($key == 'recommendations') {
-                        $repository = new TrailStarRepository();
-                        //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
-                        $repository->deleteTrailStar($trail->id, TrailStar::RECOMMENDATION);
-                        $repository->store($trail, $payload['trail']['recommendations'], TrailStar::RECOMMENDATION);
-                        //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
-                        $title = "关联推荐艺人";
-                        if (!empty($start) || !empty($end)) {
-                            $operateName = new OperateEntity([
-                                'obj' => $trail,
-                                'title' => $title,
-                                'start' => $start,
-                                'end' => trim($end, ","),
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
-                        }
-                    }
+                if (count($payload['expectations']) > 0) {
+                    $repository = new ProjectStarRepository();
+                    $repository->store($project, $payload['expectations']);
                 }
-                $trail->update($payload['trail']);
-                $repository = new TrailStarRepository();
-                $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
             }
             if ($request->has('participant_ids')) {
                 foreach ($payload['participant_ids'] as &$id) {
@@ -400,8 +347,6 @@ class ProjectController extends Controller
             return $this->response->errorInternal('创建失败');
         }
         DB::commit();
-        //向知会人发消息
-        //向审批人发消息
         return $this->response->item($project, new ProjectTransformer());
     }
     public function edit(EditProjectRequest $request, Project $project)
@@ -539,104 +484,31 @@ class ProjectController extends Controller
                     }
                 }
             }
-            if ($request->has('trail')) {
-                foreach ($payload['trail'] as $key => $val) {
-                    if ($key == 'fee') {
-//                        $trail->fee = $val;
-                        if ($val != $trail->fee) {
-//                            $operateName = new OperateEntity([
-//                                'obj' => $project,
-//                                'title' => "预计订单收入",
-//                                'start' => $trail->fee,
-//                                'end' => $val,
-//                                'method' => OperateLogMethod::UPDATE,
-//                            ]);
-//                            $arrayOperateLog[] = $operateName;
-//                            $operateName = new OperateEntity([
-//                                'obj' => $trail,
-//                                'title' => "预计订单收入",
-//                                'start' => $trail->fee,
-//                                'end' => $val,
-//                                'method' => OperateLogMethod::UPDATE,
-//                            ]);
-//                            $arrayOperateLog[] = $operateName;
-                        }
-                        continue;
-                    }
-                    if ($key == 'lock') {
-//                        $trail->lock_status = $val;
-                        if ($val != $trail->lock_status) {
-//                            $operateName = new OperateEntity([
-//                                'obj' => $project,
-//                                'title' => "是否锁价",
-//                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
-//                                'end' => $val == 1 ? "锁价" : "未锁价",
-//                                'method' => OperateLogMethod::UPDATE,
-//                            ]);
-//                            $arrayOperateLog[] = $operateName;
-//
-//                            $operateName = new OperateEntity([
-//                                'obj' => $trail,
-//                                'title' => "是否锁价",
-//                                'start' => $trail->lock_status == 1 ? "锁价" : "未锁价",
-//                                'end' => $val == 1 ? "锁价" : "未锁价",
-//                                'method' => OperateLogMethod::UPDATE,
-//                            ]);
-//                            $arrayOperateLog[] = $operateName;
-                        }
-                        continue;
-                    }
-                    if ($key == 'expectations') {
-                        $repository = new TrailStarRepository();
-                        //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
-                        $repository->deleteTrailStar($trail->id, TrailStar::EXPECTATION);
-                        $repository->store($trail, $payload['trail']['expectations'], TrailStar::EXPECTATION);
-                        //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::EXPECTATION);
-                        $title = "关联目标艺人";
-                        if (!empty($start) || !empty($end)) {
-                            $operateName = new OperateEntity([
-                                'obj' => $trail,
-                                'title' => $title,
-                                'start' => $start,
-                                'end' => $end,
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
-                        }
-                        continue;
-                    }
-                    if ($key == 'recommendations') {
-                        $repository = new TrailStarRepository();
-                        //获取现在关联的艺人和博主
-                        $start = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
-                        $repository->deleteTrailStar($trail->id, TrailStar::RECOMMENDATION);
-                        $repository->store($trail, $payload['trail']['recommendations'], TrailStar::RECOMMENDATION);
-                        //获取更新之后的艺人和博主列表
-                        $end = $repository->getStarListByTrailId($trail->id, TrailStar::RECOMMENDATION);
-                        $title = "关联推荐艺人";
-                        if (!empty($start) || !empty($end)) {
-                            $operateName = new OperateEntity([
-                                'obj' => $trail,
-                                'title' => $title,
-                                'start' => $start,
-                                'end' => $end,
-                                'method' => OperateLogMethod::UPDATE,
-                            ]);
-                            $arrayOperateLog[] = $operateName;
-                        }
-                    }
-                }
-                //更新线索
-                $trail->update($payload['trail']);
-            }
-            event(new OperateLogEvent($arrayOperateLog));//更新日志
-            event(new ProjectDataChangeEvent($old_project, $project));//更新项目操作日志
 
-            if (!empty($trail)) {
-                event(new TrailDataChangeEvent($old_trail, $trail));//更新线索操作日志
+            if ($request->has('expectations') && count($payload['exceptations']) > 0) {
+                $repository = new ProjectStarRepository();
+                //获取现在关联的艺人和博主
+                $start = $repository->getStarListByProjectId($project->id);
+                $repository->deleteProjectStar($project->id);
+                $repository->store($project, $payload['expectations']);
+                //获取更新之后的艺人和博主列表
+                $end = $repository->getStarListByProjectId($project->id);
+
+                $title = "关联目标艺人";
+                if (!empty($start) || !empty($end)) {
+                    $operateName = new OperateEntity([
+                        'obj' => $project,
+                        'title' => $title,
+                        'start' => $start,
+                        'end' => $end,
+                        'method' => OperateLogMethod::UPDATE,
+                    ]);
+                    $arrayOperateLog[] = $operateName;
+                }
+
             }
+
+            event(new ProjectDataChangeEvent($old_project, $project));//更新项目操作日志
         } catch (Exception $exception) {
             Log::error($exception);
             DB::rollBack();
@@ -1474,7 +1346,7 @@ class ProjectController extends Controller
     {
         # 我参与的
         $power = ProjectImplode::getConditionSql();
-        $query = DB::table('project_implode')->selectRaw("id, principal_id,creator_id, project_name, principal, latest_time, project_store_at, trail_fee as fee, stars, star_ids, bloggers, blogger_ids, project_type");
+        $query = DB::table('project_implode')->selectRaw("id, principal_id,creator_id, project_name, principal, latest_time, project_store_at, trail_fee as fee, stars, star_ids, bloggers, blogger_ids, project_type, television_type, platforms");
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         if ($request->has('my')) {
@@ -1574,6 +1446,8 @@ class ProjectController extends Controller
                         ],
                     ]
                 ],
+                'television_type',
+                'platforms'
             ];
         });
         $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
@@ -1604,12 +1478,12 @@ class ProjectController extends Controller
 //        ]));
         return $result;
     }
-    public function detail3(Request $request, $project,ProjectRepository $repository,ScopeRepository $scopeRepository)
+    public function detail3(Request $request, $project, ProjectRepository $repository, ScopeRepository $scopeRepository)
     {
         $type = $project->type;
         $user = Auth::guard("api")->user();
 
-        $project->powers = $repository->getPower($user,$project);
+        $project->powers = $repository->getPower($user, $project);
         $result = $this->response->item($project, new ProjectDetailTransformer());
         $data = TemplateField::where('module_type', $type)->get();
         # 之后换nc暂时都是0
@@ -1623,65 +1497,39 @@ class ProjectController extends Controller
 
         if ($project->creator_id != $user->id && $project->principal_id != $user->id) {
 
-            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'contractmoney');
-            if(!$contractMoneyResult)
-            {
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id, $project->id, ModuleableType::PROJECT, 'contractmoney');
+            if (!$contractMoneyResult) {
                 $result->addMeta('contractmoney', 'privacy');
-            }
-            else
-            {
+            } else {
                 if (isset($contractmoney)) {
-                    $result->addMeta('contractmoney', "".$contractmoney);
-                }
-                else
-                {
-                    $result->addMeta('contractmoney', "".'0');
+                    $result->addMeta('contractmoney', "" . $contractmoney);
+                } else {
+                    $result->addMeta('contractmoney', "" . '0');
                 }
             }
-            $contractMoneyResult = PrivacyType::excludePrivacy($user->id,$project->id,ModuleableType::PROJECT, 'expendituresum');
-            if(!$contractMoneyResult)
-            {
+            $contractMoneyResult = PrivacyType::excludePrivacy($user->id, $project->id, ModuleableType::PROJECT, 'expendituresum');
+            if (!$contractMoneyResult) {
                 $result->addMeta('expendituresum', 'privacy');
-            }
-            else
-            {
+            } else {
                 if (isset($expendituresum)) {
-                    $result->addMeta('expendituresum', "".$expendituresum);
-                }
-                else
-                {
-                    $result->addMeta('expendituresum', "".'0');
+                    $result->addMeta('expendituresum', "" . $expendituresum);
+                } else {
+                    $result->addMeta('expendituresum', "" . '0');
                 }
             }
-        }
-        else
-        {
+        } else {
             if (isset($contractmoney)) {
-                $result->addMeta('contractmoney', "".$contractmoney);
-            }
-            else
-            {
-                $result->addMeta('contractmoney', "".'0');
+                $result->addMeta('contractmoney', "" . $contractmoney);
+            } else {
+                $result->addMeta('contractmoney', "" . '0');
             }
             if (isset($expendituresum)) {
-                $result->addMeta('expendituresum', "".$expendituresum);
-            }
-            else
-            {
-                $result->addMeta('expendituresum',"".'0');
+                $result->addMeta('expendituresum', "" . $expendituresum);
+            } else {
+                $result->addMeta('expendituresum', "" . '0');
             }
         }
         $result->addMeta('fields', $manager->createData($resource)->toArray());
-//        $operate = new OperateEntity([
-//            'obj' => $project,
-//            'title' => null,
-//            'start' => null,
-//            'end' => null,
-//            'method' => OperateLogMethod::LOOK,
-//        ]);
-//        event(new OperateLogEvent([
-//            $operate
-//        ]));
         return $result;
     }
 
@@ -1704,9 +1552,14 @@ class ProjectController extends Controller
         if (array_key_exists('trail_id', $payload)) {
             $trail = Trail::find($payload['trail_id']);
             $arr['client'] = $trail->client->company;
-            $arr['resource_type'] = $trail->resource_type;
-            $arr['trail_fee'] = $trail->fee;
-            $arr['cooperation_type'] = $trail->cooperation_type;
+            $arr['resource_type'] = $payload['resource_type'];
+            $arr['resource'] = $payload['resource'];
+            $arr['trail_fee'] = $payload['fee'];
+            if (array_key_exists('cooperation_type', $payload))
+                $arr['cooperation_type'] = $payload['cooperation_type'];
+            if (array_key_exists('television_type', $payload))
+                $arr['television_type'] = $payload['television_type'];
+
             $arr['trail_status'] = $trail->status;
         }
         DB::beginTransaction();

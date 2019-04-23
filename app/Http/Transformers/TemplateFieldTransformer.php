@@ -21,6 +21,7 @@ class TemplateFieldTransformer extends TransformerAbstract
             'id' => hashid_encode($field->id),
             'key' => $field->key,
             'field_type' => $field->field_type,
+            'flag' => $field->is_secret,
         ];
         if (in_array($field->field_type, [TemplateField::CHECKBOX, TemplateField::RADIO, TemplateField::SELECT])) {
             $array['content'] = explode('|', $field->content);

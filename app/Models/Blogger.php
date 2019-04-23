@@ -173,4 +173,10 @@ class Blogger extends Model
     {
         return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::PRODUCER);
     }
+
+
+    public function projects()
+    {
+        return $this->morphToMany(Project::class, 'talent', 'project_talent');
+    }
 }

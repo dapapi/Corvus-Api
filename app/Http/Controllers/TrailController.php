@@ -102,12 +102,23 @@ class TrailController extends Controller
             }
         }
         $data = array(
+
+//            'data'=>$pageList, //需求数据
+//            'page'=>array(
+//                'page'=>$page, //当前页数
+//                'pageSize'=>$pageSize, //每页多少条
+//                'count'=>$count, //记录总数
+//                'pageCount'=>$pageCount //总页数
+//            )
             'data'=>$pageList, //需求数据
-            'page'=>array(
-                'page'=>$page, //当前页数
-                'pageSize'=>$pageSize, //每页多少条
-                'count'=>$count, //记录总数
-                'pageCount'=>$pageCount //总页数
+            'meta'=>array(
+                'pagination'=>array(
+                    'current_page'=>$page, //当前页数
+                    'pageSize'=>$pageSize, //每页多少条
+                    'total'=>$count, //记录总数
+                    'total_pages'=>$pageCount //总页数
+                )
+
             )
         );
         return $data;
@@ -146,7 +157,8 @@ class TrailController extends Controller
      * @param string $type db:清空当前数据库 all:清空所有数据库
      * @return bool
      */
-//    protected function clear($type='db'){
+
+
     public function clear($type='db'){
         if($type == 'db'){
             $this->_redis->flushdb();
@@ -283,6 +295,8 @@ class TrailController extends Controller
                 $v['starable_type'] = $star['starable_type'];
                 $v['stars_name'] = $starsInfo['name'];
                 $v['id'] = hashid_encode($v['id']);
+                $v['last_follow_up_at_or_created_at'] = $v['up_time'];
+                unset($v['up_time']);
                 $this->set_redis_page_info('trails', $k, $v);
             }
         }

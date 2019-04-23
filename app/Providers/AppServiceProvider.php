@@ -23,12 +23,11 @@ use App\Models\Report;
 use App\Models\Department;
 use App\Models\Repository;
 use App\User;
-
+use App\Observers\TrailObserver;
 use App\ModuleableType;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Log;
-use App\Observers\TrailObserver;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -75,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
         //token过期时间
         $this->app->get(AuthorizationServer::class)
             ->enableGrantType(new PersonalAccessGrant(), new \DateInterval('P1W'));
-        // 线索
+
         Trail::observe(TrailObserver::class);
         //对列失败
         Queue::failing(function (JobFailed $event){

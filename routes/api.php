@@ -234,21 +234,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
 
         //stars
         $api->post('stars/list', "App\Http\Controllers\StarController@getStarList2");
+
         //签约中的艺人，艺人列表
         $api->post('/signing/stars/list', "App\Http\Controllers\StarController@getStarList2");
 
         $api->get('stars/detail/{star}', "App\Http\Controllers\StarController@getStarDeatil");
         //签约中的艺人，艺人详情
         $api->get('/signing/stars/detail/{star}', "App\Http\Controllers\StarController@getStarDeatil");
-
-
-        $api->post('stars/list',"App\Http\Controllers\StarController@getStarList2");
-        //签约中的艺人，艺人列表
-        $api->post('/signing/stars/list',"App\Http\Controllers\StarController@getStarList2");
-
-        $api->get('stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");
-        //签约中的艺人，艺人详情
-        $api->get('/signing/stars/detail/{star}',"App\Http\Controllers\StarController@getStarDeatil");
 
         $api->post('/stars/export', 'App\Http\Controllers\StarController@export')->middleware('export');
         //签约中的艺人,导出艺人
@@ -330,12 +322,13 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         //->middleware('export')
 
 
-        $api->post('/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
-        $api->post('/signing/bloggers/list','App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+        $api->post('/bloggers/list', 'App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
+        $api->post('/signing/bloggers/list', 'App\Http\Controllers\BloggerController@bloggerList2');//测试博主列表优化
 
-        $api->get('/bloggers/detail/{blogger}','App\Http\Controllers\BloggerController@getBloggerDetail');
+
+        $api->get('/bloggers/detail/{blogger}', 'App\Http\Controllers\BloggerController@getBloggerDetail');
         //签约中的博主，博主详情
-        $api->get('/signing/bloggers/detail/{blogger}','App\Http\Controllers\BloggerController@getBloggerDetail');
+        $api->get('/signing/bloggers/detail/{blogger}', 'App\Http\Controllers\BloggerController@getBloggerDetail');
 
 
         $api->post('/bloggers/export', 'App\Http\Controllers\BloggerController@export')->middleware('export');
@@ -525,13 +518,14 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/filter', 'App\Http\Controllers\TrailController@filter');
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
-        $api->get('/trailsOne', 'App\Http\Controllers\TrailController@indexOne');
+
+
         $api->get('/trails/clear', 'App\Http\Controllers\TrailController@clear');
+        $api->get('/trailsOne', 'App\Http\Controllers\TrailController@indexOne');
         //客户  公司 品牌
         $api->get('/getCompanyBrand', 'App\Http\Controllers\TrailController@getCompanyBrand');
         //品牌带出行业
         $api->get('/brandOrCompany', 'App\Http\Controllers\TrailController@BrandOrCompany');
-
 
         $api->get('/trails/all', 'App\Http\Controllers\TrailController@all');
         $api->get('/trails/search', 'App\Http\Controllers\TrailController@search');

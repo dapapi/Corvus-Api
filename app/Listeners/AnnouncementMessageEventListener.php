@@ -4,8 +4,7 @@ namespace App\Listeners;
 
 use App\Events\AnnouncementMessageEvent;
 
-use App\Helper\Common;
-
+use App\Models\Department;
 use App\Models\DepartmentUser;
 use App\Models\Message;
 use App\Models\Project;

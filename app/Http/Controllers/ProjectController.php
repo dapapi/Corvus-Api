@@ -1446,8 +1446,8 @@ class ProjectController extends Controller
                         ],
                     ]
                 ],
-                'television_type',
-                'platforms'
+                'television_type' => $item->television_type,
+                'platforms' => $item->platforms,
             ];
         });
         $data = $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));

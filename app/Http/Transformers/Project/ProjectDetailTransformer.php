@@ -50,7 +50,6 @@ class ProjectDetailTransformer extends TransformerAbstract
                     ]
                 ],
                 # 原 线索相关字段
-                'trail_id' => !empty($project->trail_id) ? hashid_encode($project->trail_id) : null,
                 'resource_type' => $project->resource_type,
                 'resource' => $project->resource,
                 'fee' => $project->fee,
@@ -76,6 +75,13 @@ class ProjectDetailTransformer extends TransformerAbstract
 
             ];
 
+            if ($project->trail_id)
+                $array['trail'] = [
+                    'data' => [
+                        'id' => hashid_encode($project->trail_id),
+                        'title' => $project->trail->title,
+                    ]
+                ];
 
             if ($project->creator_id != $this->user->id && $project->principal_id != $this->user->id) {
                 foreach ($array as $key => $value) {

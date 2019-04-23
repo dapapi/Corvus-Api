@@ -34,6 +34,8 @@ use App\Models\OperateEntity;
 use App\Models\Client;
 use App\Models\Contact;
 use App\Models\Trail;
+use App\Models\Blogger;
+use App\Models\Star;
 use App\Models\TrailStar;
 use App\OperateLogMethod;
 use App\Repositories\DepartmentRepository;
@@ -57,17 +59,110 @@ use Maatwebsite\Excel\Facades\Excel;
 class TrailController extends Controller
 {
     private $departmentRepository;
-    public function __construct(DepartmentRepository $departmentRepository)
+    protected $_redis;
+    public function __construct($hash_prefix='',DepartmentRepository $departmentRepository)
     {
+        $this->_redis = Redis::connection('trails');
+      //  $this->_redis = app('redis')->connection('trails');
         $this->departmentRepository = $departmentRepository;
     }
+    protected function set_redis_page_info($hash_prefix,$id,$data){
+        if(!is_numeric($id) || !is_array($data)) return false;
+        $hashName = $hash_prefix.'_'.$data['id'];
+        $user = Auth::guard('api')->user();
+        $this->_redis->hmset($hashName, $data);
+        $this->_redis->zadd($hash_prefix.'_sort_'.$user->id,$id,$data['id']);  //  zadd  表名    score   value
+        return true;
+    }
+    /*
+     * 获取分页数据
+     * @param $hash_prefix 前缀
+     * @param $page 当前页数
+     * @param $pageSize 每页多少条
+     * @param $hashName Hash 记录名称
+     * @param $SortName Redis SortSet 记录名称
+     * @param $redis Redis 对象
+     * @param $key 字段数组 不传为取出全部字段
+     * @return array
+     */
+    protected function get_redis_page_info($hash_prefix,$page,$pageSize,$key=array()){
+        if(!is_numeric($page) || !is_numeric($pageSize)) return false;
+        $user = Auth::guard('api')->user();
+        $limit_s = ($page-1) * $pageSize;
+        $limit_e = ($limit_s + $pageSize) - 1;
+        $range = $this->_redis->zrange($hash_prefix.'_sort_'.$user->id,$limit_s,$limit_e); //指定区间内，带有 score 值(可选)的有序集成员的列表。
+        $count = $this->_redis->zcard($hash_prefix.'_sort_'.$user->id); //统计ScoreSet总数
+        $pageCount = ceil($count/$pageSize); //总共多少页
+        $pageList = array();
+        foreach($range as $qid){
+            if(count($key) > 0){
+                $pageList[] = $this->_redis->hmget($hash_prefix.'_'.$qid,$key); //获取hash表中所有的数据
+            }else{
+                $pageList[] = $this->_redis->hgetall($hash_prefix.'_'.$qid); //获取hash表中所有的数据
+            }
+        }
+        $data = array(
+            'data'=>$pageList, //需求数据
+            'page'=>array(
+                'page'=>$page, //当前页数
+                'pageSize'=>$pageSize, //每页多少条
+                'count'=>$count, //记录总数
+                'pageCount'=>$pageCount //总页数
+            )
+        );
+        return $data;
+    }
+    /*
+        * 获取单条记录
+        * @param $id id
+        * @return array
+        */
+    protected function show_redis_page_info($hash_prefix,$id){
+        $info = $this->_redis->hgetall($hash_prefix.'_'.$id);
+        return $info;
+    }
+
+    /*
+     * 删除记录 单条或多条
+     * @param $ids ids 数组形式 [1,2,3]
+     * @param $hashName Hash 记录名称
+     * @param $SortName Redis SortSet 记录名称
+     * @param $redis Redis 对象
+     * @return bool
+     */
+    protected function del_redis_page_info($hash_prefix,$ids){
+        if(!is_array($ids)) return false;
+        $user = Auth::guard('api')->user();
+        foreach($ids as $value){
+            $hashName = $hash_prefix.'_'.$value;
+            $this->_redis->del($hashName);
+            $this->_redis->zrem($hash_prefix.'_sort'.$user->id,$value);
+        }
+        return true;
+    }
+
+    /*
+     * 清空数据
+     * @param string $type db:清空当前数据库 all:清空所有数据库
+     * @return bool
+     */
+    protected function clear($type='db'){
+        if($type == 'db'){
+            $this->_redis->flushdb();
+        }elseif($type == 'all'){
+            $this->_redis->flushall();
+        }else{
+            return false;
+        }
+        return true;
+    }
+
 
     public function index(FilterTrailRequest $request)
     {
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
         $trails = Trail::where(function ($query) use ($request, $payload,$user) {
             if ($request->has('keyword') && $payload['keyword'])
                 $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
@@ -122,45 +217,76 @@ class TrailController extends Controller
         $payload = $request->all();
         $user = Auth::guard('api')->user();
         $pageSize = $request->get('page_size', config('app.page_size'));
-
-        $trails = Trail::where(function ($query) use ($request, $payload,$user) {
-            if ($request->has('keyword') && $payload['keyword'])
-                $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
-            if ($request->has('principal_ids') && $payload['principal_ids']) {
-                $payload['principal_ids'] = explode(',', $payload['principal_ids']);
-                foreach ($payload['principal_ids'] as &$id) {
-                    $id = hashid_decode((int)$id);
+        $page = $request->has('page') ? $payload['page'] : 1 ;
+        if(!$this->_redis->exists('trails_sort_'.$user->id)) {
+            $trails = Trail::where(function ($query) use ($request, $payload, $user) {
+                if ($request->has('keyword') && $payload['keyword'])
+                    $query->where('trails.title', 'LIKE', '%' . $payload['keyword'] . '%');
+                if ($request->has('principal_ids') && $payload['principal_ids']) {
+                    $payload['principal_ids'] = explode(',', $payload['principal_ids']);
+                    foreach ($payload['principal_ids'] as &$id) {
+                        $id = hashid_decode((int)$id);
+                    }
+                    unset($id);
+                    $query->whereIn('principal_id', $payload['principal_ids']);
                 }
-                unset($id);
-                $query->whereIn('principal_id', $payload['principal_ids']);
-            }
-            if($request->has('type') && $payload['type'])
-                $query->where('type',$payload['type']);
-            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
-                $query->where('type',1);
-            else if(in_array($user->id,$this->getRoleUser(Trail::VARIETY_PERSONNEL)))
-                $query->where('type',2);
-            else if(in_array($user->id,$this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
-                $query->whereIn('type',['3,4']);
-            else
-                $query->whereIn('type',['3,4']);
-        })
-            ->searchData()->poolType()
-            //->orderBy('created_at', 'desc')
-            ->leftJoin('operate_logs',function($join){
-                $join->on('trails.id','operate_logs.logable_id')
-                    ->where('logable_type',ModuleableType::TRAIL)
-                    ->where('operate_logs.method','4');
-            })->groupBy('trails.id')
-            ->where('trails.id','>',0)
-            ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')
-            ->select(['trails.id','trails.title','trails.client_id','trails.principal_id','trails.status'
-                ,DB::raw("if(max(`operate_logs`.`updated_at`) is null,`trails`.`created_at`,
+                if ($request->has('type') && $payload['type'])
+                    $query->where('type', $payload['type']);
+                else if (in_array($user->id, $this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+                    $query->where('type', 1);
+                else if (in_array($user->id, $this->getRoleUser(Trail::VARIETY_PERSONNEL)))
+                    $query->where('type', 2);
+                else if (in_array($user->id, $this->getRoleUser(Trail::COMMERCIAL_PERSONNEL)))
+                    $query->whereIn('type', ['3,4']);
+                else
+                    $query->whereIn('type', ['3,4']);
+            })
+                ->searchData()->poolType()
+                //->orderBy('created_at', 'desc')
+                ->leftJoin('operate_logs', function ($join) {
+                    $join->on('trails.id', 'operate_logs.logable_id')
+                        ->where('logable_type', ModuleableType::TRAIL)
+                        ->where('operate_logs.method', '4');
+                })->groupBy('trails.id')
+                ->where('trails.id', '>', 0)
+                ->orderBy('up_time', 'desc')->orderBy('trails.created_at', 'desc')
+                ->select(['trails.id', 'trails.title', 'trails.client_id', 'trails.principal_id', 'trails.status'
+                    , DB::raw("if(max(`operate_logs`.`updated_at`) is null,`trails`.`created_at`,
                 max(`operate_logs`.`updated_at`))  as up_time")])
-            ->paginate($pageSize);
-//        $sql_with_bindings = str_replace_array('?', $trails->getBindings(), $trails->toSql());
-//        dd($sql_with_bindings);
-        return $this->response->paginator($trails, new TrailIndexOneTransformer());
+                ->get()->toArray();
+            foreach ($trails as $k => $v) {
+                //查询负责人
+                $principal = User::where('users.id', $v['principal_id'])
+                    ->select('users.name')->first();
+                $v['principal_name'] = $principal['name'];
+                //查询艺人
+                //客户字段
+//        'client.customer','client.brand',
+                $client = Client::where('clients.id', $v['client_id'])
+                    ->select('customer', 'brand')->first();
+                $v['customer'] = $client['customer'];
+                $v['brand'] = $client['brand'];
+
+                $star = TrailStar::where('trail_star.trail_id', $v['id'])->where('type', TrailStar::EXPECTATION)->first(['starable_id', 'starable_type']);
+                if ($star) {
+                    if ($star['starable_type'] == ModuleableType::BLOGGER) {
+                        $starsInfo = Blogger::where('id', $star['starable_id'])->select('bloggers.nickname as name')->first()->toArray();
+                    } else if ($star['starable_type'] == ModuleableType::STAR) {
+                        $starsInfo = Star::where('id', $star['starable_id'])->select('stars.name as name')->first()->toArray();
+                    } else {
+                        $starsInfo['name'] = '';
+                    }
+                } else
+                    $starsInfo['name'] = '';
+                $v['starable_id'] = hashid_encode($v['id']);
+                $v['starable_type'] = $star['starable_type'];
+                $v['stars_name'] = $starsInfo['name'];
+                $v['id'] = hashid_encode($v['id']);
+                $this->set_redis_page_info('trails', $k, $v);
+            }
+        }
+        return  $this->get_redis_page_info('trails',$page,$pageSize);
+
     }
     public function getRoleUser($roleId)
     {
@@ -1053,7 +1179,6 @@ class TrailController extends Controller
 
 
             }
-
             if ($request->has('recommendations') && is_array($payload['recommendations'])) {
                 try{
                     $repository = new TrailStarRepository();

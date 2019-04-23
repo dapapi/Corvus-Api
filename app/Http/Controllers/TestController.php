@@ -7,6 +7,7 @@ use App\Helper\Common;
 use App\Jobs\ProjectImplode;
 use App\Models\OperateEntity;
 use App\Models\Project;
+use App\Models\Star;
 use App\Models\Task;
 use App\ModuleableType;
 use App\ModuleUserType;
@@ -216,11 +217,10 @@ class TestController extends Controller
 
     public function test()
     {
-        Project::orderBy('id')->chunk(10, function ($projects) {
-            foreach ($projects as $project) {
-                dispatch(new ProjectImplode($project));
-            }
-        });
+        $s = Star::first();
+        $t = $s->projects();
+        $sql_with_bindings = str_replace_array('?', $t->getBindings(), $t->toSql());
+        dd($sql_with_bindings);
     }
 
     public function task()

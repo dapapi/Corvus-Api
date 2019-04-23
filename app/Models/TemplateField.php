@@ -17,6 +17,7 @@ class TemplateField extends Model
         'is_secret',
     ];
 
+    # todo 加金额类型
     // 定义字段类型
     const TEXT = 1; // 文本
     const RADIO = 2; // 单选
@@ -28,6 +29,7 @@ class TemplateField extends Model
     const DEPARTMENT = 10; // 选组织架构中的组
     const NUM = 11; // 纯数值
     const CHECKBOX = 12;
+    const MONEY = 11; // 金额
 
     public function values()
     {

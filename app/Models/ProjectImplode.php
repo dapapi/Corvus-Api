@@ -50,10 +50,12 @@ class ProjectImplode extends Model
         'multi_channel',
         # 线索
         'resource_type',
+        'resource',
         'trail_fee',
         'cooperation_type',
         'trail_status',
         'client',
+        'television_type',
         # 日志
         'last_follow_up_user_id',
         'last_follow_up_user',

@@ -90,6 +90,24 @@ class ProjectDataChangeListener
             case 'end_at':
                 $arr['project_end_at'] = $value;
                 break;
+            case 'resource_type':
+                $arr['resource_type'] = $value;
+                break;
+            case 'resource':
+                $arr['resource'] = $value;
+                break;
+            case 'fee':
+                $arr['trail_fee'] = $value;
+                break;
+            case 'cooperation_type':
+                $arr['cooperation_type'] = $value;
+                break;
+            case 'television_type':
+                $arr['television_type'] = $value;
+                break;
+            case 'play_grade':
+                $arr['play_grade'] = $value;
+                break;
             default:
                 break;
         }

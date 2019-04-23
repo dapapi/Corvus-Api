@@ -170,10 +170,7 @@ AAA;
     {
         return $this->belongsTo(Schedule::class,'calendar_id','id');
     }
-    public function projects()
-    {
 
-    }
     /**
      * 艺人的参与人定义人经理，为了权限加的这个方法
      * @return \Illuminate\Database\Eloquent\Relations\MorphToMany
@@ -185,4 +182,8 @@ AAA;
         return $this->morphToMany(User::class, 'moduleable', 'module_users')->wherePivot('type', ModuleUserType::BROKER);
     }
 
+    public function projects()
+    {
+        return $this->morphToMany(Project::class, 'talent', 'project_talent');
+    }
 }

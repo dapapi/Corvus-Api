@@ -286,6 +286,7 @@ class TrailController extends Controller
             }
         }
         return  $this->get_redis_page_info('trails',$page,$pageSize);
+
     }
     public function getRoleUser($roleId)
     {

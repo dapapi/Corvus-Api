@@ -526,6 +526,7 @@ $api->version('v1', ['middleware' => ['bindings', 'cors']], function ($api) {
         $api->get('/trails/type', 'App\Http\Controllers\TrailController@type');
         $api->get('/trails', 'App\Http\Controllers\TrailController@index');
         $api->get('/trailsOne', 'App\Http\Controllers\TrailController@indexOne');
+        $api->get('/trails/clear', 'App\Http\Controllers\TrailController@clear');
         //客户  公司 品牌
         $api->get('/getCompanyBrand', 'App\Http\Controllers\TrailController@getCompanyBrand');
         //品牌带出行业

@@ -33,7 +33,6 @@ class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-
         // 直接从缓存拿数组
         if (Cache::has(config('app.departments'))) {
 

@@ -146,7 +146,8 @@ class TrailController extends Controller
      * @param string $type db:清空当前数据库 all:清空所有数据库
      * @return bool
      */
-    protected function clear($type='db'){
+//    protected function clear($type='db'){
+    public function clear($type='db'){
         if($type == 'db'){
             $this->_redis->flushdb();
         }elseif($type == 'all'){

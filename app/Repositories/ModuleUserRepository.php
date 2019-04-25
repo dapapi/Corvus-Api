@@ -354,7 +354,7 @@ public function addModuleUserBatch($participantIds, $particalendarsIds, $model, 
          $user = Auth::guard('api')->user();
 
             $is_principal= Calendar::whereIn('id',$particalendarsIds)->where('starable_type',ModuleableType::STAR)->where('principal_id','<>',$user->id)->first();
-         if($is_principal){
+         if(!is_null($is_principal) || $is_principal){
              throw new Exception('您没有艺人日历添加成员的权限');
          }
 //             if (!$moduleUser) {//不存在则添加

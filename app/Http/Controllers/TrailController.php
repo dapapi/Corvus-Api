@@ -102,7 +102,6 @@ class TrailController extends Controller
             }
         }
         $data = array(
-
 //            'data'=>$pageList, //需求数据
 //            'page'=>array(
 //                'page'=>$page, //当前页数
@@ -118,7 +117,6 @@ class TrailController extends Controller
                     'total'=>$count, //记录总数
                     'total_pages'=>$pageCount //总页数
                 )
-
             )
         );
         return $data;
@@ -157,8 +155,6 @@ class TrailController extends Controller
      * @param string $type db:清空当前数据库 all:清空所有数据库
      * @return bool
      */
-
-
     public function clear($type='db'){
         if($type == 'db'){
             $this->_redis->flushdb();
